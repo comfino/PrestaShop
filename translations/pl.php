@@ -1,0 +1,33 @@
+<?php
+
+global $_MODULE;
+$_MODULE = array();
+$_MODULE['<{comfino}prestashop>comfino_ff2ce222ed91fa122aa67a3df0ab31a7'] = 'Lista zamówień - Comfino';
+$_MODULE['<{comfino}prestashop>comfino_f38f5974cdc23279ffe6d203641a8bdf'] = 'Ustawienia zaktualizowane.';
+$_MODULE['<{comfino}prestashop>comfino_c9cc8cce247e49bae79f15173ce97354'] = 'Zapisz';
+$_MODULE['<{comfino}prestashop>comfino_630f6dc397fe74e52d5189e2c80f282b'] = 'Wróć do listy';
+$_MODULE['<{comfino}prestashop>comfino_d876ff8da67c3731ae25d8335a4168b4'] = 'API Key';
+$_MODULE['<{comfino}prestashop>comfino_5616e5b04c8ed774881fe22bf8168f62'] = 'NIP Firmy';
+$_MODULE['<{comfino}prestashop>comfino_a0446f139b03fdbb65b03adfc7a5be76'] = 'Host Produkcyjny';
+$_MODULE['<{comfino}prestashop>comfino_8577134d585cf20c448cdaa3e2f63705'] = 'Host sandboxowy';
+$_MODULE['<{comfino}prestashop>comfino_66df1bc85c16e15b7707b94c57742e23'] = 'Sandbox włączony?';
+$_MODULE['<{comfino}prestashop>comfino_00d23a76e43b46dae9ec7aa9dcbebb32'] = 'Włączony';
+$_MODULE['<{comfino}prestashop>comfino_b9f5c797ebbf55adccdd8539a65a0241'] = 'Wyłączony';
+$_MODULE['<{comfino}prestashop>comfino_e228daa9c5b7bec78933f46885101f50'] = 'Tekst płaności';
+$_MODULE['<{comfino}prestashop>comfino_c19d89f2060b0c822402eb3938282bef'] = 'Czas spłaty';
+$_MODULE['<{comfino}prestashop>comfino_a0cc6d4139acea469ac9f00b8fb54cf9'] = 'Minimalna kwota w koszyku';
+$_MODULE['<{comfino}prestashop>comfino_7d04195cbed7aae924cfd3610fc7027a'] = 'Wersja koloru';
+$_MODULE['<{comfino}prestashop>comfino_9594eec95be70e7b1710f730fdda33d9'] = 'Niebieski';
+$_MODULE['<{comfino}prestashop>comfino_ee38e4d5dd68c4e440825018d549cb47'] = 'Czerwony';
+$_MODULE['<{comfino}prestashop>comfino_f8093de9c132af03de656bce71bd673a'] = 'Prezentacja płatności';
+$_MODULE['<{comfino}prestashop>comfino_0104845b35bad0a91505c41f06159799'] = 'Tylko ikona';
+$_MODULE['<{comfino}prestashop>comfino_f4424a5b498996dbb326c25f75d6d178'] = 'Tylko tekst';
+$_MODULE['<{comfino}prestashop>comfino_dbd0f18330d6befcb7128c81f50131d0'] = 'Ikona i tekst';
+$_MODULE['<{comfino}prestashop>payment_e2b7dec8fa4b498156dfee6e4c84b156'] = 'Ta metoda płatności nie jest dostępna';
+$_MODULE['<{comfino}prestashop>payment_a028489f00d532e9debbf98ab28049d6'] = 'Zapłać z comfino';
+$_MODULE['<{comfino}prestashop>payment_8524de963f07201e5c086830d370797f'] = 'Ładowanie...';
+$_MODULE['<{comfino}prestashop>payment_77c69bf87454fe4c12321f94c9aabb54'] = 'Wystąpił błąd podczas przetwarzania operacji:';
+$_MODULE['<{comfino}prestashop>payment_infos_8524de963f07201e5c086830d370797f'] = 'Ładowanie...';
+$_MODULE['<{comfino}prestashop>payment_infos_77c69bf87454fe4c12321f94c9aabb54'] = 'Wystąpił błąd podczas przetwarzania operacji:';
+$_MODULE['<{comfino}prestashop>payment_error_543dac5f672cf116b68e253ce522d5ef'] = 'Wystąpił błąd podczas składania zamówienia. Skontaktuj się ze sprzedawcą lub wybierz inną płatność.';
+$_MODULE['<{comfino}prestashop>payment_error_16_543dac5f672cf116b68e253ce522d5ef'] = 'Wystąpił błąd podczas składania zamówienia. Skontaktuj się ze sprzedawcą lub wybierz inną płatność.';
