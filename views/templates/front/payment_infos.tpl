@@ -192,7 +192,7 @@
                         <div class="name" style="margin-bottom: 10px;"><strong>`+item.name+`</strong></div>
                         <div class="offer" style="margin-bottom: 10px;">
                             <div><strong>`+item.loanTerm+` rat x `+item.instalmentAmount+` zł</strong></div>
-                            <div>Całkowita kwota do spłaty: <strong>`+item.sumAmount+` zł</strong>, RRSO: `+item.rrso+` %</div>
+                            <div>Całkowita kwota do spłaty: <strong>`+item.toPay+` zł</strong>, RRSO: `+item.rrso+` %</div>
                         </div>
                         <div class="description" style="margin-bottom: 10px;">`+item.description+`</div>
                         <div><a data-modal="modal-`+item.type+`" class="representative" style="color:#1a8196">Przykład reprezentatywny</a></div>
