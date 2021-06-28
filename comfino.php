@@ -212,7 +212,6 @@ class Comfino extends PaymentModule
             Configuration::updateValue('COMFINO_LOAN_TERM', Tools::getValue('COMFINO_LOAN_TERM'));
             Configuration::updateValue('COMFINO_TAX_ID', Tools::getValue('COMFINO_TAX_ID'));
             Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'));
-            Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
             Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', Tools::getValue('COMFINO_PAYMENT_PRESENTATION'));
             $output = $this->l('Settings updated.');
         }
