@@ -152,8 +152,8 @@ class OrdersList extends ObjectModel
             'CREATED',
             'WAITING_FOR_FILLING',
             'WAITING_FOR_CONFIRMATION',
-            'WAITING_FOR_PAYMENT',
-            'ACCEPTED',
+            //'WAITING_FOR_PAYMENT',
+            //'ACCEPTED',
             'REJECTED',
         ];
         $state = Tools::strtoupper($state);
@@ -170,7 +170,7 @@ class OrdersList extends ObjectModel
             return Configuration::get('PS_OS_CANCELED');
         }
 
-        if ($state == 'PAID') {
+        if (in_array($state, ['ACCEPTED', 'WAITING_FOR_PAYMENT', 'PAID']) {
             return Configuration::get('PS_OS_WS_PAYMENT');
         }
 
