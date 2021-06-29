@@ -88,6 +88,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
 
                 $installmentAmount =  ((float)$item['instalmentAmount']) / 100;
                 $rrso = ((float)$item['rrso']) * 100;
+                $toPay =  ((float)$item['toPay']) / 100;
                 $payment_infos[] = [
                     'name' => $item['name'],
                     'description' => $item['description'],
@@ -98,6 +99,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                     'rrso' => number_format($rrso, 2, ',', ' '),
                     'loanTerm' => Configuration::get('COMFINO_LOAN_TERM'),
                     'instalmentAmount' => number_format($installmentAmount, 2, ',', ' '),
+                    'toPay' => number_format($toPay, 2, ',', ' '),
                 ];
             }
         }
