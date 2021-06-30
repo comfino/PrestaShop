@@ -23,6 +23,7 @@ $_MODULE['<{comfino}prestashop>comfino_f8093de9c132af03de656bce71bd673a'] = 'Pre
 $_MODULE['<{comfino}prestashop>comfino_0104845b35bad0a91505c41f06159799'] = 'Tylko ikona';
 $_MODULE['<{comfino}prestashop>comfino_f4424a5b498996dbb326c25f75d6d178'] = 'Tylko tekst';
 $_MODULE['<{comfino}prestashop>comfino_dbd0f18330d6befcb7128c81f50131d0'] = 'Ikona i tekst';
+$_MODULE['<{comfino}prestashop>comfino_3b99a3ca28a0c934b784d0c2c77d1823'] = 'Nie podano numeru telefonu w adresach. Proszę uzupełnij wartość przed wybraniem opcji płatności Comfino.';
 $_MODULE['<{comfino}prestashop>payment_e2b7dec8fa4b498156dfee6e4c84b156'] = 'Ta metoda płatności nie jest dostępna';
 $_MODULE['<{comfino}prestashop>payment_a028489f00d532e9debbf98ab28049d6'] = 'Zapłać z comfino';
 $_MODULE['<{comfino}prestashop>payment_8524de963f07201e5c086830d370797f'] = 'Ładowanie...';

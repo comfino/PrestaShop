@@ -62,7 +62,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $address = $cart->getAddressCollection();
         if (!$address[$cart->id_address_delivery]->phone) {
-            Tools::redirect('index.php?controller=order&step=1');
+            $this->errors[] = $this->l('No phone number in addresses found. Please fill value before choosing comfino payment option.');
+            $this->redirectWithNotifications('index.php?controller=order&step=1');
 
             return;
         }
