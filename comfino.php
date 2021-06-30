@@ -29,6 +29,7 @@ if (!defined('_PS_VERSION_')) {
 }
 
 require_once('src/ColorVersion.php');
+require_once('models/OrdersList.php');
 require_once('src/PresentationType.php');
 require_once('src/Api.php');
 
