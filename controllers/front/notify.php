@@ -46,13 +46,7 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
             die("Status must be set");
         }
 
-        $order = new Order($data['externalId']);
-        $order_state = OrdersList::getState($data['status']);
-
-        if ($order->getCurrentOrderState()->id != $order_state) {
-            $order->setCurrentState($order_state);
-            $order->save();
-        }
+        OrdersList::processState($data['externalId'], $data['status']);
 
         exit(true);
     }
