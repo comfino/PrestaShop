@@ -170,7 +170,7 @@ class OrdersList extends ObjectModel
             return Configuration::get('PS_OS_CANCELED');
         }
 
-        if (in_array($state, ['ACCEPTED', 'WAITING_FOR_PAYMENT', 'PAID']) {
+        if (in_array($state, ['ACCEPTED', 'WAITING_FOR_PAYMENT', 'PAID'])) {
             return Configuration::get('PS_OS_WS_PAYMENT');
         }
 
