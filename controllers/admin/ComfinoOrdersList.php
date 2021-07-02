@@ -56,7 +56,7 @@ class ComfinoOrdersListController extends ModuleAdminController
                 return false;
             }
 
-            OrdersList::processState($data['externalId'], $data['status']);
+            OrdersList::processState($data['orderId'], $data['status']);
 
             return true;
         }

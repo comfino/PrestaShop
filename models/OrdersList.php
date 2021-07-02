@@ -223,9 +223,32 @@ class OrdersList extends ObjectModel
         $order->setCurrentState(Configuration::get(self::getState($status)));
         $order->save();
 
-        if (isset(self::CHANGE_STATUS_MAP[$status])) {
-            $order->setCurrentState(ConfigurationCore::get(self::CHANGE_STATUS_MAP[$status]));
-            $order->save();
+        self::setSecondState($status, $order);
+    }
+
+    private static function setSecondState(string $status, OrderCore $order): void
+    {
+        if (!isset(self::CHANGE_STATUS_MAP[$status])) {
+            return;
         }
+
+        if (self::wasSecondStatusSetInHistory($status, $order)){
+            return;
+        }
+
+        $order->setCurrentState(ConfigurationCore::get(self::CHANGE_STATUS_MAP[$status]));
+        $order->save();
+    }
+
+    private static function wasSecondStatusSetInHistory(string $status, OrderCore $order): bool
+    {
+        $idOrderState = ConfigurationCore::get(self::CHANGE_STATUS_MAP[$status]);
+        foreach ($order->getHistory(0) as $historyElement) {
+            if ($historyElement['id_order_state'] === $idOrderState) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
