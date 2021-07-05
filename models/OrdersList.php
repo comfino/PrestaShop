@@ -37,6 +37,62 @@
  */
 class OrdersList extends ObjectModel
 {
+    const CREATED = 'CREATED';
+    const WAITING_FOR_FILLING = 'WAITING_FOR_FILLING';
+    const WAITING_FOR_CONFIRMATION = 'WAITING_FOR_CONFIRMATION';
+    const WAITING_FOR_PAYMENT = 'WAITING_FOR_PAYMENT';
+    const ACCEPTED = 'ACCEPTED';
+    const PAID = 'PAID';
+    const REJECTED = 'REJECTED';
+    const CANCELLED_BY_SHOP = 'CANCELLED_BY_SHOP';
+    const CANCELLED = 'CANCELLED';
+
+    const COMFINO_CREATED = 'COMFINO_CREATED';
+    const COMFINO_WAITING_FOR_FILLING = 'COMFINO_WAITING_FOR_FILLING';
+    const COMFINO_WAITING_FOR_CONFIRMATION = 'COMFINO_WAITING_FOR_CONFIRMATION';
+    const COMFINO_WAITING_FOR_PAYMENT = 'COMFINO_WAITING_FOR_PAYMENT';
+    const COMFINO_ACCEPTED = 'COMFINO_ACCEPTED';
+    const COMFINO_PAID = 'COMFINO_PAID';
+    const COMFINO_REJECTED = 'COMFINO_REJECTED';
+    const COMFINO_CANCELLED_BY_SHOP = 'COMFINO_CANCELLED_BY_SHOP';
+    const COMFINO_CANCELLED = 'COMFINO_CANCELLED';
+
+    const STATUSES = [
+        self::CREATED => self::COMFINO_CREATED,
+        self::WAITING_FOR_FILLING => self::COMFINO_WAITING_FOR_FILLING,
+        self::WAITING_FOR_CONFIRMATION => self::COMFINO_WAITING_FOR_CONFIRMATION,
+        self::WAITING_FOR_PAYMENT => self::COMFINO_WAITING_FOR_PAYMENT,
+        self::ACCEPTED => self::COMFINO_ACCEPTED,
+        self::REJECTED => self::COMFINO_REJECTED,
+        self::PAID => self::COMFINO_PAID,
+        self::CANCELLED_BY_SHOP => self::COMFINO_CANCELLED_BY_SHOP,
+        self::CANCELLED => self::COMFINO_CANCELLED,
+    ];
+
+    /**
+     * After setting notification status we want some statuses to change to internal prestashop statuses right away
+     */
+    const CHANGE_STATUS_MAP = [
+        self::WAITING_FOR_PAYMENT => 'PS_OS_WS_PAYMENT',
+        self::ACCEPTED => 'PS_OS_WS_PAYMENT',
+        self::PAID => 'PS_OS_WS_PAYMENT',
+        self::CANCELLED => 'PS_OS_CANCELED',
+        self::CANCELLED_BY_SHOP => 'PS_OS_CANCELED',
+        self::REJECTED => 'PS_OS_CANCELED',
+    ];
+
+    const ADD_ORDER_STATUSES = [
+        self::COMFINO_CREATED => 'Order created (comfino)',
+        self::COMFINO_WAITING_FOR_FILLING => 'Waiting for form\'s filling (comfino)',
+        self::COMFINO_WAITING_FOR_CONFIRMATION => 'Waiting for form\'s confirnmation (comfino)',
+        self::COMFINO_WAITING_FOR_PAYMENT => 'Waiting for payment (comfino)',
+        self::COMFINO_ACCEPTED => 'Credit granted (comfino)',
+        self::COMFINO_PAID => 'Paid (comfino)',
+        self::COMFINO_REJECTED => 'Credit rejected (comfino)',
+        self::COMFINO_CANCELLED_BY_SHOP => 'Cancelled by shop (comfino)',
+        self::COMFINO_CANCELLED => 'Cancelled (comfino)',
+    ];
+
     public static $definition = [
         'table' => 'comfino_orders',
         'primary' => 'id',
@@ -148,32 +204,52 @@ class OrdersList extends ObjectModel
 
     public static function getState($state)
     {
-        $comfinoStates = [
-            'CREATED',
-            'WAITING_FOR_FILLING',
-            'WAITING_FOR_CONFIRMATION',
-            //'WAITING_FOR_PAYMENT',
-            //'ACCEPTED',
-            'REJECTED',
-        ];
         $state = Tools::strtoupper($state);
 
-        if (in_array($state, $comfinoStates)) {
-            return Configuration::get("COMFINO_$state");
+        if (in_array($state, array_keys(self::STATUSES))) {
+            return self::STATUSES[$state];
         }
 
-        if ($state == 'CANCELLED') {
-            return Configuration::get('PS_OS_CANCELED');
+        return 'PS_OS_ERROR';
+    }
+
+    public static function processState($orderId, $status)
+    {
+        $order = new OrderCore($orderId);
+
+        if (!ValidateCore::isLoadedObject($order)) {
+            throw new \Exception(sprintf('Order not found by id: %s', $orderId));
         }
 
-        if ($state == 'CANCELLED_BY_SHOP') {
-            return Configuration::get('PS_OS_CANCELED');
+        $order->setCurrentState(Configuration::get(self::getState($status)));
+        $order->save();
+
+        self::setSecondState($status, $order);
+    }
+
+    private static function setSecondState(string $status, OrderCore $order): void
+    {
+        if (!isset(self::CHANGE_STATUS_MAP[$status])) {
+            return;
         }
 
-        if (in_array($state, ['ACCEPTED', 'WAITING_FOR_PAYMENT', 'PAID'])) {
-            return Configuration::get('PS_OS_WS_PAYMENT');
+        if (self::wasSecondStatusSetInHistory($status, $order)){
+            return;
         }
 
-        return Configuration::get('PS_OS_ERROR');
+        $order->setCurrentState(ConfigurationCore::get(self::CHANGE_STATUS_MAP[$status]));
+        $order->save();
+    }
+
+    private static function wasSecondStatusSetInHistory(string $status, OrderCore $order): bool
+    {
+        $idOrderState = ConfigurationCore::get(self::CHANGE_STATUS_MAP[$status]);
+        foreach ($order->getHistory(0) as $historyElement) {
+            if ($historyElement['id_order_state'] === $idOrderState) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

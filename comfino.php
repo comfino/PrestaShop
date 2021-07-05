@@ -29,6 +29,7 @@ if (!defined('_PS_VERSION_')) {
 }
 
 require_once('src/ColorVersion.php');
+require_once('models/OrdersList.php');
 require_once('src/PresentationType.php');
 require_once('src/Api.php');
 
@@ -108,14 +109,7 @@ class Comfino extends PaymentModule
 
     public function addOrderStates()
     {
-        $orderStates = [
-            'COMFINO_CREATED' => 'Order created (comfino)',
-            'COMFINO_WAITING_FOR_FILLING' => 'Waiting for form\'s filling (comfino)',
-            'COMFINO_WAITING_FOR_CONFIRMATION' => 'Waiting for form\'s confirnmation (comfino)',
-            'COMFINO_WAITING_FOR_PAYMENT' => 'Waiting for payment (comfino)',
-            'COMFINO_ACCEPTED' => 'Credit granted (comfino)',
-            'COMFINO_REJECTED' => 'Credit rejected (comfino)',
-        ];
+        $orderStates = OrdersList::ADD_ORDER_STATUSES;
 
         $errors = [];
         foreach ($orderStates as $state => $name) {
