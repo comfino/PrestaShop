@@ -78,6 +78,7 @@ class OrdersList extends ObjectModel
         self::PAID => 'PS_OS_WS_PAYMENT',
         self::CANCELLED => 'PS_OS_CANCELED',
         self::CANCELLED_BY_SHOP => 'PS_OS_CANCELED',
+        self::REJECTED => 'PS_OS_CANCELED',
     ];
 
     const ADD_ORDER_STATUSES = [
