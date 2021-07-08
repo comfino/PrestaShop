@@ -60,7 +60,7 @@ For the module correct work, configuration is required. You can do this by click
 Change order status to complete. The result is invoice and shipment products.
 
 * ACCEPTED
-* WAITING_FOR_PAIMENT
+* WAITING_FOR_PAYMENT
 * PAID
 
 ## FLOW
