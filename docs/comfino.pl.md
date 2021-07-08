@@ -58,7 +58,7 @@ Kolejnymi polami wartymi uwagi są:
 Zmieniają status zamówenia na kompletny. Wynikiem jest faktura i wysyłka towaru.
 
 * ACCEPTED
-* WAITING_FOR_PAIMENT
+* WAITING_FOR_PAYMENT
 * PAID
 
 ## FLOW
