@@ -71,7 +71,6 @@ class ComfinoApi
             'orderId' => (string)$order_id,
             'draft' => false,
             'loanParameters' => [
-                'amount' => (int) $total,
                 'term' => (int) $cookie->loan_term,
                 'type' => $cookie->loan_type
             ],
