@@ -1,6 +1,6 @@
 ## POBIERANIE WTYCZKI
 
-Otwórz stronę https://github.com/comfino/PrestaShop/releases i pobierz najnowszą wersje wtyczki
+Otwórz stronę https://github.com/comfino/PrestaShop/releases i pobierz najnowszą wersję wtyczki.
 
 ## INSTALACJA
 
