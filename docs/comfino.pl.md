@@ -20,7 +20,7 @@ Aby zainstalować moduł należy przejść do zakładki `"Moduły -> Manedżer m
 
 ## KONFIGURACJA
 
-Aby moduł mógł działać konieczne jest skonfigurowanie go. Pole które są najbardziej istotne i należy je wypełnić to: `"API Key"`. 
+Aby moduł mógł działać konieczne jest skonfigurowanie go. Pole które jest najbardziej istotne i należy je wypełnić to: `"API Key"`. 
 Kolejnymi polami wartymi uwagi są:
 
 * Nazwa płatności - pole odpowiada za tekst wyświetlany przy płatności. Domyślnie `"Pay with comperia"`
