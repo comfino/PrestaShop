@@ -1,8 +1,8 @@
 ## DOWNLOAD PLUGIN
 
-Open page https://github.com/comfino/PrestaShop/releases and download latest plugin
+Open page https://github.com/comfino/PrestaShop/releases and download latest plugin.
 
-## INSTALATION
+## INSTALLATION
 
 Prestashop 1.6.*
 ----------------
