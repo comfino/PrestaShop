@@ -1,0 +1,23 @@
+services:
+    Comfino\Controller\OrderController:
+        class: Comfino\Controller\OrderController
+        parent: PrestaShopBundle\Controller\Admin\Sell\Order\OrderController
+        file: '%modules_dir%/comfino/src/Controller/OrderController.php'
+
+    prestashop.core.form.choice_provider.order_state_by_id:
+        class: Comfino\Form\ChoiceProvider\OrderStateByIdChoiceProvider
+        file: '%modules_dir%/comfino/src/Form/ChoiceProvider/OrderStateByIdChoiceProvider.php'
+        arguments:
+            - '@=service("prestashop.adapter.legacy.context").getLanguage().id'
+            - '@prestashop.adapter.data_provider.order_state'
+            - '@prestashop.core.util.color_brightness_calculator'
+            - '@translator'
+
+    form.type.order.update_order_status:
+        class: Comfino\Form\Admin\Sell\Order\UpdateOrderStatusType
+        file: '%modules_dir%/comfino/src/Form/Admin/Sell/Order/UpdateOrderStatusType.php'
+        arguments:
+            - '@prestashop.core.form.choice_provider.order_state_by_id'
+            - '@=service("prestashop.core.form.choice_provider.order_state_by_id").getChoicesAttributes()'
+        tags:
+            - { name: form.type }
