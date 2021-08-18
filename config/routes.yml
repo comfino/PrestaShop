@@ -6,7 +6,7 @@ admin_orders_view:
         _legacy_controller: AdminOrders
         _legacy_link: AdminOrders:vieworder
         _legacy_parameters:
-        id_order: orderId
+            id_order: orderId
         _disable_module_prefix: true
     options:
         expose: true
