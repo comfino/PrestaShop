@@ -3,9 +3,12 @@
 namespace Comfino\Controller;
 
 use Exception;
+use PrestaShop\PrestaShop\Core\Data\AbstractTypedCollection;
 use PrestaShop\PrestaShop\Core\Domain\CartRule\Exception\InvalidCartRuleDiscountValueException;
+use PrestaShop\PrestaShop\Core\Domain\Order\Command\UpdateOrderStatusCommand;
 use PrestaShop\PrestaShop\Core\Domain\Order\Exception\CannotEditDeliveredOrderProductException;
 use PrestaShop\PrestaShop\Core\Domain\Order\Exception\CannotFindProductInOrderException;
+use PrestaShop\PrestaShop\Core\Domain\Order\Exception\ChangeOrderStatusException;
 use PrestaShop\PrestaShop\Core\Domain\Order\Exception\DuplicateProductInOrderException;
 use PrestaShop\PrestaShop\Core\Domain\Order\Exception\DuplicateProductInOrderInvoiceException;
 use PrestaShop\PrestaShop\Core\Domain\Order\Exception\InvalidAmountException;
@@ -20,6 +23,7 @@ use PrestaShop\PrestaShop\Core\Domain\Order\Exception\OrderNotFoundException;
 use PrestaShop\PrestaShop\Core\Domain\Order\Invoice\Exception\InvoiceException;
 use PrestaShop\PrestaShop\Core\Domain\Order\Query\GetOrderForViewing;
 use PrestaShop\PrestaShop\Core\Domain\Order\QueryResult\OrderForViewing;
+use PrestaShop\PrestaShop\Core\Domain\Order\ValueObject\OrderId;
 use PrestaShop\PrestaShop\Core\Domain\Product\Exception\ProductOutOfStockException;
 use PrestaShop\PrestaShop\Core\Domain\ValueObject\QuerySorting;
 use PrestaShop\PrestaShop\Core\Order\OrderSiblingProviderInterface;
@@ -36,6 +40,7 @@ use PrestaShopBundle\Form\Admin\Sell\Order\OrderMessageType;
 use PrestaShopBundle\Form\Admin\Sell\Order\OrderPaymentType;
 use PrestaShopBundle\Form\Admin\Sell\Order\UpdateOrderShippingType;
 use PrestaShopBundle\Security\Annotation\AdminSecurity;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Comfino\Form\Admin\Sell\Order\UpdateOrderStatusType;
@@ -195,6 +200,65 @@ class OrderController extends \PrestaShopBundle\Controller\Admin\Sell\Order\Orde
             'isAvailableQuantityDisplayed' => $this->configuration->getBoolean('PS_STOCK_MANAGEMENT'),
             'internalNoteForm' => $internalNoteForm->createView(),
         ]);
+    }
+
+    /**
+     * @param int $orderId
+     * @param Request $request
+     *
+     * @AdminSecurity("is_granted('update', request.get('_legacy_controller'))", redirectRoute="admin_orders_index")
+     *
+     * @return RedirectResponse
+     */
+    public function updateStatusAction(int $orderId, Request $request): RedirectResponse
+    {
+        $formFactory = $this->get('form.factory');
+
+        $form = $formFactory->createNamed(
+            'update_order_status',
+            UpdateOrderStatusType::class
+        );
+        $form->handleRequest($request);
+
+        if (!$form->isSubmitted() || !$form->isValid()) {
+            // Check if the form is submit from the action bar
+            $form = $formFactory->createNamed(
+                'update_order_status_action_bar',
+                UpdateOrderStatusType::class
+            );
+            $form->handleRequest($request);
+        }
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->handleOrderStatusUpdate($orderId, (int) $form->getData()['new_order_status_id']);
+        }
+
+        return $this->redirectToRoute('admin_orders_view', [
+            'orderId' => $orderId,
+        ]);
+    }
+
+    /**
+     * Initializes order status update
+     *
+     * @param int $orderId
+     * @param int $orderStatusId
+     */
+    private function handleOrderStatusUpdate(int $orderId, int $orderStatusId): void
+    {
+        try {
+            $this->getCommandBus()->handle(
+                new UpdateOrderStatusCommand(
+                    $orderId,
+                    $orderStatusId
+                )
+            );
+            $this->addFlash('success', $this->trans('Successful update.', 'Admin.Notifications.Success'));
+        } catch (ChangeOrderStatusException $e) {
+            $this->handleChangeOrderStatusException($e);
+        } catch (Exception $e) {
+            $this->addFlash('error', $this->getErrorMessageForException($e, $this->getErrorMessages($e)));
+        }
     }
 
     /**
@@ -360,6 +424,40 @@ class OrderController extends \PrestaShopBundle\Controller\Admin\Sell\Order\Orde
                     $this->trans('This product is out of stock:', 'Admin.Orderscustomers.Notification') . ' ' . $product->getName()
                 );
             }
+        }
+    }
+
+    /**
+     * @param ChangeOrderStatusException $e
+     */
+    private function handleChangeOrderStatusException(ChangeOrderStatusException $e)
+    {
+        $orderIds = array_merge(
+            $e->getOrdersWithFailedToUpdateStatus(),
+            $e->getOrdersWithFailedToSendEmail()
+        );
+
+        /** @var OrderId $orderId */
+        foreach ($orderIds as $orderId) {
+            $this->addFlash(
+                'error',
+                $this->trans(
+                    'An error occurred while changing the status for order #%d, or we were unable to send an email to the customer.',
+                    'Admin.Orderscustomers.Notification',
+                    ['#%d' => $orderId->getValue()]
+                )
+            );
+        }
+
+        foreach ($e->getOrdersWithAssignedStatus() as $orderId) {
+            $this->addFlash(
+                'error',
+                $this->trans(
+                    'Order #%d has already been assigned this status.',
+                    'Admin.Orderscustomers.Notification',
+                    ['#%d' => $orderId->getValue()]
+                )
+            );
         }
     }
 }
