@@ -88,8 +88,8 @@ class Comfino extends PaymentModule
     {
         return Configuration::updateValue('COMFINO_COLOR_VERSION', ComfinoColorVersion::CYAN)
             && Configuration::updateValue('COMFINO_PAYMENT_TEXT', "Pay with Comperia")
-            && Configuration::updateValue('COMFINO_PRODUCTION_HOST', "https://api-ecommerce.comperiaraty.pl")
-            && Configuration::updateValue('COMFINO_SANDBOX_HOST', "https://api-ecommerce.craty.pl")
+            && Configuration::updateValue('COMFINO_PRODUCTION_HOST', "https://api-ecommerce.comfino.pl")
+            && Configuration::updateValue('COMFINO_SANDBOX_HOST', "https://api-ecommerce.ecraty.pl")
             && Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 1000)
             && Configuration::updateValue('COMFINO_LOAN_TERM', 12)
             && Configuration::updateValue('COMFINO_ENABLED', false);
