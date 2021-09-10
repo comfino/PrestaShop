@@ -21,3 +21,10 @@ services:
             - '@=service("prestashop.core.form.choice_provider.order_state_by_id").getChoicesAttributes()'
         tags:
             - { name: form.type }
+
+    prestashop.adapter.order.command_handler.bulk_change_order_status_handler:
+        class: Comfino\Adapter\Order\CommandHandler\BulkChangeOrderStatusHandler
+        file: '%modules_dir%/comfino/src/Adapter/Order/CommandHandler/BulkChangeOrderStatusHandler.php'
+        tags:
+            - name: tactician.handler
+              command: 'PrestaShop\PrestaShop\Core\Domain\Order\Command\BulkChangeOrderStatusCommand'

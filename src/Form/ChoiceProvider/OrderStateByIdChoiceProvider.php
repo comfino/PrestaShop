@@ -2,6 +2,7 @@
 
 namespace Comfino\Form\ChoiceProvider;
 
+use OrdersList;
 use PrestaShop\PrestaShop\Core\Form\ConfigurableFormChoiceProviderInterface;
 use PrestaShop\PrestaShop\Core\Form\FormChoiceAttributeProviderInterface;
 use PrestaShop\PrestaShop\Core\Form\FormChoiceProviderInterface;
@@ -61,13 +62,22 @@ final class OrderStateByIdChoiceProvider implements FormChoiceProviderInterface,
      */
     public function getChoices(array $options = [])
     {
+        require_once __DIR__.'/../../../models/OrdersList.php';
+
         $orderStates = $this->orderStateDataProvider->getOrderStates($this->languageId);
         $choices = [];
         $paymentMethod = $options['payment_method'] ?? '';
         $orderStatesMap = array_combine(array_map(function ($itemValue) { return $itemValue['id_order_state']; }, $orderStates), $orderStates);
+        $comfinoStates = [
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_ACCEPTED],
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_PAID]
+        ];
 
         foreach ($orderStates as $orderState) {
-            if ($paymentMethod === 'Comfino payments' && $orderState['name'] === 'Canceled' && !empty($options['current_state']) && $orderStatesMap[$options['current_state']]['paid'] == 1) {
+            if ($paymentMethod === 'Comfino payments' && $orderState['name'] === 'Canceled' && !empty($options['current_state']) &&
+                ($orderStatesMap[$options['current_state']]['paid'] == 1 || in_array($orderState['name'], $comfinoStates, true))
+            ) {
                 continue;
             }
             if ($orderState['deleted'] == 1 && (empty($options['current_state']) || $options['current_state'] != $orderState['id_order_state'])) {
