@@ -68,15 +68,29 @@ final class OrderStateByIdChoiceProvider implements FormChoiceProviderInterface,
         $choices = [];
         $paymentMethod = $options['payment_method'] ?? '';
         $orderStatesMap = array_combine(array_map(function ($itemValue) { return $itemValue['id_order_state']; }, $orderStates), $orderStates);
-        $comfinoStates = [
+        $comfinoConfirmStates = [
             OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],
             OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_ACCEPTED],
             OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_PAID]
         ];
+        $comfinoStates = [
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_CREATED],
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_FILLING],
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_CONFIRMATION],
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_ACCEPTED],
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_PAID],
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_REJECTED],
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_CANCELLED_BY_SHOP],
+            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_CANCELLED]
+        ];
 
         foreach ($orderStates as $orderState) {
+            if (in_array($orderState['name'], $comfinoStates, true)) {
+                continue;
+            }
             if ($paymentMethod === 'Comfino payments' && $orderState['name'] === 'Canceled' && !empty($options['current_state']) &&
-                ($orderStatesMap[$options['current_state']]['paid'] == 1 || in_array($orderState['name'], $comfinoStates, true))
+                ($orderStatesMap[$options['current_state']]['paid'] == 1 || in_array($orderState['name'], $comfinoConfirmStates, true))
             ) {
                 continue;
             }
