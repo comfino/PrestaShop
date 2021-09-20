@@ -28,3 +28,10 @@ services:
         tags:
             - name: tactician.handler
               command: 'PrestaShop\PrestaShop\Core\Domain\Order\Command\BulkChangeOrderStatusCommand'
+
+    prestashop.adapter.order.command_handler.update_order_status_handler:
+        class: Comfino\Adapter\Order\CommandHandler\UpdateOrderStatusHandler
+        file: '%modules_dir%/comfino/src/Adapter/Order/CommandHandler/UpdateOrderStatusHandler.php'
+        tags:
+            - name: tactician.handler
+              command: PrestaShop\PrestaShop\Core\Domain\Order\Command\UpdateOrderStatusCommand
