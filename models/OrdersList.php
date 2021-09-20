@@ -73,6 +73,9 @@ class OrdersList extends ObjectModel
      * After setting notification status we want some statuses to change to internal prestashop statuses right away
      */
     const CHANGE_STATUS_MAP = [
+        self::CREATED => 'PS_OS_BANKWIRE',
+        self::WAITING_FOR_FILLING => 'PS_OS_BANKWIRE',
+        self::WAITING_FOR_CONFIRMATION => 'PS_OS_BANKWIRE',
         self::WAITING_FOR_PAYMENT => 'PS_OS_WS_PAYMENT',
         self::ACCEPTED => 'PS_OS_WS_PAYMENT',
         self::PAID => 'PS_OS_WS_PAYMENT',
