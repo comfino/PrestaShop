@@ -141,7 +141,11 @@ class OrdersList extends ObjectModel
         $order->self_link = $data['self_link'];
         $order->cancel_link = $data['cancel_link'];
 
-        return $order->save();
+        if ($saveStatus = $order->save()) {
+            self::setSecondState($data['order_status'], $order);
+        }
+
+        return $saveStatus;
     }
 
     public static function getAllOrders()
