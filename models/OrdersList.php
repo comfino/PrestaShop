@@ -70,9 +70,12 @@ class OrdersList extends ObjectModel
     ];
 
     /**
-     * After setting notification status we want some statuses to change to internal prestashop statuses right away
+     * After setting notification status we want some statuses to change to internal PrestaShop statuses right away.
      */
     const CHANGE_STATUS_MAP = [
+        self::CREATED => 'PS_OS_BANKWIRE',
+        self::WAITING_FOR_FILLING => 'PS_OS_BANKWIRE',
+        self::WAITING_FOR_CONFIRMATION => 'PS_OS_BANKWIRE',
         self::WAITING_FOR_PAYMENT => 'PS_OS_WS_PAYMENT',
         self::ACCEPTED => 'PS_OS_WS_PAYMENT',
         self::PAID => 'PS_OS_WS_PAYMENT',
@@ -138,12 +141,18 @@ class OrdersList extends ObjectModel
         $order->self_link = $data['self_link'];
         $order->cancel_link = $data['cancel_link'];
 
-        return $order->save();
+        if ($saveStatus = $order->save()) {
+            $orderCore = new OrderCore($order->id_comfino);
+            self::setSecondState($data['order_status'], $orderCore);
+        }
+
+        return $saveStatus;
     }
 
     public static function getAllOrders()
     {
         $sql = sprintf("SELECT * FROM %scomfino_orders", _DB_PREFIX_);
+
         if ($row = Db::getInstance()->executeS($sql)) {
             $result = [];
 
@@ -185,18 +194,15 @@ class OrdersList extends ObjectModel
     public static function updateOrder($order_id, $key, $value)
     {
         $sql = sprintf(
-            'UPDATE %scomfino_orders SET %s=\'%s\' WHERE id_comfino=\'%s\'',
+            'UPDATE %scomfino_orders SET %s = \'%s\' WHERE id_comfino = \'%s\'',
             _DB_PREFIX_,
             $key,
             $value,
             $order_id
         );
-        if ($row = Db::getInstance()->execute($sql)) {
-            if ($row == null) {
-                return false;
-            }
 
-            return true;
+        if ($row = Db::getInstance()->execute($sql)) {
+            return !($row === null);
         }
 
         return false;
@@ -206,7 +212,7 @@ class OrdersList extends ObjectModel
     {
         $state = Tools::strtoupper($state);
 
-        if (in_array($state, array_keys(self::STATUSES))) {
+        if (array_key_exists($state, self::STATUSES)) {
             return self::STATUSES[$state];
         }
 
@@ -222,7 +228,6 @@ class OrdersList extends ObjectModel
         }
 
         $order->setCurrentState(Configuration::get(self::getState($status)));
-        $order->save();
 
         self::setSecondState($status, $order);
     }
@@ -238,12 +243,12 @@ class OrdersList extends ObjectModel
         }
 
         $order->setCurrentState(ConfigurationCore::get(self::CHANGE_STATUS_MAP[$status]));
-        $order->save();
     }
 
     private static function wasSecondStatusSetInHistory(string $status, OrderCore $order): bool
     {
-        $idOrderState = ConfigurationCore::get(self::CHANGE_STATUS_MAP[$status]);
+        $idOrderState = ConfigurationCore::get($status);
+
         foreach ($order->getHistory(0) as $historyElement) {
             if ($historyElement['id_order_state'] === $idOrderState) {
                 return true;

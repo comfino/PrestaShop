@@ -1,0 +1,24 @@
+admin_orders_view:
+    path: /sell/orders/{orderId}/view
+    methods: [GET, POST]
+    defaults:
+        _controller: Comfino\Controller\OrderController::viewAction
+        _legacy_controller: AdminOrders
+        _legacy_link: AdminOrders:vieworder
+        _legacy_parameters:
+            id_order: orderId
+        _disable_module_prefix: true
+    options:
+        expose: true
+    requirements:
+        orderId: \d+
+
+admin_orders_update_status:
+    path: /{orderId}/status
+    methods: [POST]
+    defaults:
+        _controller: Comfino\Controller\OrderController::updateStatusAction
+        _legacy_controller: AdminOrders
+        _disable_module_prefix: true
+    requirements:
+        orderId: \d+
