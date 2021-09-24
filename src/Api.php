@@ -71,6 +71,7 @@ class ComfinoApi
             'orderId' => (string)$order_id,
             'draft' => false,
             'loanParameters' => [
+                'amount' => (int) $total,
                 'term' => (int) $cookie->loan_term,
                 'type' => $cookie->loan_type
             ],
@@ -103,11 +104,15 @@ class ComfinoApi
             ]
         ];
 
-
         $host = Configuration::get('COMFINO_PRODUCTION_HOST');
         if ((bool)Configuration::get('COMFINO_IS_SANDBOX')) {
             $host = Configuration::get('COMFINO_SANDBOX_HOST');
         }
+        file_put_contents(
+            "." . _MODULE_DIR_ . "/comfino/payment_log.log",
+            "[" . date('Y-m-d H:i:s') . "] Payment data: " . print_r($host, true) . "\n",
+            FILE_APPEND
+        );
 
         $curl = curl_init();
         curl_setopt_array(
@@ -127,6 +132,11 @@ class ComfinoApi
         );
 
         $response = curl_exec($curl);
+        file_put_contents(
+            "." . _MODULE_DIR_ . "/comfino/payment_log.log",
+            "[" . date('Y-m-d H:i:s') . "] Payment data: " . print_r(curl_error($curl), true) . "\n",
+            FILE_APPEND
+        );
 
         $decoded = json_decode($response, true);
         if (isset($decoded['errors'])) {
@@ -225,7 +235,7 @@ class ComfinoApi
         curl_setopt_array(
             $curl,
             [
-                CURLOPT_URL => $self_link,
+                CURLOPT_URL => str_replace('https', 'http', $self_link),
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CUSTOMREQUEST => 'GET',
                 CURLOPT_HTTPHEADER => [
@@ -237,5 +247,33 @@ class ComfinoApi
         curl_close($curl);
 
         return $response;
+    }
+
+    /**
+     * @param string $order_id
+     */
+    public static function cancelOrder($order_id)
+    {
+        $host = Configuration::get('COMFINO_PRODUCTION_HOST');
+        if ((bool)Configuration::get('COMFINO_IS_SANDBOX')) {
+            $host = Configuration::get('COMFINO_SANDBOX_HOST');
+        }
+
+        $curl = curl_init();
+
+        curl_setopt_array(
+            $curl,
+            [
+                CURLOPT_URL => "$host/v1/orders/$order_id/cancel",
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CUSTOMREQUEST => 'PUT',
+                CURLOPT_HTTPHEADER => [
+                    'API-KEY: ' . Configuration::get('COMFINO_API_KEY')
+                ]
+            ]
+        );
+
+        curl_exec($curl);
+        curl_close($curl);
     }
 }

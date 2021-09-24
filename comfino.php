@@ -81,7 +81,8 @@ class Comfino extends PaymentModule
             && $this->registerHook('paymentOptions')
             && $this->registerHook('paymentReturn')
             && $ps16hooks
-            && $this->registerHook('displayBackofficeComfinoForm');
+            && $this->registerHook('displayBackofficeComfinoForm')
+            && $this->registerHook('actionOrderStatusPostUpdate');
     }
 
     private function initConfigurationValues()
@@ -165,7 +166,8 @@ class Comfino extends PaymentModule
             && $this->unregisterHook('paymentOptions')
             && $this->unregisterHook('paymentReturn')
             && $ps16hooks
-            && $this->unregisterHook('displayBackofficeComfinoForm');
+            && $this->unregisterHook('displayBackofficeComfinoForm')
+            && $this->unregisterHook('actionOrderStatusPostUpdate');
     }
 
     private function deleteConfigurationValues()
@@ -206,6 +208,7 @@ class Comfino extends PaymentModule
             Configuration::updateValue('COMFINO_LOAN_TERM', Tools::getValue('COMFINO_LOAN_TERM'));
             Configuration::updateValue('COMFINO_TAX_ID', Tools::getValue('COMFINO_TAX_ID'));
             Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'));
+            Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
             Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', Tools::getValue('COMFINO_PAYMENT_PRESENTATION'));
             $output = $this->l('Settings updated.');
         }
@@ -382,6 +385,16 @@ class Comfino extends PaymentModule
     public function hookDisplayBackofficeComfinoForm($params)
     {
         return $this->displayForm();
+    }
+
+    public function hookActionOrderStatusPostUpdate($params)
+    {
+        /** @var OrderState $orderState */
+        $orderState = $params['newOrderStatus'];
+
+        if ($orderState->name === 'Canceled') {
+            ComfinoApi::cancelOrder($params['id_order']);
+        }
     }
 
     public function displayForm()
