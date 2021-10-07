@@ -92,7 +92,6 @@ class Comfino extends PaymentModule
             && Configuration::updateValue('COMFINO_PRODUCTION_HOST', "https://api-ecommerce.comfino.pl")
             && Configuration::updateValue('COMFINO_SANDBOX_HOST', "https://api-ecommerce.ecraty.pl")
             && Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 1000)
-            && Configuration::updateValue('COMFINO_LOAN_TERM', 12)
             && Configuration::updateValue('COMFINO_ENABLED', false);
     }
 
@@ -176,7 +175,6 @@ class Comfino extends PaymentModule
             && Configuration::deleteByName('COMFINO_PAYMENT_TEXT')
             && Configuration::deleteByName('COMFINO_PRODUCTION_HOST')
             && Configuration::deleteByName('COMFINO_SANDBOX_HOST')
-            && Configuration::deleteByName('COMFINO_LOAN_TERM')
             && Configuration::deleteByName('COMFINO_TAX_ID')
             && Configuration::deleteByName('COMFINO_ENABLED');
     }
@@ -205,7 +203,6 @@ class Comfino extends PaymentModule
             Configuration::updateValue('COMFINO_PRODUCTION_HOST', Tools::getValue('COMFINO_PRODUCTION_HOST'));
             Configuration::updateValue('COMFINO_SANDBOX_HOST', Tools::getValue('COMFINO_SANDBOX_HOST'));
             Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
-            Configuration::updateValue('COMFINO_LOAN_TERM', Tools::getValue('COMFINO_LOAN_TERM'));
             Configuration::updateValue('COMFINO_TAX_ID', Tools::getValue('COMFINO_TAX_ID'));
             Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'));
             Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
@@ -406,7 +403,6 @@ class Comfino extends PaymentModule
         $helper->fields_value['COMFINO_PRODUCTION_HOST'] = Configuration::get('COMFINO_PRODUCTION_HOST');
         $helper->fields_value['COMFINO_SANDBOX_HOST'] = Configuration::get('COMFINO_SANDBOX_HOST');
         $helper->fields_value['COMFINO_PAYMENT_PRESENTATION'] = Configuration::get('COMFINO_PAYMENT_PRESENTATION');
-        $helper->fields_value['COMFINO_LOAN_TERM'] = Configuration::get('COMFINO_LOAN_TERM');
         $helper->fields_value['COMFINO_TAX_ID'] = Configuration::get('COMFINO_TAX_ID');
         $helper->fields_value['COMFINO_IS_SANDBOX'] = Configuration::get('COMFINO_IS_SANDBOX');
         $helper->fields_value['COMFINO_MINIMAL_CART_AMOUNT'] = Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
@@ -504,12 +500,6 @@ class Comfino extends PaymentModule
                     'type' => 'text',
                     'label' => $this->l('Payment text'),
                     'name' => 'COMFINO_PAYMENT_TEXT',
-                    'required' => true
-                ],
-                [
-                    'type' => 'text',
-                    'label' => $this->l('Repayment time'),
-                    'name' => 'COMFINO_LOAN_TERM',
                     'required' => true
                 ],
                 [

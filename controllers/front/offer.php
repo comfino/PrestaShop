@@ -61,17 +61,15 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
     private function getContent()
     {
         $cart = $this->context->cart;
-        $total = $cart->getOrderTotal(true) * 100;
-        $loanTerm = Configuration::get('COMFINO_LOAN_TERM');
-        $result = ComfinoApi::getOffer($loanTerm, $total);
+        $total = $cart->getOrderTotal() * 100;
+        $result = ComfinoApi::getOffer($total);
         $result = json_decode($result, true);
         $payment_infos = [];
-
-
         $set = false;
+
         if (is_array($result)) {
             foreach ($result as $item) {
-                $loanAmount = round(((float)$item['instalmentAmount']) * ((float)$loanTerm) / 100, 2);
+                $loanAmount = round(((float)$item['instalmentAmount']) * ((float)$item['loanTerm']) / 100, 2);
                 if ($loanAmount < ($total / 100)) {
                     $loanAmount = round($total / 100, 2);
                 }
@@ -80,7 +78,6 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                     $cookie = Context::getContext()->cookie;
                     $cookie->loan_amount = $loanAmount;
                     $cookie->loan_type = $item['type'];
-                    $cookie->loan_term = Configuration::get('COMFINO_LOAN_TERM');
                     $cookie->write();
 
                     $set = true;
@@ -97,7 +94,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                     'sumAmount' => number_format($loanAmount, 2, ',', ' '),
                     'representativeExample' => $item['representativeExample'],
                     'rrso' => number_format($rrso, 2, ',', ' '),
-                    'loanTerm' => Configuration::get('COMFINO_LOAN_TERM'),
+                    'loanTerm' => $item['loanTerm'],
                     'instalmentAmount' => number_format($installmentAmount, 2, ',', ' '),
                     'toPay' => number_format($toPay, 2, ',', ' '),
                 ];

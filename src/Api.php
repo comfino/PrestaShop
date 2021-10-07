@@ -188,12 +188,11 @@ class ComfinoApi
     }
 
     /**
-     * @param $loanTerm
      * @param $loanAmount
      *
      * @return bool|string
      */
-    public static function getOffer($loanTerm, $loanAmount)
+    public static function getOffer($loanAmount)
     {
         $curl = curl_init();
         $loanAmount = (float)$loanAmount;
@@ -204,7 +203,7 @@ class ComfinoApi
             $url = Configuration::get('COMFINO_SANDBOX_HOST');
         }
 
-        $url .= "/v1/financial-products?loanAmount={$loanAmount}&loanTerm={$loanTerm}";
+        $url .= "/v1/financial-products?loanAmount={$loanAmount}";
 
         curl_setopt_array(
             $curl,
