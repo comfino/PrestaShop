@@ -24,7 +24,6 @@ Aby moduł mógł działać, konieczne jest skonfigurowanie go. Pole, które jes
 Kolejnymi polami wartymi uwagi są:
 
 * Nazwa płatności — pole odpowiada za tekst wyświetlany przy płatności. Domyślnie `"Pay with comperia"`
-* Czas spłaty — Domyślnie 12 miesięcy
 * Minimalna kwota w koszyku — Domyślnie 1000 zł
 
 ![Konfiguracja](images/pl/configuration.png "Konfiguracja")

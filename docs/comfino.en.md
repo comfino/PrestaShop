@@ -26,7 +26,6 @@ To the field that appears, put module's file. Module will be installed automatic
 For the module correct work, configuration is required. You can do this by click `"Configure"` in module information panel. There are a couple of important field that should be filled: `"Api-Key"`, Tax ID. There are unimportant fields that have their default values.
 
 * Payment text - this is text that will be showing nearby payment option. Default value is `"Pay with Comperia"`
-* Repayment time - default value "12" months. Value should be number
 * Minimal amount in cart - default value is 1000 zł. Value should be number
 
 ![Configuration](images/en/configuration.png "Configuration")
