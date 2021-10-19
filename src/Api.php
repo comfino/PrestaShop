@@ -27,6 +27,9 @@
 
 class ComfinoApi
 {
+    private const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
+    private const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
+
     /**
      * @param Cart $cart_data
      * @param $order_id
@@ -104,9 +107,9 @@ class ComfinoApi
             ]
         ];
 
-        $host = Configuration::get('COMFINO_PRODUCTION_HOST');
+        $host = self::COMFINO_PRODUCTION_HOST;
         if ((bool)Configuration::get('COMFINO_IS_SANDBOX')) {
-            $host = Configuration::get('COMFINO_SANDBOX_HOST');
+            $host = self::COMFINO_SANDBOX_HOST;
         }
         file_put_contents(
             "." . _MODULE_DIR_ . "/comfino/payment_log.log",
@@ -197,10 +200,9 @@ class ComfinoApi
         $curl = curl_init();
         $loanAmount = (float)$loanAmount;
 
-        $url = Configuration::get('COMFINO_PRODUCTION_HOST');
-
+        $url = self::COMFINO_PRODUCTION_HOST;
         if ((bool)Configuration::get('COMFINO_IS_SANDBOX')) {
-            $url = Configuration::get('COMFINO_SANDBOX_HOST');
+            $url = self::COMFINO_SANDBOX_HOST;
         }
 
         $url .= "/v1/financial-products?loanAmount={$loanAmount}";
@@ -253,9 +255,9 @@ class ComfinoApi
      */
     public static function cancelOrder($order_id)
     {
-        $host = Configuration::get('COMFINO_PRODUCTION_HOST');
+        $host = self::COMFINO_PRODUCTION_HOST;
         if ((bool)Configuration::get('COMFINO_IS_SANDBOX')) {
-            $host = Configuration::get('COMFINO_SANDBOX_HOST');
+            $host = self::COMFINO_SANDBOX_HOST;
         }
 
         $curl = curl_init();
