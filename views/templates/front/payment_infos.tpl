@@ -195,8 +195,8 @@
                             <div>Całkowita kwota do spłaty: <strong>`+item.toPay+` zł</strong>, RRSO: `+item.rrso+` %</div>
                         </div>
                         <div class="description" style="margin-bottom: 10px;">`+item.description+`</div>`+
-                    (item.representativeExample ? `<div><a data-modal="modal-`+item.type+`" class="representative" style="color:#1a8196">Przykład reprezentatywny</a></div>` : ``)+
-                    `<div class="comfino-modal" id="modal-`+item.type+`">
+                        (item.representativeExample ? `<div><a data-modal="modal-`+item.type+`" class="representative" style="color:#1a8196">Przykład reprezentatywny</a></div>` : ``)+
+                        `<div class="comfino-modal" id="modal-`+item.type+`">
 						  <div class="comfino-modal-bg comfino-modal-exit"></div>
 						  <div class="comfino-modal-container">
 							<span>`+item.representativeExample+`</span>
