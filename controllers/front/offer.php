@@ -25,8 +25,6 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
-use PrestaShop\PrestaShop\Core\Domain\Address\Query\GetRequiredFieldsForAddress;
-
 if (!defined('_PS_VERSION_')) {
     return;
 }
