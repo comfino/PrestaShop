@@ -594,7 +594,7 @@
                             selectTerm(loanTermBox, loanTermBox.querySelector('div > div[data-term="' + offerList.data[selectedOffer].loanTerm + '"]'));
 
                             offerList.elements.forEach(function (item, index) {
-                                item.querySelector('label').addEventListener('click', function (event) {
+                                item.querySelector('label').addEventListener('click', function () {
                                     selectedOffer = index;
 
                                     fetchProductDetails(offerList.data[selectedOffer]);
