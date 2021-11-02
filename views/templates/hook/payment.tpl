@@ -112,102 +112,103 @@
 </style>
 
 <script>
-	window.onload = function () {
-		/**
-		 * Get data about offer from API
-		 */
-		document.querySelector('#pay-with-comperia').addEventListener('click', function() {
-			let offerWrapper = document.querySelector('#comfino-offer-items');
-			offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>'
-			fetch('{$set_info_url|escape:'htmlall':'UTF-8'}?type=data')
-					.then(response => response.json())
-					.then(function(data) {
-						offerWrapper.innerHTML = '';
-						let offerList = putDataIntoSection(data);
+	  window.onload = function () {
+        /**
+         * Get data about offer from API
+         */
+        document.querySelector('#pay-with-comperia').addEventListener('click', function () {
+            let offerWrapper = document.querySelector('#comfino-offer-items');
+            offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>'
 
-						offerList.forEach(function (item, index) {
-							item.addEventListener('click', function () {
-								let data = {
-									loan_type: item.dataset.type,
-									loan_amount: Math.round(Number.parseFloat(item.dataset.sumamount) * 100),
-									loan_term: item.dataset.term
-								};
+            fetch('{$set_info_url|escape:'htmlall':'UTF-8'}?type=data')
+                .then(response => response.json())
+                .then(function (data) {
+                    offerWrapper.innerHTML = '';
+                    let offerList = putDataIntoSection(data);
 
-								fetch('{$set_info_url|escape:'htmlall':'UTF-8'}?loan_type='+data.loan_type+'&loan_amount='+data.loan_amount+'&loan_term='+data.loan_term, {
-									method: 'POST',
-									data: ''
-								}).then(response => response.json()).then(data => console.log(data))
+                    offerList.forEach(function (item, index) {
+                        item.addEventListener('click', function () {
+                            let data = {
+                              loan_type: item.dataset.type,
+                              loan_amount: Math.round(Number.parseFloat(item.dataset.sumamount) * 100),
+                              loan_term: item.dataset.term
+                            };
 
-								offerList.forEach(function (item_sec, index_sec) {
-									item_sec.style.border = '0px';
-								})
+                            fetch('{$set_info_url|escape:'htmlall':'UTF-8'}?loan_type='+data.loan_type+'&loan_amount='+data.loan_amount+'&loan_term='+data.loan_term, {
+                              method: 'POST',
+                              data: ''
+                            }).then(response => response.json()).then(data => console.log(data))
 
-								item.style.border = '1px solid {$main_color|escape:'htmlall':'UTF-8'}';
-								document.querySelector('#go-to-payment').style.display = 'inline-block';
-							})
+                            offerList.forEach(function (item_sec, index_sec) {
+                              item_sec.style.border = '0px';
+                            })
 
-							let modals = item.querySelectorAll('[data-modal]');
+                            item.style.border = '1px solid {$main_color|escape:'htmlall':'UTF-8'}';
+                            document.querySelector('#go-to-payment').style.display = 'inline-block';
+                      })
 
-							modals.forEach(function(trigger) {
-								trigger.addEventListener('click', function(event) {
-									event.preventDefault();
-									let modal = document.getElementById(trigger.dataset.modal);
-									modal.classList.add('open');
-									let exits = modal.querySelectorAll('.comfino-modal-exit');
-									exits.forEach(function(exit) {
-										exit.addEventListener('click', function(event) {
-											event.preventDefault();
-											modal.classList.remove('open');
-										});
-									});
-								});
-							});
-						});
-					})
-					.catch(function(error) {
-						offerWrapper.innerHTML = `
-                            <p class="alert alert-danger">{l s='There was an error while performing this operation: ' mod='comfino'} `+error+`</p>
-                            `;
-					})
-		});
+                      let modals = item.querySelectorAll('[data-modal]');
 
-		let putDataIntoSection = function(data) {
-			let offerList = [];
-			let i = 0;
-			data.forEach(function (item, index) {
-				let comfino_offer = document.createElement('div');
-				comfino_offer.dataset.type = item.type;
-				comfino_offer.dataset.sumamount = item.sumAmount;
-				comfino_offer.dataset.term = item.loanTerm;
-				comfino_offer.dataset.type = item.type;
-				comfino_offer.classList.add('comfino-order');
+                      modals.forEach(function(trigger) {
+                          trigger.addEventListener('click', function(event) {
+                              event.preventDefault();
+                              let modal = document.getElementById(trigger.dataset.modal);
+                              modal.classList.add('open');
+                              let exits = modal.querySelectorAll('.comfino-modal-exit');
+                              exits.forEach(function(exit) {
+                              exit.addEventListener('click', function(event) {
+                                event.preventDefault();
+                                modal.classList.remove('open');
+                              });
+                            });
+                      });
+                  });
+                });
+              })
+              .catch(function(error) {
+                offerWrapper.innerHTML = `
+                                <p class="alert alert-danger">{l s='There was an error while performing this operation: ' mod='comfino'} `+error+`</p>
+                                `;
+              })
+        });
 
-				let content = `
-                    <div class="icon-hidden" style="display: none">`+item.icon+`</div>
-                        <div class="comfino-icon" style="margin-bottom: 10px;">`+item.icon+`</div>
-                        <div class="name" style="margin-bottom: 10px;"><strong>`+item.name+`</strong></div>
-                        <div class="offer" style="margin-bottom: 10px;">
-                            <div><strong>`+item.loanTerm+` rat x `+item.instalmentAmount+` zł</strong></div>
-                            <div>Całkowita kwota do spłaty: `+item.sumAmount+` zł, RRSO: `+item.rrso+` %</div>
+        let putDataIntoSection = function(data) {
+          let offerList = [];
+          let i = 0;
+          data.forEach(function (item, index) {
+            let comfino_offer = document.createElement('div');
+            comfino_offer.dataset.type = item.type;
+            comfino_offer.dataset.sumamount = item.sumAmount;
+            comfino_offer.dataset.term = item.loanTerm;
+            comfino_offer.dataset.type = item.type;
+            comfino_offer.classList.add('comfino-order');
+
+            let content = `
+                        <div class="icon-hidden" style="display: none">`+item.icon+`</div>
+                            <div class="comfino-icon" style="margin-bottom: 10px;">`+item.icon+`</div>
+                            <div class="name" style="margin-bottom: 10px;"><strong>`+item.name+`</strong></div>
+                            <div class="offer" style="margin-bottom: 10px;">
+                                <div><strong>`+item.loanTerm+` rat x `+item.instalmentAmount+` zł</strong></div>
+                                <div>Całkowita kwota do spłaty: `+item.sumAmount+` zł, RRSO: `+item.rrso+` %</div>
+                            </div>
+                            <div class="description" style="margin-bottom: 10px;">`+item.description+`</div>
+                            <div><a data-modal="modal-`+item.type+`">Przykład reprezentatywny</a></div>
+                            <div class="comfino-modal" id="modal-`+item.type+`">
+                  <div class="comfino-modal-bg comfino-modal-exit"></div>
+                  <div class="comfino-modal-container">
+                  <span>`+item.representativeExample+`</span>
+                  <button class="comfino-modal-close comfino-modal-exit">X</button>
+                  </div>
+                </div>
                         </div>
-                        <div class="description" style="margin-bottom: 10px;">`+item.description+`</div>
-                        <div><a data-modal="modal-`+item.type+`">Przykład reprezentatywny</a></div>
-                        <div class="comfino-modal" id="modal-`+item.type+`">
-						  <div class="comfino-modal-bg comfino-modal-exit"></div>
-						  <div class="comfino-modal-container">
-							<span>`+item.representativeExample+`</span>
-							<button class="comfino-modal-close comfino-modal-exit">X</button>
-						  </div>
-						</div>
-                    </div>
-                `;
+                    `;
 
-				comfino_offer.innerHTML = content;
-				offerList[i] = comfino_offer;
-				i++;
-				document.querySelector('#comfino-offer-items').appendChild(comfino_offer);
-			});
-			return offerList;
-		}
-	}
+            comfino_offer.innerHTML = content;
+            offerList[i] = comfino_offer;
+            i++;
+            document.querySelector('#comfino-offer-items').appendChild(comfino_offer);
+          });
+          return offerList;
+        }
+	  }
 </script>

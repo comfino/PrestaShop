@@ -38,21 +38,22 @@ class ComfinoApi
      */
     public static function createOrder($cart_data, $order_id, $return_url)
     {
-        $total = ((float)$cart_data->getOrderTotal(true)) * 100;
-        $delivery = ((float)$cart_data->getCarrierCost($cart_data->id_carrier)) * 100;
+        $total = ((float) $cart_data->getOrderTotal(true)) * 100;
+        $delivery = ((float) $cart_data->getCarrierCost($cart_data->id_carrier)) * 100;
 
         $customer = new Customer($cart_data->id_customer);
         $products = [];
+
         foreach ($cart_data->getProducts() as $product) {
             $product_object = new Product($product['id_product']);
 
             $products[] = [
                 'name' => $product['name'],
-                'quantity' => (int)$product['cart_quantity'],
+                'quantity' => (int) $product['cart_quantity'],
                 'price' => (int) round($product_object->getPrice(), 2) * 100,
                 'photoUrl' => self::getProductsImageUrl($product_object),
                 'ean' => $product_object->ean13,
-                'externalId' => (string)$product_object->id,
+                'externalId' => (string) $product_object->id,
                 'category' => $product['category']
             ];
         }
@@ -60,18 +61,18 @@ class ComfinoApi
         $address = $cart_data->getAddressCollection();
         $address_explode = explode(' ', $address[$cart_data->id_address_delivery]->address1);
         $buildingNumber = '';
+
         if (count($address_explode) == 2) {
             $buildingNumber = $address_explode[1];
         }
 
         $street = $address_explode[0];
-
         $cookie = Context::getContext()->cookie;
 
         $data = [
-            'notifyUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__ . 'module/comfino/notify',
-            'returnUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__ . $return_url,
-            'orderId' => (string)$order_id,
+            'notifyUrl' => Tools::getHttpHost(true).__PS_BASE_URI__.'module/comfino/notify',
+            'returnUrl' => Tools::getHttpHost(true).__PS_BASE_URI__.$return_url,
+            'orderId' => (string) $order_id,
             'draft' => false,
             'loanParameters' => [
                 'amount' => (int) $total,
@@ -108,26 +109,29 @@ class ComfinoApi
         ];
 
         $host = self::COMFINO_PRODUCTION_HOST;
-        if ((bool)Configuration::get('COMFINO_IS_SANDBOX')) {
+
+        if ((bool) Configuration::get('COMFINO_IS_SANDBOX')) {
             $host = self::COMFINO_SANDBOX_HOST;
         }
+
         file_put_contents(
-            "." . _MODULE_DIR_ . "/comfino/payment_log.log",
-            "[" . date('Y-m-d H:i:s') . "] Payment data: " . print_r($host, true) . "\n",
+            "."._MODULE_DIR_."/comfino/payment_log.log",
+            "[".date('Y-m-d H:i:s')."] Payment data: ".print_r($host, true)."\n",
             FILE_APPEND
         );
 
         $curl = curl_init();
+
         curl_setopt_array(
             $curl,
             [
-                CURLOPT_URL => $host . '/v1/orders',
+                CURLOPT_URL => $host.'/v1/orders',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_CUSTOMREQUEST => 'POST',
                 CURLOPT_POSTFIELDS => json_encode($data),
                 CURLOPT_HTTPHEADER => [
-                    'Api-Key: ' . Configuration::get('COMFINO_API_KEY'),
+                    'Api-Key: '.Configuration::get('COMFINO_API_KEY'),
                     'Content-Type: application/json',
                     'User-Agent: PrestaShop'
                 ]
@@ -135,33 +139,35 @@ class ComfinoApi
         );
 
         $response = curl_exec($curl);
+
         file_put_contents(
-            "." . _MODULE_DIR_ . "/comfino/payment_log.log",
-            "[" . date('Y-m-d H:i:s') . "] Payment data: " . print_r(curl_error($curl), true) . "\n",
+            "."._MODULE_DIR_."/comfino/payment_log.log",
+            "[".date('Y-m-d H:i:s')."] Payment data: ".print_r(curl_error($curl), true)."\n",
             FILE_APPEND
         );
 
         $decoded = json_decode($response, true);
+
         if (isset($decoded['errors'])) {
-            $errors = [];
-            foreach ($decoded['errors'] as $value) {
-                $errors[] = $value;
-            }
+            $errors = array_values($decoded['errors']);
+
             file_put_contents(
-                "." . _MODULE_DIR_ . "/comfino/payment_log.log",
-                "[" . date('Y-m-d H:i:s') . "] Payment data: " . print_r($data, true),
+                "."._MODULE_DIR_."/comfino/payment_log.log",
+                "[".date('Y-m-d H:i:s')."] Payment data: ".print_r($data, true),
                 FILE_APPEND
             );
 
             file_put_contents(
-                "." . _MODULE_DIR_ . "/comfino/payment_log.log",
-                "[" . date('Y-m-d H:i:s') . "] Response data: " . print_r($response, true),
+                "."._MODULE_DIR_."/comfino/payment_log.log",
+                "[".date('Y-m-d H:i:s')."] Response data: ".print_r($response, true),
                 FILE_APPEND
             );
 
             return json_encode(['errors' => $errors]);
         }
+
         curl_close($curl);
+
         return $response;
     }
 
@@ -172,7 +178,8 @@ class ComfinoApi
      */
     private static function getProductsImageUrl($product)
     {
-        $link_rewrite = "";
+        $link_rewrite = '';
+
         if (is_array($product->link_rewrite)) {
             foreach ($product->link_rewrite as $link) {
                 $link_rewrite = $link;
@@ -182,12 +189,12 @@ class ComfinoApi
         }
 
         $image = Image::getCover($product->id);
+
         if (!is_array($image) && !isset($image['id_image'])) {
-            return "";
+            return '';
         }
 
-        $link = new Link();
-        return $link->getImageLink($link_rewrite, $image['id_image']);
+        return (new Link())->getImageLink($link_rewrite, $image['id_image']);
     }
 
     /**
@@ -201,7 +208,8 @@ class ComfinoApi
         $loanAmount = (float)$loanAmount;
 
         $url = self::COMFINO_PRODUCTION_HOST;
-        if ((bool)Configuration::get('COMFINO_IS_SANDBOX')) {
+
+        if ((bool) Configuration::get('COMFINO_IS_SANDBOX')) {
             $url = self::COMFINO_SANDBOX_HOST;
         }
 
@@ -214,11 +222,13 @@ class ComfinoApi
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CUSTOMREQUEST => 'GET',
                 CURLOPT_HTTPHEADER => [
-                    'API-KEY: ' . Configuration::get('COMFINO_API_KEY'),
+                    'API-KEY: '.Configuration::get('COMFINO_API_KEY'),
                 ]
             ]
         );
+
         $response = curl_exec($curl);
+
         curl_close($curl);
 
         return $response;
@@ -240,11 +250,13 @@ class ComfinoApi
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CUSTOMREQUEST => 'GET',
                 CURLOPT_HTTPHEADER => [
-                    'API-KEY: ' . Configuration::get('COMFINO_API_KEY')
+                    'API-KEY: '.Configuration::get('COMFINO_API_KEY')
                 ]
             ]
         );
+
         $response = curl_exec($curl);
+
         curl_close($curl);
 
         return $response;
@@ -256,7 +268,8 @@ class ComfinoApi
     public static function cancelOrder($order_id)
     {
         $host = self::COMFINO_PRODUCTION_HOST;
-        if ((bool)Configuration::get('COMFINO_IS_SANDBOX')) {
+
+        if ((bool) Configuration::get('COMFINO_IS_SANDBOX')) {
             $host = self::COMFINO_SANDBOX_HOST;
         }
 
@@ -269,7 +282,7 @@ class ComfinoApi
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_CUSTOMREQUEST => 'PUT',
                 CURLOPT_HTTPHEADER => [
-                    'API-KEY: ' . Configuration::get('COMFINO_API_KEY')
+                    'API-KEY: '.Configuration::get('COMFINO_API_KEY')
                 ]
             ]
         );
