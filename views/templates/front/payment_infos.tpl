@@ -332,7 +332,7 @@
         appearance: none;
         color: red;
         background: none;
-        border: 0px;
+        border: 0;
         font-weight: bold;
         cursor: pointer;
     }
