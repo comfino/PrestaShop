@@ -43,7 +43,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.0';
+        $this->version = '2.0.0';
         $this->author = 'M2 IT Solutions';
 
         $this->bootstrap = true;

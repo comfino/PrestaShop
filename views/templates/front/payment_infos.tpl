@@ -42,8 +42,8 @@
     }
 
     body#checkout section.checkout-step .payment-options .comfino-logo {
-        max-height: 100px;
-        width: 300px;
+        max-height: 40px;
+        width: 260px;
         margin: 0 auto;
     }
 
@@ -88,15 +88,13 @@
         padding-left: 28px;
         cursor: pointer;
         line-height: 20px;
-        /* display: flex; */
         color: #666;
     }
 
     body#checkout section.checkout-step .payment-options .comfino-input[type="radio"]:checked+label:before, .comfino-input[type="radio"]:not(:checked)+label:before {
         content: '';
         position: absolute;
-        left: 0;
-        /* top: 0; */
+        left: 2px;
         width: 18px;
         height: 18px;
         border: 2px solid #ddd;
@@ -110,7 +108,6 @@
         height: 8px;
         background: #599e33;;
         position: absolute;
-        /* top: 4px; */
         left: 7px;
         border-radius: 100%;
         -webkit-transition: all 0.2s ease;
@@ -348,6 +345,12 @@
         filter: brightness(150%);
     }
 
+    .comfino-icon {
+        width: 32px;
+        height: 32px;
+        padding-top: 2px;
+    }
+
     #comfino-installments {
         display: none;
     }
@@ -360,7 +363,7 @@
 <div id="comfino-box" class="comfino">
     <div class="comfino-box">
         <div class="header">
-            <img src="/modules/comfino/views/img/comfino_logo.png" alt="" class="comfino-logo" />
+            <img src="/modules/comfino/views/img/comfino_logo.svg" alt="" class="comfino-logo" />
             <div class="comfino-title">Wybierz sposób płatności</div>
         </div>
         <main>
@@ -400,7 +403,7 @@
                     <div class="comfino-helper-box">
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
-                                <img src="/modules/comfino/views/img/icons/koszyk.svg" alt="" class="single-instruction-img" />
+                                <img src="/modules/comfino/views/img/icons/cart.svg" alt="" class="single-instruction-img" />
                             </div>
                             <div class="comfin-single-instruction__text">Włóż produkt do koszyka</div>
                         </div>
@@ -436,7 +439,8 @@
         let offerList = null;
         let selectedOffer = 0;
 
-        let selectTerm = function (loanTermBox, termElement) {
+        let selectTerm = function (loanTermBox, termElement)
+        {
             loanTermBox.querySelectorAll('div > div.comfino-installments-quantity').forEach(function (item) {
                 item.classList.remove('comfino-active');
             });
@@ -464,7 +468,8 @@
             }
         }
 
-        let selectCurrentTerm = function (loanTermBox, term) {
+        let selectCurrentTerm = function (loanTermBox, term)
+        {
             let termElement = loanTermBox.querySelector('div > div[data-term="' + term + '"]');
 
             if (termElement !== null) {
@@ -489,7 +494,8 @@
             }
         }
 
-        let fetchProductDetails = function (offerData) {
+        let fetchProductDetails = function (offerData)
+        {
             if (offerData.type === 'PAY_LATER') {
                 document.getElementById('comfino-payment-delay').style.display = 'block';
                 document.getElementById('comfino-installments').style.display = 'none';
@@ -525,7 +531,8 @@
             }
         }
 
-        let putDataIntoSection = function (data) {
+        let putDataIntoSection = function (data)
+        {
             let offerElements = [];
             let offerData = [];
 
@@ -544,8 +551,7 @@
                     <div class="comfino-single-payment">
                         <input type="radio" id="` + comfinoOptId + `" class="comfino-input" name="comfino" />
                         <label for="` + comfinoOptId + `">
-                            ` + /*item.icon +*/ `
-                            <img src="/modules/comfino/views/img/comfino_icon_3.png" alt="` + item.name + `" />
+                            <div class="comfino-icon">` + item.icon + `</div>
                             <span class="comfino-single-payment__text">` + item.name + `</span>
                         </label>
                     </div>
