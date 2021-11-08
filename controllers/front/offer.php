@@ -89,7 +89,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                 $paymentInfos[] = [
                     'name' => $offer['name'],
                     'description' => $offer['description'],
-                    'icon' => str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $offer['icon']),
+                    'icon' => str_ireplace('<?xml version="1.0" encoding="UTF-8"?>', '', $offer['icon']),
                     'type' => $offer['type'],
                     'sumAmount' => number_format($total / 100, 2, ',', ' '),
                     'representativeExample' => $offer['representativeExample'],
