@@ -53,6 +53,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
             'type' => $cookie->loan_type,
             'term' => $cookie->loan_term
         ]);
+
         exit();
     }
 
@@ -60,14 +61,14 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
     {
         $cart = $this->context->cart;
         $total = $cart->getOrderTotal() * 100;
-        $result = ComfinoApi::getOffer($total);
-        $result = json_decode($result, true);
-        $payment_infos = [];
+        $offers = json_decode(ComfinoApi::getOffer($total), true);
+        $paymentInfos = [];
         $set = false;
 
-        if (is_array($result)) {
-            foreach ($result as $item) {
-                $loanAmount = round(((float)$item['instalmentAmount']) * ((float)$item['loanTerm']) / 100, 2);
+        if (is_array($offers)) {
+            foreach ($offers as $offer) {
+                $loanAmount = round(((float) $offer['instalmentAmount']) * ((float) $offer['loanTerm']) / 100, 2);
+
                 if ($loanAmount < ($total / 100)) {
                     $loanAmount = round($total / 100, 2);
                 }
@@ -75,30 +76,39 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                 if (!$set) {
                     $cookie = Context::getContext()->cookie;
                     $cookie->loan_amount = $loanAmount;
-                    $cookie->loan_type = $item['type'];
+                    $cookie->loan_type = $offer['type'];
                     $cookie->write();
 
                     $set = true;
                 }
 
-                $installmentAmount =  ((float)$item['instalmentAmount']) / 100;
-                $rrso = ((float)$item['rrso']) * 100;
-                $toPay =  ((float)$item['toPay']) / 100;
-                $payment_infos[] = [
-                    'name' => $item['name'],
-                    'description' => $item['description'],
-                    'icon' => str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $item['icon']),
-                    'type' => $item['type'],
-                    'sumAmount' => number_format($loanAmount, 2, ',', ' '),
-                    'representativeExample' => $item['representativeExample'],
+                $instalmentAmount = ((float) $offer['instalmentAmount']) / 100;
+                $rrso = ((float) $offer['rrso']) * 100;
+                $toPay = ((float) $offer['toPay']) / 100;
+
+                $paymentInfos[] = [
+                    'name' => $offer['name'],
+                    'description' => $offer['description'],
+                    'icon' => str_ireplace('<?xml version="1.0" encoding="UTF-8"?>', '', $offer['icon']),
+                    'type' => $offer['type'],
+                    'sumAmount' => number_format($total / 100, 2, ',', ' '),
+                    'representativeExample' => $offer['representativeExample'],
                     'rrso' => number_format($rrso, 2, ',', ' '),
-                    'loanTerm' => $item['loanTerm'],
-                    'instalmentAmount' => number_format($installmentAmount, 2, ',', ' '),
+                    'loanTerm' => $offer['loanTerm'],
+                    'instalmentAmount' => number_format($instalmentAmount, 2, ',', ' '),
                     'toPay' => number_format($toPay, 2, ',', ' '),
+                    'loanParameters' => array_map(static function ($loanParams) use ($total) {
+                        return [
+                            'loanTerm' => $loanParams['loanTerm'],
+                            'instalmentAmount' => number_format(((float) $loanParams['instalmentAmount']) / 100, 2, ',', ' '),
+                            'toPay' => number_format(((float) $loanParams['toPay']) / 100, 2, ',', ' '),
+                            'sumAmount' => number_format($total / 100, 2, ',', ' '),
+                        ];
+                    }, $offer['loanParameters']),
                 ];
             }
         }
 
-        return json_encode($payment_infos);
+        return json_encode($paymentInfos);
     }
 }
