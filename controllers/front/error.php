@@ -47,11 +47,7 @@ class ComfinoErrorModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $this->context->smarty->assign(
-            [
-                'errors' => Tools::getValue('error')
-            ]
-        );
+        $this->context->smarty->assign(['error' => Tools::getValue('error')]);
 
         if (COMFINO_PS_17) {
             $this->setTemplate('module:comfino/views/templates/front/payment_error.tpl');

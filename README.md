@@ -4,6 +4,6 @@
 
 [LINK](docs/comfino.pl.md)
 
-## Instalation
+## Installation
 
 [LINK](docs/comfino.en.md)

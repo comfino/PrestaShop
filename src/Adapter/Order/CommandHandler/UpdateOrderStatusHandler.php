@@ -25,7 +25,7 @@ final class UpdateOrderStatusHandler extends AbstractOrderHandler implements Upd
      */
     public function handle(UpdateOrderStatusCommand $command)
     {
-        require_once __DIR__.'/../../../../models/OrdersList.php';
+        require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
 
         $order = $this->getOrder($command->getOrderId());
         $orderState = $this->getOrderStateObject($command->getNewOrderStatusId());

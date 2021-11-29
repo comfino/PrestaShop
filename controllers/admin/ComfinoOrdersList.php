@@ -25,8 +25,8 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
-require_once _PS_MODULE_DIR_ . "comfino/models/OrdersList.php";
-require_once _PS_MODULE_DIR_ . "comfino/src/Api.php";
+require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
+require_once _PS_MODULE_DIR_.'comfino/src/Api.php';
 
 class ComfinoOrdersListController extends ModuleAdminController
 {
@@ -38,12 +38,7 @@ class ComfinoOrdersListController extends ModuleAdminController
 
     public function initContent()
     {
-        $this->context->smarty->assign(
-            [
-                'orders' => OrdersList::getAllOrders()
-            ]
-        );
-
+        $this->context->smarty->assign(['orders' => OrdersList::getAllOrders()]);
         $this->setTemplate('comfino_order_list.tpl');
     }
 

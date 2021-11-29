@@ -28,13 +28,17 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once('src/ColorVersion.php');
-require_once('models/OrdersList.php');
-require_once('src/PresentationType.php');
-require_once('src/Api.php');
+require_once 'src/ColorVersion.php';
+require_once 'models/OrdersList.php';
+require_once 'src/PresentationType.php';
+require_once 'src/Api.php';
 
 if (!defined('COMFINO_PS_17')) {
-    define('COMFINO_PS_17', (version_compare(_PS_VERSION_, '1.7', '>=')));
+    define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='));
+}
+
+if (!defined('COMFINO_VERSION')) {
+    define('COMFINO_VERSION', '2.0.0');
 }
 
 class Comfino extends PaymentModule
@@ -43,7 +47,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.0';
+        $this->version = COMFINO_VERSION;
         $this->author = 'M2 IT Solutions';
 
         $this->bootstrap = true;
@@ -56,6 +60,7 @@ class Comfino extends PaymentModule
         $this->controllers = ['payment', 'offer'];
 
         parent::__construct();
+
         $this->displayName = $this->l("Comfino payments");
         $this->description = $this->l("Comfino payments description"); // TODO: needs to change it
         $this->confirmUninstall = $this->l("Are you sure?");
@@ -67,30 +72,22 @@ class Comfino extends PaymentModule
             return false;
         }
 
-        include(dirname(__FILE__) . '/sql/install.php');
+        include __DIR__.'/sql/install.php';
 
         $ps16hooks = true;
+
         if (!COMFINO_PS_17) {
-            $ps16hooks = $this->registerHook('payment')
-                && $this->registerHook('displayPaymentEU');
+            $ps16hooks = $this->registerHook('payment') && $this->registerHook('displayPaymentEU');
         }
 
-        return $this->initConfigurationValues()
-            && $this->installTab()
-            && $this->addOrderStates()
-            && $this->registerHook('paymentOptions')
-            && $this->registerHook('paymentReturn')
-            && $ps16hooks
-            && $this->registerHook('displayBackofficeComfinoForm')
-            && $this->registerHook('actionOrderStatusPostUpdate');
-    }
-
-    private function initConfigurationValues()
-    {
-        return Configuration::updateValue('COMFINO_COLOR_VERSION', ComfinoColorVersion::CYAN)
-            && Configuration::updateValue('COMFINO_PAYMENT_TEXT', "Pay with Comperia")
-            && Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 1000)
-            && Configuration::updateValue('COMFINO_ENABLED', false);
+        return $this->initConfigurationValues() &&
+            $this->installTab() &&
+            $this->addOrderStates() &&
+            $this->registerHook('paymentOptions') &&
+            $this->registerHook('paymentReturn') &&
+            $ps16hooks &&
+            $this->registerHook('displayBackofficeComfinoForm') &&
+            $this->registerHook('actionOrderStatusPostUpdate');
     }
 
     public function installTab()
@@ -98,24 +95,23 @@ class Comfino extends PaymentModule
         $parent_tab = new Tab();
         $parent_tab->name[$this->context->language->id] = $this->l('Comfino orders list');
         $parent_tab->class_name = 'ComfinoOrdersList';
-        $parent_tab->id_parent = (int)Tab::getIdFromClassName('SELL');
+        $parent_tab->id_parent = (int) Tab::getIdFromClassName('SELL');
         $parent_tab->active = 1;
         $parent_tab->module = $this->name;
         $parent_tab->icon = 'monetization_on';
+
         return $parent_tab->add();
     }
 
     public function addOrderStates()
     {
         $orderStates = OrdersList::ADD_ORDER_STATUSES;
-
         $errors = [];
+
         foreach ($orderStates as $state => $name) {
             $newState = Configuration::get($state);
-            if (!$newState ||
-                empty($newState) ||
-                !Validate::isInt($newState) ||
-                !Validate::isLoadedObject(new OrderState($newState))) {
+
+            if (!$newState || empty($newState) || !Validate::isInt($newState) || !Validate::isLoadedObject(new OrderState($newState))) {
                 $orderStateObject = new OrderState();
                 $orderStateObject->name = array_fill(0, 10, $name);
                 $orderStateObject->send_email = 0;
@@ -150,37 +146,31 @@ class Comfino extends PaymentModule
 
     public function uninstall()
     {
-        include(dirname(__FILE__) . '/sql/uninstall.php');
+        include __DIR__.'/sql/uninstall.php';
+
         $ps16hooks = true;
+
         if (!COMFINO_PS_17) {
-            $ps16hooks = $this->unregisterHook('payment')
-                && $this->unregisterHook('displayPaymentEU');
+            $ps16hooks = $this->unregisterHook('payment') && $this->unregisterHook('displayPaymentEU');
         }
 
-        return parent::uninstall()
-            && $this->deleteConfigurationValues()
-            && $this->uninstallTab()
-            && $this->unregisterHook('paymentOptions')
-            && $this->unregisterHook('paymentReturn')
-            && $ps16hooks
-            && $this->unregisterHook('displayBackofficeComfinoForm')
-            && $this->unregisterHook('actionOrderStatusPostUpdate');
-    }
-
-    private function deleteConfigurationValues()
-    {
-        return Configuration::deleteByName('COMFINO_COLOR_VERSION')
-            && Configuration::deleteByName('COMFINO_PAYMENT_TEXT')
-            && Configuration::deleteByName('COMFINO_TAX_ID')
-            && Configuration::deleteByName('COMFINO_ENABLED');
+        return parent::uninstall() &&
+            $this->deleteConfigurationValues() &&
+            $this->uninstallTab() &&
+            $this->unregisterHook('paymentOptions') &&
+            $this->unregisterHook('paymentReturn') &&
+            $ps16hooks &&
+            $this->unregisterHook('displayBackofficeComfinoForm') &&
+            $this->unregisterHook('actionOrderStatusPostUpdate');
     }
 
     public function uninstallTab()
     {
-        $tabId = (int)Tab::getIdFromClassName('ComfinoOrdersList');
+        $tabId = (int) Tab::getIdFromClassName('ComfinoOrdersList');
 
         if ($tabId) {
             $tab = new Tab($tabId);
+
             return $tab->delete();
         }
 
@@ -201,15 +191,11 @@ class Comfino extends PaymentModule
             Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'));
             Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
             Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', Tools::getValue('COMFINO_PAYMENT_PRESENTATION'));
+
             $output = $this->l('Settings updated.');
         }
 
-        $this->context->smarty->assign(
-            [
-                'output' => $output,
-                'outputType' => $outputType,
-            ]
-        );
+        $this->context->smarty->assign(['output' => $output, 'outputType' => $outputType]);
 
         return $this->display(__FILE__, 'views/templates/admin/configuration.tpl');
     }
@@ -235,11 +221,9 @@ class Comfino extends PaymentModule
             return;
         }
 
-        $this->smarty->assign(
-            $this->getTemplateVars()
-        );
+        $this->smarty->assign($this->getTemplateVars());
 
-        $minimal_cart_amount = (float)Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
+        $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
         if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
             return;
         }
@@ -259,25 +243,8 @@ class Comfino extends PaymentModule
                 }
             }
         }
+
         return false;
-    }
-
-    private function checkConfiguration()
-    {
-        return Configuration::get('COMFINO_API_KEY') != null
-            && Configuration::get('COMFINO_TAX_ID') != null;
-    }
-
-    private function getTemplateVars()
-    {
-        return [
-            'set_info_url' => $this->context->link->getModuleLink($this->name, 'offer', [], true),
-            'pay_with_comfino_text' => Configuration::get('COMFINO_PAYMENT_TEXT'),
-            'logo_url' => _MODULE_DIR_ . 'comfino/views/img/logo.png',
-            'presentation_type' => Configuration::get('COMFINO_PAYMENT_PRESENTATION'),
-            'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
-            'main_color' => Configuration::get('COMFINO_COLOR_VERSION')
-        ];
     }
 
     /**
@@ -285,7 +252,7 @@ class Comfino extends PaymentModule
      *
      * @param $params
      *
-     * @return PrestaShop\PrestaShop\Core\Payment\PaymentOption[] | void
+     * @return PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
      */
     public function hookPaymentOptions($params)
     {
@@ -301,19 +268,17 @@ class Comfino extends PaymentModule
             return;
         }
 
-        $minimal_cart_amount = (float)Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
+        $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
         if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
             return;
         }
 
-        $this->smarty->assign(
-            $this->getTemplateVars()
-        );
+        $this->smarty->assign($this->getTemplateVars());
 
         $newOption = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
         $newOption->setModuleName($this->name)
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
-            ->setAdditionalInformation($this->fetch('module:comfino/views/templates/front/payment_infos.tpl'));
+            ->setAdditionalInformation($this->fetch('module:comfino/views/templates/front/payment.tpl'));
 
         switch (Configuration::get('COMFINO_PAYMENT_PRESENTATION')) {
             default:
@@ -321,10 +286,12 @@ class Comfino extends PaymentModule
                 $newOption->setCallToActionText(Configuration::get('COMFINO_PAYMENT_TEXT'));
                 $newOption->setLogo(_MODULE_DIR_ . 'comfino/views/img/logo.png');
                 break;
+
             case ComfinoPresentationType::ONLY_ICON:
                 $newOption->setCallToActionText("");
                 $newOption->setLogo(_MODULE_DIR_ . 'comfino/views/img/logo.png');
                 break;
+
             case ComfinoPresentationType::ONLY_TEXT:
                 $newOption->setCallToActionText(Configuration::get('COMFINO_PAYMENT_TEXT'));
                 break;
@@ -342,6 +309,7 @@ class Comfino extends PaymentModule
         if (COMFINO_PS_17) {
             $state = $params['order']->getCurrentState();
             $rest_to_paid = $params['order']->getOrdersTotalPaid() - $params['order']->getTotalPaid();
+
             if (in_array($state, [
                 Configuration::get('COMFINO_CREATED'),
                 Configuration::get('PS_OS_OUTOFSTOCK'),
@@ -405,12 +373,12 @@ class Comfino extends PaymentModule
     public function getHelperForm($submit_action, $form_template_dir = null, $form_template = null)
     {
         $helper = new HelperForm();
-        $language = (int)Configuration::get('PS_LANG_DEFAULT');
+        $language = (int) Configuration::get('PS_LANG_DEFAULT');
 
         $helper->module = $this;
         $helper->name_controller = $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
+        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
 
         // Language
         $helper->default_form_language = $language;
@@ -418,18 +386,16 @@ class Comfino extends PaymentModule
 
         // Title and toolbar
         $helper->title = $this->displayName;
-        $helper->show_toolbar = true;        // false -> remove toolbar
-        $helper->toolbar_scroll = true;      // yes - > Toolbar is always visible on the top of the screen.
+        $helper->show_toolbar = true; // false -> remove toolbar
+        $helper->toolbar_scroll = true; // yes - > Toolbar is always visible on the top of the screen.
         $helper->submit_action = $submit_action;
         $helper->toolbar_btn = [
-            'save' =>
-                [
-                    'desc' => $this->l('Save'),
-                    'href' => AdminController::$currentIndex . '&configure=' . $this->name . '&save' . $this->name .
-                        '&token=' . Tools::getAdminTokenLite('AdminModules'),
-                ],
+            'save' => [
+                'desc' => $this->l('Save'),
+                'href' => AdminController::$currentIndex.'&configure='.$this->name.'&save'.$this->name.'&token='.Tools::getAdminTokenLite('AdminModules'),
+            ],
             'back' => [
-                'href' => AdminController::$currentIndex . '&token=' . Tools::getAdminTokenLite('AdminModules'),
+                'href' => AdminController::$currentIndex.'&token='.Tools::getAdminTokenLite('AdminModules'),
                 'desc' => $this->l('Back to list')
             ]
         ];
@@ -526,5 +492,38 @@ class Comfino extends PaymentModule
         ];
 
         return $fields;
+    }
+
+    private function checkConfiguration()
+    {
+        return Configuration::get('COMFINO_API_KEY') !== null && Configuration::get('COMFINO_TAX_ID') !== null;
+    }
+
+    private function getTemplateVars()
+    {
+        return [
+            'set_info_url' => $this->context->link->getModuleLink($this->name, 'offer', [], true),
+            'pay_with_comfino_text' => Configuration::get('COMFINO_PAYMENT_TEXT'),
+            'logo_url' => _MODULE_DIR_.'comfino/views/img/logo.png',
+            'presentation_type' => Configuration::get('COMFINO_PAYMENT_PRESENTATION'),
+            'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
+            'main_color' => Configuration::get('COMFINO_COLOR_VERSION')
+        ];
+    }
+
+    private function initConfigurationValues()
+    {
+        return Configuration::updateValue('COMFINO_COLOR_VERSION', ComfinoColorVersion::CYAN)
+            && Configuration::updateValue('COMFINO_PAYMENT_TEXT', "Pay with Comperia")
+            && Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 1000)
+            && Configuration::updateValue('COMFINO_ENABLED', false);
+    }
+
+    private function deleteConfigurationValues()
+    {
+        return Configuration::deleteByName('COMFINO_COLOR_VERSION')
+            && Configuration::deleteByName('COMFINO_PAYMENT_TEXT')
+            && Configuration::deleteByName('COMFINO_TAX_ID')
+            && Configuration::deleteByName('COMFINO_ENABLED');
     }
 }

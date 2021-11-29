@@ -24,7 +24,7 @@ class BulkChangeOrderStatusHandler implements BulkChangeOrderStatusHandlerInterf
      */
     public function handle(BulkChangeOrderStatusCommand $command)
     {
-        require_once __DIR__.'/../../../../models/OrdersList.php';
+        require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
 
         $orderState = new OrderState($command->getNewOrderStatusId());
 
