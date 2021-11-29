@@ -193,7 +193,6 @@ class ComfinoApi
                 'User-Agent: '.self::getUserAgentHeader(),
             ],
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_SSL_VERIFYPEER => false,
         ];
 
         switch ($options[CURLOPT_CUSTOMREQUEST]) {

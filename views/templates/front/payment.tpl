@@ -419,7 +419,7 @@
                             <div class="single-instruction-img__background">
                                 <img src="/modules/comfino/views/img/icons/check.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">Sprawdź produkty w&nbsp;domu</div>
+                            <div class="comfin-single-instruction__text">Sprawdź produkty w domu</div>
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
@@ -460,11 +460,25 @@
                         offerList.elements[selectedOffer].dataset.sumamount = loanParams.sumAmount;
                         offerList.elements[selectedOffer].dataset.term = loanParams.loanTerm;
 
+                        fetch(
+                            '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                            offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(loanParams.sumAmount) * 100) +
+                            '&loan_term=' + loanParams.loanTerm,
+                            { method: 'POST', data: '' }
+                        );
+
                         break;
                     }
                 }
             } else {
                 document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmount + ' zł';
+
+                fetch(
+                    '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                    offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(offerList.data[selectedOffer].sumAmount) * 100) +
+                    '&loan_term=1',
+                    { method: 'POST', data: '' }
+                );
             }
         }
 
@@ -488,9 +502,25 @@
                         document.getElementById('comfino-description-box').innerHTML = offerList.data[selectedOffer].description;
                         document.getElementById('comfino-repr-example').innerHTML = offerList.data[selectedOffer].representativeExample;
 
+                        fetch(
+                            '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                            offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(loanParams.sumAmount) * 100) +
+                            '&loan_term=' + loanParams.loanTerm,
+                            { method: 'POST', data: '' }
+                        );
+
                         break;
                     }
                 }
+            } else {
+                document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmount + ' zł';
+
+                fetch(
+                    '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                    offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(offerList.data[selectedOffer].sumAmount) * 100)
+                    + '&loan_term=1',
+                    { method: 'POST', data: '' }
+                );
             }
         }
 
@@ -577,21 +607,27 @@
          * Get offers from API.
          */
         document.querySelectorAll('.ps-shown-by-js').forEach(function (item) {
-            let offerWrapper = document.getElementById('comfino-offer-items');
-
             if (item.dataset.moduleName === 'comfino') {
                 item.parentNode.parentNode.querySelector('label').style.display = 'inline-flex';
                 item.parentNode.parentNode.querySelector('label').style.flexDirection = 'row-reverse';
                 item.parentNode.parentNode.querySelector('label span').style.paddingLeft = '10px';
 
                 item.addEventListener('click', function () {
+                    let offerWrapper = document.getElementById('comfino-offer-items');
+
                     document.getElementById('comfino-box').style.display = 'block';
 
                     offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>'
 
-                    fetch('{$set_info_url|escape:'htmlall':'UTF-8'}?type=data')
+                    fetch('{$set_info_url|escape:'htmlall':'UTF-8'}&type=data'.replace(/&amp;/g, '&'))
                         .then(response => response.json())
                         .then(function (data) {
+                            if (!data.length) {
+                                offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='No offers available.' mod='comfino'}</p>`;
+
+                                return;
+                            }
+
                             let loanTermBox = document.getElementById('comfino-quantity-select');
 
                             offerWrapper.innerHTML = '';
