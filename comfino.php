@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.0.0');
+    define('COMFINO_VERSION', '2.0.1');
 }
 
 class Comfino extends PaymentModule
