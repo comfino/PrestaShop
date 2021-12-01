@@ -61,9 +61,9 @@ class Comfino extends PaymentModule
 
         parent::__construct();
 
-        $this->displayName = $this->l("Comfino payments");
-        $this->description = $this->l("Comfino is a friendly and innovative system that aggregates internet payments (0% installments, Low Installments, deferred payments \"Buy now, pay later\").");
-        $this->confirmUninstall = $this->l("Are you sure?");
+        $this->displayName = $this->l('Comfino payments');
+        $this->description = $this->l('Comfino is a friendly and innovative system that aggregates internet payments (0% installments, Low Installments, deferred payments "Buy now, pay later").');
+        $this->confirmUninstall = $this->l('Are you sure to uninstall Comfino payments?');
     }
 
     public function install()
@@ -93,7 +93,7 @@ class Comfino extends PaymentModule
     public function installTab()
     {
         $parent_tab = new Tab();
-        $parent_tab->name[$this->context->language->id] = $this->l('Comfino orders list');
+        $parent_tab->name = [Language::getIdByIso('en') => 'Comfino orders', $this->context->language->id => $this->l('Comfino orders')];
         $parent_tab->class_name = 'ComfinoOrdersList';
         $parent_tab->id_parent = (int) Tab::getIdFromClassName('SELL');
         $parent_tab->active = 1;
@@ -514,7 +514,7 @@ class Comfino extends PaymentModule
     private function initConfigurationValues()
     {
         return Configuration::updateValue('COMFINO_COLOR_VERSION', ComfinoColorVersion::CYAN)
-            && Configuration::updateValue('COMFINO_PAYMENT_TEXT', "Pay with Comperia")
+            && Configuration::updateValue('COMFINO_PAYMENT_TEXT', 'Pay with Comfino')
             && Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 1000)
             && Configuration::updateValue('COMFINO_ENABLED', false);
     }

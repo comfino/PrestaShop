@@ -2,7 +2,7 @@
 
 global $_MODULE;
 $_MODULE = array();
-$_MODULE['<{comfino}prestashop>comfino_ff2ce222ed91fa122aa67a3df0ab31a7'] = 'Lista zamówień - Comfino';
+$_MODULE['<{comfino}prestashop>comfino_fb0ddcd75b912899916741320e7f8537'] = 'Zamówienia Comfino';
 $_MODULE['<{comfino}prestashop>comfino_f38f5974cdc23279ffe6d203641a8bdf'] = 'Ustawienia zaktualizowane.';
 $_MODULE['<{comfino}prestashop>comfino_c9cc8cce247e49bae79f15173ce97354'] = 'Zapisz';
 $_MODULE['<{comfino}prestashop>comfino_630f6dc397fe74e52d5189e2c80f282b'] = 'Wróć do listy';
@@ -51,3 +51,6 @@ $_MODULE['<{comfino}prestashop>payment_0f7f7dbb9907ba5d256ef3e368d526b4'] = 'Prz
 $_MODULE['<{comfino}prestashop>payment_return_88526efe38fd18179a127024aba8c1d7'] = 'Twoje zamówienie w %s jest kompletne.';
 $_MODULE['<{comfino}prestashop>payment_return_9bdf695c5a30784327137011da6ef568'] = 'Zauważyliśmy, że wystąpił problem z Twoim zamówieniem. Jeśli uważasz, że to błąd, możesz skontaktować się z naszym';
 $_MODULE['<{comfino}prestashop>payment_return_decce112a9e64363c997b04aa71b7cb8'] = 'działem obsługi klienta';
+$_MODULE['<{comfino}prestashop>comfino_f228a9e7370e111bb7dbaf3e1ddce40d'] = 'Comfino to przyjazny i innowacyjny system agregujący płatności internetowe (raty 0%, Niskie Raty, płatności odroczone "Kup teraz, zapłać później"). ';
+$_MODULE['<{comfino}prestashop>comfino_3e1759db51250b5b214727fbdf60f739'] = 'Płatności Comfino';
+$_MODULE['<{comfino}prestashop>comfino_c58c4371152e7a7d857ca26127c91169'] = 'Czy na pewno chcesz odinstalować płatności Comfino?';
