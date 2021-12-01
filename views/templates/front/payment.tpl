@@ -364,30 +364,30 @@
     <div class="comfino-box">
         <div class="header">
             <img src="/modules/comfino/views/img/comfino_logo.svg" alt="" class="comfino-logo" />
-            <div class="comfino-title">Wybierz sposób płatności</div>
+            <div class="comfino-title">{l s='Choose payment method' mod='comfino'}</div>
         </div>
         <main>
             <section id="comfino-offer-items" class="comfino-select-payment"></section>
             <section class="comfino-payment-box">
-                <div class="comfino-payment-title">Wartość zakupów:</div>
+                <div class="comfino-payment-title">{l s='Value of purchase' mod='comfino'}:</div>
                 <div id="comfino-total-payment" class="comfino-total-payment"></div>
             </section>
             <section id="comfino-installments">
                 <section class="comfino-installments-box">
-                    <div class="comfino-installments-title">Wybierz ilość rat</div>
+                    <div class="comfino-installments-title">{l s='Choose number of instalments' mod='comfino'}</div>
                     <div id="comfino-quantity-select" class="comfino-quantity-select"></div>
                 </section>
                 <section class="comfino-monthly-box">
-                    <div class="comfino-monthly-title">Miesięczna rata:</div>
+                    <div class="comfino-monthly-title">{l s='Monthly instalment' mod='comfino'}:</div>
                     <div id="comfino-monthly-rate" class="comfino-monthly-rate"></div>
                 </section>
                 <section class="comfino-summary-box">
-                    <div class="comfino-summary-total">Łączna kwota do spłaty: <span id="comfino-summary-total"></span></div>
+                    <div class="comfino-summary-total">{l s='Total amount to pay' mod='comfino'}: <span id="comfino-summary-total"></span></div>
                     <div class="comfino-rrso">RRSO <span id="comfino-rrso"></span></div>
                     <div id="comfino-description-box" class="comfino-description-box"></div>
                 </section>
                 <footer>
-                    <a id="comfino-repr-example-link" class="representative comfino-footer-link">Przykład reprezentatywny</a>
+                    <a id="comfino-repr-example-link" class="representative comfino-footer-link">{l s='Representative example' mod='comfino'}</a>
                     <div id="modal-repr-example" class="comfino-modal">
                         <div class="comfino-modal-bg comfino-modal-exit"></div>
                         <div class="comfino-modal-container">
@@ -398,20 +398,20 @@
                 </footer>
             </section>
             <section id="comfino-payment-delay" class="comfino-payment-delay">
-                <div class="comfino-payment-delay__title">Kup teraz, zapłać za 30 dni <span>Jak to działa?</span></div>
+                <div class="comfino-payment-delay__title">{l s='Buy now, pay in 30 days' mod='comfino'} <span>{l s='How it\'s working?' mod='comfino'}</span></div>
                 <div class="comfino-payment-delay__box">
                     <div class="comfino-helper-box">
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
                                 <img src="/modules/comfino/views/img/icons/cart.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">Włóż produkt do koszyka</div>
+                            <div class="comfin-single-instruction__text">{l s='Put the product in the basket' mod='comfino'}</div>
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
                                 <img src="/modules/comfino/views/img/icons/twisto.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">Wybierz płatność Twisto</div>
+                            <div class="comfin-single-instruction__text">{l s='Choose Twisto payment' mod='comfino'}</div>
                         </div>
                     </div>
                     <div class="comfino-helper-box">
@@ -419,13 +419,13 @@
                             <div class="single-instruction-img__background">
                                 <img src="/modules/comfino/views/img/icons/check.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">Sprawdź produkty w domu</div>
+                            <div class="comfin-single-instruction__text">{l s='Check the products at home' mod='comfino'}</div>
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
                                 <img src="/modules/comfino/views/img/icons/wallet.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">Zapłać za 30 dni</div>
+                            <div class="comfin-single-instruction__text">{l s='Pay in 30 days' mod='comfino'}</div>
                         </div>
                     </div>
                 </div>
@@ -661,7 +661,7 @@
                                 document.getElementById('modal-repr-example').classList.remove('open');
                             });
                         }).catch(function (error) {
-                            offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation: ' mod='comfino'} ` + error + `</p>`;
+                            offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
                         });
                 });
             }

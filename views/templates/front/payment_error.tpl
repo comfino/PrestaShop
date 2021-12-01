@@ -27,5 +27,5 @@
 
 {block name='page_content'}
     <h4>{l s='An error occurred while ordering. Contact the seller or choose another payment method.' mod='comfino'}</h4>
-    <h3>Error: {$error|escape:'htmlall':'UTF-8'}</h3>
+    <h3>{l s='Error' mod='comfino'}: {$error|escape:'htmlall':'UTF-8'}</h3>
 {/block}

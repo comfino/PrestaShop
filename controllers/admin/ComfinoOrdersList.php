@@ -33,13 +33,19 @@ class ComfinoOrdersListController extends ModuleAdminController
     public function __construct()
     {
         $this->bootstrap = true;
+
         parent::__construct();
     }
 
     public function initContent()
     {
         $this->context->smarty->assign(['orders' => OrdersList::getAllOrders()]);
-        $this->setTemplate('comfino_order_list.tpl');
+
+        if (COMFINO_PS_17) {
+            $this->setTemplate('module:comfino/views/templates/admin/comfino_order_list.tpl');
+        } else {
+            $this->setTemplate('comfino_order_list.tpl');
+        }
     }
 
     public function postProcess()

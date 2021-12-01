@@ -62,7 +62,7 @@ class Comfino extends PaymentModule
         parent::__construct();
 
         $this->displayName = $this->l("Comfino payments");
-        $this->description = $this->l("Comfino payments description"); // TODO: needs to change it
+        $this->description = $this->l("Comfino is a friendly and innovative system that aggregates internet payments (0% installments, Low Installments, deferred payments \"Buy now, pay later\").");
         $this->confirmUninstall = $this->l("Are you sure?");
     }
 
