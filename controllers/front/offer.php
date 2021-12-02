@@ -31,14 +31,13 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoOfferModuleFrontController extends ModuleFrontController
 {
-
     public function postProcess()
     {
         parent::postProcess();
 
         if (Tools::getIsset('type')) {
             echo $this->getContent();
-            exit();
+            exit;
         }
 
         $cookie = Context::getContext()->cookie;
@@ -54,7 +53,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
             'term' => $cookie->loan_term
         ]);
 
-        exit();
+        exit;
     }
 
     private function getContent()
@@ -62,7 +61,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
         $cart = $this->context->cart;
         $total = $cart->getOrderTotal() * 100;
         $offers = json_decode(ComfinoApi::getOffer($total), true);
-        $paymentInfos = [];
+        $paymentOffers = [];
         $set = false;
 
         if (is_array($offers)) {
@@ -86,7 +85,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                 $rrso = ((float) $offer['rrso']) * 100;
                 $toPay = ((float) $offer['toPay']) / 100;
 
-                $paymentInfos[] = [
+                $paymentOffers[] = [
                     'name' => $offer['name'],
                     'description' => $offer['description'],
                     'icon' => str_ireplace('<?xml version="1.0" encoding="UTF-8"?>', '', $offer['icon']),
@@ -109,6 +108,6 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
             }
         }
 
-        return json_encode($paymentInfos);
+        return json_encode($paymentOffers);
     }
 }

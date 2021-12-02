@@ -364,30 +364,30 @@
     <div class="comfino-box">
         <div class="header">
             <img src="/modules/comfino/views/img/comfino_logo.svg" alt="" class="comfino-logo" />
-            <div class="comfino-title">Wybierz sposób płatności</div>
+            <div class="comfino-title">{l s='Choose payment method' mod='comfino'}</div>
         </div>
         <main>
             <section id="comfino-offer-items" class="comfino-select-payment"></section>
             <section class="comfino-payment-box">
-                <div class="comfino-payment-title">Wartość zakupów:</div>
+                <div class="comfino-payment-title">{l s='Value of purchase' mod='comfino'}:</div>
                 <div id="comfino-total-payment" class="comfino-total-payment"></div>
             </section>
             <section id="comfino-installments">
                 <section class="comfino-installments-box">
-                    <div class="comfino-installments-title">Wybierz ilość rat</div>
+                    <div class="comfino-installments-title">{l s='Choose number of instalments' mod='comfino'}</div>
                     <div id="comfino-quantity-select" class="comfino-quantity-select"></div>
                 </section>
                 <section class="comfino-monthly-box">
-                    <div class="comfino-monthly-title">Miesięczna rata:</div>
+                    <div class="comfino-monthly-title">{l s='Monthly instalment' mod='comfino'}:</div>
                     <div id="comfino-monthly-rate" class="comfino-monthly-rate"></div>
                 </section>
                 <section class="comfino-summary-box">
-                    <div class="comfino-summary-total">Łączna kwota do spłaty: <span id="comfino-summary-total"></span></div>
+                    <div class="comfino-summary-total">{l s='Total amount to pay' mod='comfino'}: <span id="comfino-summary-total"></span></div>
                     <div class="comfino-rrso">RRSO <span id="comfino-rrso"></span></div>
                     <div id="comfino-description-box" class="comfino-description-box"></div>
                 </section>
                 <footer>
-                    <a id="comfino-repr-example-link" class="representative comfino-footer-link">Przykład reprezentatywny</a>
+                    <a id="comfino-repr-example-link" class="representative comfino-footer-link">{l s='Representative example' mod='comfino'}</a>
                     <div id="modal-repr-example" class="comfino-modal">
                         <div class="comfino-modal-bg comfino-modal-exit"></div>
                         <div class="comfino-modal-container">
@@ -398,20 +398,20 @@
                 </footer>
             </section>
             <section id="comfino-payment-delay" class="comfino-payment-delay">
-                <div class="comfino-payment-delay__title">Kup teraz, zapłać za 30 dni <span>Jak to działa?</span></div>
+                <div class="comfino-payment-delay__title">{l s='Buy now, pay in 30 days' mod='comfino'} <span>{l s='How it\'s working?' mod='comfino'}</span></div>
                 <div class="comfino-payment-delay__box">
                     <div class="comfino-helper-box">
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
                                 <img src="/modules/comfino/views/img/icons/cart.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">Włóż produkt do koszyka</div>
+                            <div class="comfin-single-instruction__text">{l s='Put the product in the basket' mod='comfino'}</div>
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
                                 <img src="/modules/comfino/views/img/icons/twisto.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">Wybierz płatność Twisto</div>
+                            <div class="comfin-single-instruction__text">{l s='Choose Twisto payment' mod='comfino'}</div>
                         </div>
                     </div>
                     <div class="comfino-helper-box">
@@ -419,13 +419,13 @@
                             <div class="single-instruction-img__background">
                                 <img src="/modules/comfino/views/img/icons/check.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">Sprawdź produkty w&nbsp;domu</div>
+                            <div class="comfin-single-instruction__text">{l s='Check the products at home' mod='comfino'}</div>
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
                                 <img src="/modules/comfino/views/img/icons/wallet.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">Zapłać za 30 dni</div>
+                            <div class="comfin-single-instruction__text">{l s='Pay in 30 days' mod='comfino'}</div>
                         </div>
                     </div>
                 </div>
@@ -460,11 +460,25 @@
                         offerList.elements[selectedOffer].dataset.sumamount = loanParams.sumAmount;
                         offerList.elements[selectedOffer].dataset.term = loanParams.loanTerm;
 
+                        fetch(
+                            '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                            offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(loanParams.sumAmount) * 100) +
+                            '&loan_term=' + loanParams.loanTerm,
+                            { method: 'POST', data: '' }
+                        );
+
                         break;
                     }
                 }
             } else {
                 document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmount + ' zł';
+
+                fetch(
+                    '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                    offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(offerList.data[selectedOffer].sumAmount) * 100) +
+                    '&loan_term=1',
+                    { method: 'POST', data: '' }
+                );
             }
         }
 
@@ -488,9 +502,25 @@
                         document.getElementById('comfino-description-box').innerHTML = offerList.data[selectedOffer].description;
                         document.getElementById('comfino-repr-example').innerHTML = offerList.data[selectedOffer].representativeExample;
 
+                        fetch(
+                            '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                            offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(loanParams.sumAmount) * 100) +
+                            '&loan_term=' + loanParams.loanTerm,
+                            { method: 'POST', data: '' }
+                        );
+
                         break;
                     }
                 }
+            } else {
+                document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmount + ' zł';
+
+                fetch(
+                    '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                    offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(offerList.data[selectedOffer].sumAmount) * 100)
+                    + '&loan_term=1',
+                    { method: 'POST', data: '' }
+                );
             }
         }
 
@@ -577,21 +607,27 @@
          * Get offers from API.
          */
         document.querySelectorAll('.ps-shown-by-js').forEach(function (item) {
-            let offerWrapper = document.getElementById('comfino-offer-items');
-
             if (item.dataset.moduleName === 'comfino') {
                 item.parentNode.parentNode.querySelector('label').style.display = 'inline-flex';
                 item.parentNode.parentNode.querySelector('label').style.flexDirection = 'row-reverse';
                 item.parentNode.parentNode.querySelector('label span').style.paddingLeft = '10px';
 
                 item.addEventListener('click', function () {
+                    let offerWrapper = document.getElementById('comfino-offer-items');
+
                     document.getElementById('comfino-box').style.display = 'block';
 
                     offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>'
 
-                    fetch('{$set_info_url|escape:'htmlall':'UTF-8'}?type=data')
+                    fetch('{$set_info_url|escape:'htmlall':'UTF-8'}&type=data'.replace(/&amp;/g, '&'))
                         .then(response => response.json())
                         .then(function (data) {
+                            if (!data.length) {
+                                offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='No offers available.' mod='comfino'}</p>`;
+
+                                return;
+                            }
+
                             let loanTermBox = document.getElementById('comfino-quantity-select');
 
                             offerWrapper.innerHTML = '';
@@ -625,7 +661,7 @@
                                 document.getElementById('modal-repr-example').classList.remove('open');
                             });
                         }).catch(function (error) {
-                            offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation: ' mod='comfino'} ` + error + `</p>`;
+                            offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
                         });
                 });
             }

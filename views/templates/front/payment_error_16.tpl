@@ -24,5 +24,4 @@
  *}
 
 <h4>{l s='An error occurred while ordering. Contact the seller or choose another payment method.' mod='comfino'}</h4>
-
-<p><h3>Errors:</h3> {$errors|escape:'htmlall':'UTF-8'}</p>
+<h3>{l s='Error' mod='comfino'}: {$error|escape:'htmlall':'UTF-8'}</h3>

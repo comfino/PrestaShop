@@ -62,11 +62,11 @@ final class OrderStateByIdChoiceProvider implements FormChoiceProviderInterface,
      */
     public function getChoices(array $options = [])
     {
-        require_once __DIR__.'/../../../models/OrdersList.php';
+        require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
 
         $orderStates = $this->orderStateDataProvider->getOrderStates($this->languageId);
         $choices = [];
-        $paymentMethod = $options['payment_method'] ?? '';
+        $paymentMethod = isset($options['payment_method']) ? $options['payment_method'] : '';
         $orderStatesMap = array_combine(array_map(function ($itemValue) { return $itemValue['id_order_state']; }, $orderStates), $orderStates);
         $comfinoConfirmStates = [
             OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],

@@ -232,9 +232,9 @@ class OrdersList extends ObjectModel
         self::setSecondState($status, $order);
     }
 
-    private static function setSecondState(string $status, OrderCore $order): void
+    private static function setSecondState($status, OrderCore $order)
     {
-        if (!isset(self::CHANGE_STATUS_MAP[$status])) {
+        if (!array_key_exists($status, self::CHANGE_STATUS_MAP)) {
             return;
         }
 
@@ -245,7 +245,7 @@ class OrdersList extends ObjectModel
         $order->setCurrentState(ConfigurationCore::get(self::CHANGE_STATUS_MAP[$status]));
     }
 
-    private static function wasSecondStatusSetInHistory(string $status, OrderCore $order): bool
+    private static function wasSecondStatusSetInHistory($status, OrderCore $order)
     {
         $idOrderState = ConfigurationCore::get($status);
 

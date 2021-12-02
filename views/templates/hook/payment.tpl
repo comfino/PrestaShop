@@ -23,192 +23,666 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
-<p class="payment_module">
-	<a id="pay-with-comperia">
-		{if $presentation_type == 'only_icon' || $presentation_type == 'icon_and_text'}
-			<img src="{$logo_url|escape:'htmlall':'UTF-8'}" alt="{l s='Pay with comfino' mod='comfino'}" width="86" height="49"/>
-		{/if}
-		{if $presentation_type == 'only_text' || $presentation_type == 'icon_and_text'}
-			{$pay_with_comfino_text|escape:'htmlall':'UTF-8'}
-		{/if}
-	</a>
-	<div id="comfino-offer-items" style="display: flex; column-gap: 15px;">
-
-	</div>
-	<a href="{$go_to_payment_url|escape:'htmlall':'UTF-8'}" id="go-to-payment" style="display: none;">
-		{l s='Go to payment' mod='comfino'}
-	</a>
-</p>
-
-
 <style>
-	.comfino-order {
-		position: relative;
-		max-width: 50%;
-		background: #f5f5f5;
-		margin: 0 20px;
-		padding: 22px 30px;
-		text-align: center;
-		cursor: pointer;
-	}
+    .comfino {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 10px;
+        font-family: Lato, sans-serif;
+        background-color: #fff;
+        display: none;
+    }
 
-	.comfino-modal {
-		position: fixed;
-		width: 100vw;
-		height: 100vh;
-		opacity: 0;
-		visibility: hidden;
-		transition: all 0.3s ease;
-		top: 0;
-		left: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 999;
-	}
+    .comfino-box {
+    }
 
-	.comfino-modal.open {
-		 visibility: visible;
-		 opacity: 1;
-		 transition-delay: 0s;
-	}
+    .header {
+        display: flex;
+        flex-direction: column;
+    }
 
-	.comfino-modal-bg {
-		position: absolute;
-		background: rgba(0,0,0,0.2);
-		width: 100%;
-		height: 100%;
-	}
+    .comfino-logo {
+        max-height: 40px;
+        width: 260px;
+        margin: 0 auto;
+    }
 
-	.comfino-modal-container {
-		width: 50%;
-		border-radius: 10px;
-		background: #fff;
-		position: relative;
-		padding: 30px;
+    .comfino-title {
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin: 0.875rem 0;
+    }
 
-	}
+    .comfino-select-payment {
+    }
 
-	.comfino-modal-close {
-		position: absolute;
-		right: 15px;
-		top: 15px;
-		outline: none;
-		appearance: none;
-		color: red;
-		background: none;
-		border: 0px;
-		font-weight: bold;
-		cursor: pointer;
-	}
+    .comfino-single-payment {
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+    }
 
-	#go-to-payment {
-		padding: 10px;
-		font-size: 23px;
-		background: rgb(26, 129, 150);
-		color: white;
-		margin: 20px 20px;
-	}
+    .comfino-single-payment label {
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+
+    .comfino-single-payment__text {
+        padding-left: 5px;
+    }
+
+    .comfino-single-payment input {
+        width: 25px;
+        height: 25px;
+    }
+
+    .comfino-input[type="radio"]:checked, .comfino-input[type="radio"]:not(:checked) {
+        position: absolute;
+        left: -9999px;
+    }
+
+    .comfino-input[type="radio"]:checked+label, .comfino-input[type="radio"]:not(:checked)+label {
+        position: relative;
+        padding-left: 28px;
+        cursor: pointer;
+        line-height: 20px;
+        color: #666;
+    }
+
+    .comfino-input[type="radio"]:checked+label:before, .comfino-input[type="radio"]:not(:checked)+label:before {
+        content: '';
+        position: absolute;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #ddd;
+        border-radius: 100%;
+        background: #fff;
+    }
+
+    .comfino-input[type="radio"]:checked+label:after, .comfino-input[type="radio"]:not(:checked)+label:after {
+        content: '';
+        width: 8px;
+        height: 8px;
+        background: #599e33;;
+        position: absolute;
+        left: 7px;
+        border-radius: 100%;
+        -webkit-transition: all 0.2s ease;
+        transition: all 0.2s ease;
+    }
+
+    .comfino-input[type="radio"]:not(:checked)+label:after {
+        opacity: 0;
+        -webkit-transform: scale(0);
+        transform: scale(0);
+    }
+
+    .comfino-input[type="radio"]:checked+label:after {
+        opacity: 1;
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+
+    .comfino-payment-box {
+        background-color: rgb(221, 221, 221);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem 0;
+        font-size: 1.2rem;
+        margin-top: 1rem;
+    }
+
+    .comfino-payment-title {
+        color: #666;
+    }
+
+    .comfino-total-payment {
+        font-weight: bold;
+    }
+
+    .comfino-installments-box {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .comfino-installments-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-align: center;
+        padding: 20px 0;
+    }
+
+    .comfino-quantity-select {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        max-width: 90%;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .comfino-select-box {
+        display: flex;
+    }
+
+    .comfino-installments-quantity {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: rgb(221, 221, 221);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.4rem;
+        margin: 10px 20px;
+        cursor: pointer;
+    }
+
+    .comfino-active {
+        background-color: #599e33;;
+    }
+
+    .comfino-monthly-box {
+        background-color: #599e33;;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem 0;
+        font-size: 1.2rem;
+        color: #fff;
+        margin-top: 1rem;
+    }
+
+    .comfino-monthly-title {
+        font-size: 1.2rem;
+        text-align: center;
+    }
+
+    .comfino-monthly-rate {
+        font-weight: bold;
+    }
+
+    .comfino-summary-box {
+        text-align: center;
+        font-size: .8rem;
+        color: gray;
+    }
+
+    .comfino-summary-total {
+        padding: .5rem 0;
+    }
+
+    .comfino-rrso {
+    }
+
+    .comfino-footer-link {
+        display: block;
+        text-align: center;
+        padding: .5rem 0;
+        color: gray;
+        font-size: .7rem;
+        margin: 1rem 0 2rem 0;
+    }
+
+    .comfino-payment-delay {
+        padding: 1rem;
+    }
+
+    .comfino-payment-delay__title {
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    .comfino-payment-delay__title span {
+        display: block;
+        color: #599e33;
+        padding: .3rem 0;
+    }
+
+    .comfino-payment-delay__box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .comfino-helper-box {
+        display: flex;
+        margin-top: 10px;
+    }
+
+    .comfino-payment-delay__single-instruction {
+        width: 140px;
+        margin: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .comfin-single-instruction__text {
+        text-align: center;
+        font-size: .9rem;
+        padding-top: 1rem;
+        color: #666;
+    }
+
+    .single-instruction-img__background {
+        width: 50px;
+        height: 50px;
+        background-color: #599e33;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: .5rem;
+    }
+
+    .single-instruction-img {
+        width: 100px;
+        filter: invert(100%)
+    }
+
+    .comfino-modal {
+        position: fixed;
+        width: 100vw;
+        height: 100vh;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        top: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+    }
+
+    .comfino-modal.open {
+        visibility: visible;
+        opacity: 1;
+        transition-delay: 0s;
+    }
+
+    .comfino-modal-bg {
+        position: absolute;
+        background: rgba(0,0,0,0.2);
+        width: 100%;
+        height: 100%;
+    }
+
+    .comfino-modal-container {
+        width: 50%;
+        border-radius: 10px;
+        background: #fff;
+        position: relative;
+        padding: 30px;
+    }
+
+    .comfino-modal-close {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        outline: none;
+        appearance: none;
+        color: red;
+        background: none;
+        border: 0;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    a.representative {
+        cursor: pointer;
+    }
+
+    a.representative:hover {
+        filter: brightness(150%);
+    }
+
+    .comfino-icon {
+        width: 32px;
+        height: 32px;
+        padding-top: 2px;
+    }
+
+    .comfino-payment-btn {
+        display: block;
+        width: fit-content;
+        background-color: #599e33;
+        color: #fff;
+        padding: 1rem 2rem;
+        text-decoration: none;
+        text-transform: uppercase;
+    }
+
+    #comfino-installments {
+        display: none;
+    }
+
+    #comfino-payment-delay {
+        display: none;
+    }
 </style>
 
+<p class="payment_module">
+    <a id="pay-with-comperia" style="cursor: pointer">
+        {if $presentation_type == 'only_icon' || $presentation_type == 'icon_and_text'}
+            <img style="height: 49px" src="/modules/comfino/views/img/comfino_logo.svg" alt="{l s='Pay with comfino' mod='comfino'}" />
+        {/if}
+        {if $presentation_type == 'only_text' || $presentation_type == 'icon_and_text'}
+            {$pay_with_comfino_text|escape:'htmlall':'UTF-8'}
+        {/if}
+    </a>
+</p>
+
+<div id="comfino-box" class="comfino">
+    <div class="comfino-box">
+        <div class="header">
+            <img src="/modules/comfino/views/img/comfino_logo.svg" alt="" class="comfino-logo" />
+            <div class="comfino-title">{l s='Choose payment method' mod='comfino'}</div>
+        </div>
+        <main>
+            <section id="comfino-offer-items" class="comfino-select-payment"></section>
+            <section class="comfino-payment-box">
+                <div class="comfino-payment-title">{l s='Value of purchase' mod='comfino'}:</div>
+                <div id="comfino-total-payment" class="comfino-total-payment"></div>
+            </section>
+            <section id="comfino-installments">
+                <section class="comfino-installments-box">
+                    <div class="comfino-installments-title">{l s='Choose number of instalments' mod='comfino'}</div>
+                    <div id="comfino-quantity-select" class="comfino-quantity-select"></div>
+                </section>
+                <section class="comfino-monthly-box">
+                    <div class="comfino-monthly-title">{l s='Monthly instalment' mod='comfino'}:</div>
+                    <div id="comfino-monthly-rate" class="comfino-monthly-rate"></div>
+                </section>
+                <section class="comfino-summary-box">
+                    <div class="comfino-summary-total">{l s='Total amount to pay' mod='comfino'}: <span id="comfino-summary-total"></span></div>
+                    <div class="comfino-rrso">RRSO <span id="comfino-rrso"></span></div>
+                    <div id="comfino-description-box" class="comfino-description-box"></div>
+                </section>
+                <footer>
+                    <a id="comfino-repr-example-link" class="representative comfino-footer-link">{l s='Representative example' mod='comfino'}</a>
+                    <div id="modal-repr-example" class="comfino-modal">
+                        <div class="comfino-modal-bg comfino-modal-exit"></div>
+                        <div class="comfino-modal-container">
+                            <span id="comfino-repr-example"></span>
+                            <button class="comfino-modal-close comfino-modal-exit">&times;</button>
+                        </div>
+                    </div>
+                </footer>
+            </section>
+            <section id="comfino-payment-delay" class="comfino-payment-delay">
+                <div class="comfino-payment-delay__title">{l s='Buy now, pay in 30 days' mod='comfino'} <span>{l s='How it\'s working?' mod='comfino'}</span></div>
+                <div class="comfino-payment-delay__box">
+                    <div class="comfino-helper-box">
+                        <div class="comfino-payment-delay__single-instruction">
+                            <div class="single-instruction-img__background">
+                                <img src="/modules/comfino/views/img/icons/cart.svg" alt="" class="single-instruction-img" />
+                            </div>
+                            <div class="comfin-single-instruction__text">{l s='Put the product in the basket' mod='comfino'}</div>
+                        </div>
+                        <div class="comfino-payment-delay__single-instruction">
+                            <div class="single-instruction-img__background">
+                                <img src="/modules/comfino/views/img/icons/twisto.svg" alt="" class="single-instruction-img" />
+                            </div>
+                            <div class="comfin-single-instruction__text">{l s='Choose Twisto payment' mod='comfino'}</div>
+                        </div>
+                    </div>
+                    <div class="comfino-helper-box">
+                        <div class="comfino-payment-delay__single-instruction">
+                            <div class="single-instruction-img__background">
+                                <img src="/modules/comfino/views/img/icons/check.svg" alt="" class="single-instruction-img" />
+                            </div>
+                            <div class="comfin-single-instruction__text">{l s='Check the products at home' mod='comfino'}</div>
+                        </div>
+                        <div class="comfino-payment-delay__single-instruction">
+                            <div class="single-instruction-img__background">
+                                <img src="/modules/comfino/views/img/icons/wallet.svg" alt="" class="single-instruction-img" />
+                            </div>
+                            <div class="comfin-single-instruction__text">{l s='Pay in 30 days' mod='comfino'}</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div>
+        <a id="go-to-payment" href="{$go_to_payment_url|escape:'htmlall':'UTF-8'}" class="comfino-payment-btn">
+            {l s='Go to payment' mod='comfino'}
+        </a>
+    </div>
+</div>
+
 <script>
-	  window.onload = function () {
+    window.onload = function () {
+        let offerList = null;
+        let selectedOffer = 0;
+
+        let selectTerm = function (loanTermBox, termElement)
+        {
+            loanTermBox.querySelectorAll('div > div.comfino-installments-quantity').forEach(function (item) {
+                item.classList.remove('comfino-active');
+            });
+
+            if (termElement !== null) {
+                termElement.classList.add('comfino-active');
+
+                for (let loanParams of offerList.data[selectedOffer].loanParameters) {
+                    if (loanParams.loanTerm === parseInt(termElement.dataset.term)) {
+                        document.getElementById('comfino-total-payment').innerHTML = loanParams.sumAmount + ' zł';
+                        document.getElementById('comfino-monthly-rate').innerHTML = loanParams.instalmentAmount + ' zł';
+                        document.getElementById('comfino-summary-total').innerHTML = loanParams.toPay + ' zł';
+                        document.getElementById('comfino-rrso').innerHTML = offerList.data[selectedOffer].rrso + '%';
+                        document.getElementById('comfino-description-box').innerHTML = offerList.data[selectedOffer].description;
+                        document.getElementById('comfino-repr-example').innerHTML = offerList.data[selectedOffer].representativeExample;
+
+                        offerList.elements[selectedOffer].dataset.sumamount = loanParams.sumAmount;
+                        offerList.elements[selectedOffer].dataset.term = loanParams.loanTerm;
+
+                        fetch(
+                            '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                            offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(loanParams.sumAmount) * 100) +
+                            '&loan_term=' + loanParams.loanTerm,
+                            { method: 'POST', data: '' }
+                        );
+
+                        break;
+                    }
+                }
+            } else {
+                document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmount + ' zł';
+
+                fetch(
+                    '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                    offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(offerList.data[selectedOffer].sumAmount) * 100) +
+                    '&loan_term=1',
+                    { method: 'POST', data: '' }
+                );
+            }
+        }
+
+        let selectCurrentTerm = function (loanTermBox, term)
+        {
+            let termElement = loanTermBox.querySelector('div > div[data-term="' + term + '"]');
+
+            if (termElement !== null) {
+                loanTermBox.querySelectorAll('div > div.comfino-installments-quantity').forEach(function (item) {
+                    item.classList.remove('comfino-active');
+                });
+
+                termElement.classList.add('comfino-active');
+
+                for (let loanParams of offerList.data[selectedOffer].loanParameters) {
+                    if (loanParams.loanTerm === parseInt(term)) {
+                        document.getElementById('comfino-total-payment').innerHTML = loanParams.sumAmount + ' zł';
+                        document.getElementById('comfino-monthly-rate').innerHTML = loanParams.instalmentAmount + ' zł';
+                        document.getElementById('comfino-summary-total').innerHTML = loanParams.toPay + ' zł';
+                        document.getElementById('comfino-rrso').innerHTML = offerList.data[selectedOffer].rrso + '%';
+                        document.getElementById('comfino-description-box').innerHTML = offerList.data[selectedOffer].description;
+                        document.getElementById('comfino-repr-example').innerHTML = offerList.data[selectedOffer].representativeExample;
+
+                        fetch(
+                            '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                            offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(loanParams.sumAmount) * 100) +
+                            '&loan_term=' + loanParams.loanTerm,
+                            { method: 'POST', data: '' }
+                        );
+
+                        break;
+                    } else {
+                        document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmount + ' zł';
+
+                        fetch(
+                            '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
+                            offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(offerList.data[selectedOffer].sumAmount) * 100)
+                            + '&loan_term=1',
+                            { method: 'POST', data: '' }
+                        );
+                    }
+                }
+            }
+        }
+
+        let fetchProductDetails = function (offerData)
+        {
+            if (offerData.type === 'PAY_LATER') {
+                document.getElementById('comfino-payment-delay').style.display = 'block';
+                document.getElementById('comfino-installments').style.display = 'none';
+            } else {
+                let loanTermBox = document.getElementById('comfino-quantity-select');
+                let loanTermBoxContents = ``;
+
+                offerData.loanParameters.forEach(function (item, index) {
+                    if (index === 0) {
+                        loanTermBoxContents += `<div class="comfino-select-box">`;
+                    } else if (index % 3 === 0) {
+                        loanTermBoxContents += `</div><div class="comfino-select-box">`;
+                    }
+
+                    loanTermBoxContents += `<div data-term="` + item.loanTerm + `" class="comfino-installments-quantity">` + item.loanTerm + `</div>`;
+
+                    if (index === offerData.loanParameters.length - 1) {
+                        loanTermBoxContents += `</div>`;
+                    }
+                });
+
+                loanTermBox.innerHTML = loanTermBoxContents;
+
+                loanTermBox.querySelectorAll('div > div.comfino-installments-quantity').forEach(function (item) {
+                    item.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        selectTerm(loanTermBox, event.target);
+                    });
+                });
+
+                document.getElementById('comfino-payment-delay').style.display = 'none';
+                document.getElementById('comfino-installments').style.display = 'block';
+            }
+        }
+
+        let putDataIntoSection = function (data)
+        {
+            let offerElements = [];
+            let offerData = [];
+
+            data.forEach(function (item, index) {
+                let comfinoOffer = document.createElement('div');
+
+                comfinoOffer.dataset.type = item.type;
+                comfinoOffer.dataset.sumamount = item.sumAmount;
+                comfinoOffer.dataset.term = item.loanTerm;
+
+                comfinoOffer.classList.add('comfino-order');
+
+                let comfinoOptId = 'comfino-opt-' + item.type;
+
+                comfinoOffer.innerHTML = `
+                    <div class="comfino-single-payment">
+                        <input type="radio" id="` + comfinoOptId + `" class="comfino-input" name="comfino" />
+                        <label for="` + comfinoOptId + `">
+                            <div class="comfino-icon">` + item.icon + `</div>
+                            <span class="comfino-single-payment__text">` + item.name + `</span>
+                        </label>
+                    </div>
+                `;
+
+                if (index === 0) {
+                    let paymentOption = comfinoOffer.querySelector('#' + comfinoOptId);
+
+                    comfinoOffer.classList.add('selected');
+                    paymentOption.setAttribute('checked', 'checked');
+
+                    fetchProductDetails(item);
+                }
+
+                offerData[index] = item;
+                offerElements[index] = document.getElementById('comfino-offer-items').appendChild(comfinoOffer);
+            });
+
+            return { elements: offerElements, data: offerData };
+        }
+
         /**
-         * Get data about offer from API
+         * Get offers from API.
          */
-        document.querySelector('#pay-with-comperia').addEventListener('click', function () {
-            let offerWrapper = document.querySelector('#comfino-offer-items');
+        document.getElementById('pay-with-comperia').addEventListener('click', function () {
+            let offerWrapper = document.getElementById('comfino-offer-items');
+
+            document.getElementById('comfino-box').style.display = 'block';
+
             offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>'
 
-            fetch('{$set_info_url|escape:'htmlall':'UTF-8'}?type=data')
+            fetch('{$set_info_url|escape:'htmlall':'UTF-8'}&type=data'.replace(/&amp;/g, '&'))
                 .then(response => response.json())
                 .then(function (data) {
+                    if (!data.length) {
+                        offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='No offers available.' mod='comfino'}</p>`;
+
+                        return;
+                    }
+
+                    let loanTermBox = document.getElementById('comfino-quantity-select');
+
                     offerWrapper.innerHTML = '';
-                    let offerList = putDataIntoSection(data);
+                    offerList = putDataIntoSection(data);
 
-                    offerList.forEach(function (item, index) {
-                        item.addEventListener('click', function () {
-                            let data = {
-                              loan_type: item.dataset.type,
-                              loan_amount: Math.round(Number.parseFloat(item.dataset.sumamount) * 100),
-                              loan_term: item.dataset.term
-                            };
+                    selectTerm(loanTermBox, loanTermBox.querySelector('div > div[data-term="' + offerList.data[selectedOffer].loanTerm + '"]'));
 
-                            fetch('{$set_info_url|escape:'htmlall':'UTF-8'}?loan_type='+data.loan_type+'&loan_amount='+data.loan_amount+'&loan_term='+data.loan_term, {
-                              method: 'POST',
-                              data: ''
-                            }).then(response => response.json()).then(data => console.log(data))
+                    offerList.elements.forEach(function (item, index) {
+                        item.querySelector('label').addEventListener('click', function () {
+                            selectedOffer = index;
 
-                            offerList.forEach(function (item_sec, index_sec) {
-                              item_sec.style.border = '0px';
-                            })
+                            fetchProductDetails(offerList.data[selectedOffer]);
 
-                            item.style.border = '1px solid {$main_color|escape:'htmlall':'UTF-8'}';
-                            document.querySelector('#go-to-payment').style.display = 'inline-block';
-                      })
-
-                      let modals = item.querySelectorAll('[data-modal]');
-
-                      modals.forEach(function(trigger) {
-                          trigger.addEventListener('click', function(event) {
-                              event.preventDefault();
-                              let modal = document.getElementById(trigger.dataset.modal);
-                              modal.classList.add('open');
-                              let exits = modal.querySelectorAll('.comfino-modal-exit');
-                              exits.forEach(function(exit) {
-                              exit.addEventListener('click', function(event) {
-                                event.preventDefault();
-                                modal.classList.remove('open');
-                              });
+                            offerList.elements.forEach(function () {
+                                item.classList.remove('selected');
                             });
-                      });
-                  });
+
+                            item.classList.add('selected');
+
+                            selectCurrentTerm(loanTermBox, offerList.elements[selectedOffer].dataset.term);
+                        });
+                    });
+
+                    document.getElementById('comfino-repr-example-link').addEventListener('click', function (event) {
+                        event.preventDefault();
+                        document.getElementById('modal-repr-example').classList.add('open');
+                    });
+
+                    document.getElementById('modal-repr-example').querySelector('button.comfino-modal-exit').addEventListener('click', function (event) {
+                        event.preventDefault();
+                        document.getElementById('modal-repr-example').classList.remove('open');
+                    });
+                }).catch(function (error) {
+                    offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
                 });
-              })
-              .catch(function(error) {
-                offerWrapper.innerHTML = `
-                                <p class="alert alert-danger">{l s='There was an error while performing this operation: ' mod='comfino'} `+error+`</p>
-                                `;
-              })
-        });
-
-        let putDataIntoSection = function(data) {
-          let offerList = [];
-          let i = 0;
-          data.forEach(function (item, index) {
-            let comfino_offer = document.createElement('div');
-            comfino_offer.dataset.type = item.type;
-            comfino_offer.dataset.sumamount = item.sumAmount;
-            comfino_offer.dataset.term = item.loanTerm;
-            comfino_offer.dataset.type = item.type;
-            comfino_offer.classList.add('comfino-order');
-
-            let content = `
-                        <div class="icon-hidden" style="display: none">`+item.icon+`</div>
-                            <div class="comfino-icon" style="margin-bottom: 10px;">`+item.icon+`</div>
-                            <div class="name" style="margin-bottom: 10px;"><strong>`+item.name+`</strong></div>
-                            <div class="offer" style="margin-bottom: 10px;">
-                                <div><strong>`+item.loanTerm+` rat x `+item.instalmentAmount+` zł</strong></div>
-                                <div>Całkowita kwota do spłaty: `+item.sumAmount+` zł, RRSO: `+item.rrso+` %</div>
-                            </div>
-                            <div class="description" style="margin-bottom: 10px;">`+item.description+`</div>
-                            <div><a data-modal="modal-`+item.type+`">Przykład reprezentatywny</a></div>
-                            <div class="comfino-modal" id="modal-`+item.type+`">
-                  <div class="comfino-modal-bg comfino-modal-exit"></div>
-                  <div class="comfino-modal-container">
-                  <span>`+item.representativeExample+`</span>
-                  <button class="comfino-modal-close comfino-modal-exit">X</button>
-                  </div>
-                </div>
-                        </div>
-                    `;
-
-            comfino_offer.innerHTML = content;
-            offerList[i] = comfino_offer;
-            i++;
-            document.querySelector('#comfino-offer-items').appendChild(comfino_offer);
-          });
-          return offerList;
-        }
-	  }
+            });
+    }
 </script>
