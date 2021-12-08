@@ -450,9 +450,9 @@
 
                 for (let loanParams of offerList.data[selectedOffer].loanParameters) {
                     if (loanParams.loanTerm === parseInt(termElement.dataset.term)) {
-                        document.getElementById('comfino-total-payment').innerHTML = loanParams.sumAmount + ' zł';
-                        document.getElementById('comfino-monthly-rate').innerHTML = loanParams.instalmentAmount + ' zł';
-                        document.getElementById('comfino-summary-total').innerHTML = loanParams.toPay + ' zł';
+                        document.getElementById('comfino-total-payment').innerHTML = loanParams.sumAmountFormatted;
+                        document.getElementById('comfino-monthly-rate').innerHTML = loanParams.instalmentAmountFormatted;
+                        document.getElementById('comfino-summary-total').innerHTML = loanParams.toPayFormatted;
                         document.getElementById('comfino-rrso').innerHTML = offerList.data[selectedOffer].rrso + '%';
                         document.getElementById('comfino-description-box').innerHTML = offerList.data[selectedOffer].description;
                         document.getElementById('comfino-repr-example').innerHTML = offerList.data[selectedOffer].representativeExample;
@@ -461,9 +461,10 @@
                         offerList.elements[selectedOffer].dataset.term = loanParams.loanTerm;
 
                         fetch(
-                            '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
-                            offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(loanParams.sumAmount) * 100) +
-                            '&loan_term=' + loanParams.loanTerm,
+                            getModuleApiUrl(
+                                'loan_type=' + offerList.data[selectedOffer].type + '&loan_amount=' +
+                                loanParams.sumAmount + '&loan_term=' + loanParams.loanTerm
+                            ),
                             { method: 'POST', data: '' }
                         );
 
@@ -471,12 +472,13 @@
                     }
                 }
             } else {
-                document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmount + ' zł';
+                document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmountFormatted;
 
                 fetch(
-                    '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
-                    offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(offerList.data[selectedOffer].sumAmount) * 100) +
-                    '&loan_term=1',
+                    getModuleApiUrl(
+                        'loan_type=' + offerList.data[selectedOffer].type + '&loan_amount=' +
+                        offerList.data[selectedOffer].sumAmount + '&loan_term=1'
+                    ),
                     { method: 'POST', data: '' }
                 );
             }
@@ -495,17 +497,18 @@
 
                 for (let loanParams of offerList.data[selectedOffer].loanParameters) {
                     if (loanParams.loanTerm === parseInt(term)) {
-                        document.getElementById('comfino-total-payment').innerHTML = loanParams.sumAmount + ' zł';
-                        document.getElementById('comfino-monthly-rate').innerHTML = loanParams.instalmentAmount + ' zł';
-                        document.getElementById('comfino-summary-total').innerHTML = loanParams.toPay + ' zł';
+                        document.getElementById('comfino-total-payment').innerHTML = loanParams.sumAmountFormatted;
+                        document.getElementById('comfino-monthly-rate').innerHTML = loanParams.instalmentAmountFormatted;
+                        document.getElementById('comfino-summary-total').innerHTML = loanParams.toPayFormatted;
                         document.getElementById('comfino-rrso').innerHTML = offerList.data[selectedOffer].rrso + '%';
                         document.getElementById('comfino-description-box').innerHTML = offerList.data[selectedOffer].description;
                         document.getElementById('comfino-repr-example').innerHTML = offerList.data[selectedOffer].representativeExample;
 
                         fetch(
-                            '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
-                            offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(loanParams.sumAmount) * 100) +
-                            '&loan_term=' + loanParams.loanTerm,
+                            getModuleApiUrl(
+                                'loan_type=' + offerList.data[selectedOffer].type + '&loan_amount=' +
+                                loanParams.sumAmount + '&loan_term=' + loanParams.loanTerm
+                            ),
                             { method: 'POST', data: '' }
                         );
 
@@ -513,12 +516,13 @@
                     }
                 }
             } else {
-                document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmount + ' zł';
+                document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmountFormatted;
 
                 fetch(
-                    '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&') + '&loan_type=' +
-                    offerList.data[selectedOffer].type + '&loan_amount=' + (parseFloat(offerList.data[selectedOffer].sumAmount) * 100)
-                    + '&loan_term=1',
+                    getModuleApiUrl(
+                        'loan_type=' + offerList.data[selectedOffer].type + '&loan_amount=' +
+                        offerList.data[selectedOffer].sumAmount + '&loan_term=1'
+                    ),
                     { method: 'POST', data: '' }
                 );
             }
@@ -590,7 +594,7 @@
                 if (index === 0) {
                     let paymentOption = comfinoOffer.querySelector('#' + comfinoOptId);
 
-                    comfinoOffer.classList.add('selected');
+                    comfinoOffer.classList.add('comfino-selected');
                     paymentOption.setAttribute('checked', 'checked');
 
                     fetchProductDetails(item);
@@ -601,6 +605,17 @@
             });
 
             return { elements: offerElements, data: offerData };
+        }
+
+        let getModuleApiUrl = function (queryStringParams)
+        {
+            let moduleApiUrl = '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&');
+
+            if (queryStringParams) {
+                moduleApiUrl += (moduleApiUrl.indexOf('?') > 0 ? '&' : '?') + queryStringParams;
+            }
+
+            return moduleApiUrl;
         }
 
         /**
@@ -617,9 +632,9 @@
 
                     document.getElementById('comfino-box').style.display = 'block';
 
-                    offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>'
+                    offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>';
 
-                    fetch('{$set_info_url|escape:'htmlall':'UTF-8'}&type=data'.replace(/&amp;/g, '&'))
+                    fetch(getModuleApiUrl('type=data'))
                         .then(response => response.json())
                         .then(function (data) {
                             if (!data.length) {
@@ -642,10 +657,10 @@
                                     fetchProductDetails(offerList.data[selectedOffer]);
 
                                     offerList.elements.forEach(function () {
-                                        item.classList.remove('selected');
+                                        item.classList.remove('comfino-selected');
                                     });
 
-                                    item.classList.add('selected');
+                                    item.classList.add('comfino-selected');
 
                                     selectCurrentTerm(loanTermBox, offerList.elements[selectedOffer].dataset.term);
                                 });
