@@ -39,7 +39,7 @@ class ComfinoApi
     public static function createOrder($cart_data, $order_id, $return_url)
     {
         $total = ((float) $cart_data->getOrderTotal(true)) * 100;
-        $delivery = ((float) $cart_data->getCarrierCost($cart_data->id_carrier)) * 100;
+        $delivery = ((float) $cart_data->getOrderTotal(true, Cart::ONLY_SHIPPING)) * 100;
 
         $customer = new Customer($cart_data->id_customer);
         $products = [];
@@ -50,7 +50,7 @@ class ComfinoApi
             $products[] = [
                 'name' => $product['name'],
                 'quantity' => (int) $product['cart_quantity'],
-                'price' => (int) round($product_object->getPrice(), 2) * 100,
+                'price' => round($product_object->getPrice() * 100),
                 'photoUrl' => self::getProductsImageUrl($product_object),
                 'ean' => $product_object->ean13,
                 'externalId' => (string) $product_object->id,
@@ -74,14 +74,14 @@ class ComfinoApi
             'orderId' => (string) $order_id,
             'draft' => false,
             'loanParameters' => [
-                'amount' => (int) $total,
+                'amount' => $total,
                 'term' => (int) $context->cookie->loan_term,
                 'type' => $context->cookie->loan_type
             ],
             'cart' => [
                 'category' => 'Kategoria',
-                'totalAmount' => (int) $total,
-                'deliveryCost' => (int) $delivery,
+                'totalAmount' => $total,
+                'deliveryCost' => $delivery,
                 'products' => $products
             ],
             'customer' => [
@@ -180,7 +180,13 @@ class ComfinoApi
             return '';
         }
 
-        return (new Link())->getImageLink($link_rewrite, $image['id_image']);
+        $imageUrl = (new Link())->getImageLink($link_rewrite, $image['id_image']);
+
+        if (strpos($imageUrl, 'http') === false) {
+            $imageUrl = 'https://'.$imageUrl;
+        }
+
+        return $imageUrl;
     }
 
     private static function sendRequest($url, $request_type, $extra_options = [], $data = null)

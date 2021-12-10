@@ -1,0 +1,9 @@
+{
+    "name": "comfino/comfino",
+    "autoload": {
+        "psr-4": {"Comfino\\": "src/"},
+        "classmap": ["comfino.php"],
+        "config": {"prepend-autoloader": false},
+        "type": "prestashop-module"
+    }
+}
