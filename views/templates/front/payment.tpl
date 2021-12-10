@@ -453,7 +453,7 @@
                         document.getElementById('comfino-total-payment').innerHTML = loanParams.sumAmountFormatted;
                         document.getElementById('comfino-monthly-rate').innerHTML = loanParams.instalmentAmountFormatted;
                         document.getElementById('comfino-summary-total').innerHTML = loanParams.toPayFormatted;
-                        document.getElementById('comfino-rrso').innerHTML = offerList.data[selectedOffer].rrso + '%';
+                        document.getElementById('comfino-rrso').innerHTML = loanParams.rrso + '%';
                         document.getElementById('comfino-description-box').innerHTML = offerList.data[selectedOffer].description;
                         document.getElementById('comfino-repr-example').innerHTML = offerList.data[selectedOffer].representativeExample;
 
@@ -502,7 +502,7 @@
                         document.getElementById('comfino-total-payment').innerHTML = loanParams.sumAmountFormatted;
                         document.getElementById('comfino-monthly-rate').innerHTML = loanParams.instalmentAmountFormatted;
                         document.getElementById('comfino-summary-total').innerHTML = loanParams.toPayFormatted;
-                        document.getElementById('comfino-rrso').innerHTML = offerList.data[selectedOffer].rrso + '%';
+                        document.getElementById('comfino-rrso').innerHTML = loanParams.rrso + '%';
                         document.getElementById('comfino-description-box').innerHTML = offerList.data[selectedOffer].description;
                         document.getElementById('comfino-repr-example').innerHTML = offerList.data[selectedOffer].representativeExample;
 
