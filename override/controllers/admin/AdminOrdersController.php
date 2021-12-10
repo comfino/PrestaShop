@@ -10,6 +10,7 @@ class AdminOrdersController extends AdminOrdersControllerCore
     {
         parent::__construct();
 
+        require_once _PS_MODULE_DIR_.'comfino/src/Api.php';
         require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
 
         $this->orderStates = OrderState::getOrderStates((int) $this->context->language->id);
