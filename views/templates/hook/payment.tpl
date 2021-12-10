@@ -518,10 +518,11 @@
                         offerList.elements[selectedOffer].dataset.term = loanParams.loanTerm;
 
                         fetch(
-                            getModuleApiUrl(
-                                'loan_type=' + offerList.data[selectedOffer].type + '&loan_amount=' +
-                                loanParams.sumAmount + '&loan_term=' + loanParams.loanTerm
-                            ),
+                            getModuleApiUrl({
+                                loan_type: offerList.data[selectedOffer].type,
+                                loan_amount: loanParams.sumAmount,
+                                loan_term: loanParams.loanTerm
+                            }),
                             { method: 'POST', data: '' }
                         );
 
@@ -532,10 +533,11 @@
                 document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmountFormatted;
 
                 fetch(
-                    getModuleApiUrl(
-                        'loan_type=' + offerList.data[selectedOffer].type + '&loan_amount=' +
-                        offerList.data[selectedOffer].sumAmount + '&loan_term=1'
-                    ),
+                    getModuleApiUrl({
+                        loan_type: offerList.data[selectedOffer].type,
+                        loan_amount: offerList.data[selectedOffer].sumAmount,
+                        loan_term: 1
+                    }),
                     { method: 'POST', data: '' }
                 );
             }
@@ -562,10 +564,11 @@
                         document.getElementById('comfino-repr-example').innerHTML = offerList.data[selectedOffer].representativeExample;
 
                         fetch(
-                            getModuleApiUrl(
-                                'loan_type=' + offerList.data[selectedOffer].type + '&loan_amount=' +
-                                loanParams.sumAmount + '&loan_term=' + loanParams.loanTerm
-                            ),
+                            getModuleApiUrl({
+                                loan_type: offerList.data[selectedOffer].type,
+                                loan_amount: loanParams.sumAmount,
+                                loan_term: loanParams.loanTerm
+                            }),
                             { method: 'POST', data: '' }
                         );
 
@@ -574,10 +577,11 @@
                         document.getElementById('comfino-total-payment').innerHTML = offerList.data[selectedOffer].sumAmountFormatted;
 
                         fetch(
-                            getModuleApiUrl(
-                                'loan_type=' + offerList.data[selectedOffer].type + '&loan_amount=' +
-                                offerList.data[selectedOffer].sumAmount + '&loan_term=1'
-                            ),
+                            getModuleApiUrl({
+                                loan_type: offerList.data[selectedOffer].type,
+                                loan_amount: offerList.data[selectedOffer].sumAmount,
+                                loan_term: 1
+                            }),
                             { method: 'POST', data: '' }
                         );
                     }
@@ -667,9 +671,10 @@
         let getModuleApiUrl = function (queryStringParams)
         {
             let moduleApiUrl = '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&');
+            let urlParams = new URLSearchParams(queryStringParams);
 
             if (queryStringParams) {
-                moduleApiUrl += (moduleApiUrl.indexOf('?') > 0 ? '&' : '?') + queryStringParams;
+                moduleApiUrl += (moduleApiUrl.indexOf('?') > 0 ? '&' : '?') + urlParams.toString();
             }
 
             return moduleApiUrl;
@@ -685,7 +690,7 @@
 
             offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>';
 
-            fetch(getModuleApiUrl('type=data'))
+            fetch(getModuleApiUrl({ldelim}type: 'data'{rdelim}))
                 .then(response => response.json())
                 .then(function (data) {
                     if (!data.length) {
