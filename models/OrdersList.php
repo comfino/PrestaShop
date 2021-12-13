@@ -87,7 +87,7 @@ class OrdersList extends ObjectModel
     const ADD_ORDER_STATUSES = [
         self::COMFINO_CREATED => 'Order created (comfino)',
         self::COMFINO_WAITING_FOR_FILLING => 'Waiting for form\'s filling (comfino)',
-        self::COMFINO_WAITING_FOR_CONFIRMATION => 'Waiting for form\'s confirnmation (comfino)',
+        self::COMFINO_WAITING_FOR_CONFIRMATION => 'Waiting for form\'s confirmation (comfino)',
         self::COMFINO_WAITING_FOR_PAYMENT => 'Waiting for payment (comfino)',
         self::COMFINO_ACCEPTED => 'Credit granted (comfino)',
         self::COMFINO_PAID => 'Paid (comfino)',

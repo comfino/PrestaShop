@@ -49,7 +49,7 @@ class AdminOrdersController extends AdminOrdersControllerCore
 
         foreach ($this->statuses_array as $statusId => $statusName) {
             if (in_array($statusName, $this->comfinoStates, true) ||
-                ($paymentMethod === 'Comfino payments' && $statusName === 'Canceled' && !empty($orderStateId) &&
+                ($paymentMethod === 'Comfino payments' && $statusId == Configuration::get('PS_OS_CANCELED') && !empty($orderStateId) &&
                 ($this->orderStates[$orderStatesMap[$orderStateId]]['paid'] == 1 || in_array($statusName, $this->comfinoConfirmStates, true)))
             ) {
                 unset($this->statuses_array[$statusId], $this->orderStates[$orderStatesMap[$statusId]]);
