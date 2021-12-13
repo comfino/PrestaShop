@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.0.3');
+    define('COMFINO_VERSION', '2.0.4');
 }
 
 if (COMFINO_PS_17) {

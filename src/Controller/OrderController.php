@@ -71,14 +71,14 @@ class OrderController extends \PrestaShopBundle\Controller\Admin\Sell\Order\Orde
             'update_order_status',
             UpdateOrderStatusType::class, [
                 'new_order_status_id' => $orderForViewing->getHistory()->getCurrentOrderStatusId(),
-                'payment_method' => count($payment = $orderForViewing->getPayments()->getPayments()) ? $payment[0]->getPaymentMethod() : '',
+                'payment_method' => !empty($payment = $orderForViewing->getPayments()->getPayments()) ? $payment[0]->getPaymentMethod() : '',
             ]
         );
         $updateOrderStatusActionBarForm = $formFactory->createNamed(
             'update_order_status_action_bar',
             UpdateOrderStatusType::class, [
                 'new_order_status_id' => $orderForViewing->getHistory()->getCurrentOrderStatusId(),
-                'payment_method' => count($payment = $orderForViewing->getPayments()->getPayments()) ? $payment[0]->getPaymentMethod() : '',
+                'payment_method' => !empty($payment = $orderForViewing->getPayments()->getPayments()) ? $payment[0]->getPaymentMethod() : '',
             ]
         );
 
@@ -132,9 +132,13 @@ class OrderController extends \PrestaShopBundle\Controller\Admin\Sell\Order\Orde
             'symbol' => $orderCurrency->symbol,
         ]);
 
-        $internalNoteForm = $this->createForm(InternalNoteType::class, [
-            'note' => $orderForViewing->getNote(),
-        ]);
+        if (method_exists($orderForViewing, 'getNote')) {
+            $internalNoteForm = $this->createForm(InternalNoteType::class, [
+                'note' => $orderForViewing->getNote(),
+            ]);
+        } else {
+            $internalNoteForm = null;
+        }
 
         $formBuilder = $this->get('prestashop.core.form.identifiable_object.builder.cancel_product_form_builder');
         $backOfficeOrderButtons = new ActionsBarButtonsCollection();
@@ -198,7 +202,7 @@ class OrderController extends \PrestaShopBundle\Controller\Admin\Sell\Order\Orde
             'paginationNum' => $paginationNum,
             'paginationNumOptions' => $paginationNumOptions,
             'isAvailableQuantityDisplayed' => $this->configuration->getBoolean('PS_STOCK_MANAGEMENT'),
-            'internalNoteForm' => $internalNoteForm->createView(),
+            'internalNoteForm' => $internalNoteForm ? $internalNoteForm->createView() : null,
         ]);
     }
 
