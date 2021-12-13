@@ -104,6 +104,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                             'toPayFormatted' => Tools::displayPrice(((float) $loanParams['toPay']) / 100),
                             'sumAmount' => $total / 100,
                             'sumAmountFormatted' => Tools::displayPrice($total / 100),
+                            'rrso' => ((float) $loanParams['rrso']) * 100,
                         ];
                     }, $offer['loanParameters']),
                 ];
