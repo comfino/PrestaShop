@@ -227,7 +227,7 @@ class ComfinoApi
             $error_id = time();
 
             file_put_contents(
-                '.'._MODULE_DIR_.'comfino/payment_log.log',
+                _PS_MODULE_DIR_.'comfino/payment_log.log',
                 '['.date('Y-m-d H:i:s').'] Communication error ['.$error_id.']: '.curl_error($curl)."\n",
                 FILE_APPEND
             );
@@ -239,14 +239,14 @@ class ComfinoApi
             if (isset($decoded['errors'])) {
                 if ($data !== null) {
                     file_put_contents(
-                        '.'._MODULE_DIR_.'comfino/payment_log.log',
+                        _PS_MODULE_DIR_.'comfino/payment_log.log',
                         '['.date('Y-m-d H:i:s').'] Payment error - data: '.json_encode($data)."\n",
                         FILE_APPEND
                     );
                 }
 
                 file_put_contents(
-                    '.'._MODULE_DIR_.'comfino/payment_log.log',
+                    _PS_MODULE_DIR_.'comfino/payment_log.log',
                     '['.date('Y-m-d H:i:s').'] Payment error - response: '.$response."\n",
                     FILE_APPEND
                 );
@@ -256,7 +256,7 @@ class ComfinoApi
                 $error_id = time();
 
                 file_put_contents(
-                    '.'._MODULE_DIR_.'comfino/payment_log.log',
+                    _PS_MODULE_DIR_.'comfino/payment_log.log',
                     '['.date('Y-m-d H:i:s').'] Payment error ['.$error_id.'] '.curl_getinfo($curl, CURLINFO_RESPONSE_CODE).' - response: '.$response."\n",
                     FILE_APPEND
                 );
