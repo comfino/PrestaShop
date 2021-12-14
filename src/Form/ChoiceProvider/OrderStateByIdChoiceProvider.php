@@ -89,7 +89,7 @@ final class OrderStateByIdChoiceProvider implements FormChoiceProviderInterface,
             if (in_array($orderState['name'], $comfinoStates, true)) {
                 continue;
             }
-            if ($paymentMethod === 'Comfino payments' && $orderState['name'] === 'Canceled' && !empty($options['current_state']) &&
+            if ($paymentMethod === 'Comfino payments' && $orderState['id_order_state'] == \Configuration::get('PS_OS_CANCELED') && !empty($options['current_state']) &&
                 ($orderStatesMap[$options['current_state']]['paid'] == 1 || in_array($orderState['name'], $comfinoConfirmStates, true))
             ) {
                 continue;

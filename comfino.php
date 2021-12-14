@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.0.3');
+    define('COMFINO_VERSION', '2.0.5');
 }
 
 if (COMFINO_PS_17) {
@@ -355,7 +355,7 @@ class Comfino extends PaymentModule
         /** @var OrderState $orderState */
         $orderState = $params['newOrderStatus'];
 
-        if ($orderState->name === 'Canceled') {
+        if ($orderState->id == Configuration::get('PS_OS_CANCELED')) {
             ComfinoApi::cancelOrder($params['id_order']);
         }
     }

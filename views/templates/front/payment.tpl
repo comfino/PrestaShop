@@ -525,7 +525,7 @@
                     getModuleApiUrl({
                         loan_type: offerList.data[selectedOffer].type,
                         loan_amount: offerList.data[selectedOffer].sumAmount,
-                        loan_term, 1
+                        loan_term: 1
                     }),
                     { method: 'POST', data: '' }
                 );

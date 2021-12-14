@@ -36,13 +36,12 @@ final class UpdateOrderStatusHandler extends AbstractOrderHandler implements Upd
             throw new OrderException('The order has already been assigned this status.');
         }
 
-        $orderStateName = is_array($orderState->name) ? current($orderState->name) : $orderState->name;
         $payments = $order->getOrderPayments();
 
-        if ($currentOrderState !== null && $orderStateName === 'Canceled' && count($payments)) {
+        if ($currentOrderState !== null && !empty($payments) && $orderState->id == Configuration::get('PS_OS_CANCELED')) {
             /** @var \OrderPayment $payment */
             $payment = $payments[0];
-            $orderCurrentStateName =  is_array($currentOrderState->name) ? current($currentOrderState->name) : $currentOrderState->name;
+            $orderCurrentStateName = is_array($currentOrderState->name) ? current($currentOrderState->name) : $currentOrderState->name;
             $comfinoStates = [
                 OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],
                 OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_ACCEPTED],
