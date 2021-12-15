@@ -50,8 +50,9 @@
     .comfino-title {
         text-align: center;
         font-weight: bold;
-        font-size: 1.2rem;
-        margin: 0.875rem 0;
+        font-size: 1.4em;
+        margin: 0.875em 0;
+        color: #232323;
     }
 
     .comfino-select-payment {
@@ -71,6 +72,8 @@
 
     .comfino-single-payment__text {
         padding-left: 5px;
+        font-size: 1.1em;
+        font-weight: normal;
     }
 
     .comfino-single-payment input {
@@ -131,17 +134,20 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 1rem 0;
-        font-size: 1.2rem;
-        margin-top: 1rem;
+        padding: 1em 0;
+        font-size: 1.2em;
+        margin-top: 1em;
     }
 
     .comfino-payment-title {
+        font-size: 1.2em;
         color: #666;
     }
 
     .comfino-total-payment {
+        font-size: 1.2em;
         font-weight: bold;
+        color: #232323;
     }
 
     .comfino-installments-box {
@@ -150,8 +156,9 @@
     }
 
     .comfino-installments-title {
-        font-size: 1.2rem;
+        font-size: 1.3em;
         font-weight: bold;
+        color: #232323;
         text-align: center;
         padding: 20px 0;
     }
@@ -178,7 +185,7 @@
         align-items: center;
         justify-content: center;
         color: #fff;
-        font-size: 1.4rem;
+        font-size: 1.5em;
         margin: 10px 20px;
         cursor: pointer;
     }
@@ -192,14 +199,14 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 1rem 0;
-        font-size: 1.2rem;
+        padding: 1em 0;
+        font-size: 1.2em;
         color: #fff;
-        margin-top: 1rem;
+        margin-top: 1em;
     }
 
     .comfino-monthly-title {
-        font-size: 1.2rem;
+        font-size: 1.2em;
         text-align: center;
     }
 
@@ -209,12 +216,12 @@
 
     .comfino-summary-box {
         text-align: center;
-        font-size: .8rem;
+        font-size: .98em;
         color: gray;
     }
 
     .comfino-summary-total {
-        padding: .5rem 0;
+        padding: .5em 0;
     }
 
     .comfino-rrso {
@@ -223,26 +230,26 @@
     .comfino-footer-link {
         display: block;
         text-align: center;
-        padding: .5rem 0;
+        padding: .5em 0;
         color: gray;
-        font-size: .7rem;
-        margin: 1rem 0 2rem 0;
+        font-size: .87em;
+        margin: 1em 0 2em 0;
     }
 
     .comfino-payment-delay {
-        padding: 1rem;
+        padding: 1em;
     }
 
     .comfino-payment-delay__title {
         text-align: center;
         font-weight: bold;
-        font-size: 1.2rem;
+        font-size: 1.2em;
     }
 
     .comfino-payment-delay__title span {
         display: block;
         color: #599e33;
-        padding: .3rem 0;
+        padding: .3em 0;
     }
 
     .comfino-payment-delay__box {
@@ -267,8 +274,8 @@
 
     .comfin-single-instruction__text {
         text-align: center;
-        font-size: .9rem;
-        padding-top: 1rem;
+        font-size: .9em;
+        padding-top: 1em;
         color: #666;
     }
 
@@ -280,7 +287,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: .5rem;
+        padding: .5em;
     }
 
     .single-instruction-img {
@@ -375,7 +382,7 @@
         width: fit-content;
         background-color: #599e33;
         color: #fff;
-        padding: 1rem 2rem;
+        padding: 1em 2em;
         text-decoration: none;
         text-transform: uppercase;
     }

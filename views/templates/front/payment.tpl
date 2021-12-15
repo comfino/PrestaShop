@@ -52,9 +52,7 @@
         font-weight: bold;
         font-size: 1.2rem;
         margin: 0.875rem 0;
-    }
-
-    body#checkout section.checkout-step .payment-options .comfino-select-payment {
+        color: #232323;
     }
 
     body#checkout section.checkout-step .payment-options .comfino-single-payment {
@@ -71,6 +69,7 @@
 
     body#checkout section.checkout-step .payment-options .comfino-single-payment__text {
         padding-left: 5px;
+        font-weight: normal;
     }
 
     body#checkout section.checkout-step .payment-options .comfino-single-payment input {
@@ -142,6 +141,7 @@
 
     body#checkout section.checkout-step .payment-options .comfino-total-payment {
         font-weight: bold;
+        color: #232323;
     }
 
     body#checkout section.checkout-step .payment-options .comfino-installments-box {
@@ -152,6 +152,7 @@
     body#checkout section.checkout-step .payment-options .comfino-installments-title {
         font-size: 1.2rem;
         font-weight: bold;
+        color: #232323;
         text-align: center;
         padding: 20px 0;
     }
@@ -225,7 +226,7 @@
         text-align: center;
         padding: .5rem 0;
         color: gray;
-        font-size: .7rem;
+        font-size: .73rem;
         margin: 1rem 0 2rem 0;
     }
 
