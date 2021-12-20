@@ -204,6 +204,7 @@ class Comfino extends PaymentModule
             Configuration::updateValue('COMFINO_WIDGET_PRICE_SELECTOR', Tools::getValue('COMFINO_WIDGET_PRICE_SELECTOR'));
             Configuration::updateValue('COMFINO_WIDGET_TARGET_SELECTOR', Tools::getValue('COMFINO_WIDGET_TARGET_SELECTOR'));
             Configuration::updateValue('COMFINO_WIDGET_TYPE', Tools::getValue('COMFINO_WIDGET_TYPE'));
+            Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', Tools::getValue('COMFINO_WIDGET_OFFER_TYPE'));
             Configuration::updateValue('COMFINO_WIDGET_CODE', Tools::getValue('COMFINO_WIDGET_CODE'));
 
             $output = $this->l('Settings updated.');
@@ -373,11 +374,15 @@ class Comfino extends PaymentModule
     public function hookHeader()
     {
         if ((bool) Configuration::get('COMFINO_WIDGET_ENABLED')) {
-            $this->context->controller->registerJavascript(
-                'comfino',
-                $this->context->link->getModuleLink($this->name, 'script', [], true),
-                ['server' => 'remote', 'position' => 'head']
-            );
+            if (COMFINO_PS_17) {
+                $this->context->controller->registerJavascript(
+                    'comfino',
+                    $this->context->link->getModuleLink($this->name, 'script', [], true),
+                    ['server' => 'remote', 'position' => 'head']
+                );
+            } else {
+                $this->context->controller->addJS($this->context->link->getModuleLink($this->name, 'script', [], true), false);
+            }
         }
     }
 
@@ -396,6 +401,7 @@ class Comfino extends PaymentModule
         $helper->fields_value['COMFINO_WIDGET_PRICE_SELECTOR'] = Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR');
         $helper->fields_value['COMFINO_WIDGET_TARGET_SELECTOR'] = Configuration::get('COMFINO_WIDGET_TARGET_SELECTOR');
         $helper->fields_value['COMFINO_WIDGET_TYPE'] = Configuration::get('COMFINO_WIDGET_TYPE');
+        $helper->fields_value['COMFINO_WIDGET_OFFER_TYPE'] = Configuration::get('COMFINO_WIDGET_OFFER_TYPE');
         $helper->fields_value['COMFINO_WIDGET_CODE'] = Configuration::get('COMFINO_WIDGET_CODE');
 
         return $helper->generateForm($this->getFormFields());
@@ -565,6 +571,20 @@ class Comfino extends PaymentModule
                     ]
                 ],
                 [
+                    'type' => 'select',
+                    'label' => $this->l('Offer type'),
+                    'name' => 'COMFINO_WIDGET_OFFER_TYPE',
+                    'required' => false,
+                    'options' => [
+                        'query' => [
+                            ['key' => 'INSTALLMENTS_ZERO_PERCENT', 'name' => $this->l('Zero percent installments')],
+                            ['key' => 'CONVENIENT_INSTALLMENTS', 'name' => $this->l('Convenient installments')],
+                        ],
+                        'id' => 'key',
+                        'name' => 'name'
+                    ]
+                ],
+                [
                     'type' => 'textarea',
                     'label' => $this->l('Widget initialization code'),
                     'name' => 'COMFINO_WIDGET_CODE',
@@ -605,12 +625,13 @@ class Comfino extends PaymentModule
         $widgetCode = "
 var script = document.createElement('script');
 script.onload = function () {
-    ComfinoPluginRate.init({
+    ComfinoProductWidget.init({
         widgetKey: '{WIDGET_KEY}',
         priceSelector: '{WIDGET_PRICE_SELECTOR}',
         widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',
         price: null,
         type: '{WIDGET_TYPE}',
+        offerType: '{OFFER_TYPE}',
         callbackBefore: function () {},
         callbackAfter: function () {}
     });
@@ -629,6 +650,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
                Configuration::updateValue('COMFINO_WIDGET_PRICE_SELECTOR', 'span[itemprop=price]') &&
                Configuration::updateValue('COMFINO_WIDGET_TARGET_SELECTOR', 'div.product-actions') &&
                Configuration::updateValue('COMFINO_WIDGET_TYPE', 'with-modal') &&
+               Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', 'INSTALLMENTS_ZERO_PERCENT') &&
                Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widgetCode));
     }
 
@@ -643,6 +665,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
                Configuration::deleteByName('COMFINO_WIDGET_PRICE_SELECTOR') &&
                Configuration::deleteByName('COMFINO_WIDGET_TARGET_SELECTOR') &&
                Configuration::deleteByName('COMFINO_WIDGET_TYPE') &&
+               Configuration::deleteByName('COMFINO_WIDGET_OFFER_TYPE') &&
                Configuration::deleteByName('COMFINO_WIDGET_CODE');
     }
 }

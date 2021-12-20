@@ -41,12 +41,13 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
 
         if ((bool) Configuration::get('COMFINO_WIDGET_ENABLED')) {
             echo str_replace(
-                ['{WIDGET_KEY}', '{WIDGET_PRICE_SELECTOR}', '{WIDGET_TARGET_SELECTOR}', '{WIDGET_TYPE}'],
+                ['{WIDGET_KEY}', '{WIDGET_PRICE_SELECTOR}', '{WIDGET_TARGET_SELECTOR}', '{WIDGET_TYPE}', '{OFFER_TYPE}'],
                 [
                     Configuration::get('COMFINO_WIDGET_KEY'),
                     Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR'),
                     Configuration::get('COMFINO_WIDGET_TARGET_SELECTOR'),
-                    Configuration::get('COMFINO_WIDGET_TYPE')
+                    Configuration::get('COMFINO_WIDGET_TYPE'),
+                    Configuration::get('COMFINO_WIDGET_OFFER_TYPE')
                 ],
                 Configuration::get('COMFINO_WIDGET_CODE')
             );

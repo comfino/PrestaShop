@@ -204,7 +204,7 @@
         text-align: center;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-monthly-rate {
+    body#checkout section.checkout-step .payment-options .comfino-monthly-installment {
         font-weight: bold;
     }
 
@@ -380,7 +380,7 @@
                 </section>
                 <section class="comfino-monthly-box">
                     <div class="comfino-monthly-title">{l s='Monthly instalment' mod='comfino'}:</div>
-                    <div id="comfino-monthly-rate" class="comfino-monthly-rate"></div>
+                    <div id="comfino-monthly-installment" class="comfino-monthly-installment"></div>
                 </section>
                 <section class="comfino-summary-box">
                     <div class="comfino-summary-total">{l s='Total amount to pay' mod='comfino'}: <span id="comfino-summary-total"></span></div>
@@ -452,7 +452,7 @@
                 for (let loanParams of offerList.data[selectedOffer].loanParameters) {
                     if (loanParams.loanTerm === parseInt(termElement.dataset.term)) {
                         document.getElementById('comfino-total-payment').innerHTML = loanParams.sumAmountFormatted;
-                        document.getElementById('comfino-monthly-rate').innerHTML = loanParams.instalmentAmountFormatted;
+                        document.getElementById('comfino-monthly-installment').innerHTML = loanParams.instalmentAmountFormatted;
                         document.getElementById('comfino-summary-total').innerHTML = loanParams.toPayFormatted;
                         document.getElementById('comfino-rrso').innerHTML = loanParams.rrso + '%';
                         document.getElementById('comfino-description-box').innerHTML = offerList.data[selectedOffer].description;
@@ -501,7 +501,7 @@
                 for (let loanParams of offerList.data[selectedOffer].loanParameters) {
                     if (loanParams.loanTerm === parseInt(term)) {
                         document.getElementById('comfino-total-payment').innerHTML = loanParams.sumAmountFormatted;
-                        document.getElementById('comfino-monthly-rate').innerHTML = loanParams.instalmentAmountFormatted;
+                        document.getElementById('comfino-monthly-installment').innerHTML = loanParams.instalmentAmountFormatted;
                         document.getElementById('comfino-summary-total').innerHTML = loanParams.toPayFormatted;
                         document.getElementById('comfino-rrso').innerHTML = loanParams.rrso + '%';
                         document.getElementById('comfino-description-box').innerHTML = offerList.data[selectedOffer].description;

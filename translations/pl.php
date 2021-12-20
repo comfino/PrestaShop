@@ -63,3 +63,6 @@ $_MODULE['<{comfino}prestashop>comfino_52e4a3c9792eb8370481cf3498e2f7db'] = 'Kod
 $_MODULE['<{comfino}prestashop>comfino_17ca16711364be40a15d5ef606dd5466'] = 'Widget tekstowy';
 $_MODULE['<{comfino}prestashop>comfino_cd2aa70b9522b4fd86636c6dc837dbf4'] = 'Widget graficzny z banerem';
 $_MODULE['<{comfino}prestashop>comfino_1b469dca567b003f00bbbe131b6d198b'] = 'Widget graficzny z kalkulatorem rat';
+$_MODULE['<{comfino}prestashop>comfino_537e58b3793c8dbcf8505b598aa2ddb0'] = 'Typ oferty';
+$_MODULE['<{comfino}prestashop>comfino_705609b8c6a2dc79f398b34bdad834d5'] = 'Raty zero procent';
+$_MODULE['<{comfino}prestashop>comfino_b195394a6638e56e7e444899746b04c2'] = 'Niskie raty';
