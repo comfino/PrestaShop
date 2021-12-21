@@ -66,3 +66,4 @@ $_MODULE['<{comfino}prestashop>comfino_1b469dca567b003f00bbbe131b6d198b'] = 'Wid
 $_MODULE['<{comfino}prestashop>comfino_537e58b3793c8dbcf8505b598aa2ddb0'] = 'Typ oferty';
 $_MODULE['<{comfino}prestashop>comfino_705609b8c6a2dc79f398b34bdad834d5'] = 'Raty zero procent';
 $_MODULE['<{comfino}prestashop>comfino_b195394a6638e56e7e444899746b04c2'] = 'Niskie raty';
+$_MODULE['<{comfino}prestashop>comfino_db244ae7c119bd6ee3f413e0c178064e'] = 'Log błędów';

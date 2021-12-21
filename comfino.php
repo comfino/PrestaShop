@@ -48,6 +48,7 @@ if (COMFINO_PS_17) {
 class Comfino extends PaymentModule
 {
     const WIDGET_SCRIPT_URL = '/modules/comfino/views/js/comfino.js';
+    const ERROR_LOG_NUM_LINES = 20;
 
     public function __construct()
     {
@@ -404,6 +405,17 @@ class Comfino extends PaymentModule
         $helper->fields_value['COMFINO_WIDGET_OFFER_TYPE'] = Configuration::get('COMFINO_WIDGET_OFFER_TYPE');
         $helper->fields_value['COMFINO_WIDGET_CODE'] = Configuration::get('COMFINO_WIDGET_CODE');
 
+        $logFilePath = _PS_MODULE_DIR_.'comfino/payment_log.log';
+
+        if (file_exists($logFilePath)) {
+            $file = new SplFileObject($logFilePath, 'r');
+            $file->seek(PHP_INT_MAX);
+            $lastLine = $file->key();
+            $lines = new LimitIterator($file, $lastLine - self::ERROR_LOG_NUM_LINES, $lastLine);
+
+            $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = implode('', iterator_to_array($lines));
+        }
+
         return $helper->generateForm($this->getFormFields());
     }
 
@@ -590,6 +602,14 @@ class Comfino extends PaymentModule
                     'name' => 'COMFINO_WIDGET_CODE',
                     'required' => false,
                     'rows' => 15,
+                    'cols' => 60
+                ],
+                [
+                    'type' => 'textarea',
+                    'label' => $this->l('Errors log'),
+                    'name' => 'COMFINO_WIDGET_ERRORS_LOG',
+                    'required' => false,
+                    'rows' => 20,
                     'cols' => 60
                 ],
             ],
