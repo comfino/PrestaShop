@@ -411,7 +411,7 @@ class Comfino extends PaymentModule
             $file = new SplFileObject($logFilePath, 'r');
             $file->seek(PHP_INT_MAX);
             $lastLine = $file->key();
-            $lines = new LimitIterator($file, $lastLine - self::ERROR_LOG_NUM_LINES, $lastLine);
+            $lines = new LimitIterator($file, $lastLine > self::ERROR_LOG_NUM_LINES ? $lastLine - self::ERROR_LOG_NUM_LINES : 0, $lastLine);
 
             $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = implode('', iterator_to_array($lines));
         }
@@ -662,7 +662,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
 ";
 
         return Configuration::updateValue('COMFINO_COLOR_VERSION', ComfinoColorVersion::CYAN) &&
-               Configuration::updateValue('COMFINO_PAYMENT_TEXT', 'Pay with Comfino') &&
+               Configuration::updateValue('COMFINO_PAYMENT_TEXT', '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)') &&
                Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 1000) &&
                Configuration::updateValue('COMFINO_ENABLED', false) &&
                Configuration::updateValue('COMFINO_WIDGET_ENABLED', false) &&
