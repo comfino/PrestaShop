@@ -47,7 +47,7 @@ if (COMFINO_PS_17) {
 
 class Comfino extends PaymentModule
 {
-    const WIDGET_SCRIPT_URL = '/modules/comfino/views/js/comfino.js';
+    const WIDGET_SCRIPT_URL = '//widget.comfino.pl/comfino.min.js';
     const ERROR_LOG_NUM_LINES = 20;
 
     public function __construct()
