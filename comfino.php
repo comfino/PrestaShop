@@ -98,20 +98,6 @@ class Comfino extends PaymentModule
             $this->registerHook('header');
     }
 
-    public function installTab()
-    {
-        /*$parent_tab = new Tab();
-        $parent_tab->name = [Language::getIdByIso('en') => 'Comfino orders', $this->context->language->id => $this->l('Comfino orders')];
-        $parent_tab->class_name = 'ComfinoOrdersList';
-        $parent_tab->id_parent = (int) Tab::getIdFromClassName('SELL');
-        $parent_tab->active = 1;
-        $parent_tab->module = $this->name;
-        $parent_tab->icon = 'monetization_on';
-
-        return $parent_tab->add();*/
-        return true;
-    }
-
     public function addOrderStates()
     {
         $orderStates = OrdersList::ADD_ORDER_STATUSES;
@@ -174,9 +160,23 @@ class Comfino extends PaymentModule
             $this->unregisterHook('header');
     }
 
+    public function installTab()
+    {
+        /*$parent_tab = new Tab();
+        $parent_tab->name = [Language::getIdByIso('en') => 'Comfino orders', $this->context->language->id => $this->l('Comfino orders')];
+        $parent_tab->class_name = 'ComfinoOrdersList';
+        $parent_tab->id_parent = (int) Tab::getIdFromClassName('SELL');
+        $parent_tab->active = 1;
+        $parent_tab->module = $this->name;
+        $parent_tab->icon = 'monetization_on';
+
+        return $parent_tab->add();*/
+        return true;
+    }
+
     public function uninstallTab()
     {
-        $tabId = (int) Tab::getIdFromClassName('ComfinoOrdersList');
+        /*$tabId = (int) Tab::getIdFromClassName('ComfinoOrdersList');
 
         if ($tabId) {
             $tab = new Tab($tabId);
@@ -184,7 +184,8 @@ class Comfino extends PaymentModule
             return $tab->delete();
         }
 
-        return false;
+        return false;*/
+        return true;
     }
 
     public function getContent()
