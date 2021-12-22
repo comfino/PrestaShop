@@ -407,6 +407,7 @@ class Comfino extends PaymentModule
         $helper->fields_value['COMFINO_WIDGET_OFFER_TYPE'] = Configuration::get('COMFINO_WIDGET_OFFER_TYPE');
         $helper->fields_value['COMFINO_WIDGET_CODE'] = Configuration::get('COMFINO_WIDGET_CODE');
 
+        $errorsLog = '';
         $logFilePath = _PS_MODULE_DIR_.'comfino/payment_log.log';
 
         if (file_exists($logFilePath)) {
@@ -414,9 +415,10 @@ class Comfino extends PaymentModule
             $file->seek(PHP_INT_MAX);
             $lastLine = $file->key();
             $lines = new LimitIterator($file, $lastLine > self::ERROR_LOG_NUM_LINES ? $lastLine - self::ERROR_LOG_NUM_LINES : 0, $lastLine);
-
-            $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = implode('', iterator_to_array($lines));
+            $errorsLog = implode('', iterator_to_array($lines));
         }
+
+        $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = $errorsLog;
 
         return $helper->generateForm($this->getFormFields());
     }
