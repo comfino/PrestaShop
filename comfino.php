@@ -100,7 +100,7 @@ class Comfino extends PaymentModule
 
     public function installTab()
     {
-        $parent_tab = new Tab();
+        /*$parent_tab = new Tab();
         $parent_tab->name = [Language::getIdByIso('en') => 'Comfino orders', $this->context->language->id => $this->l('Comfino orders')];
         $parent_tab->class_name = 'ComfinoOrdersList';
         $parent_tab->id_parent = (int) Tab::getIdFromClassName('SELL');
@@ -108,7 +108,8 @@ class Comfino extends PaymentModule
         $parent_tab->module = $this->name;
         $parent_tab->icon = 'monetization_on';
 
-        return $parent_tab->add();
+        return $parent_tab->add();*/
+        return true;
     }
 
     public function addOrderStates()
