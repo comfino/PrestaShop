@@ -48,7 +48,7 @@ final class UpdateOrderStatusHandler extends AbstractOrderHandler implements Upd
                 OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_PAID]
             ];
 
-            if ($payment->payment_method === 'Comfino payments' && ($currentOrderState->paid || in_array($orderCurrentStateName, $comfinoStates, true))) {
+            if (stripos($payment->payment_method, 'comfino') !== false && ($currentOrderState->paid || in_array($orderCurrentStateName, $comfinoStates, true))) {
                 throw new OrderException('Cancellation of accepted order paid via Comfino service is not allowed.');
             }
         }

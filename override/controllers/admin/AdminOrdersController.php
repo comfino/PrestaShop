@@ -49,7 +49,7 @@ class AdminOrdersController extends AdminOrdersControllerCore
 
         foreach ($this->statuses_array as $statusId => $statusName) {
             if (in_array($statusName, $this->comfinoStates, true) ||
-                ($paymentMethod === 'Comfino payments' && $statusId == Configuration::get('PS_OS_CANCELED') && !empty($orderStateId) &&
+                (stripos($paymentMethod, 'comfino') !== false && $statusId == Configuration::get('PS_OS_CANCELED') && !empty($orderStateId) &&
                 ($this->orderStates[$orderStatesMap[$orderStateId]]['paid'] == 1 || in_array($statusName, $this->comfinoConfirmStates, true)))
             ) {
                 unset($this->statuses_array[$statusId], $this->orderStates[$orderStatesMap[$statusId]]);
@@ -92,7 +92,7 @@ class AdminOrdersController extends AdminOrdersControllerCore
                             } else {
                                 if ($current_order_state->id != $order_state->id) {
                                     if ($current_order_state !== null && $current_order_state->id != $order_state->id && $order_state->id == Configuration::get('PS_OS_CANCELED') && !empty($order->getOrderPayments())) {
-                                        if ($order->payment === 'Comfino payments' && ($current_order_state->paid || !empty(array_intersect($current_order_state->name, $this->comfinoConfirmStates)))) {
+                                        if (stripos($order->payment, 'comfino') !== false && ($current_order_state->paid || !empty(array_intersect($current_order_state->name, $this->comfinoConfirmStates)))) {
                                             $this->errors[] = sprintf(Tools::displayError('Cancellation of accepted order #%d paid via Comfino service is not allowed.'), $id_order);
 
                                             unset($_POST['orderBox'][$idx]);
@@ -140,7 +140,7 @@ class AdminOrdersController extends AdminOrdersControllerCore
 
                     if ($current_order_state->id != $order_state->id) {
                         if ($current_order_state !== null && $current_order_state->id != $order_state->id && $order_state->id == Configuration::get('PS_OS_CANCELED') && !empty($order->getOrderPayments())) {
-                            if ($order->payment === 'Comfino payments' && ($current_order_state->paid || !empty(array_intersect($current_order_state->name, $this->comfinoConfirmStates)))) {
+                            if (stripos($order->payment, 'comfino') !== false && ($current_order_state->paid || !empty(array_intersect($current_order_state->name, $this->comfinoConfirmStates)))) {
                                 $this->errors[] = Tools::displayError('Cancellation of accepted order paid via Comfino service is not allowed.');
                             }
                         }
