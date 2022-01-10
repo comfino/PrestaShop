@@ -54,7 +54,7 @@ class BulkChangeOrderStatusHandler implements BulkChangeOrderStatusHandlerInterf
                 $payment = $payments[0];
                 $orderCurrentStateName =  is_array($currentOrderState->name) ? current($currentOrderState->name) : $currentOrderState->name;
 
-                if ($payment->payment_method === 'Comfino payments' && ($currentOrderState->paid || in_array($orderCurrentStateName, $comfinoStates, true))) {
+                if (stripos($payment->payment_method, 'comfino') !== false && ($currentOrderState->paid || in_array($orderCurrentStateName, $comfinoStates, true))) {
                     continue;
                 }
             }
