@@ -33,9 +33,6 @@
         display: none;
     }
 
-    .comfino-box {
-    }
-
     .header {
         display: flex;
         flex-direction: column;
@@ -53,9 +50,6 @@
         font-size: 1.4em;
         margin: 0.875em 0;
         color: #232323;
-    }
-
-    .comfino-select-payment {
     }
 
     .comfino-single-payment {
@@ -395,6 +389,13 @@
         margin-top: 10px;
     }
 
+    main.comfino-subbox {
+        background-color: #fff;
+        box-shadow: none;
+        -moz-box-shadow: none;
+        -webkit-box-shadow: none;
+    }
+
     #comfino-installments {
         display: none;
     }
@@ -425,7 +426,7 @@
             <img src="/modules/comfino/views/img/comfino_logo.svg" alt="" class="comfino-logo" />
             <div class="comfino-title">{l s='Choose payment method' mod='comfino'}</div>
         </div>
-        <main>
+        <main class="comfino-subbox">
             <section id="comfino-offer-items" class="comfino-select-payment"></section>
             <section class="comfino-payment-box">
                 <div class="comfino-payment-title">{l s='Value of purchase' mod='comfino'}:</div>
