@@ -302,12 +302,12 @@ class Comfino extends PaymentModule
             default:
             case ComfinoPresentationType::ICON_AND_TEXT:
                 $newOption->setCallToActionText(Configuration::get('COMFINO_PAYMENT_TEXT'));
-                $newOption->setLogo(_MODULE_DIR_.'comfino/views/img/logo.png');
+                $newOption->setLogo(_MODULE_DIR_.'comfino/views/img/logo.svg');
                 break;
 
             case ComfinoPresentationType::ONLY_ICON:
                 $newOption->setCallToActionText("");
-                $newOption->setLogo(_MODULE_DIR_.'comfino/views/img/logo.png');
+                $newOption->setLogo(_MODULE_DIR_.'comfino/views/img/logo.svg');
                 break;
 
             case ComfinoPresentationType::ONLY_TEXT:
