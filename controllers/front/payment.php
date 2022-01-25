@@ -29,8 +29,8 @@ if (!defined('_PS_VERSION_')) {
     return;
 }
 
-require_once '.'._MODULE_DIR_.'comfino/src/Api.php';
-require_once '.'._MODULE_DIR_.'comfino/models/OrdersList.php';
+require_once _PS_MODULE_DIR_.'comfino/src/Api.php';
+require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
 
 class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
