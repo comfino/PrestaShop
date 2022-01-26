@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2021 PrestaShop
+ * 2007-2022 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -18,10 +18,9 @@
  * versions in the future. If you wish to customize PrestaShop for your
  * needs please refer to http://www.prestashop.com for more information.
  *
- * @author PrestaShop SA <contact@prestashop.com>
- * @copyright  2007-2021 PrestaShop SA
- * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- * @version  Release: $Revision$
+ *  @author    PrestaShop SA <contact@prestashop.com>
+ *  @copyright 2007-2022 PrestaShop SA
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
@@ -41,7 +40,13 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
 
         if ((bool) Configuration::get('COMFINO_WIDGET_ENABLED')) {
             echo str_replace(
-                ['{WIDGET_KEY}', '{WIDGET_PRICE_SELECTOR}', '{WIDGET_TARGET_SELECTOR}', '{WIDGET_TYPE}', '{OFFER_TYPE}'],
+                [
+                    '{WIDGET_KEY}',
+                    '{WIDGET_PRICE_SELECTOR}',
+                    '{WIDGET_TARGET_SELECTOR}',
+                    '{WIDGET_TYPE}',
+                    '{OFFER_TYPE}'
+                ],
                 [
                     Configuration::get('COMFINO_WIDGET_KEY'),
                     Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR'),

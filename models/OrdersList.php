@@ -238,7 +238,7 @@ class OrdersList extends ObjectModel
             return;
         }
 
-        if (self::wasSecondStatusSetInHistory($status, $order)){
+        if (self::wasSecondStatusSetInHistory($status, $order)) {
             return;
         }
 

@@ -1,4 +1,28 @@
 <?php
+/**
+ * 2007-2022 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ *  @author    PrestaShop SA <contact@prestashop.com>
+ *  @copyright 2007-2022 PrestaShop SA
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  International Registered Trademark & Property of PrestaShop SA
+ */
 
 namespace Comfino\Form\ChoiceProvider;
 
@@ -13,7 +37,10 @@ use Symfony\Component\Translation\TranslatorInterface;
 /**
  * Class OrderStateByIdChoiceProvider provides order state choices with ID values.
  */
-final class OrderStateByIdChoiceProvider implements FormChoiceProviderInterface, FormChoiceAttributeProviderInterface, ConfigurableFormChoiceProviderInterface
+final class OrderStateByIdChoiceProvider implements
+    FormChoiceProviderInterface,
+    FormChoiceAttributeProviderInterface,
+    ConfigurableFormChoiceProviderInterface
 {
     /**
      * @var int language ID
@@ -67,7 +94,15 @@ final class OrderStateByIdChoiceProvider implements FormChoiceProviderInterface,
         $orderStates = $this->orderStateDataProvider->getOrderStates($this->languageId);
         $choices = [];
         $paymentMethod = isset($options['payment_method']) ? $options['payment_method'] : '';
-        $orderStatesMap = array_combine(array_map(function ($itemValue) { return $itemValue['id_order_state']; }, $orderStates), $orderStates);
+        $orderStatesMap = array_combine(
+            array_map(
+                static function ($itemValue) {
+                    return $itemValue['id_order_state'];
+                },
+                $orderStates
+            ),
+            $orderStates
+        );
         $comfinoConfirmStates = [
             OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],
             OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_ACCEPTED],
@@ -89,16 +124,28 @@ final class OrderStateByIdChoiceProvider implements FormChoiceProviderInterface,
             if (in_array($orderState['name'], $comfinoStates, true)) {
                 continue;
             }
-            if (stripos($paymentMethod, 'comfino') !== false && $orderState['id_order_state'] == \Configuration::get('PS_OS_CANCELED') && !empty($options['current_state']) &&
-                ($orderStatesMap[$options['current_state']]['paid'] == 1 || in_array($orderState['name'], $comfinoConfirmStates, true))
+            if (stripos($paymentMethod, 'comfino') !== false &&
+                $orderState['id_order_state'] == \Configuration::get('PS_OS_CANCELED') &&
+                !empty($options['current_state']) &&
+                (
+                    $orderStatesMap[$options['current_state']]['paid'] == 1 ||
+                    in_array($orderState['name'], $comfinoConfirmStates, true)
+                )
             ) {
                 continue;
             }
-            if ($orderState['deleted'] == 1 && (empty($options['current_state']) || $options['current_state'] != $orderState['id_order_state'])) {
+            if ($orderState['deleted'] == 1 &&
+                (
+                    empty($options['current_state']) ||
+                    $options['current_state'] != $orderState['id_order_state']
+                )
+            ) {
                 continue;
             }
 
-            $orderState['name'] .= $orderState['deleted'] == 1 ? ' ' . $this->translator->trans('(deleted)', [], 'Admin.Global') : '';
+            $orderState['name'] .= $orderState['deleted'] == 1
+                ? ' '.$this->translator->trans('(deleted)', [], 'Admin.Global')
+                : '';
             $choices[$orderState['name']] = $orderState['id_order_state'];
         }
 
@@ -116,9 +163,12 @@ final class OrderStateByIdChoiceProvider implements FormChoiceProviderInterface,
         $attrs = [];
 
         foreach ($orderStates as $orderState) {
-            $orderState['name'] .= $orderState['deleted'] == 1 ? ' ' . $this->translator->trans('(deleted)', [], 'Admin.Global') : '';
+            $orderState['name'] .= $orderState['deleted'] == 1
+                ? ' '.$this->translator->trans('(deleted)', [], 'Admin.Global')
+                : '';
             $attrs[$orderState['name']]['data-background-color'] = $orderState['color'];
-            $attrs[$orderState['name']]['data-is-bright'] = $this->colorBrightnessCalculator->isBright($orderState['color']);
+            $attrs[$orderState['name']]['data-is-bright'] =
+                $this->colorBrightnessCalculator->isBright($orderState['color']);
         }
 
         return $attrs;

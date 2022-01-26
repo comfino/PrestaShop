@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2021 PrestaShop
+ * 2007-2022 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -18,10 +18,9 @@
  * versions in the future. If you wish to customize PrestaShop for your
  * needs please refer to http://www.prestashop.com for more information.
  *
- * @author PrestaShop SA <contact@prestashop.com>
- * @copyright  2007-2021 PrestaShop SA
- * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- * @version  Release: $Revision$
+ *  @author    PrestaShop SA <contact@prestashop.com>
+ *  @copyright 2007-2022 PrestaShop SA
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
@@ -89,7 +88,9 @@ class ComfinoApi
                 'lastName' => $address[$cart_data->id_address_delivery]->lastname,
                 'taxId' => $address[$cart_data->id_address_delivery]->vat_number,
                 'email' => $customer->email,
-                'phoneNumber' => !empty($address[$cart_data->id_address_delivery]->phone) ? $address[$cart_data->id_address_delivery]->phone : $address[$cart_data->id_address_delivery]->phone_mobile,
+                'phoneNumber' => !empty($address[$cart_data->id_address_delivery]->phone)
+                    ? $address[$cart_data->id_address_delivery]->phone
+                    : $address[$cart_data->id_address_delivery]->phone_mobile,
                 'ip' => Tools::getRemoteAddr(),
                 'regular' => !$customer->is_guest,
                 'logged' => $customer->isLogged(),
@@ -193,7 +194,7 @@ class ComfinoApi
     {
         $options = [
             CURLOPT_URL => $url,
-            CURLOPT_CUSTOMREQUEST => strtoupper($request_type),
+            CURLOPT_CUSTOMREQUEST => Tools::strtoupper($request_type),
             CURLOPT_HTTPHEADER => [
                 'API-KEY: '.Configuration::get('COMFINO_API_KEY'),
                 'User-Agent: '.self::getUserAgentHeader(),
@@ -232,7 +233,9 @@ class ComfinoApi
                 FILE_APPEND
             );
 
-            $response = json_encode(['errors' => ['Communication error: '.$error_id.'. Please contact with support and note this error id.']]);
+            $response = json_encode([
+                'errors' => ['Communication error: '.$error_id.'. Please contact with support and note this error id.']
+            ]);
         } else {
             $decoded = json_decode($response, true);
 
@@ -257,11 +260,14 @@ class ComfinoApi
 
                 file_put_contents(
                     _PS_MODULE_DIR_.'comfino/payment_log.log',
-                    '['.date('Y-m-d H:i:s').'] Payment error ['.$error_id.'] '.curl_getinfo($curl, CURLINFO_RESPONSE_CODE).' - response: '.$response."\n",
+                    '['.date('Y-m-d H:i:s').'] Payment error ['.$error_id.'] '.
+                    curl_getinfo($curl, CURLINFO_RESPONSE_CODE).' - response: '.$response."\n",
                     FILE_APPEND
                 );
 
-                $response = json_encode(['errors' => ['Payment error: '.$error_id.'. Please contact with support and note this error id.']]);
+                $response = json_encode([
+                    'errors' => ['Payment error: '.$error_id.'. Please contact with support and note this error id.']
+                ]);
             }
         }
 
@@ -274,7 +280,9 @@ class ComfinoApi
             'PS Comfino [%s], PS [%s], SF [%s], PHP [%s]',
             COMFINO_VERSION,
             _PS_VERSION_,
-            COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel') ? \Symfony\Component\HttpKernel\Kernel::VERSION : 'n/a',
+            COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
+                ? \Symfony\Component\HttpKernel\Kernel::VERSION
+                : 'n/a',
             PHP_VERSION
         );
     }

@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2021 PrestaShop
+ * 2007-2022 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -18,10 +18,9 @@
  * versions in the future. If you wish to customize PrestaShop for your
  * needs please refer to http://www.prestashop.com for more information.
  *
- * @author PrestaShop SA <contact@prestashop.com>
- * @copyright  2007-2021 PrestaShop SA
- * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- * @version  Release: $Revision$
+ *  @author    PrestaShop SA <contact@prestashop.com>
+ *  @copyright 2007-2022 PrestaShop SA
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
@@ -44,10 +43,12 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $cart = $this->context->cart;
 
-        if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0 || !$this->module->active) {
-            Tools::redirect('index.php?controller=order&step=1');
+        if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 ||
+            $cart->id_address_invoice == 0 || !$this->module->active
+        ) {
+                Tools::redirect('index.php?controller=order&step=1');
 
-            return;
+                return;
         }
 
         $cookie = Context::getContext()->cookie;
@@ -61,7 +62,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $address = $cart->getAddressCollection();
 
         if (!$address[$cart->id_address_delivery]->phone && !$address[$cart->id_address_delivery]->phone_mobile) {
-            $this->errors[] = $this->module->l('No phone number in addresses found. Please fill value before choosing comfino payment option.');
+            $this->errors[] = $this->module->l(
+                'No phone number in addresses found. Please fill value before choosing comfino payment option.'
+            );
 
             if (COMFINO_PS_17) {
                 $this->redirectWithNotifications('index.php?controller=order&step=1');
@@ -112,7 +115,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         );
 
         $createOrderResponse = ComfinoApi::createOrder(
-            $this->context->cart, $this->module->currentOrder,
+            $this->context->cart,
+            $this->module->currentOrder,
             'index.php?controller=order-confirmation&id_cart='.(int) $cart->id.'&id_module='.(int) $this->module->id.
             '&id_order='.$this->module->currentOrder.'&key='.$customer->secure_key
         );
@@ -133,7 +137,11 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             Tools::redirect($this->context->link->getModuleLink(
                 $this->module->name,
                 'error',
-                ['error' => isset($orderConfirmation['errors']) ? implode(',', $orderConfirmation['errors']) : 'Order creation error.'],
+                [
+                    'error' => isset($orderConfirmation['errors'])
+                        ? implode(',', $orderConfirmation['errors'])
+                        : 'Order creation error.'
+                ],
                 true
             ));
         }
@@ -143,7 +151,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 'id_comfino' => $orderConfirmation['externalId'],
                 'id_customer' => $cart->id_customer,
                 'order_status' => $orderConfirmation['status'],
-                'legalize_link' => isset($orderConfirmation['_links']['legalize']) ? $orderConfirmation['_links']['legalize']['href'] : '',
+                'legalize_link' => isset($orderConfirmation['_links']['legalize'])
+                    ? $orderConfirmation['_links']['legalize']['href']
+                    : '',
                 'self_link' => $orderConfirmation['_links']['self']['href'],
                 'cancel_link' => $orderConfirmation['_links']['cancel']['href']
             ]
@@ -158,9 +168,6 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $notifications = json_encode(['error' => $this->errors]);
 
         if (session_status() == PHP_SESSION_ACTIVE) {
-            $_SESSION['notifications'] = $notifications;
-        } elseif (session_status() == PHP_SESSION_NONE) {
-            session_start();
             $_SESSION['notifications'] = $notifications;
         } else {
             setcookie('notifications', $notifications);
