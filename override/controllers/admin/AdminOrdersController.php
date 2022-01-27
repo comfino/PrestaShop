@@ -1,4 +1,28 @@
 <?php
+/**
+ * 2007-2022 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ *  @author    PrestaShop SA <contact@prestashop.com>
+ *  @copyright 2007-2022 PrestaShop SA
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  International Registered Trademark & Property of PrestaShop SA
+ */
 
 class AdminOrdersController extends AdminOrdersControllerCore
 {
@@ -15,7 +39,15 @@ class AdminOrdersController extends AdminOrdersControllerCore
 
         $this->orderStates = OrderState::getOrderStates((int) $this->context->language->id);
 
-        $orderStatesMap = array_combine(array_map(function ($itemValue) { return $itemValue['id_order_state']; }, $this->orderStates), array_keys($this->orderStates));
+        $orderStatesMap = array_combine(
+            array_map(
+                static function ($itemValue) {
+                    return $itemValue['id_order_state'];
+                },
+                $this->orderStates
+            ),
+            array_keys($this->orderStates)
+        );
 
         $this->comfinoConfirmStates = [
             OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],
@@ -48,9 +80,14 @@ class AdminOrdersController extends AdminOrdersControllerCore
         $orderStateId = isset($order) ? $order->current_state : '';
 
         foreach ($this->statuses_array as $statusId => $statusName) {
-            if (in_array($statusName, $this->comfinoStates, true) ||
-                (stripos($paymentMethod, 'comfino') !== false && $statusId == Configuration::get('PS_OS_CANCELED') && !empty($orderStateId) &&
-                ($this->orderStates[$orderStatesMap[$orderStateId]]['paid'] == 1 || in_array($statusName, $this->comfinoConfirmStates, true)))
+            if (in_array($statusName, $this->comfinoStates, true) || (
+                    stripos($paymentMethod, 'comfino') !== false &&
+                    $statusId == Configuration::get('PS_OS_CANCELED') &&
+                    !empty($orderStateId) && (
+                        $this->orderStates[$orderStatesMap[$orderStateId]]['paid'] == 1 ||
+                        in_array($statusName, $this->comfinoConfirmStates, true)
+                    )
+                )
             ) {
                 unset($this->statuses_array[$statusId], $this->orderStates[$orderStatesMap[$statusId]]);
             }
@@ -77,33 +114,56 @@ class AdminOrdersController extends AdminOrdersControllerCore
                 $order_state = new OrderState($id_order_state);
 
                 if (!Validate::isLoadedObject($order_state)) {
-                    $this->errors[] = sprintf(Tools::displayError('Order status #%d cannot be loaded'), $id_order_state);
+                    $this->errors[] = sprintf(Tools::displayError("Order status #%d can't be loaded"), $id_order_state);
                 } else {
                     foreach (Tools::getValue('orderBox') as $idx => $id_order) {
                         $order = new Order((int) $id_order);
 
                         if (!Validate::isLoadedObject($order)) {
-                            $this->errors[] = sprintf(Tools::displayError('Order #%d cannot be loaded'), $id_order);
+                            $this->errors[] = sprintf(Tools::displayError("Order #%d can't be loaded"), $id_order);
                         } else {
                             $current_order_state = $order->getCurrentOrderState();
 
                             if ($current_order_state->id == $order_state->id) {
-                                $this->errors[] = $this->displayWarning(sprintf('Order #%d has already been assigned this status.', $id_order));
+                                $this->errors[] = $this->displayWarning(
+                                    sprintf('Order #%d has already been assigned this status.', $id_order)
+                                );
                             } else {
                                 if ($current_order_state->id != $order_state->id) {
-                                    if ($current_order_state !== null && $current_order_state->id != $order_state->id && $order_state->id == Configuration::get('PS_OS_CANCELED') && !empty($order->getOrderPayments())) {
-                                        if (stripos($order->payment, 'comfino') !== false && ($current_order_state->paid || !empty(array_intersect($current_order_state->name, $this->comfinoConfirmStates)))) {
-                                            $this->errors[] = sprintf(Tools::displayError('Cancellation of accepted order #%d paid via Comfino service is not allowed.'), $id_order);
+                                    if ($current_order_state !== null && $current_order_state->id != $order_state->id &&
+                                        $order_state->id == Configuration::get('PS_OS_CANCELED') &&
+                                        !empty($order->getOrderPayments())
+                                    ) {
+                                        if (stripos($order->payment, 'comfino') !== false &&
+                                            (
+                                                $current_order_state->paid ||
+                                                !empty(array_intersect(
+                                                    $current_order_state->name,
+                                                    $this->comfinoConfirmStates
+                                                ))
+                                            )
+                                        ) {
+                                            $this->errors[] = sprintf(
+                                                Tools::displayError(
+                                                    'Cancellation of accepted order #%d paid via '.
+                                                    'Comfino service is not allowed.'
+                                                ),
+                                                $id_order
+                                            );
 
                                             unset($_POST['orderBox'][$idx]);
                                         }
                                     }
 
-                                    if (isset($_POST['orderBox'][$idx]) && $order_state->id == Configuration::get('PS_OS_CANCELED')) {
+                                    if (isset(Tools::getValue('orderBox')[$idx]) &&
+                                        $order_state->id == Configuration::get('PS_OS_CANCELED')
+                                    ) {
                                         ComfinoApi::cancelOrder($order->id);
                                     }
                                 } else {
-                                    $this->errors[] = Tools::displayError('The order has already been assigned this status.');
+                                    $this->errors[] = Tools::displayError(
+                                        'The order has already been assigned this status.'
+                                    );
                                 }
                             }
                         }
@@ -139,9 +199,19 @@ class AdminOrdersController extends AdminOrdersControllerCore
                     $current_order_state = $order->getCurrentOrderState();
 
                     if ($current_order_state->id != $order_state->id) {
-                        if ($current_order_state !== null && $current_order_state->id != $order_state->id && $order_state->id == Configuration::get('PS_OS_CANCELED') && !empty($order->getOrderPayments())) {
-                            if (stripos($order->payment, 'comfino') !== false && ($current_order_state->paid || !empty(array_intersect($current_order_state->name, $this->comfinoConfirmStates)))) {
-                                $this->errors[] = Tools::displayError('Cancellation of accepted order paid via Comfino service is not allowed.');
+                        if ($current_order_state !== null && $current_order_state->id != $order_state->id &&
+                            $order_state->id == Configuration::get('PS_OS_CANCELED') &&
+                            !empty($order->getOrderPayments())
+                        ) {
+                            if (stripos($order->payment, 'comfino') !== false &&
+                                (
+                                    $current_order_state->paid ||
+                                    !empty(array_intersect($current_order_state->name, $this->comfinoConfirmStates))
+                                )
+                            ) {
+                                $this->errors[] = Tools::displayError(
+                                    'Cancellation of accepted order paid via Comfino service is not allowed.'
+                                );
                             }
                         }
 

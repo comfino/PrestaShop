@@ -1,4 +1,28 @@
 <?php
+/**
+ * 2007-2022 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ *  @author    PrestaShop SA <contact@prestashop.com>
+ *  @copyright 2007-2022 PrestaShop SA
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  International Registered Trademark & Property of PrestaShop SA
+ */
 
 namespace Comfino\Controller;
 
@@ -69,73 +93,97 @@ class OrderController extends \PrestaShopBundle\Controller\Admin\Sell\Order\Orde
         $formFactory = $this->get('form.factory');
         $updateOrderStatusForm = $formFactory->createNamed(
             'update_order_status',
-            UpdateOrderStatusType::class, [
+            UpdateOrderStatusType::class,
+            [
                 'new_order_status_id' => $orderForViewing->getHistory()->getCurrentOrderStatusId(),
-                'payment_method' => !empty($payment = $orderForViewing->getPayments()->getPayments()) ? $payment[0]->getPaymentMethod() : '',
+                'payment_method' => !empty($payment = $orderForViewing->getPayments()->getPayments())
+                    ? $payment[0]->getPaymentMethod()
+                    : '',
             ]
         );
         $updateOrderStatusActionBarForm = $formFactory->createNamed(
             'update_order_status_action_bar',
-            UpdateOrderStatusType::class, [
+            UpdateOrderStatusType::class,
+            [
                 'new_order_status_id' => $orderForViewing->getHistory()->getCurrentOrderStatusId(),
-                'payment_method' => !empty($payment = $orderForViewing->getPayments()->getPayments()) ? $payment[0]->getPaymentMethod() : '',
+                'payment_method' => !empty($payment = $orderForViewing->getPayments()->getPayments())
+                    ? $payment[0]->getPaymentMethod()
+                    : '',
             ]
         );
 
-        $addOrderCartRuleForm = $this->createForm(AddOrderCartRuleType::class, [], [
-            'order_id' => $orderId,
-        ]);
-        $addOrderPaymentForm = $this->createForm(OrderPaymentType::class, [
-            'id_currency' => $orderForViewing->getCurrencyId(),
-        ], [
-            'id_order' => $orderId,
-        ]);
+        $addOrderCartRuleForm = $this->createForm(
+            AddOrderCartRuleType::class,
+            [],
+            ['order_id' => $orderId]
+        );
+        $addOrderPaymentForm = $this->createForm(
+            OrderPaymentType::class,
+            ['id_currency' => $orderForViewing->getCurrencyId()],
+            ['id_order' => $orderId]
+        );
 
-        $orderMessageForm = $this->createForm(OrderMessageType::class, [], [
-            'action' => $this->generateUrl('admin_orders_send_message', ['orderId' => $orderId]),
-        ]);
+        $orderMessageForm = $this->createForm(
+            OrderMessageType::class,
+            [],
+            ['action' => $this->generateUrl('admin_orders_send_message', ['orderId' => $orderId])]
+        );
         $orderMessageForm->handleRequest($request);
 
-        $changeOrderCurrencyForm = $this->createForm(ChangeOrderCurrencyType::class, [], [
-            'current_currency_id' => $orderForViewing->getCurrencyId(),
-        ]);
+        $changeOrderCurrencyForm = $this->createForm(
+            ChangeOrderCurrencyType::class,
+            [],
+            ['current_currency_id' => $orderForViewing->getCurrencyId()]
+        );
 
         $changeOrderAddressForm = null;
         $privateNoteForm = null;
 
         if (null !== $orderForViewing->getCustomer()) {
-            $changeOrderAddressForm = $this->createForm(ChangeOrderAddressType::class, [], [
-                'customer_id' => $orderForViewing->getCustomer()->getId(),
-            ]);
+            $changeOrderAddressForm = $this->createForm(
+                ChangeOrderAddressType::class,
+                [],
+                ['customer_id' => $orderForViewing->getCustomer()->getId()]
+            );
 
-            $privateNoteForm = $this->createForm(PrivateNoteType::class, [
-                'note' => $orderForViewing->getCustomer()->getPrivateNote(),
-            ]);
+            $privateNoteForm = $this->createForm(
+                PrivateNoteType::class,
+                ['note' => $orderForViewing->getCustomer()->getPrivateNote()]
+            );
         }
 
-        $updateOrderShippingForm = $this->createForm(UpdateOrderShippingType::class, [
-            'new_carrier_id' => $orderForViewing->getCarrierId(),
-        ], [
-            'order_id' => $orderId,
-        ]);
+        $updateOrderShippingForm = $this->createForm(
+            UpdateOrderShippingType::class,
+            ['new_carrier_id' => $orderForViewing->getCarrierId()],
+            ['order_id' => $orderId]
+        );
 
         $currencyDataProvider = $this->container->get('prestashop.adapter.data_provider.currency');
         $orderCurrency = $currencyDataProvider->getCurrencyById($orderForViewing->getCurrencyId());
 
-        $addProductRowForm = $this->createForm(AddProductRowType::class, [], [
-            'order_id' => $orderId,
-            'currency_id' => $orderForViewing->getCurrencyId(),
-            'symbol' => $orderCurrency->symbol,
-        ]);
-        $editProductRowForm = $this->createForm(EditProductRowType::class, [], [
-            'order_id' => $orderId,
-            'symbol' => $orderCurrency->symbol,
-        ]);
+        $addProductRowForm = $this->createForm(
+            AddProductRowType::class,
+            [],
+            [
+                'order_id' => $orderId,
+                'currency_id' => $orderForViewing->getCurrencyId(),
+                'symbol' => $orderCurrency->symbol,
+            ]
+        );
+        $editProductRowForm = $this->createForm(
+            EditProductRowType::class,
+            [],
+            [
+                'order_id' => $orderId,
+                'symbol' => $orderCurrency->symbol,
+            ]
+        );
 
         if (method_exists($orderForViewing, 'getNote')) {
-            $internalNoteForm = $this->createForm(InternalNoteType::class, [
-                'note' => $orderForViewing->getNote(),
-            ]);
+            $internalNoteForm = $this->createForm(
+                InternalNoteType::class,
+                ['note' => $orderForViewing->getNote()]
+            );
         } else {
             $internalNoteForm = null;
         }
@@ -167,7 +215,10 @@ class OrderController extends \PrestaShopBundle\Controller\Admin\Sell\Order\Orde
         /** @var OrderSiblingProviderInterface $orderSiblingProvider */
         $orderSiblingProvider = $this->get('prestashop.adapter.order.order_sibling_provider');
 
-        $paginationNum = (int) $this->configuration->get('PS_ORDER_PRODUCTS_NB_PER_PAGE', self::DEFAULT_PRODUCTS_NUMBER);
+        $paginationNum = (int) $this->configuration->get(
+            'PS_ORDER_PRODUCTS_NB_PER_PAGE',
+            self::DEFAULT_PRODUCTS_NUMBER
+        );
         $paginationNumOptions = self::PRODUCTS_PAGINATION_OPTIONS;
         if (!in_array($paginationNum, $paginationNumOptions)) {
             $paginationNumOptions[] = $paginationNum;
@@ -196,7 +247,8 @@ class OrderController extends \PrestaShopBundle\Controller\Admin\Sell\Order\Orde
             'editProductRowForm' => $editProductRowForm->createView(),
             'backOfficeOrderButtons' => $backOfficeOrderButtons,
             'merchandiseReturnEnabled' => $merchandiseReturnEnabled,
-            'priceSpecification' => $this->getContextLocale()->getPriceSpecification($orderCurrency->iso_code)->toArray(),
+            'priceSpecification' => $this->getContextLocale()->getPriceSpecification($orderCurrency->iso_code)
+                ->toArray(),
             'previousOrderId' => $orderSiblingProvider->getPreviousOrderId($orderId),
             'nextOrderId' => $orderSiblingProvider->getNextOrderId($orderId),
             'paginationNum' => $paginationNum,
@@ -282,7 +334,11 @@ class OrderController extends \PrestaShopBundle\Controller\Admin\Sell\Order\Orde
         }
 
         return [
-            CannotEditDeliveredOrderProductException::class => $this->trans('You cannot edit the cart once the order delivered.', 'Admin.Orderscustomers.Notification'),
+            CannotEditDeliveredOrderProductException::class =>
+                $this->trans(
+                    'You cannot edit the cart once the order delivered.',
+                    'Admin.Orderscustomers.Notification'
+                ),
             OrderNotFoundException::class => $e instanceof OrderNotFoundException ?
                 $this->trans(
                     'Order #%d cannot be loaded.',
@@ -425,7 +481,8 @@ class OrderController extends \PrestaShopBundle\Controller\Admin\Sell\Order\Orde
             if ($product->getAvailableQuantity() <= 0) {
                 $this->addFlash(
                     'warning',
-                    $this->trans('This product is out of stock:', 'Admin.Orderscustomers.Notification') . ' ' . $product->getName()
+                    $this->trans('This product is out of stock:', 'Admin.Orderscustomers.Notification') .
+                    ' ' . $product->getName()
                 );
             }
         }
@@ -446,7 +503,8 @@ class OrderController extends \PrestaShopBundle\Controller\Admin\Sell\Order\Orde
             $this->addFlash(
                 'error',
                 $this->trans(
-                    'An error occurred while changing the status for order #%d, or we were unable to send an email to the customer.',
+                    'An error occurred while changing the status for order #%d, or we were unable to send ' .
+                    'an email to the customer.',
                     'Admin.Orderscustomers.Notification',
                     ['#%d' => $orderId->getValue()]
                 )

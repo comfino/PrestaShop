@@ -1,4 +1,28 @@
 <?php
+/**
+ * 2007-2022 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ *  @author    PrestaShop SA <contact@prestashop.com>
+ *  @copyright 2007-2022 PrestaShop SA
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  International Registered Trademark & Property of PrestaShop SA
+ */
 
 namespace Comfino\Adapter\Order\CommandHandler;
 
@@ -38,17 +62,23 @@ final class UpdateOrderStatusHandler extends AbstractOrderHandler implements Upd
 
         $payments = $order->getOrderPayments();
 
-        if ($currentOrderState !== null && !empty($payments) && $orderState->id == Configuration::get('PS_OS_CANCELED')) {
+        if ($currentOrderState !== null && !empty($payments) &&
+            $orderState->id == Configuration::get('PS_OS_CANCELED')
+        ) {
             /** @var \OrderPayment $payment */
             $payment = $payments[0];
-            $orderCurrentStateName = is_array($currentOrderState->name) ? current($currentOrderState->name) : $currentOrderState->name;
+            $orderCurrentStateName = is_array($currentOrderState->name)
+                ? current($currentOrderState->name)
+                : $currentOrderState->name;
             $comfinoStates = [
                 OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],
                 OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_ACCEPTED],
                 OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_PAID]
             ];
 
-            if (stripos($payment->payment_method, 'comfino') !== false && ($currentOrderState->paid || in_array($orderCurrentStateName, $comfinoStates, true))) {
+            if (stripos($payment->payment_method, 'comfino') !== false && ($currentOrderState->paid ||
+                in_array($orderCurrentStateName, $comfinoStates, true))
+            ) {
                 throw new OrderException('Cancellation of accepted order paid via Comfino service is not allowed.');
             }
         }
@@ -90,7 +120,12 @@ final class UpdateOrderStatusHandler extends AbstractOrderHandler implements Upd
             return;
         }
 
-        throw new ChangeOrderStatusException([], [$command->getOrderId()], [], 'Failed to update status or sent email when changing order status.');
+        throw new ChangeOrderStatusException(
+            [],
+            [$command->getOrderId()],
+            [],
+            'Failed to update status or sent email when changing order status.'
+        );
     }
 
     /**

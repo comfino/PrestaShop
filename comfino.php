@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2021 PrestaShop
+ * 2007-2022 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -18,9 +18,9 @@
  * versions in the future. If you wish to customize PrestaShop for your
  * needs please refer to http://www.prestashop.com for more information.
  *
- * @author PrestaShop SA <contact@prestashop.com>
- * @copyright  2007-2021 PrestaShop SA
- * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  @author    PrestaShop SA <contact@prestashop.com>
+ *  @copyright 2007-2022 PrestaShop SA
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
@@ -42,7 +42,7 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (COMFINO_PS_17) {
-    require_once __DIR__.'/vendor/autoload.php';
+    require_once 'vendor/autoload.php';
 }
 
 class Comfino extends PaymentModule
@@ -55,7 +55,7 @@ class Comfino extends PaymentModule
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
         $this->version = COMFINO_VERSION;
-        $this->author = 'M2 IT Solutions';
+        $this->author = 'Comfino';
 
         $this->bootstrap = true;
         $this->need_instance = 0;
@@ -69,8 +69,12 @@ class Comfino extends PaymentModule
         parent::__construct();
 
         $this->displayName = $this->l('Comfino payments');
-        $this->description = $this->l('Comfino is a friendly and innovative system that aggregates internet payments (0% installments, Low Installments, deferred payments "Buy now, pay later").');
         $this->confirmUninstall = $this->l('Are you sure to uninstall Comfino payments?');
+
+        $this->description = $this->l(
+            'Comfino is a friendly and innovative system that aggregates internet payments '.
+            '(0% installments, Low Installments, deferred payments "Buy now, pay later").'
+        );
     }
 
     public function install()
@@ -79,7 +83,7 @@ class Comfino extends PaymentModule
             return false;
         }
 
-        include __DIR__.'/sql/install.php';
+        include 'sql/install.php';
 
         $ps16hooks = true;
 
@@ -106,7 +110,9 @@ class Comfino extends PaymentModule
         foreach ($orderStates as $state => $name) {
             $newState = Configuration::get($state);
 
-            if (!$newState || empty($newState) || !Validate::isInt($newState) || !Validate::isLoadedObject(new OrderState($newState))) {
+            if (!$newState || empty($newState) || !Validate::isInt($newState) ||
+                !Validate::isLoadedObject(new OrderState($newState))
+            ) {
                 $orderStateObject = new OrderState();
                 $orderStateObject->name = array_fill(0, 10, $name);
                 $orderStateObject->send_email = 0;
@@ -141,7 +147,7 @@ class Comfino extends PaymentModule
 
     public function uninstall()
     {
-        include __DIR__.'/sql/uninstall.php';
+        include 'sql/uninstall.php';
 
         $ps16hooks = true;
 
@@ -163,7 +169,10 @@ class Comfino extends PaymentModule
     public function installTab()
     {
         /*$parent_tab = new Tab();
-        $parent_tab->name = [Language::getIdByIso('en') => 'Comfino orders', $this->context->language->id => $this->l('Comfino orders')];
+        $parent_tab->name = [
+            Language::getIdByIso('en') => 'Comfino orders',
+            $this->context->language->id => $this->l('Comfino orders')
+        ];
         $parent_tab->class_name = 'ComfinoOrdersList';
         $parent_tab->id_parent = (int) Tab::getIdFromClassName('SELL');
         $parent_tab->active = 1;
@@ -204,8 +213,14 @@ class Comfino extends PaymentModule
             Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', Tools::getValue('COMFINO_PAYMENT_PRESENTATION'));
             Configuration::updateValue('COMFINO_WIDGET_ENABLED', Tools::getValue('COMFINO_WIDGET_ENABLED'));
             Configuration::updateValue('COMFINO_WIDGET_KEY', Tools::getValue('COMFINO_WIDGET_KEY'));
-            Configuration::updateValue('COMFINO_WIDGET_PRICE_SELECTOR', Tools::getValue('COMFINO_WIDGET_PRICE_SELECTOR'));
-            Configuration::updateValue('COMFINO_WIDGET_TARGET_SELECTOR', Tools::getValue('COMFINO_WIDGET_TARGET_SELECTOR'));
+            Configuration::updateValue(
+                'COMFINO_WIDGET_PRICE_SELECTOR',
+                Tools::getValue('COMFINO_WIDGET_PRICE_SELECTOR')
+            );
+            Configuration::updateValue(
+                'COMFINO_WIDGET_TARGET_SELECTOR',
+                Tools::getValue('COMFINO_WIDGET_TARGET_SELECTOR')
+            );
             Configuration::updateValue('COMFINO_WIDGET_TYPE', Tools::getValue('COMFINO_WIDGET_TYPE'));
             Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', Tools::getValue('COMFINO_WIDGET_OFFER_TYPE'));
             Configuration::updateValue('COMFINO_WIDGET_CODE', Tools::getValue('COMFINO_WIDGET_CODE'));
@@ -384,7 +399,10 @@ class Comfino extends PaymentModule
                     ['server' => 'remote', 'position' => 'head']
                 );
             } else {
-                $this->context->controller->addJS($this->context->link->getModuleLink($this->name, 'script', [], true), false);
+                $this->context->controller->addJS(
+                    $this->context->link->getModuleLink($this->name, 'script', [], true),
+                    false
+                );
             }
         }
     }
@@ -414,7 +432,11 @@ class Comfino extends PaymentModule
             $file = new SplFileObject($logFilePath, 'r');
             $file->seek(PHP_INT_MAX);
             $lastLine = $file->key();
-            $lines = new LimitIterator($file, $lastLine > self::ERROR_LOG_NUM_LINES ? $lastLine - self::ERROR_LOG_NUM_LINES : 0, $lastLine);
+            $lines = new LimitIterator(
+                $file,
+                $lastLine > self::ERROR_LOG_NUM_LINES ? $lastLine - self::ERROR_LOG_NUM_LINES : 0,
+                $lastLine
+            );
             $errorsLog = implode('', iterator_to_array($lines));
         }
 
@@ -445,7 +467,8 @@ class Comfino extends PaymentModule
         $helper->toolbar_btn = [
             'save' => [
                 'desc' => $this->l('Save'),
-                'href' => AdminController::$currentIndex.'&configure='.$this->name.'&save'.$this->name.'&token='.Tools::getAdminTokenLite('AdminModules'),
+                'href' => AdminController::$currentIndex.'&configure='.$this->name.'&save'.$this->name.'&token='.
+                    Tools::getAdminTokenLite('AdminModules'),
             ],
             'back' => [
                 'href' => AdminController::$currentIndex.'&token='.Tools::getAdminTokenLite('AdminModules'),
@@ -580,7 +603,10 @@ class Comfino extends PaymentModule
                         'query' => [
                             ['key' => 'simple', 'name' => $this->l('Textual widget')],
                             ['key' => 'mixed', 'name' => $this->l('Graphical widget with banner')],
-                            ['key' => 'with-modal', 'name' => $this->l('Graphical widget with installments calculator')],
+                            [
+                                'key' => 'with-modal',
+                                'name' => $this->l('Graphical widget with installments calculator')
+                            ],
                         ],
                         'id' => 'key',
                         'name' => 'name'
@@ -666,7 +692,10 @@ document.getElementsByTagName('head')[0].appendChild(script);
 ";
 
         return Configuration::updateValue('COMFINO_COLOR_VERSION', ComfinoColorVersion::CYAN) &&
-               Configuration::updateValue('COMFINO_PAYMENT_TEXT', '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)') &&
+               Configuration::updateValue(
+                   'COMFINO_PAYMENT_TEXT',
+                   '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)'
+               ) &&
                Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 1000) &&
                Configuration::updateValue('COMFINO_ENABLED', false) &&
                Configuration::updateValue('COMFINO_WIDGET_ENABLED', false) &&

@@ -1,5 +1,5 @@
 {*
-* 2007-2021 PrestaShop
+* 2007-2022 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -17,11 +17,12 @@
 * versions in the future. If you wish to customize PrestaShop for your
 * needs please refer to http://www.prestashop.com for more information.
 *
-*  @author PrestaShop SA <contact@prestashop.com>
-*  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
-*  @copyright  2007-2021 PrestaShop SA
+*  @author    PrestaShop SA <contact@prestashop.com>
+*  @copyright 2007-2022 PrestaShop SA
+*  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
+
 <div class="row">
     <div class="col-md-12">
         <div class="panel">

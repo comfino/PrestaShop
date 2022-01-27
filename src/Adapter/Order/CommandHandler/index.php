@@ -24,21 +24,12 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
-$sql = [];
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
-$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'comfino_orders` (
-    `id_comfino_orders` int(55) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `id_comfino` int(55) NOT NULL,
-    `id_customer` int(55) NOT NULL,
-    `order_status` varchar(255) NOT NULL,
-    `legalize_link` varchar(255) NOT NULL,
-    `self_link` varchar(255) NOT NULL,
-    `cancel_link` varchar(255) NOT NULL
-) ENGINE=' . _MYSQL_ENGINE_ . ' COLLATE utf8mb4_bin;';
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
 
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
-    }
-}
+header('Location: ../');
+exit;
