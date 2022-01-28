@@ -93,21 +93,6 @@ final class OrderStateByIdChoiceProvider implements
 
         $orderStates = $this->orderStateDataProvider->getOrderStates($this->languageId);
         $choices = [];
-        $paymentMethod = isset($options['payment_method']) ? $options['payment_method'] : '';
-        $orderStatesMap = array_combine(
-            array_map(
-                static function ($itemValue) {
-                    return $itemValue['id_order_state'];
-                },
-                $orderStates
-            ),
-            $orderStates
-        );
-        $comfinoConfirmStates = [
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_ACCEPTED],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_PAID]
-        ];
         $comfinoStates = [
             OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_CREATED],
             OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_FILLING],
@@ -124,16 +109,7 @@ final class OrderStateByIdChoiceProvider implements
             if (in_array($orderState['name'], $comfinoStates, true)) {
                 continue;
             }
-            if (stripos($paymentMethod, 'comfino') !== false &&
-                $orderState['id_order_state'] == \Configuration::get('PS_OS_CANCELED') &&
-                !empty($options['current_state']) &&
-                (
-                    $orderStatesMap[$options['current_state']]['paid'] == 1 ||
-                    in_array($orderState['name'], $comfinoConfirmStates, true)
-                )
-            ) {
-                continue;
-            }
+
             if ($orderState['deleted'] == 1 &&
                 (
                     empty($options['current_state']) ||
