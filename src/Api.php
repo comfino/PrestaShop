@@ -108,13 +108,7 @@ class ComfinoApi
             ]
         ];
 
-        $host = self::COMFINO_PRODUCTION_HOST;
-
-        if ((bool) Configuration::get('COMFINO_IS_SANDBOX')) {
-            $host = self::COMFINO_SANDBOX_HOST;
-        }
-
-        return self::sendRequest("$host/v1/orders", 'POST', [CURLOPT_FOLLOWLOCATION => true], $data);
+        return self::sendRequest(self::getApiHost()."/v1/orders", 'POST', [CURLOPT_FOLLOWLOCATION => true], $data);
     }
 
     /**
@@ -125,13 +119,8 @@ class ComfinoApi
     public static function getOffer($loanAmount)
     {
         $loanAmount = (float) $loanAmount;
-        $host = self::COMFINO_PRODUCTION_HOST;
 
-        if ((bool) Configuration::get('COMFINO_IS_SANDBOX')) {
-            $host = self::COMFINO_SANDBOX_HOST;
-        }
-
-        return self::sendRequest("$host/v1/financial-products?loanAmount=$loanAmount", 'GET');
+        return self::sendRequest(self::getApiHost()."/v1/financial-products?loanAmount=$loanAmount", 'GET');
     }
 
     /**
@@ -149,13 +138,17 @@ class ComfinoApi
      */
     public static function cancelOrder($order_id)
     {
-        $host = self::COMFINO_PRODUCTION_HOST;
+        self::sendRequest(self::getApiHost()."/v1/orders/$order_id/cancel", 'PUT');
+    }
 
-        if ((bool) Configuration::get('COMFINO_IS_SANDBOX')) {
-            $host = self::COMFINO_SANDBOX_HOST;
-        }
+    public static function getWidgetKey()
+    {
+        return self::sendRequest(self::getApiHost()."/v1/widget-key", 'GET');
+    }
 
-        self::sendRequest("$host/v1/orders/$order_id/cancel", 'PUT');
+    private static function getApiHost()
+    {
+        return Configuration::get('COMFINO_IS_SANDBOX') ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST;
     }
 
     /**
