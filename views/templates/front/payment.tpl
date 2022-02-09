@@ -555,7 +555,8 @@
                     } else if (index % 3 === 0) {
                         loanTermBoxContents += `</div><div class="comfino-select-box">`;
                     }
-                   loanTermBoxContents += `<div data-term="` + item.loanTerm + `" class="comfino-installments-quantity">` + item.loanTerm + `</div>`;
+
+                    loanTermBoxContents += `<div data-term="` + item.loanTerm + `" class="comfino-installments-quantity">` + item.loanTerm + `</div>`;
 
                     if (index === offerData.loanParameters.length - 1) {
                         loanTermBoxContents += `</div>`;
