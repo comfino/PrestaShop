@@ -27,8 +27,6 @@
 class AdminOrdersController extends AdminOrdersControllerCore
 {
     private $orderStates;
-    private $comfinoConfirmStates;
-    private $comfinoStates;
 
     public function __construct()
     {
@@ -49,23 +47,6 @@ class AdminOrdersController extends AdminOrdersControllerCore
             array_keys($this->orderStates)
         );
 
-        $this->comfinoConfirmStates = [
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_ACCEPTED],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_PAID]
-        ];
-        $this->comfinoStates = [
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_CREATED],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_FILLING],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_CONFIRMATION],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_ACCEPTED],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_PAID],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_REJECTED],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_CANCELLED_BY_SHOP],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_CANCELLED]
-        ];
-
         if (Tools::isSubmit('id_order') && Tools::getValue('id_order') > 0) {
             $order = new Order(Tools::getValue('id_order'));
 
@@ -77,7 +58,7 @@ class AdminOrdersController extends AdminOrdersControllerCore
         }
 
         foreach ($this->statuses_array as $statusId => $statusName) {
-            if (in_array($statusName, $this->comfinoStates, true)) {
+            if (stripos($statusName, 'comfino') !== false) {
                 unset($this->statuses_array[$statusId], $this->orderStates[$orderStatesMap[$statusId]]);
             }
         }

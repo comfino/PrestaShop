@@ -85,15 +85,27 @@ class OrdersList extends ObjectModel
     ];
 
     const ADD_ORDER_STATUSES = [
-        self::COMFINO_CREATED => 'Order created (comfino)',
-        self::COMFINO_WAITING_FOR_FILLING => 'Waiting for form\'s filling (comfino)',
-        self::COMFINO_WAITING_FOR_CONFIRMATION => 'Waiting for form\'s confirmation (comfino)',
-        self::COMFINO_WAITING_FOR_PAYMENT => 'Waiting for payment (comfino)',
-        self::COMFINO_ACCEPTED => 'Credit granted (comfino)',
-        self::COMFINO_PAID => 'Paid (comfino)',
-        self::COMFINO_REJECTED => 'Credit rejected (comfino)',
-        self::COMFINO_CANCELLED_BY_SHOP => 'Cancelled by shop (comfino)',
-        self::COMFINO_CANCELLED => 'Cancelled (comfino)',
+        self::COMFINO_CREATED => 'Order created (Comfino)',
+        self::COMFINO_WAITING_FOR_FILLING => 'Waiting for form\'s filling (Comfino)',
+        self::COMFINO_WAITING_FOR_CONFIRMATION => 'Waiting for form\'s confirmation (Comfino)',
+        self::COMFINO_WAITING_FOR_PAYMENT => 'Waiting for payment (Comfino)',
+        self::COMFINO_ACCEPTED => 'Credit granted (Comfino)',
+        self::COMFINO_PAID => 'Paid (Comfino)',
+        self::COMFINO_REJECTED => 'Credit rejected (Comfino)',
+        self::COMFINO_CANCELLED_BY_SHOP => 'Cancelled by shop (Comfino)',
+        self::COMFINO_CANCELLED => 'Cancelled (Comfino)',
+    ];
+
+    const ADD_ORDER_STATUSES_PL = [
+        self::COMFINO_CREATED => 'Zamówienie utworzone (Comfino)',
+        self::COMFINO_WAITING_FOR_FILLING => 'Oczekiwanie na wypełnienie formularza (Comfino)',
+        self::COMFINO_WAITING_FOR_CONFIRMATION => 'Oczekiwanie na zatwierdzenie formularza (Comfino)',
+        self::COMFINO_WAITING_FOR_PAYMENT => 'Oczekiwanie na płatność (Comfino)',
+        self::COMFINO_ACCEPTED => 'Kredyt udzielony (Comfino)',
+        self::COMFINO_PAID => 'Zapłacono (Comfino)',
+        self::COMFINO_REJECTED => 'Wniosek kredytowy odrzucony (Comfino)',
+        self::COMFINO_CANCELLED_BY_SHOP => 'Anulowano przez sklep (Comfino)',
+        self::COMFINO_CANCELLED => 'Anulowano (Comfino)',
     ];
 
     public static $definition = [

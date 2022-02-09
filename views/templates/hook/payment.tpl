@@ -739,6 +739,11 @@
                         event.preventDefault();
                         document.getElementById('modal-repr-example').classList.remove('open');
                     });
+
+                    document.getElementById('modal-repr-example').querySelector('div.comfino-modal-exit').addEventListener('click', function (event) {
+                        event.preventDefault();
+                        document.getElementById('modal-repr-example').classList.remove('open');
+                    });
                 }).catch(function (error) {
                     offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
                 });

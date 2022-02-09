@@ -26,7 +26,6 @@
 
 namespace Comfino\Form\ChoiceProvider;
 
-use OrdersList;
 use PrestaShop\PrestaShop\Core\Form\ConfigurableFormChoiceProviderInterface;
 use PrestaShop\PrestaShop\Core\Form\FormChoiceAttributeProviderInterface;
 use PrestaShop\PrestaShop\Core\Form\FormChoiceProviderInterface;
@@ -93,20 +92,9 @@ final class OrderStateByIdChoiceProvider implements
 
         $orderStates = $this->orderStateDataProvider->getOrderStates($this->languageId);
         $choices = [];
-        $comfinoStates = [
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_CREATED],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_FILLING],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_CONFIRMATION],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_WAITING_FOR_PAYMENT],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_ACCEPTED],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_PAID],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_REJECTED],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_CANCELLED_BY_SHOP],
-            OrdersList::ADD_ORDER_STATUSES[OrdersList::COMFINO_CANCELLED]
-        ];
 
         foreach ($orderStates as $orderState) {
-            if (in_array($orderState['name'], $comfinoStates, true)) {
+            if (stripos($orderState['name'], 'comfino') !== false) {
                 continue;
             }
 

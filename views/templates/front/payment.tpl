@@ -555,8 +555,7 @@
                     } else if (index % 3 === 0) {
                         loanTermBoxContents += `</div><div class="comfino-select-box">`;
                     }
-
-                    loanTermBoxContents += `<div data-term="` + item.loanTerm + `" class="comfino-installments-quantity">` + item.loanTerm + `</div>`;
+                   loanTermBoxContents += `<div data-term="` + item.loanTerm + `" class="comfino-installments-quantity">` + item.loanTerm + `</div>`;
 
                     if (index === offerData.loanParameters.length - 1) {
                         loanTermBoxContents += `</div>`;
@@ -685,6 +684,11 @@
                             });
 
                             document.getElementById('modal-repr-example').querySelector('button.comfino-modal-exit').addEventListener('click', function (event) {
+                                event.preventDefault();
+                                document.getElementById('modal-repr-example').classList.remove('open');
+                            });
+
+                            document.getElementById('modal-repr-example').querySelector('div.comfino-modal-exit').addEventListener('click', function (event) {
                                 event.preventDefault();
                                 document.getElementById('modal-repr-example').classList.remove('open');
                             });
