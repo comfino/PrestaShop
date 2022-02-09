@@ -45,14 +45,16 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     '{WIDGET_PRICE_SELECTOR}',
                     '{WIDGET_TARGET_SELECTOR}',
                     '{WIDGET_TYPE}',
-                    '{OFFER_TYPE}'
+                    '{OFFER_TYPE}',
+                    '{EMBED_METHOD}'
                 ],
                 [
                     Configuration::get('COMFINO_WIDGET_KEY'),
                     Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR'),
                     Configuration::get('COMFINO_WIDGET_TARGET_SELECTOR'),
                     Configuration::get('COMFINO_WIDGET_TYPE'),
-                    Configuration::get('COMFINO_WIDGET_OFFER_TYPE')
+                    Configuration::get('COMFINO_WIDGET_OFFER_TYPE'),
+                    Configuration::get('COMFINO_WIDGET_EMBED_METHOD')
                 ],
                 Configuration::get('COMFINO_WIDGET_CODE')
             );
