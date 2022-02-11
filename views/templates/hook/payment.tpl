@@ -323,6 +323,8 @@
         background: #fff;
         position: relative;
         padding: 30px;
+        max-height: 90%;
+        overflow: auto;
     }
 
     .comfino-modal-close {
