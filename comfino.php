@@ -586,7 +586,7 @@ class Comfino extends PaymentModule
         foreach (OrdersList::ADD_ORDER_STATUSES as $state => $name) {
             $newState = Configuration::get($state);
 
-            if (!$newState || empty($newState) || !Validate::isInt($newState) ||
+            if (empty($newState) || !Validate::isInt($newState) ||
                 !Validate::isLoadedObject(new OrderState($newState))
             ) {
                 $orderStateObject = new OrderState();
