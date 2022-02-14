@@ -43,7 +43,8 @@ if (!defined('COMFINO_VERSION')) {
 
 class Comfino extends PaymentModule
 {
-    const WIDGET_SCRIPT_URL = '//widget.comfino.pl/comfino.min.js';
+    const WIDGET_SCRIPT_PRODUCTION_URL = '//widget.comfino.pl/comfino.min.js';
+    const WIDGET_SCRIPT_SANDBOX_URL = '//widget.craty.pl/comfino.min.js';
     const ERROR_LOG_NUM_LINES = 20;
 
     public function __construct()
@@ -95,49 +96,6 @@ class Comfino extends PaymentModule
             $this->registerHook('displayBackofficeComfinoForm') &&
             $this->registerHook('actionOrderStatusPostUpdate') &&
             $this->registerHook('header');
-    }
-
-    public function addOrderStates()
-    {
-        $orderStates = OrdersList::ADD_ORDER_STATUSES;
-        $errors = [];
-
-        foreach ($orderStates as $state => $name) {
-            $newState = Configuration::get($state);
-
-            if (!$newState || empty($newState) || !Validate::isInt($newState) ||
-                !Validate::isLoadedObject(new OrderState($newState))
-            ) {
-                $orderStateObject = new OrderState();
-                $orderStateObject->name = array_fill(0, 10, $name);
-                $orderStateObject->send_email = 0;
-                $orderStateObject->invoice = 0;
-                $orderStateObject->color = '#ffffff';
-                $orderStateObject->unremovable = false;
-                $orderStateObject->logable = 0;
-                $orderStateObject->module_name = $this->name;
-
-                if (!$orderStateObject->add()) {
-                    $errors[] = [
-                        'error' => 'Cannot add order state',
-                        'value' => $name
-                    ];
-
-                    continue;
-                }
-
-                if (!Configuration::updateValue($state, $orderStateObject->id)) {
-                    $errors[] = [
-                        'error' => 'Cannot update state value',
-                        'value' => $name
-                    ];
-
-                    continue;
-                }
-            }
-        }
-
-        return true;
     }
 
     public function uninstall()
@@ -621,6 +579,41 @@ class Comfino extends PaymentModule
         return $fields;
     }
 
+    private function addOrderStates()
+    {
+        $languages = Language::getLanguages(false);
+
+        foreach (OrdersList::ADD_ORDER_STATUSES as $state => $name) {
+            $newState = Configuration::get($state);
+
+            if (empty($newState) || !Validate::isInt($newState) ||
+                !Validate::isLoadedObject(new OrderState($newState))
+            ) {
+                $orderStateObject = new OrderState();
+                $orderStateObject->send_email = 0;
+                $orderStateObject->invoice = 0;
+                $orderStateObject->color = '#ffffff';
+                $orderStateObject->unremovable = false;
+                $orderStateObject->logable = 0;
+                $orderStateObject->module_name = $this->name;
+
+                foreach ($languages as $language) {
+                    if ($language['iso_code'] === 'pl') {
+                        $orderStateObject->name[$language['id_lang']] = OrdersList::ADD_ORDER_STATUSES_PL[$state];
+                    } else {
+                        $orderStateObject->name[$language['id_lang']] = $name;
+                    }
+                }
+
+                if ($orderStateObject->add()) {
+                    Configuration::updateValue($state, $orderStateObject->id);
+                }
+            }
+        }
+
+        return true;
+    }
+
     private function checkConfiguration()
     {
         return Configuration::get('COMFINO_API_KEY') !== null && Configuration::get('COMFINO_TAX_ID') !== null;
@@ -654,7 +647,7 @@ script.onload = function () {
         callbackAfter: function () {}
     });
 };
-script.src = '".self::WIDGET_SCRIPT_URL."';
+script.src = '{WIDGET_SCRIPT_URL}';
 script.async = true;
 document.getElementsByTagName('head')[0].appendChild(script);
 ";

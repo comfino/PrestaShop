@@ -323,6 +323,8 @@
         background: #fff;
         position: relative;
         padding: 30px;
+        max-height: 90%;
+        overflow: auto;
     }
 
     .comfino-modal-close {
@@ -736,6 +738,11 @@
                     });
 
                     document.getElementById('modal-repr-example').querySelector('button.comfino-modal-exit').addEventListener('click', function (event) {
+                        event.preventDefault();
+                        document.getElementById('modal-repr-example').classList.remove('open');
+                    });
+
+                    document.getElementById('modal-repr-example').querySelector('div.comfino-modal-exit').addEventListener('click', function (event) {
                         event.preventDefault();
                         document.getElementById('modal-repr-example').classList.remove('open');
                     });
