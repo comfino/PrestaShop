@@ -132,6 +132,7 @@ class Comfino extends PaymentModule
             Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
             Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', Tools::getValue('COMFINO_PAYMENT_PRESENTATION'));
             Configuration::updateValue('COMFINO_WIDGET_ENABLED', Tools::getValue('COMFINO_WIDGET_ENABLED'));
+            Configuration::updateValue('COMFINO_WIDGET_KEY', ComfinoApi::getWidgetKey());
             Configuration::updateValue(
                 'COMFINO_WIDGET_PRICE_SELECTOR',
                 Tools::getValue('COMFINO_WIDGET_PRICE_SELECTOR')
@@ -144,10 +145,6 @@ class Comfino extends PaymentModule
             Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', Tools::getValue('COMFINO_WIDGET_OFFER_TYPE'));
             Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', Tools::getValue('COMFINO_WIDGET_EMBED_METHOD'));
             Configuration::updateValue('COMFINO_WIDGET_CODE', Tools::getValue('COMFINO_WIDGET_CODE'));
-
-            if (Tools::getValue('COMFINO_API_KEY') && empty(Configuration::get('COMFINO_WIDGET_KEY'))) {
-                Configuration::updateValue('COMFINO_WIDGET_KEY', ComfinoApi::getWidgetKey());
-            }
 
             $output = $this->l('Settings updated.');
         }
