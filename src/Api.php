@@ -143,7 +143,7 @@ class ComfinoApi
 
     public static function getWidgetKey()
     {
-        return self::sendRequest(self::getApiHost()."/v1/widget-key", 'GET');
+        return json_decode(self::sendRequest(self::getApiHost()."/v1/widget-key", 'GET'));
     }
 
     private static function getApiHost()
