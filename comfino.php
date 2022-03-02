@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.0.6');
+    define('COMFINO_VERSION', '2.1.0');
 }
 
 class Comfino extends PaymentModule
@@ -69,8 +69,9 @@ class Comfino extends PaymentModule
         $this->confirmUninstall = $this->l('Are you sure to uninstall Comfino payments?');
 
         $this->description = $this->l(
-            'Comfino is a friendly and innovative system that aggregates internet payments '.
-            '(0% installments, Low Installments, deferred payments "Buy now, pay later").'
+            'Comfino is an innovative payment method for customers of e-commerce stores! '.
+            'These are installment payments, deferred (buy now, pay later) and corporate '.
+            'payments available on one platform with the help of quick integration. Grow your business with Comfino!'
         );
     }
 
@@ -408,7 +409,11 @@ class Comfino extends PaymentModule
     private function getFormFields()
     {
         $fields = [];
+
         $fields[0]['form'] = [
+            'legend' => [
+                'title' => $this->l('Payment methods'),
+            ],
             'input' => [
                 [
                     'type' => 'text',
@@ -421,23 +426,6 @@ class Comfino extends PaymentModule
                     'label' => $this->l('Tax ID'),
                     'name' => 'COMFINO_TAX_ID',
                     'required' => true
-                ],
-                [
-                    'type' => 'switch',
-                    'label' => $this->l('Is sandbox?'),
-                    'name' => 'COMFINO_IS_SANDBOX',
-                    'values' => [
-                        [
-                            'id' => 'sandbox_enabled',
-                            'value' => true,
-                            'label' => $this->l('Enabled')
-                        ],
-                        [
-                            'id' => 'sandbox_disabled',
-                            'value' => false,
-                            'label' => $this->l('Disabled')
-                        ]
-                    ]
                 ],
                 [
                     'type' => 'select',
@@ -465,7 +453,20 @@ class Comfino extends PaymentModule
                     'label' => $this->l('Minimal amount in cart'),
                     'name' => 'COMFINO_MINIMAL_CART_AMOUNT',
                     'required' => true
-                ],
+                ]
+            ],
+            'submit' => [
+                'title' => $this->l('Save'),
+                'class' => 'btn btn-default pull-right',
+                'name' => 'submit_configuration'
+            ]
+        ];
+
+        $fields[1]['form'] = [
+            'legend' => [
+                'title' => 'Widget',
+            ],
+            'input' => [
                 [
                     'type' => 'switch',
                     'label' => $this->l('Widget is active?'),
@@ -531,7 +532,11 @@ class Comfino extends PaymentModule
                         ],
                         'id' => 'key',
                         'name' => 'name'
-                    ]
+                    ],
+                    'desc' => $this->l(
+                        'Other payment methods (Installments 0%, Buy now, pay later, Installments for Companies) '.
+                        'available after consulting a Comfino advisor (kontakt@comfino.pl).'
+                    )
                 ],
                 [
                     'type' => 'select',
@@ -556,6 +561,42 @@ class Comfino extends PaymentModule
                     'required' => false,
                     'rows' => 15,
                     'cols' => 60
+                ]
+            ],
+            'submit' => [
+                'title' => $this->l('Save'),
+                'class' => 'btn btn-default pull-right',
+                'name' => 'submit_configuration'
+            ]
+        ];
+
+        $fields[2]['form'] = [
+            'legend' => [
+                'title' => $this->l('For developers'),
+            ],
+            'input' => [
+                [
+                    'type' => 'switch',
+                    'label' => $this->l('Use test environment'),
+                    'name' => 'COMFINO_IS_SANDBOX',
+                    'values' => [
+                        [
+                            'id' => 'sandbox_enabled',
+                            'value' => true,
+                            'label' => $this->l('Enabled')
+                        ],
+                        [
+                            'id' => 'sandbox_disabled',
+                            'value' => false,
+                            'label' => $this->l('Disabled')
+                        ]
+                    ],
+                    'desc' => $this->l(
+                        'The test environment allows the store owner to get acquainted with the '.
+                        'functionality of the Comfino module. This is a Comfino simulator, thanks to which you can '.
+                        'get to know all the advantages of this payment method. The use of the test mode is free '.
+                        '(there are also no charges for orders).'
+                    )
                 ],
                 [
                     'type' => 'textarea',
@@ -564,7 +605,7 @@ class Comfino extends PaymentModule
                     'required' => false,
                     'rows' => 20,
                     'cols' => 60
-                ],
+                ]
             ],
             'submit' => [
                 'title' => $this->l('Save'),
@@ -661,7 +702,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
                Configuration::updateValue('COMFINO_WIDGET_PRICE_SELECTOR', 'span[itemprop=price]') &&
                Configuration::updateValue('COMFINO_WIDGET_TARGET_SELECTOR', 'div.product-actions') &&
                Configuration::updateValue('COMFINO_WIDGET_TYPE', 'with-modal') &&
-               Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', 'INSTALLMENTS_ZERO_PERCENT') &&
+               Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', 'CONVENIENT_INSTALLMENTS') &&
                Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', 'INSERT_INTO_LAST') &&
                Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widgetCode));
     }

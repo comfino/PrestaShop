@@ -44,15 +44,13 @@ class ComfinoApi
         $products = [];
 
         foreach ($cart_data->getProducts() as $product) {
-            $product_object = new Product($product['id_product']);
-
             $products[] = [
                 'name' => $product['name'],
                 'quantity' => (int) $product['cart_quantity'],
-                'price' => round($product_object->getPrice() * 100),
-                'photoUrl' => self::getProductsImageUrl($product_object),
-                'ean' => $product_object->ean13,
-                'externalId' => (string) $product_object->id,
+                'price' => (int) ($product['total_wt'] / $product['cart_quantity'] * 100),
+                'photoUrl' => self::getProductsImageUrl($product),
+                'ean' => $product['ean13'],
+                'externalId' => (string) $product['id_product'],
                 'category' => $product['category']
             ];
         }
@@ -143,7 +141,7 @@ class ComfinoApi
 
     public static function getWidgetKey()
     {
-        return self::sendRequest(self::getApiHost()."/v1/widget-key", 'GET');
+        return json_decode(self::sendRequest(self::getApiHost()."/v1/widget-key", 'GET'));
     }
 
     private static function getApiHost()
@@ -160,15 +158,15 @@ class ComfinoApi
     {
         $link_rewrite = '';
 
-        if (is_array($product->link_rewrite)) {
-            foreach ($product->link_rewrite as $link) {
+        if (is_array($product['link_rewrite'])) {
+            foreach ($product['link_rewrite'] as $link) {
                 $link_rewrite = $link;
             }
         } else {
-            $link_rewrite = $product->link_rewrite;
+            $link_rewrite = $product['link_rewrite'];
         }
 
-        $image = Image::getCover($product->id);
+        $image = Image::getCover($product['id_product']);
 
         if (!is_array($image) && !isset($image['id_image'])) {
             return '';

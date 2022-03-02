@@ -1,8 +1,0 @@
-services:
-    prestashop.core.form.choice_provider.order_state_by_id:
-        class: Comfino\Form\ChoiceProvider\OrderStateByIdChoiceProvider
-        arguments:
-            - '@=service("prestashop.adapter.legacy.context").getLanguage().id'
-            - '@prestashop.adapter.data_provider.order_state'
-            - '@prestashop.core.util.color_brightness_calculator'
-            - '@translator'
