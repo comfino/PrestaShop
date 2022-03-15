@@ -38,7 +38,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
 
         header('Content-Type: application/javascript');
 
-        if ((bool) Configuration::get('COMFINO_WIDGET_ENABLED')) {
+        if (Configuration::get('COMFINO_WIDGET_ENABLED')) {
             echo str_replace(
                 [
                     '{WIDGET_KEY}',
@@ -56,7 +56,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     Configuration::get('COMFINO_WIDGET_TYPE'),
                     Configuration::get('COMFINO_WIDGET_OFFER_TYPE'),
                     Configuration::get('COMFINO_WIDGET_EMBED_METHOD'),
-                    (bool) Configuration::get('COMFINO_IS_SANDBOX')
+                    Configuration::get('COMFINO_IS_SANDBOX')
                         ? Comfino::WIDGET_SCRIPT_SANDBOX_URL
                         : Comfino::WIDGET_SCRIPT_PRODUCTION_URL
                 ],
