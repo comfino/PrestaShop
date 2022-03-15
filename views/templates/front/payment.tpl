@@ -352,6 +352,8 @@
         width: 32px;
         height: 32px;
         padding-top: 2px;
+        margin-top: 3px;
+        margin-bottom: 3px;
     }
 
     main.comfino-subbox {
