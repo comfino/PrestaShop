@@ -127,10 +127,10 @@ class Comfino extends PaymentModule
         if (Tools::isSubmit('submit_configuration')) {
             Configuration::updateValue('COMFINO_PAYMENT_TEXT', Tools::getValue('COMFINO_PAYMENT_TEXT'));
             Configuration::updateValue('COMFINO_API_KEY', Tools::getValue('COMFINO_API_KEY'));
-            Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
             Configuration::updateValue('COMFINO_TAX_ID', Tools::getValue('COMFINO_TAX_ID'));
             Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'));
             Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
+            Configuration::updateValue('COMFINO_SANDBOX_API_KEY', Tools::getValue('COMFINO_SANDBOX_API_KEY'));
             Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', Tools::getValue('COMFINO_PAYMENT_PRESENTATION'));
             Configuration::updateValue('COMFINO_WIDGET_ENABLED', Tools::getValue('COMFINO_WIDGET_ENABLED'));
             Configuration::updateValue('COMFINO_WIDGET_KEY', ComfinoApi::getWidgetKey());
@@ -313,7 +313,7 @@ class Comfino extends PaymentModule
 
     public function hookHeader()
     {
-        if ((bool) Configuration::get('COMFINO_WIDGET_ENABLED')) {
+        if (Configuration::get('COMFINO_WIDGET_ENABLED')) {
             if (COMFINO_PS_17) {
                 $this->context->controller->registerJavascript(
                     'comfino',
@@ -336,8 +336,9 @@ class Comfino extends PaymentModule
         $helper->fields_value['COMFINO_API_KEY'] = Configuration::get('COMFINO_API_KEY');
         $helper->fields_value['COMFINO_PAYMENT_PRESENTATION'] = Configuration::get('COMFINO_PAYMENT_PRESENTATION');
         $helper->fields_value['COMFINO_TAX_ID'] = Configuration::get('COMFINO_TAX_ID');
-        $helper->fields_value['COMFINO_IS_SANDBOX'] = Configuration::get('COMFINO_IS_SANDBOX');
         $helper->fields_value['COMFINO_MINIMAL_CART_AMOUNT'] = Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
+        $helper->fields_value['COMFINO_IS_SANDBOX'] = Configuration::get('COMFINO_IS_SANDBOX');
+        $helper->fields_value['COMFINO_SANDBOX_API_KEY'] = Configuration::get('COMFINO_SANDBOX_API_KEY');
         $helper->fields_value['COMFINO_WIDGET_ENABLED'] = Configuration::get('COMFINO_WIDGET_ENABLED');
         $helper->fields_value['COMFINO_WIDGET_KEY'] = Configuration::get('COMFINO_WIDGET_KEY');
         $helper->fields_value['COMFINO_WIDGET_PRICE_SELECTOR'] = Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR');
@@ -597,6 +598,13 @@ class Comfino extends PaymentModule
                         'get to know all the advantages of this payment method. The use of the test mode is free '.
                         '(there are also no charges for orders).'
                     )
+                ],
+                [
+                    'type' => 'text',
+                    'label' => $this->l('Test environment API key'),
+                    'name' => 'COMFINO_SANDBOX_API_KEY',
+                    'required' => false,
+                    'desc' => $this->l('Ask the supervisor for access to the test environment (key, login, password, link). Remember, the test key is different from the production key.')
                 ],
                 [
                     'type' => 'textarea',

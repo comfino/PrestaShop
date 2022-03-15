@@ -141,12 +141,21 @@ class ComfinoApi
 
     public static function getWidgetKey()
     {
-        return json_decode(self::sendRequest(self::getApiHost()."/v1/widget-key", 'GET'));
+        return !empty(self::getApiKey())
+            ? json_decode(self::sendRequest(self::getApiHost()."/v1/widget-key", 'GET'))
+            : '';
     }
 
     private static function getApiHost()
     {
         return Configuration::get('COMFINO_IS_SANDBOX') ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST;
+    }
+
+    private static function getApiKey()
+    {
+        return Configuration::get('COMFINO_IS_SANDBOX')
+            ? Configuration::get('COMFINO_SANDBOX_API_KEY')
+            : Configuration::get('COMFINO_API_KEY');
     }
 
     /**
@@ -187,7 +196,7 @@ class ComfinoApi
             CURLOPT_URL => $url,
             CURLOPT_CUSTOMREQUEST => Tools::strtoupper($request_type),
             CURLOPT_HTTPHEADER => [
-                'API-KEY: '.Configuration::get('COMFINO_API_KEY'),
+                'API-KEY: '.self::getApiKey(),
                 'User-Agent: '.self::getUserAgentHeader(),
             ],
             CURLOPT_RETURNTRANSFER => true,

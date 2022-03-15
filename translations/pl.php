@@ -72,3 +72,5 @@ $_MODULE['<{comfino}prestashop>comfino_0da8d9a75492046bea7f314521e07cae'] = 'Met
 $_MODULE['<{comfino}prestashop>comfino_0e0be16eb7608b14829cda644fa9a237'] = 'Dla developerów';
 $_MODULE['<{comfino}prestashop>comfino_bff206e65bc86547132e11e9d62b22bd'] = 'Inne sposoby płatności (Raty 0%, Kup teraz, zapłać później, Raty dla firm) dostępne po konsultacji z doradcą Comfino (kontakt@comfino.pl).';
 $_MODULE['<{comfino}prestashop>comfino_a4da367221e0c34564821bb1a39b38e0'] = 'Środowisko testowe pozwala właścicielowi sklepu zapoznać się z funkcjonalnością modułu Comfino. To symulator Comfino, dzięki któremu można poznać wszystkie zalety tej metody płatności. Użycie trybu testowego jest darmowe (nie są również pobierane opłaty za zamówienia).';
+$_MODULE['<{comfino}prestashop>comfino_c225257354f4fb54dfb669c18a8a7a43'] = 'Klucz API środowiska testowego';
+$_MODULE['<{comfino}prestashop>comfino_5d8c37b6154bdd3e7449eab7adbd862b'] = 'Poproś opiekuna o dostęp do środowiska testowego (klucz, login, hasło, link). Pamiętaj, klucz testowy różni się od klucza produkcyjnego.';
