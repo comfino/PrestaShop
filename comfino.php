@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.1.1');
+    define('COMFINO_VERSION', '2.1.2');
 }
 
 class Comfino extends PaymentModule
@@ -604,7 +604,10 @@ class Comfino extends PaymentModule
                     'label' => $this->l('Test environment API key'),
                     'name' => 'COMFINO_SANDBOX_API_KEY',
                     'required' => false,
-                    'desc' => $this->l('Ask the supervisor for access to the test environment (key, login, password, link). Remember, the test key is different from the production key.')
+                    'desc' => $this->l(
+                        'Ask the supervisor for access to the test environment (key, login, password, link). '.
+                        'Remember, the test key is different from the production key.'
+                    )
                 ],
                 [
                     'type' => 'textarea',
