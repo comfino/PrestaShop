@@ -1,0 +1,63 @@
+2.1.3
+ - FN-8790 Code cleanup, changelog update
+
+2.1.2
+ - FN-8790 Code cleanup
+
+2.1.1
+ - FN-8790 Add a new input field in the module configuration form: API key for test environment
+ - FN-8773 Improve notifications endpoint security - add request signature verification
+
+2.1.0
+ - Bugs fixing and backend logic simplification
+ 
+2.0.6
+ - FN-8658 Unconditional widget key retrieving from API after configuration saving
+ - FN-8635 Update frontend templates, update order state names and add Polish translations, update widgets init script
+ - FN-8619 Update plugin icon and configuration form, widget key auto-initialization
+ - FN-8589 Remove logic for preventing cancellation of accepted orders paid via Comfino
+ - FN-8583 Code refactoring - PS coding and security standards implemented
+
+2.0.4
+ - FN-8568 Fix bug in payment controller
+ - FN-8543 Update Comfino logo used in payment form - use vector format
+ - FN-8535 Update styles
+ 
+2.0.3
+ - FN-8442 Comfino widget (product card)
+ - FN-8428 Update styles - correct font sizes and colors for PrestaShop 1.6
+ 
+2.0.2
+ - Set proper version value
+ - FN-8417 Fix some compatibility bugs with PrestaShop 1.7.7.5
+ - FN-8368 Use RRSO values from loanParameters
+ - FN-8406 Fix bug in cancel notifications under PS 1.6
+ - FN-8350 Compatibility with PrestaShop 1.7
+
+2.0.1
+ - FN-8380 Update AdminOrders controller (override)
+ - FN-8297 Update admin logic (add compatibility with PrestaShop 1.6)
+
+2.0.0
+- FN-8164 New frontend layout
+
+1.2.0
+ - FN-8098 Remove hosts from settings form, disable displaying box if representative example is empty
+ - FN-8120 Update documentation
+ - FN-8113 Remove COMFINO_LOAN_TERM parameter from plugin configuration
+ 
+1.1.0
+ - FN-8028 Remove typo from documentation
+ - FN-7972 Change Comfino API hosts
+ - FN-7939 Add a hook for order status update (Canceled)
+ - FN-7846 Disable order cancellation after payment initialization
+ - FN-7818 Remove parameter
+ - FN-7754 Add documentactions
+ - FN-7754 Add documentactions
+
+1.0.0
+ - FN-7731 - fix no error message on missing phone number
+ - FN-7718 - uporządkowanie statusów
+ - Remove duplicated option update
+ - FN-7653 Add mapping of ACCEPTED and WAITING_FOR_PAYMENT
+ - FN-7647 Use toPay field from ecommerce API response
