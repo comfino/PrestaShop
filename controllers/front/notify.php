@@ -39,29 +39,34 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
         $jsonData = Tools::file_get_contents('php://input');
 
         if ($this->getSignature() !== hash('sha3-256', Configuration::get('COMFINO_API_KEY').$jsonData)) {
-            http_response_code(400);
-            die('Failed comparison of CR-Signature and shop hash.');
+            die($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
         }
 
         $data = json_decode($jsonData, true);
 
         if (!isset($data['externalId'])) {
-            http_response_code(400);
-            die('External ID must be set.');
+            die($this->setResponse(400, 'External ID must be set.'));
         }
 
         if (!isset($data['status'])) {
-            http_response_code(400);
-            die('Status must be set.');
+            die($this->setResponse(400, 'Status must be set.'));
         }
 
         OrdersList::processState($data['externalId'], $data['status']);
 
-        exit(true);
+        die($this->setResponse(200, 'OK'));
     }
 
     private function getSignature()
     {
         return isset($_SERVER['HTTP_CR_SIGNATURE']) ? $_SERVER['HTTP_CR_SIGNATURE'] : '';
+    }
+
+    private function setResponse($code, $content)
+    {
+        http_response_code($code);
+        header('Content-Type: application/json');
+
+        return json_encode(['status' => $content]);
     }
 }
