@@ -24,6 +24,10 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class ComfinoApi
 {
     const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
@@ -31,7 +35,8 @@ class ComfinoApi
 
     /**
      * @param Cart $cart_data
-     * @param $order_id
+     * @param string $order_id
+     * @param string $return_url
      *
      * @return bool|string
      */
