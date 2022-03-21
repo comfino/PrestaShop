@@ -24,6 +24,10 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 $sql = [];
 $sql[] = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'comfino_orders`;';
 
