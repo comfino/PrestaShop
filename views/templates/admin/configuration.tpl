@@ -23,11 +23,19 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
-{if $output != ''}
+{if $output|count > 0}
     <div class="bootstrap">
         <div class="module_confirmation conf confirm alert alert-{$outputType|escape:'htmlall':'UTF-8'}">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
-            {$output|escape:'htmlall':'UTF-8'}
+            {if $output|count > 1}
+                <ul>
+                    {foreach from=$output item=msg}
+                        <li>{$msg}</li>
+                    {/foreach}
+                </ul>
+            {elseif $output|count == 1}
+                {$output[0]}
+            {/if}
         </div>
     </div>
 {/if}

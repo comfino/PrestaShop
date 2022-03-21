@@ -24,6 +24,10 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 final class ComfinoPresentationType
 {
     const ONLY_ICON = 'only_icon';

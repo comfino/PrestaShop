@@ -24,6 +24,10 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 final class ComfinoColorVersion
 {
     const RED = 'rgb(180, 0, 0)';

@@ -122,33 +122,58 @@ class Comfino extends PaymentModule
 
     public function getContent()
     {
-        $output = '';
+        $output = [];
         $outputType = 'success';
 
         if (Tools::isSubmit('submit_configuration')) {
-            Configuration::updateValue('COMFINO_PAYMENT_TEXT', Tools::getValue('COMFINO_PAYMENT_TEXT'));
-            Configuration::updateValue('COMFINO_API_KEY', Tools::getValue('COMFINO_API_KEY'));
-            Configuration::updateValue('COMFINO_TAX_ID', Tools::getValue('COMFINO_TAX_ID'));
-            Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'));
-            Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
-            Configuration::updateValue('COMFINO_SANDBOX_API_KEY', Tools::getValue('COMFINO_SANDBOX_API_KEY'));
-            Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', Tools::getValue('COMFINO_PAYMENT_PRESENTATION'));
-            Configuration::updateValue('COMFINO_WIDGET_ENABLED', Tools::getValue('COMFINO_WIDGET_ENABLED'));
-            Configuration::updateValue('COMFINO_WIDGET_KEY', ComfinoApi::getWidgetKey());
-            Configuration::updateValue(
-                'COMFINO_WIDGET_PRICE_SELECTOR',
-                Tools::getValue('COMFINO_WIDGET_PRICE_SELECTOR')
-            );
-            Configuration::updateValue(
-                'COMFINO_WIDGET_TARGET_SELECTOR',
-                Tools::getValue('COMFINO_WIDGET_TARGET_SELECTOR')
-            );
-            Configuration::updateValue('COMFINO_WIDGET_TYPE', Tools::getValue('COMFINO_WIDGET_TYPE'));
-            Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', Tools::getValue('COMFINO_WIDGET_OFFER_TYPE'));
-            Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', Tools::getValue('COMFINO_WIDGET_EMBED_METHOD'));
-            Configuration::updateValue('COMFINO_WIDGET_CODE', Tools::getValue('COMFINO_WIDGET_CODE'));
+            if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
+                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('API key'));
+            }
+            if (Tools::isEmpty(Tools::getValue('COMFINO_TAX_ID'))) {
+                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Tax ID'));
+            }
+            if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_PRESENTATION'))) {
+                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Payment presentation'));
+            }
+            if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
+                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Payment text'));
+            }
+            if (Tools::isEmpty(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
+                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Minimal amount in cart'));
+            } elseif (!is_numeric(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
+                $output[] = sprintf(
+                    $this->l('Field "%s" has wrong numeric format.'), $this->l('Minimal amount in cart')
+                );
+            }
 
-            $output = $this->l('Settings updated.');
+            if (count($output)) {
+                $outputType = 'warning';
+                $output[] = $this->l('Settings not updated.');
+            } else {
+                Configuration::updateValue('COMFINO_API_KEY', Tools::getValue('COMFINO_API_KEY'));
+                Configuration::updateValue('COMFINO_TAX_ID', Tools::getValue('COMFINO_TAX_ID'));
+                Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', Tools::getValue('COMFINO_PAYMENT_PRESENTATION'));
+                Configuration::updateValue('COMFINO_PAYMENT_TEXT', Tools::getValue('COMFINO_PAYMENT_TEXT'));
+                Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'));
+                Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
+                Configuration::updateValue('COMFINO_SANDBOX_API_KEY', Tools::getValue('COMFINO_SANDBOX_API_KEY'));
+                Configuration::updateValue('COMFINO_WIDGET_ENABLED', Tools::getValue('COMFINO_WIDGET_ENABLED'));
+                Configuration::updateValue('COMFINO_WIDGET_KEY', ComfinoApi::getWidgetKey());
+                Configuration::updateValue(
+                    'COMFINO_WIDGET_PRICE_SELECTOR',
+                    Tools::getValue('COMFINO_WIDGET_PRICE_SELECTOR')
+                );
+                Configuration::updateValue(
+                    'COMFINO_WIDGET_TARGET_SELECTOR',
+                    Tools::getValue('COMFINO_WIDGET_TARGET_SELECTOR')
+                );
+                Configuration::updateValue('COMFINO_WIDGET_TYPE', Tools::getValue('COMFINO_WIDGET_TYPE'));
+                Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', Tools::getValue('COMFINO_WIDGET_OFFER_TYPE'));
+                Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', Tools::getValue('COMFINO_WIDGET_EMBED_METHOD'));
+                Configuration::updateValue('COMFINO_WIDGET_CODE', Tools::getValue('COMFINO_WIDGET_CODE'));
+
+                $output = [$this->l('Settings updated.')];
+            }
         }
 
         $this->context->smarty->assign(['output' => $output, 'outputType' => $outputType]);
@@ -157,7 +182,7 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * Prestashop 1.6.* compatibility
+     * Prestashop 1.6.* compatibility.
      *
      * @param $params
      *
@@ -204,7 +229,7 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * Prestashop 1.7.* compatibility
+     * Prestashop 1.7.* compatibility.
      *
      * @param $params
      *
@@ -703,34 +728,34 @@ document.getElementsByTagName('head')[0].appendChild(script);
 ";
 
         return Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', ComfinoPresentationType::ICON_AND_TEXT) &&
-               Configuration::updateValue(
-                   'COMFINO_PAYMENT_TEXT',
-                   '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)'
-               ) &&
-               Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 30) &&
-               Configuration::updateValue('COMFINO_ENABLED', false) &&
-               Configuration::updateValue('COMFINO_WIDGET_ENABLED', false) &&
-               Configuration::updateValue('COMFINO_WIDGET_KEY', '') &&
-               Configuration::updateValue('COMFINO_WIDGET_PRICE_SELECTOR', 'span[itemprop=price]') &&
-               Configuration::updateValue('COMFINO_WIDGET_TARGET_SELECTOR', 'div.product-actions') &&
-               Configuration::updateValue('COMFINO_WIDGET_TYPE', 'with-modal') &&
-               Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', 'CONVENIENT_INSTALLMENTS') &&
-               Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', 'INSERT_INTO_LAST') &&
-               Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widgetCode));
+            Configuration::updateValue(
+                'COMFINO_PAYMENT_TEXT',
+                '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)'
+            ) &&
+            Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 30) &&
+            Configuration::updateValue('COMFINO_ENABLED', false) &&
+            Configuration::updateValue('COMFINO_WIDGET_ENABLED', false) &&
+            Configuration::updateValue('COMFINO_WIDGET_KEY', '') &&
+            Configuration::updateValue('COMFINO_WIDGET_PRICE_SELECTOR', 'span[itemprop=price]') &&
+            Configuration::updateValue('COMFINO_WIDGET_TARGET_SELECTOR', 'div.product-actions') &&
+            Configuration::updateValue('COMFINO_WIDGET_TYPE', 'with-modal') &&
+            Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', 'CONVENIENT_INSTALLMENTS') &&
+            Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', 'INSERT_INTO_LAST') &&
+            Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widgetCode));
     }
 
     private function deleteConfigurationValues()
     {
         return Configuration::deleteByName('COMFINO_PAYMENT_TEXT') &&
-               Configuration::deleteByName('COMFINO_TAX_ID') &&
-               Configuration::deleteByName('COMFINO_ENABLED') &&
-               Configuration::deleteByName('COMFINO_WIDGET_ENABLED') &&
-               Configuration::deleteByName('COMFINO_WIDGET_KEY') &&
-               Configuration::deleteByName('COMFINO_WIDGET_PRICE_SELECTOR') &&
-               Configuration::deleteByName('COMFINO_WIDGET_TARGET_SELECTOR') &&
-               Configuration::deleteByName('COMFINO_WIDGET_TYPE') &&
-               Configuration::deleteByName('COMFINO_WIDGET_OFFER_TYPE') &&
-               Configuration::deleteByName('COMFINO_WIDGET_EMBED_METHOD') &&
-               Configuration::deleteByName('COMFINO_WIDGET_CODE');
+            Configuration::deleteByName('COMFINO_TAX_ID') &&
+            Configuration::deleteByName('COMFINO_ENABLED') &&
+            Configuration::deleteByName('COMFINO_WIDGET_ENABLED') &&
+            Configuration::deleteByName('COMFINO_WIDGET_KEY') &&
+            Configuration::deleteByName('COMFINO_WIDGET_PRICE_SELECTOR') &&
+            Configuration::deleteByName('COMFINO_WIDGET_TARGET_SELECTOR') &&
+            Configuration::deleteByName('COMFINO_WIDGET_TYPE') &&
+            Configuration::deleteByName('COMFINO_WIDGET_OFFER_TYPE') &&
+            Configuration::deleteByName('COMFINO_WIDGET_EMBED_METHOD') &&
+            Configuration::deleteByName('COMFINO_WIDGET_CODE');
     }
 }
