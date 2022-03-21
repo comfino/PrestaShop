@@ -25,7 +25,7 @@
  */
 
 if (!defined('_PS_VERSION_')) {
-    return;
+    exit;
 }
 
 require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';

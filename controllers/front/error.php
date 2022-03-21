@@ -25,7 +25,7 @@
  */
 
 if (!defined('_PS_VERSION_')) {
-    return;
+    exit;
 }
 
 class ComfinoErrorModuleFrontController extends ModuleFrontController
