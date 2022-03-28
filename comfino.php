@@ -736,7 +736,10 @@ document.getElementsByTagName('head')[0].appendChild(script);
             Configuration::updateValue('COMFINO_ENABLED', false) &&
             Configuration::updateValue('COMFINO_WIDGET_ENABLED', false) &&
             Configuration::updateValue('COMFINO_WIDGET_KEY', '') &&
-            Configuration::updateValue('COMFINO_WIDGET_PRICE_SELECTOR', 'span[itemprop=price]') &&
+            Configuration::updateValue(
+                'COMFINO_WIDGET_PRICE_SELECTOR',
+                COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]'
+            ) &&
             Configuration::updateValue('COMFINO_WIDGET_TARGET_SELECTOR', 'div.product-actions') &&
             Configuration::updateValue('COMFINO_WIDGET_TYPE', 'with-modal') &&
             Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', 'CONVENIENT_INSTALLMENTS') &&
