@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.1.3');
+    define('COMFINO_VERSION', '2.1.4');
 }
 
 class Comfino extends PaymentModule
@@ -51,7 +51,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.1.3';
+        $this->version = '2.1.4';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
