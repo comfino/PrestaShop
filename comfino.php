@@ -716,7 +716,7 @@ script.onload = function () {
         widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',        
         type: '{WIDGET_TYPE}',
         offerType: '{OFFER_TYPE}',
-        embedMethod: '{EMBED_METHOD}',        
+        embedMethod: '{EMBED_METHOD}',
         priceObserverLevel: 0,
         price: null,
         callbackBefore: function () {},
