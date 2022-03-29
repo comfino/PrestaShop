@@ -713,11 +713,12 @@ script.onload = function () {
     ComfinoProductWidget.init({
         widgetKey: '{WIDGET_KEY}',
         priceSelector: '{WIDGET_PRICE_SELECTOR}',
-        widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',
-        price: null,
+        widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',        
         type: '{WIDGET_TYPE}',
         offerType: '{OFFER_TYPE}',
-        embedMethod: '{EMBED_METHOD}',
+        embedMethod: '{EMBED_METHOD}',        
+        priceObserverLevel: 0,
+        price: null,
         callbackBefore: function () {},
         callbackAfter: function () {}
     });
