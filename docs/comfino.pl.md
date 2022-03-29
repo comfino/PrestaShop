@@ -20,11 +20,14 @@ Aby zainstalować moduł, należy przejść do zakładki `"Moduły -> Manedżer 
 
 ## KONFIGURACJA
 
-Aby moduł mógł działać, konieczne jest skonfigurowanie go. Pole, które jest najbardziej istotne i należy je wypełnić to: `"API Key"`. 
+Aby moduł mógł działać, konieczne jest skonfigurowanie go. Możesz to zrobić, klikając `"Konfiguruj"` w panelu informacyjnym modułu.
+Pole, które jest najbardziej istotne i należy je wypełnić to: `"Klucz API"`.
+Drugim ważnym polem jest `"NIP"`. W sekcji `"Dla developerów"` znajduje się pole drugiego klucza - `"Klucz API środowiska testowego"`.
+
 Kolejnymi polami wartymi uwagi są:
 
 * Nazwa płatności — pole odpowiada za tekst wyświetlany przy płatności. Domyślnie `"Pay with comperia"`
-* Minimalna kwota w koszyku — Domyślnie 1000 zł
+* Minimalna kwota w koszyku — Domyślnie 30 zł
 
 ![Konfiguracja](images/pl/configuration.png "Konfiguracja")
 
