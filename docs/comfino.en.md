@@ -20,13 +20,16 @@ To the field that appears, put module's file. Module will be installed automatic
 
 ![Configuration](images/en/modules_ps_17.png "Configuration")
 
-
 ## CONFIGURATION
 
-For the module correct work, configuration is required. You can do this by click `"Configure"` in module information panel. There are a couple of important field that should be filled: `"Api-Key"`, Tax ID. There are unimportant fields that have their default values.
+For the module correct work, configuration is required. You can do this by click `"Configure"` in module information panel.
+There are a couple of important field that should be filled: `"API key"`.
+The second important field is `"Tax ID"`. In the "For developers" section there is a second key field - `"Test environment API key"`.
+
+Other fields worth attention are:
 
 * Payment text - this is text that will be showing nearby payment option. Default value is `"Pay with Comperia"`
-* Minimal amount in cart - default value is 1000 zł. Value should be number
+* Minimal amount in cart - default value is 30 zł. Value should be number
 
 ![Configuration](images/en/configuration.png "Configuration")
 

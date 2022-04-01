@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.1.3');
+    define('COMFINO_VERSION', '2.1.4');
 }
 
 class Comfino extends PaymentModule
@@ -51,7 +51,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.1.3';
+        $this->version = '2.1.4';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -713,11 +713,12 @@ script.onload = function () {
     ComfinoProductWidget.init({
         widgetKey: '{WIDGET_KEY}',
         priceSelector: '{WIDGET_PRICE_SELECTOR}',
-        widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',
-        price: null,
+        widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',        
         type: '{WIDGET_TYPE}',
         offerType: '{OFFER_TYPE}',
         embedMethod: '{EMBED_METHOD}',
+        priceObserverLevel: 0,
+        price: null,
         callbackBefore: function () {},
         callbackAfter: function () {}
     });
@@ -736,7 +737,10 @@ document.getElementsByTagName('head')[0].appendChild(script);
             Configuration::updateValue('COMFINO_ENABLED', false) &&
             Configuration::updateValue('COMFINO_WIDGET_ENABLED', false) &&
             Configuration::updateValue('COMFINO_WIDGET_KEY', '') &&
-            Configuration::updateValue('COMFINO_WIDGET_PRICE_SELECTOR', 'span[itemprop=price]') &&
+            Configuration::updateValue(
+                'COMFINO_WIDGET_PRICE_SELECTOR',
+                COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]'
+            ) &&
             Configuration::updateValue('COMFINO_WIDGET_TARGET_SELECTOR', 'div.product-actions') &&
             Configuration::updateValue('COMFINO_WIDGET_TYPE', 'with-modal') &&
             Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', 'CONVENIENT_INSTALLMENTS') &&
