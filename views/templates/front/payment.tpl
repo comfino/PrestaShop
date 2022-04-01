@@ -625,7 +625,7 @@
 
         let getModuleApiUrl = function (queryStringParams)
         {
-            let moduleApiUrl = '{$set_info_url|escape:'htmlall':'UTF-8'}'.replace(/&amp;/g, '&');
+            let moduleApiUrl = '{$set_info_url|escape:'javascript':'UTF-8'}'.replace(/&amp;/g, '&');
             let urlParams = new URLSearchParams(queryStringParams);
 
             if (queryStringParams) {
