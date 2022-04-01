@@ -30,11 +30,11 @@
             {if $output|count > 1}
                 <ul>
                     {foreach from=$output item=msg}
-                        <li>{$msg}</li>
+                        <li>{$msg|escape:'javascript':'UTF-8'}</li>
                     {/foreach}
                 </ul>
             {elseif $output|count == 1}
-                {$output[0]}
+                {$output[0]|escape:'javascript':'UTF-8'}
             {/if}
         </div>
     </div>

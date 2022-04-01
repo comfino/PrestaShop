@@ -210,11 +210,11 @@ class OrdersList extends ObjectModel
     public static function updateOrder($order_id, $key, $value)
     {
         $sql = sprintf(
-            'UPDATE %scomfino_orders SET %s = \'%s\' WHERE id_comfino = \'%s\'',
+            'UPDATE %scomfino_orders SET %s = %s WHERE id_comfino = %s',
             _DB_PREFIX_,
-            $key,
-            $value,
-            $order_id
+            bqSQL($key),
+            pSQL($value),
+            pSQL($order_id)
         );
 
         if ($row = Db::getInstance()->execute($sql)) {
