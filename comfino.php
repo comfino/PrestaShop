@@ -127,23 +127,45 @@ class Comfino extends PaymentModule
 
         if (Tools::isSubmit('submit_configuration')) {
             if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
-                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('API key'));
+                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('API key'));
             }
             if (Tools::isEmpty(Tools::getValue('COMFINO_TAX_ID'))) {
-                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Tax ID'));
+                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Tax ID'));
             }
             if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_PRESENTATION'))) {
-                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Payment presentation'));
+                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Payment presentation'));
             }
             if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
-                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Payment text'));
+                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Payment text'));
             }
             if (Tools::isEmpty(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
-                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Minimal amount in cart'));
+                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Minimal amount in cart'));
             } elseif (!is_numeric(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
                 $output[] = sprintf(
-                    $this->l('Field "%s" has wrong numeric format.'), $this->l('Minimal amount in cart')
+                    $this->l("Field '%s' has wrong numeric format."), $this->l('Minimal amount in cart')
                 );
+            }
+
+            ComfinoApi::setApiHost(
+                Tools::getValue('COMFINO_IS_SANDBOX')
+                    ? ComfinoApi::COMFINO_SANDBOX_HOST
+                    : ComfinoApi::COMFINO_PRODUCTION_HOST
+            );
+
+            ComfinoApi::setApiKey(
+                Tools::getValue('COMFINO_IS_SANDBOX')
+                    ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
+                    : Tools::getValue('COMFINO_API_KEY')
+            );
+
+            $widgetKey = ComfinoApi::getWidgetKey();
+
+            if (is_array($widgetKey)) {
+                if (isset($widgetKey['errors'])) {
+                    $output = array_merge($output, $widgetKey['errors']);
+                } else {
+                    $widgetKey = '';
+                }
             }
 
             if (count($output)) {
@@ -158,7 +180,7 @@ class Comfino extends PaymentModule
                 Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
                 Configuration::updateValue('COMFINO_SANDBOX_API_KEY', Tools::getValue('COMFINO_SANDBOX_API_KEY'));
                 Configuration::updateValue('COMFINO_WIDGET_ENABLED', Tools::getValue('COMFINO_WIDGET_ENABLED'));
-                Configuration::updateValue('COMFINO_WIDGET_KEY', ComfinoApi::getWidgetKey());
+                Configuration::updateValue('COMFINO_WIDGET_KEY', $widgetKey);
                 Configuration::updateValue(
                     'COMFINO_WIDGET_PRICE_SELECTOR',
                     Tools::getValue('COMFINO_WIDGET_PRICE_SELECTOR')
