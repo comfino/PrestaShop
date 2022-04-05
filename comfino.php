@@ -127,22 +127,22 @@ class Comfino extends PaymentModule
 
         if (Tools::isSubmit('submit_configuration')) {
             if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
-                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('API key'));
+                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('API key'));
             }
             if (Tools::isEmpty(Tools::getValue('COMFINO_TAX_ID'))) {
-                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Tax ID'));
+                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Tax ID'));
             }
             if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_PRESENTATION'))) {
-                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Payment presentation'));
+                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Payment presentation'));
             }
             if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
-                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Payment text'));
+                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Payment text'));
             }
             if (Tools::isEmpty(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
-                $output[] = sprintf($this->l('Field "%s" can not be empty.'), $this->l('Minimal amount in cart'));
+                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Minimal amount in cart'));
             } elseif (!is_numeric(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
                 $output[] = sprintf(
-                    $this->l('Field "%s" has wrong numeric format.'), $this->l('Minimal amount in cart')
+                    $this->l("Field '%s' has wrong numeric format."), $this->l('Minimal amount in cart')
                 );
             }
 
