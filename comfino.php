@@ -146,6 +146,28 @@ class Comfino extends PaymentModule
                 );
             }
 
+            ComfinoApi::setApiHost(
+                Tools::getValue('COMFINO_IS_SANDBOX')
+                    ? ComfinoApi::COMFINO_SANDBOX_HOST
+                    : ComfinoApi::COMFINO_PRODUCTION_HOST
+            );
+
+            ComfinoApi::setApiKey(
+                Tools::getValue('COMFINO_IS_SANDBOX')
+                    ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
+                    : Tools::getValue('COMFINO_API_KEY')
+            );
+
+            $widgetKey = ComfinoApi::getWidgetKey();
+
+            if (is_array($widgetKey)) {
+                if (isset($widgetKey['errors'])) {
+                    $output = array_merge($output, $widgetKey['errors']);
+                } else {
+                    $widgetKey = '';
+                }
+            }
+
             if (count($output)) {
                 $outputType = 'warning';
                 $output[] = $this->l('Settings not updated.');
@@ -158,7 +180,7 @@ class Comfino extends PaymentModule
                 Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
                 Configuration::updateValue('COMFINO_SANDBOX_API_KEY', Tools::getValue('COMFINO_SANDBOX_API_KEY'));
                 Configuration::updateValue('COMFINO_WIDGET_ENABLED', Tools::getValue('COMFINO_WIDGET_ENABLED'));
-                Configuration::updateValue('COMFINO_WIDGET_KEY', ComfinoApi::getWidgetKey());
+                Configuration::updateValue('COMFINO_WIDGET_KEY', $widgetKey);
                 Configuration::updateValue(
                     'COMFINO_WIDGET_PRICE_SELECTOR',
                     Tools::getValue('COMFINO_WIDGET_PRICE_SELECTOR')

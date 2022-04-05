@@ -30,8 +30,11 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoApi
 {
-    const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
-    const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
+    public const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
+    public const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
+
+    private static $api_host;
+    private static $api_key;
 
     /**
      * @param Cart $cart_data
@@ -146,21 +149,43 @@ class ComfinoApi
 
     public static function getWidgetKey()
     {
-        return !empty(self::getApiKey())
-            ? json_decode(self::sendRequest(self::getApiHost()."/v1/widget-key", 'GET'))
-            : '';
+        $widgetKey = '';
+
+        if (!empty(self::getApiKey())) {
+            $widgetKey = self::sendRequest(self::getApiHost()."/v1/widget-key", 'GET');
+
+            if (!is_array($widgetKey)) {
+                $widgetKey = json_decode($widgetKey, true);
+            }
+        }
+
+        return $widgetKey;
+    }
+
+    public static function setApiHost($api_host)
+    {
+        self::$api_host = $api_host;
+    }
+
+    public static function setApiKey($api_key)
+    {
+        self::$api_key = $api_key;
     }
 
     private static function getApiHost()
     {
-        return Configuration::get('COMFINO_IS_SANDBOX') ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST;
+        return empty(self::$api_host)
+            ? Configuration::get('COMFINO_IS_SANDBOX') ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST
+            : self::$api_host;
     }
 
     private static function getApiKey()
     {
-        return Configuration::get('COMFINO_IS_SANDBOX')
-            ? Configuration::get('COMFINO_SANDBOX_API_KEY')
-            : Configuration::get('COMFINO_API_KEY');
+        return empty(self::$api_key)
+            ? Configuration::get('COMFINO_IS_SANDBOX')
+                ? Configuration::get('COMFINO_SANDBOX_API_KEY')
+                : Configuration::get('COMFINO_API_KEY')
+            : self::$api_key;
     }
 
     /**
