@@ -30,8 +30,8 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoApi
 {
-    public const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
-    public const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
+    const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
+    const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
 
     private static $api_host;
     private static $api_key;
