@@ -1,12 +1,20 @@
 # Changelog
 
+## [2.1.4](https://github.com/comfino/PrestaShop/tree/2.1.4) (2022-04-01)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.3...2.1.4)
+
+**Merged pull requests:**
+
+- FN-8865 Improved module security [\#44](https://github.com/comfino/PrestaShop/pull/44) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.1.3](https://github.com/comfino/PrestaShop/tree/2.1.3) (2022-03-16)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.2...2.1.3)
 
 **Merged pull requests:**
 
-- FN-8790 Code cleanup, changelog update [\#37](https://github.com/comfino/PrestaShop/pull/38) ([akozubskicr](https://github.com/akozubskicr))
+- FN-8790 Code cleanup, changelog update [\#38](https://github.com/comfino/PrestaShop/pull/38) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.1.2](https://github.com/comfino/PrestaShop/tree/2.1.2) (2022-03-16)
 

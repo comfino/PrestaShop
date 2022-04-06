@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.1.4');
+    define('COMFINO_VERSION', '2.1.5');
 }
 
 class Comfino extends PaymentModule
@@ -51,7 +51,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.1.4';
+        $this->version = '2.1.5';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -146,29 +146,38 @@ class Comfino extends PaymentModule
                 );
             }
 
-            ComfinoApi::setApiHost(
-                Tools::getValue('COMFINO_IS_SANDBOX')
+            $widgetKeyError = false;
+
+            if (!count($output)) {
+                $apiHost = Tools::getValue('COMFINO_IS_SANDBOX')
                     ? ComfinoApi::COMFINO_SANDBOX_HOST
-                    : ComfinoApi::COMFINO_PRODUCTION_HOST
-            );
+                    : ComfinoApi::COMFINO_PRODUCTION_HOST;
 
-            ComfinoApi::setApiKey(
-                Tools::getValue('COMFINO_IS_SANDBOX')
+                $apiKey = Tools::getValue('COMFINO_IS_SANDBOX')
                     ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
-                    : Tools::getValue('COMFINO_API_KEY')
-            );
+                    : Tools::getValue('COMFINO_API_KEY');
 
-            $widgetKey = ComfinoApi::getWidgetKey();
+                if (!empty($apiKey)) {
+                    ComfinoApi::setApiHost($apiHost);
+                    ComfinoApi::setApiKey($apiKey);
 
-            if (is_array($widgetKey)) {
-                if (isset($widgetKey['errors'])) {
-                    $output = array_merge($output, $widgetKey['errors']);
+                    $widgetKey = ComfinoApi::getWidgetKey();
+
+                    if (is_array($widgetKey)) {
+                        if (isset($widgetKey['errors'])) {
+                            $output = array_merge($output, $widgetKey['errors']);
+                            $outputType = 'warning';
+                            $widgetKeyError = true;
+                        } else {
+                            $widgetKey = '';
+                        }
+                    }
                 } else {
                     $widgetKey = '';
                 }
             }
 
-            if (count($output)) {
+            if (!$widgetKeyError && count($output)) {
                 $outputType = 'warning';
                 $output[] = $this->l('Settings not updated.');
             } else {
@@ -194,7 +203,7 @@ class Comfino extends PaymentModule
                 Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', Tools::getValue('COMFINO_WIDGET_EMBED_METHOD'));
                 Configuration::updateValue('COMFINO_WIDGET_CODE', Tools::getValue('COMFINO_WIDGET_CODE'));
 
-                $output = [$this->l('Settings updated.')];
+                $output[] = $this->l('Settings updated.');
             }
         }
 
