@@ -147,6 +147,7 @@ class Comfino extends PaymentModule
             }
 
             $widgetKeyError = false;
+            $widgetKey = '';
 
             if (!count($output)) {
                 $apiHost = Tools::getValue('COMFINO_IS_SANDBOX')
@@ -168,12 +169,10 @@ class Comfino extends PaymentModule
                             $output = array_merge($output, $widgetKey['errors']);
                             $outputType = 'warning';
                             $widgetKeyError = true;
-                        } else {
-                            $widgetKey = '';
                         }
+
+                        $widgetKey = '';
                     }
-                } else {
-                    $widgetKey = '';
                 }
             }
 
