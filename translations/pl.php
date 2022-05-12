@@ -77,3 +77,6 @@ $_MODULE['<{comfino}prestashop>comfino_bff206e65bc86547132e11e9d62b22bd'] = 'Inn
 $_MODULE['<{comfino}prestashop>comfino_a4da367221e0c34564821bb1a39b38e0'] = 'Środowisko testowe pozwala właścicielowi sklepu zapoznać się z funkcjonalnością modułu Comfino. To symulator Comfino, dzięki któremu można poznać wszystkie zalety tej metody płatności. Użycie trybu testowego jest darmowe (nie są również pobierane opłaty za zamówienia).';
 $_MODULE['<{comfino}prestashop>comfino_c225257354f4fb54dfb669c18a8a7a43'] = 'Klucz API środowiska testowego';
 $_MODULE['<{comfino}prestashop>comfino_5d8c37b6154bdd3e7449eab7adbd862b'] = 'Poproś opiekuna o dostęp do środowiska testowego (klucz, login, hasło, link). Pamiętaj, klucz testowy różni się od klucza produkcyjnego.';
+$_MODULE['<{comfino}prestashop>comfino_02626ea63980bb8782cf423689e2fe83'] = 'PrestaShop %s Comfino %s - question';
+$_MODULE['<{comfino}prestashop>comfino_8a629a456e984b4e20c4d763e2a469b1'] = 'Do you want to ask about something? Write to us at';
+$_MODULE['<{comfino}prestashop>comfino_6900cf73d3bfa5ecbf4f55a5089e47cc'] = 'or contact us by phone. We are waiting on the number: %s. We will answer all your questions!';
