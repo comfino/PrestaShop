@@ -48,7 +48,7 @@
     <div class="col-md-12">
         <div class="panel">
             <div class="panel-body">
-                <img src="{$logoUrl|escape:'htmlall':'UTF-8'}" alt="Comfino logo">
+                <img style="width: 300px" src="{$logoUrl|escape:'htmlall':'UTF-8'}" alt="Comfino logo">
             </div>
             <div class="panel-body">
                 {$contactMsg1}
