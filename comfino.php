@@ -228,17 +228,17 @@ class Comfino extends PaymentModule
             'logoUrl' => ComfinoApi::getLogoUrl(),
             'supportEmailAddress' => self::COMFINO_SUPPORT_EMAIL,
             'supportEmailSubject' => sprintf(
-                $this->l('PrestaShop %s Comfino %s - pytanie'),
+                $this->l('PrestaShop %s Comfino %s - question'),
                 _PS_VERSION_, COMFINO_VERSION
             ),
             'supportEmailBody' => sprintf(
                 'PrestaShop %s Comfino %s, PHP %s',
                 _PS_VERSION_, COMFINO_VERSION, PHP_VERSION
             ),
-            'contactMsg1' => $this->l('Chcesz o coś zapytać? Napisz do nas na adres'),
+            'contactMsg1' => $this->l('Do you want to ask about something? Write to us at'),
             'contactMsg2' => sprintf(
                 $this->l(
-                    'lub skontaktuj się telefonicznie. Czekamy pod numerem: %s. Odpowiemy na każde Twoje pytanie!'
+                    'or contact us by phone. We are waiting on the number: %s. We will answer all your questions!'
                 ),
                 self::COMFINO_SUPPORT_PHONE
             )
