@@ -162,6 +162,11 @@ class ComfinoApi
         return $widgetKey;
     }
 
+    public static function getLogoUrl()
+    {
+        return self::getApiHost()."/v1/get-logo-url";
+    }
+
     public static function setApiHost($api_host)
     {
         self::$api_host = $api_host;

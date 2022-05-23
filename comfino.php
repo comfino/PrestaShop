@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.1.5');
+    define('COMFINO_VERSION', '2.1.6');
 }
 
 class Comfino extends PaymentModule
@@ -46,12 +46,14 @@ class Comfino extends PaymentModule
     const WIDGET_SCRIPT_PRODUCTION_URL = '//widget.comfino.pl/comfino.min.js';
     const WIDGET_SCRIPT_SANDBOX_URL = '//widget.craty.pl/comfino.min.js';
     const ERROR_LOG_NUM_LINES = 20;
+    const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
+    const COMFINO_SUPPORT_PHONE = '887-106-027';
 
     public function __construct()
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.1.5';
+        $this->version = '2.1.6';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -180,13 +182,20 @@ class Comfino extends PaymentModule
                 $outputType = 'warning';
                 $output[] = $this->l('Settings not updated.');
             } else {
+                // Payment settings
                 Configuration::updateValue('COMFINO_API_KEY', Tools::getValue('COMFINO_API_KEY'));
                 Configuration::updateValue('COMFINO_TAX_ID', Tools::getValue('COMFINO_TAX_ID'));
-                Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', Tools::getValue('COMFINO_PAYMENT_PRESENTATION'));
+                Configuration::updateValue(
+                    'COMFINO_PAYMENT_PRESENTATION',
+                    Tools::getValue('COMFINO_PAYMENT_PRESENTATION')
+                );
                 Configuration::updateValue('COMFINO_PAYMENT_TEXT', Tools::getValue('COMFINO_PAYMENT_TEXT'));
-                Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'));
-                Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
-                Configuration::updateValue('COMFINO_SANDBOX_API_KEY', Tools::getValue('COMFINO_SANDBOX_API_KEY'));
+                Configuration::updateValue(
+                    'COMFINO_MINIMAL_CART_AMOUNT',
+                    Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT')
+                );
+
+                // Widget
                 Configuration::updateValue('COMFINO_WIDGET_ENABLED', Tools::getValue('COMFINO_WIDGET_ENABLED'));
                 Configuration::updateValue('COMFINO_WIDGET_KEY', $widgetKey);
                 Configuration::updateValue(
@@ -199,14 +208,41 @@ class Comfino extends PaymentModule
                 );
                 Configuration::updateValue('COMFINO_WIDGET_TYPE', Tools::getValue('COMFINO_WIDGET_TYPE'));
                 Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', Tools::getValue('COMFINO_WIDGET_OFFER_TYPE'));
-                Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', Tools::getValue('COMFINO_WIDGET_EMBED_METHOD'));
+                Configuration::updateValue(
+                    'COMFINO_WIDGET_EMBED_METHOD',
+                    Tools::getValue('COMFINO_WIDGET_EMBED_METHOD')
+                );
                 Configuration::updateValue('COMFINO_WIDGET_CODE', Tools::getValue('COMFINO_WIDGET_CODE'));
+
+                // For developers
+                Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
+                Configuration::updateValue('COMFINO_SANDBOX_API_KEY', Tools::getValue('COMFINO_SANDBOX_API_KEY'));
 
                 $output[] = $this->l('Settings updated.');
             }
         }
 
-        $this->context->smarty->assign(['output' => $output, 'outputType' => $outputType]);
+        $this->context->smarty->assign([
+            'output' => $output,
+            'outputType' => $outputType,
+            'logoUrl' => ComfinoApi::getLogoUrl(),
+            'supportEmailAddress' => self::COMFINO_SUPPORT_EMAIL,
+            'supportEmailSubject' => sprintf(
+                $this->l('PrestaShop %s Comfino %s - question'),
+                _PS_VERSION_, COMFINO_VERSION
+            ),
+            'supportEmailBody' => sprintf(
+                'PrestaShop %s Comfino %s, PHP %s',
+                _PS_VERSION_, COMFINO_VERSION, PHP_VERSION
+            ),
+            'contactMsg1' => $this->l('Do you want to ask about something? Write to us at'),
+            'contactMsg2' => sprintf(
+                $this->l(
+                    'or contact us by phone. We are waiting on the number: %s. We will answer all your questions!'
+                ),
+                self::COMFINO_SUPPORT_PHONE
+            )
+        ]);
 
         return $this->display(__FILE__, 'views/templates/admin/configuration.tpl');
     }
@@ -314,7 +350,7 @@ class Comfino extends PaymentModule
     public function hookPaymentReturn($params)
     {
         if (!$this->active) {
-            return;
+            return '';
         }
 
         if (COMFINO_PS_17) {
@@ -347,9 +383,9 @@ class Comfino extends PaymentModule
             }
 
             return $this->fetch('module:comfino/views/templates/hook/payment_return.tpl');
-        } else {
-            return;
         }
+
+        return '';
     }
 
     public function hookDisplayBackofficeComfinoForm($params)

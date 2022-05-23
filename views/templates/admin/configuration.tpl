@@ -40,9 +40,23 @@
     </div>
 {/if}
 
+{$supportEmailAddress=$supportEmailAddress|escape:'htmlall':'UTF-8'}
+{$supportEmailSubject=$supportEmailSubject|escape:'htmlall':'UTF-8'|escape:'url'}
+{$supportEmailBody=$supportEmailBody|escape:'htmlall':'UTF-8'|escape:'url'}
+
 <div class="row">
     <div class="col-md-12">
         <div class="panel">
+            <div class="panel-body">
+                <img style="width: 300px" src="{$logoUrl|escape:'htmlall':'UTF-8'}" alt="Comfino logo">
+            </div>
+            <div class="panel-body">
+                {$contactMsg1}
+                <a href="mailto:{$supportEmailAddress}?subject={$supportEmailSubject}&body={$supportEmailBody}">
+                    {$supportEmailAddress}
+                </a>
+                {$contactMsg2}
+            </div>
             <div class="panel-body">
                 {hook h='displayBackofficeComfinoForm'}
             </div>

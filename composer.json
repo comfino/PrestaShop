@@ -5,5 +5,9 @@
         "classmap": ["comfino.php"],
         "config": {"prepend-autoloader": false},
         "type": "prestashop-module"
+    },
+    "require": {
+        "ext-curl": "*",
+        "ext-json": "*"
     }
 }
