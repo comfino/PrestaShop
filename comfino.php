@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.1.6');
+    define('COMFINO_VERSION', '2.1.7');
 }
 
 class Comfino extends PaymentModule
@@ -53,7 +53,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.1.6';
+        $this->version = '2.1.7';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -622,6 +622,7 @@ class Comfino extends PaymentModule
                         'query' => [
                             ['key' => 'INSTALLMENTS_ZERO_PERCENT', 'name' => $this->l('Zero percent installments')],
                             ['key' => 'CONVENIENT_INSTALLMENTS', 'name' => $this->l('Convenient installments')],
+                            ['key' => 'PAY_LATER', 'name' => $this->l('Pay later')],
                         ],
                         'id' => 'key',
                         'name' => 'name'
