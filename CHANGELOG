@@ -1,3 +1,12 @@
+2.1.7
+ - FN-9048 Add a new offer type in Comfino widget: Pay later (PAY_LATER)
+
+2.1.6
+ - FN-9017 Update configuration form: add logo and contact information (e-mail and phone to the Comfino support office)
+
+2.1.5
+ - FN-8843 Fix bugs in configuration form (widget key retrieving and sandbox settings)
+
 2.1.4
  - FN-8865 Improved module security
 

@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.1.7](https://github.com/comfino/PrestaShop/tree/2.1.7) (2022-05-27)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.6...2.1.7)
+
+**Merged pull requests:**
+
+- FN-9048 Add a new offer type in Comfino widget: Pay later (PAY_LATER) [\#49](https://github.com/comfino/PrestaShop/pull/49) ([akozubskicr](https://github.com/akozubskicr))
+
+## [2.1.6](https://github.com/comfino/PrestaShop/tree/2.1.6) (2022-05-23)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.5...2.1.6)
+
+**Merged pull requests:**
+
+- FN-9017 Update configuration form: add logo and contact information (e-mail and phone to the Comfino support office) [\#48](https://github.com/comfino/PrestaShop/pull/48) ([akozubskicr](https://github.com/akozubskicr))
+
+## [2.1.5](https://github.com/comfino/PrestaShop/tree/2.1.5) (2022-04-07)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.4...2.1.5)
+
+**Merged pull requests:**
+
+- FN-8843 Fix bugs in configuration form (widget key retrieving and sandbox settings) [\#47](https://github.com/comfino/PrestaShop/pull/47) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.1.4](https://github.com/comfino/PrestaShop/tree/2.1.4) (2022-04-01)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.3...2.1.4)
