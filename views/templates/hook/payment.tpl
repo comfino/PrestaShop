@@ -412,7 +412,7 @@
         <p class="payment_module">
             <a id="pay-with-comperia" class="comfino-payment-method">
                 {if $presentation_type == 'only_icon' || $presentation_type == 'icon_and_text'}
-                    <img style="height: 49px" src="/modules/comfino/views/img/comfino_logo.svg" alt="{l s='Pay with comfino' mod='comfino'}" />
+                    <img style="height: 49px" src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/comfino_logo.svg" alt="{l s='Pay with comfino' mod='comfino'}" />
                 {/if}
                 {if $presentation_type == 'only_text' || $presentation_type == 'icon_and_text'}
                     {$pay_with_comfino_text|escape:'htmlall':'UTF-8'}
@@ -425,7 +425,7 @@
 <div id="comfino-box" class="comfino">
     <div class="comfino-box">
         <div class="header">
-            <img src="/modules/comfino/views/img/comfino_logo.svg" alt="" class="comfino-logo" />
+            <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/comfino_logo.svg" alt="" class="comfino-logo" />
             <div class="comfino-title">{l s='Choose payment method' mod='comfino'}</div>
         </div>
         <main class="comfino-subbox">
@@ -465,13 +465,13 @@
                     <div class="comfino-helper-box">
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
-                                <img src="/modules/comfino/views/img/icons/cart.svg" alt="" class="single-instruction-img" />
+                                <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/cart.svg" alt="" class="single-instruction-img" />
                             </div>
                             <div class="comfin-single-instruction__text">{l s='Put the product in the basket' mod='comfino'}</div>
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
-                                <img src="/modules/comfino/views/img/icons/twisto.svg" alt="" class="single-instruction-img" />
+                                <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/twisto.svg" alt="" class="single-instruction-img" />
                             </div>
                             <div class="comfin-single-instruction__text">{l s='Choose Twisto payment' mod='comfino'}</div>
                         </div>
@@ -479,13 +479,13 @@
                     <div class="comfino-helper-box">
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
-                                <img src="/modules/comfino/views/img/icons/check.svg" alt="" class="single-instruction-img" />
+                                <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/check.svg" alt="" class="single-instruction-img" />
                             </div>
                             <div class="comfin-single-instruction__text">{l s='Check the products at home' mod='comfino'}</div>
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
-                                <img src="/modules/comfino/views/img/icons/wallet.svg" alt="" class="single-instruction-img" />
+                                <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/wallet.svg" alt="" class="single-instruction-img" />
                             </div>
                             <div class="comfin-single-instruction__text">{l s='Pay in 30 days' mod='comfino'}</div>
                         </div>

@@ -1,3 +1,6 @@
+2.1.8
+ - FN-9164 Link all images (Comfino logo, icons) to the external host (Comfino widgets static) to avoid problems with hosting configurations at some websites (403 error)
+
 2.1.7
  - FN-9048 Add a new offer type in Comfino widget: Pay later (PAY_LATER)
 
