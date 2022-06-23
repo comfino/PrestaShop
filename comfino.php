@@ -331,12 +331,12 @@ class Comfino extends PaymentModule
             default:
             case ComfinoPresentationType::ICON_AND_TEXT:
                 $newOption->setCallToActionText(Configuration::get('COMFINO_PAYMENT_TEXT'));
-                $newOption->setLogo(_MODULE_DIR_.'comfino/views/img/logo.svg');
+                $newOption->setLogo('//widget.comfino.pl/image/comfino/ecommerce/prestashop/logo.svg');
                 break;
 
             case ComfinoPresentationType::ONLY_ICON:
                 $newOption->setCallToActionText("");
-                $newOption->setLogo(_MODULE_DIR_.'comfino/views/img/logo.svg');
+                $newOption->setLogo('//widget.comfino.pl/image/comfino/ecommerce/prestashop/logo.svg');
                 break;
 
             case ComfinoPresentationType::ONLY_TEXT:
@@ -773,7 +773,7 @@ class Comfino extends PaymentModule
         return [
             'set_info_url' => $this->context->link->getModuleLink($this->name, 'offer', [], true),
             'pay_with_comfino_text' => Configuration::get('COMFINO_PAYMENT_TEXT'),
-            'logo_url' => _MODULE_DIR_.'comfino/views/img/comfino_logo_icon.svg',
+            'logo_url' => '//widget.comfino.pl/image/comfino/ecommerce/prestashop/comfino_logo_icon.svg',
             'presentation_type' => Configuration::get('COMFINO_PAYMENT_PRESENTATION'),
             'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
         ];

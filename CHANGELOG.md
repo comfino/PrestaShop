@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.8](https://github.com/comfino/PrestaShop/tree/2.1.8) (2022-06-11)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.7...2.1.8)
+
+**Merged pull requests:**
+
+- FN-9164 Link all images (Comfino logo, icons) to the external host (Comfino widgets static) to avoid problems with hosting configurations at some websites (403 error) [\#50](https://github.com/comfino/PrestaShop/pull/50) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.1.7](https://github.com/comfino/PrestaShop/tree/2.1.7) (2022-05-27)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.6...2.1.7)
