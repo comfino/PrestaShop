@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.9](https://github.com/comfino/PrestaShop/tree/2.1.9) (2022-06-23)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.8...2.1.9)
+
+**Merged pull requests:**
+
+- FN-9171 Add CRC32 code for widget configuration to force refreshing widget initialization JS script [\#51](https://github.com/comfino/PrestaShop/pull/51) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.1.8](https://github.com/comfino/PrestaShop/tree/2.1.8) (2022-06-11)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.7...2.1.8)
