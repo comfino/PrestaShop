@@ -1,3 +1,6 @@
+2.1.10
+ - FN-9354 Improve errors handling
+
 2.1.9
  - FN-9171 Add CRC32 code for widget configuration to force refreshing widget initialization JS script
 

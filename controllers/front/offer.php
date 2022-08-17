@@ -63,7 +63,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
         $paymentOffers = [];
         $set = false;
 
-        if (is_array($offers)) {
+        if (is_array($offers) && !isset($offers['errors'])) {
             foreach ($offers as $offer) {
                 $loanAmount = round(((float) $offer['instalmentAmount']) * ((float) $offer['loanTerm']) / 100, 2);
 

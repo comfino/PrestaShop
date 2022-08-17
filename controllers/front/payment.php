@@ -124,7 +124,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $orderConfirmation = json_decode($createOrderResponse, true);
         $order = new Order($this->module->currentOrder);
 
-        if (!isset($orderConfirmation['applicationUrl'])) {
+        if (!is_array($orderConfirmation) || !isset($orderConfirmation['applicationUrl'])) {
             $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
             $order->save();
 
@@ -138,7 +138,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 $this->module->name,
                 'error',
                 [
-                    'error' => isset($orderConfirmation['errors'])
+                    'error' => is_array($orderConfirmation) && isset($orderConfirmation['errors'])
                         ? implode(',', $orderConfirmation['errors'])
                         : 'Order creation error.'
                 ],

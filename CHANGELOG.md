@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.10](https://github.com/comfino/PrestaShop/tree/2.1.10) (2022-08-12)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.9...2.1.10)
+
+**Merged pull requests:**
+
+- FN-9354 Improve errors handling [\#52](https://github.com/comfino/PrestaShop/pull/52) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.1.9](https://github.com/comfino/PrestaShop/tree/2.1.9) (2022-06-23)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.8...2.1.9)
