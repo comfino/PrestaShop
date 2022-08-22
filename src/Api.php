@@ -194,7 +194,7 @@ class ComfinoApi
     }
 
     /**
-     * @param $product
+     * @param array $product
      *
      * @return string
      */
@@ -225,6 +225,14 @@ class ComfinoApi
         return $imageUrl;
     }
 
+    /**
+     * @param string $url
+     * @param string $request_type
+     * @param array $extra_options
+     * @param string $data
+     *
+     * @return bool|string
+     */
     private static function sendRequest($url, $request_type, $extra_options = [], $data = null)
     {
         $options = [
@@ -274,7 +282,7 @@ class ComfinoApi
         } else {
             $decoded = json_decode($response, true);
 
-            if (isset($decoded['errors'])) {
+            if ($decoded !== false && isset($decoded['errors'])) {
                 if ($data !== null) {
                     file_put_contents(
                         _PS_MODULE_DIR_.'comfino/payment_log.log',
