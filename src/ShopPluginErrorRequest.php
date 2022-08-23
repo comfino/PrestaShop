@@ -30,10 +30,22 @@ if (!defined('_PS_VERSION_')) {
 
 final class ShopPluginErrorRequest
 {
-    public string $errorDetails;
-    public string $hash;
+    /**
+     * @var string
+     */
+    public $errorDetails;
 
-    public function prepareRequest(ShopPluginError $shopPluginError, string $hashKey): bool
+    /**
+     * @var string
+     */
+    public $hash;
+
+    /**
+     * @param ShopPluginError $shopPluginError
+     * @param string $hashKey
+     * @return bool
+     */
+    public function prepareRequest(ShopPluginError $shopPluginError, $hashKey)
     {
         $errorDetailsArray = [
             'host' => $shopPluginError->host,

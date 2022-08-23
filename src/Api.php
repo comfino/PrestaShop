@@ -67,7 +67,7 @@ class ComfinoApi
         $address_explode = explode(' ', $address[$cart_data->id_address_delivery]->address1);
         $building_number = '';
 
-        if (count($address_explode) == 2) {
+        if (count($address_explode) === 2) {
             $building_number = $address_explode[1];
         }
 
@@ -114,7 +114,7 @@ class ComfinoApi
             ]
         ];
 
-        return self::sendRequest(self::getApiHost()."/v1/orders", 'POST', [CURLOPT_FOLLOWLOCATION => true], $data);
+        return self::sendRequest(self::getApiHost().'/v1/orders', 'POST', [CURLOPT_FOLLOWLOCATION => true], $data);
     }
 
     /**
@@ -147,12 +147,15 @@ class ComfinoApi
         self::sendRequest(self::getApiHost()."/v1/orders/$order_id/cancel", 'PUT');
     }
 
+    /**
+     * @return string|bool
+     */
     public static function getWidgetKey()
     {
         $widgetKey = '';
 
         if (!empty(self::getApiKey())) {
-            $widgetKey = self::sendRequest(self::getApiHost()."/v1/widget-key", 'GET');
+            $widgetKey = self::sendRequest(self::getApiHost().'/v1/widget-key', 'GET');
 
             if (!is_array($widgetKey)) {
                 $widgetKey = json_decode($widgetKey, true);
@@ -162,9 +165,28 @@ class ComfinoApi
         return $widgetKey;
     }
 
+    /**
+     * @param ShopPluginError $error
+     * @return bool
+     */
+    public static function sendLoggedError(ShopPluginError $error)
+    {
+        $request = new ShopPluginErrorRequest();
+
+        if (!$request->prepareRequest($error, self::getUserAgentHeader())) {
+            ErrorLogger::logError('Error request preparation failed', $error->errorMessage);
+
+            return false;
+        }
+
+        $data = ['error_details' => $request->errorDetails, 'hash' => $request->hash];
+
+        return self::sendRequest(self::getApiHost().'/v1/log-plugin-error', 'POST', [], $data) !== false;
+    }
+
     public static function getLogoUrl()
     {
-        return self::getApiHost()."/v1/get-logo-url";
+        return self::getApiHost().'/v1/get-logo-url';
     }
 
     public static function setApiHost($api_host)
@@ -270,11 +292,7 @@ class ComfinoApi
         if ($response === false) {
             $error_id = time();
 
-            file_put_contents(
-                _PS_MODULE_DIR_.'comfino/payment_log.log',
-                '['.date('Y-m-d H:i:s').'] Communication error ['.$error_id.']: '.curl_error($curl)."\n",
-                FILE_APPEND
-            );
+            ErrorLogger::logError('Communication error ['.$error_id.']', curl_error($curl));
 
             $response = json_encode([
                 'errors' => ['Communication error: '.$error_id.'. Please contact with support and note this error id.']
@@ -284,28 +302,18 @@ class ComfinoApi
 
             if ($decoded !== false && isset($decoded['errors'])) {
                 if ($data !== null) {
-                    file_put_contents(
-                        _PS_MODULE_DIR_.'comfino/payment_log.log',
-                        '['.date('Y-m-d H:i:s').'] Payment error - data: '.json_encode($data)."\n",
-                        FILE_APPEND
-                    );
+                    ErrorLogger::logError('Payment error - data', json_encode($data));
                 }
 
-                file_put_contents(
-                    _PS_MODULE_DIR_.'comfino/payment_log.log',
-                    '['.date('Y-m-d H:i:s').'] Payment error - response: '.$response."\n",
-                    FILE_APPEND
-                );
+                ErrorLogger::logError('Payment error - response', $response);
 
                 $response = json_encode(['errors' => array_values($decoded['errors'])]);
             } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
                 $error_id = time();
 
-                file_put_contents(
-                    _PS_MODULE_DIR_.'comfino/payment_log.log',
-                    '['.date('Y-m-d H:i:s').'] Payment error ['.$error_id.'] '.
-                    curl_getinfo($curl, CURLINFO_RESPONSE_CODE).' - response: '.$response."\n",
-                    FILE_APPEND
+                ErrorLogger::logError(
+                    'Payment error ['.$error_id.'] '.curl_getinfo($curl, CURLINFO_RESPONSE_CODE).' - response',
+                    $response
                 );
 
                 $response = json_encode([
