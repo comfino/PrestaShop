@@ -43,4 +43,29 @@ final class ErrorLogger
             FILE_APPEND
         );
     }
+
+    public static function sendError()
+    {
+
+    }
+
+    public static function errorHandler(Exception $exception)
+    {
+
+    }
+
+    public static function exceptionHandler()
+    {
+
+    }
+
+    public static function init()
+    {
+
+    }
+
+    public static function shutdown()
+    {
+
+    }
 }
