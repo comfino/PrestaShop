@@ -44,9 +44,41 @@ final class ErrorLogger
         );
     }
 
-    public static function sendError()
+    /**
+     * @param string $errorCode
+     * @param string $errorMessage
+     * @param string $apiRequestUrl
+     * @param string $apiRequest
+     * @param string $apiResponse
+     * @param string $stackTrace
+     * @return bool
+     */
+    public static function sendError($errorCode, $errorMessage, $apiRequestUrl, $apiRequest, $apiResponse, $stackTrace)
     {
+        $error = new ShopPluginError(
+            Tools::getShopDomain(),
+            'PrestaShop',
+            [
+                'plugin_version' => COMFINO_VERSION,
+                'shop_version' => _PS_VERSION_,
+                'symfony_version' => COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
+                    ? \Symfony\Component\HttpKernel\Kernel::VERSION
+                    : 'n/a',
+                'php_version' => PHP_VERSION,
+                'server_software' => $_SERVER['SERVER_SOFTWARE'],
+                'server_name' => $_SERVER['SERVER_NAME'],
+                'server_addr' => $_SERVER['SERVER_ADDR'],
+                'database_version' => Db::getInstance()->getVersion()
+            ],
+            $errorCode,
+            $errorMessage,
+            $apiRequestUrl,
+            $apiRequest,
+            $apiResponse,
+            $stackTrace
+        );
 
+        return ComfinoApi::sendLoggedError($error);
     }
 
     public static function errorHandler(Exception $exception)
