@@ -39,21 +39,30 @@ final class ErrorLogger
     {
         file_put_contents(
             _PS_MODULE_DIR_.'comfino/payment_log.log',
-            '['.date('Y-m-d H:i:s').'] '.$errorPrefix.': '.$errorMessage."\n",
+            "[".date('Y-m-d H:i:s')."] $errorPrefix: $errorMessage\n",
             FILE_APPEND
         );
     }
 
     /**
+     * @param string $errorPrefix
      * @param string $errorCode
      * @param string $errorMessage
-     * @param string $apiRequestUrl
-     * @param string $apiRequest
-     * @param string $apiResponse
-     * @param string $stackTrace
-     * @return bool
+     * @param string|null $apiRequestUrl
+     * @param string|null $apiRequest
+     * @param string|null $apiResponse
+     * @param string|null $stackTrace
+     * @return void
      */
-    public static function sendError($errorCode, $errorMessage, $apiRequestUrl, $apiRequest, $apiResponse, $stackTrace)
+    public static function sendError(
+        $errorPrefix,
+        $errorCode,
+        $errorMessage,
+        $apiRequestUrl = null,
+        $apiRequest = null,
+        $apiResponse = null,
+        $stackTrace = null
+    )
     {
         $error = new ShopPluginError(
             Tools::getShopDomain(),
@@ -71,14 +80,38 @@ final class ErrorLogger
                 'database_version' => Db::getInstance()->getVersion()
             ],
             $errorCode,
-            $errorMessage,
+            "$errorPrefix: $errorMessage",
             $apiRequestUrl,
             $apiRequest,
             $apiResponse,
             $stackTrace
         );
 
-        return ComfinoApi::sendLoggedError($error);
+        if (!ComfinoApi::sendLoggedError($error)) {
+            $requestInfo = [];
+
+            if ($apiRequestUrl !== null) {
+                $requestInfo[] = "API URL: $apiRequestUrl";
+            }
+
+            if ($apiRequest !== null) {
+                $requestInfo[] = "API request: $apiRequest";
+            }
+
+            if ($apiResponse !== null) {
+                $requestInfo[] = "API response: $apiResponse";
+            }
+
+            if (count($requestInfo)) {
+                $errorMessage .= "\n".implode("\n", $requestInfo);
+            }
+
+            if ($stackTrace !== null) {
+                $errorMessage .= "\nStack trace: $stackTrace";
+            }
+
+            self::logError($errorPrefix, $errorMessage);
+        }
     }
 
     public static function errorHandler(Exception $exception)

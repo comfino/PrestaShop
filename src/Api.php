@@ -279,20 +279,20 @@ class ComfinoApi
 
         $curl = curl_init();
         curl_setopt_array($curl, $options + $extra_options);
-        $response = self::processResponse($curl, $data);
+        $response = self::processResponse($curl, $url, $data);
         curl_close($curl);
 
         return $response;
     }
 
-    private static function processResponse($curl, $data = null)
+    private static function processResponse($curl, $url, $data = null)
     {
         $response = curl_exec($curl);
 
         if ($response === false) {
             $error_id = time();
 
-            ErrorLogger::logError('Communication error ['.$error_id.']', curl_error($curl));
+            ErrorLogger::sendError('Communication error ['.$error_id.']', curl_errno($curl), curl_error($curl), $url);
 
             $response = json_encode([
                 'errors' => ['Communication error: '.$error_id.'. Please contact with support and note this error id.']
