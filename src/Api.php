@@ -292,32 +292,34 @@ class ComfinoApi
         if ($response === false) {
             $error_id = time();
 
-            ErrorLogger::sendError('Communication error ['.$error_id.']', curl_errno($curl), curl_error($curl), $url);
+            ErrorLogger::sendError(
+                "Communication error [$error_id]", curl_errno($curl), curl_error($curl),
+                $url, $data !== null ? json_encode($data) : null
+            );
 
             $response = json_encode([
-                'errors' => ['Communication error: '.$error_id.'. Please contact with support and note this error id.']
+                'errors' => ["Communication error: $error_id. Please contact with support and note this error id."]
             ]);
         } else {
             $decoded = json_decode($response, true);
 
             if ($decoded !== false && isset($decoded['errors'])) {
-                if ($data !== null) {
-                    ErrorLogger::logError('Payment error - data', json_encode($data));
-                }
-
-                ErrorLogger::logError('Payment error - response', $response);
+                ErrorLogger::sendError(
+                    'Payment error', 0, implode(', ', $decoded['errors']),
+                    $url, $data !== null ? json_encode($data) : null, $response
+                );
 
                 $response = json_encode(['errors' => array_values($decoded['errors'])]);
             } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
                 $error_id = time();
 
-                ErrorLogger::logError(
-                    'Payment error ['.$error_id.'] '.curl_getinfo($curl, CURLINFO_RESPONSE_CODE).' - response',
-                    $response
+                ErrorLogger::sendError(
+                    "Payment error [$error_id]", curl_getinfo($curl, CURLINFO_RESPONSE_CODE),
+                    'API error.', $url, $data !== null ? json_encode($data) : null, $response
                 );
 
                 $response = json_encode([
-                    'errors' => ['Payment error: '.$error_id.'. Please contact with support and note this error id.']
+                    'errors' => ["Payment error: $error_id. Please contact with support and note this error id."]
                 ]);
             }
         }

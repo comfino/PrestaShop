@@ -28,7 +28,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-final class ErrorLogger
+class ErrorLogger
 {
     /**
      * @param string $errorPrefix
@@ -114,23 +114,33 @@ final class ErrorLogger
         }
     }
 
-    public static function errorHandler(Exception $exception)
+    /**
+     * @param int $errNo
+     * @param string $errMsg
+     * @param string $file
+     * @param int $line
+     * @return bool
+     */
+    public static function errorHandler($errNo, $errMsg, $file, $line)
     {
-
+        return false;
     }
 
-    public static function exceptionHandler()
+    public static function exceptionHandler(Exception $exception)
     {
 
     }
 
     public static function init()
     {
-
+        set_error_handler(['ErrorLogger', 'errorHandler']);
+        set_exception_handler(['ErrorLogger', 'exceptionHandler']);
+        register_shutdown_function(['ErrorLogger', 'shutdown']);
     }
 
     public static function shutdown()
     {
-
+        restore_error_handler();
+        restore_exception_handler();
     }
 }
