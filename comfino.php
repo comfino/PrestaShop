@@ -32,7 +32,6 @@ require_once 'src/ColorVersion.php';
 require_once 'models/OrdersList.php';
 require_once 'src/PresentationType.php';
 require_once 'src/Api.php';
-require_once 'src/ErrorLogger.php';
 
 if (!defined('COMFINO_PS_17')) {
     define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='));

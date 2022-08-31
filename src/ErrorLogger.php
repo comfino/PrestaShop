@@ -28,8 +28,28 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once 'ShopPluginError.php';
+
 class ErrorLogger
 {
+    const ERROR_TYPES = [
+        E_ERROR => 'E_ERROR',
+        E_WARNING => 'E_WARNING',
+        E_PARSE => 'E_PARSE',
+        E_NOTICE => 'E_NOTICE',
+        E_CORE_ERROR => 'E_CORE_ERROR',
+        E_CORE_WARNING => 'E_CORE_WARNING',
+        E_COMPILE_ERROR => 'E_COMPILE_ERROR',
+        E_COMPILE_WARNING => 'E_COMPILE_WARNING',
+        E_USER_ERROR => 'E_USER_ERROR',
+        E_USER_WARNING => 'E_USER_WARNING',
+        E_USER_NOTICE => 'E_USER_NOTICE',
+        E_STRICT => 'E_STRICT',
+        E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
+        E_DEPRECATED => 'E_DEPRECATED',
+        E_USER_DEPRECATED => 'E_USER_DEPRECATED'
+    ];
+
     /**
      * @param string $errorPrefix
      * @param string $errorMessage
@@ -37,7 +57,7 @@ class ErrorLogger
      */
     public static function logError($errorPrefix, $errorMessage)
     {
-        file_put_contents(
+        @file_put_contents(
             _PS_MODULE_DIR_.'comfino/payment_log.log',
             "[".date('Y-m-d H:i:s')."] $errorPrefix: $errorMessage\n",
             FILE_APPEND
@@ -123,12 +143,19 @@ class ErrorLogger
      */
     public static function errorHandler($errNo, $errMsg, $file, $line)
     {
+        $errorType = array_key_exists($errNo, self::ERROR_TYPES) ? self::ERROR_TYPES[$errNo] : 'UNKNOWN';
+        self::sendError("Error $errorType in $file:$line", $errNo, $errMsg);
+
         return false;
     }
 
     public static function exceptionHandler(Exception $exception)
     {
-
+        self::sendError(
+            "Exception in {$exception->getFile()}:{$exception->getLine()}",
+            $exception->getCode(), $exception->getMessage(),
+            null, null, null, $exception->getTraceAsString()
+        );
     }
 
     public static function init()
@@ -140,6 +167,10 @@ class ErrorLogger
 
     public static function shutdown()
     {
+        if (($error = error_get_last()) !== null && $error['type'] === E_ERROR) {
+            self::sendError("Fatal error in $error[file]:$error[line]", $error['type'], $error['message']);
+        }
+
         restore_error_handler();
         restore_exception_handler();
     }
