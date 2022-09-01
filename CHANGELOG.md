@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.1.11](https://github.com/comfino/PrestaShop/tree/2.1.11) (2022-09-01)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.10...2.1.11)
+
+**Merged pull requests:**
+
+- FN-9483 Fix bug in order processing and payment creation (wrong tax id number) [\#53](https://github.com/comfino/PrestaShop/pull/53) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.1.10](https://github.com/comfino/PrestaShop/tree/2.1.10) (2022-08-12)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.9...2.1.10)
