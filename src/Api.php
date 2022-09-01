@@ -72,6 +72,7 @@ class ComfinoApi
         }
 
         $context = Context::getContext();
+        $customerTaxId = trim(str_replace('-', '', $address[$cart_data->id_address_delivery]->vat_number));
 
         $data = [
             'notifyUrl' => $context->link->getModuleLink($context->controller->module->name, 'notify', [], true),
@@ -92,7 +93,7 @@ class ComfinoApi
             'customer' => [
                 'firstName' => $address[$cart_data->id_address_delivery]->firstname,
                 'lastName' => $address[$cart_data->id_address_delivery]->lastname,
-                'taxId' => $address[$cart_data->id_address_delivery]->vat_number,
+                'taxId' => preg_match('/^[A-Z]{0,2}\d{7,}$/') ? $customerTaxId : '',
                 'email' => $customer->email,
                 'phoneNumber' => !empty($address[$cart_data->id_address_delivery]->phone)
                     ? $address[$cart_data->id_address_delivery]->phone
