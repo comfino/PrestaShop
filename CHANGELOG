@@ -1,6 +1,9 @@
 2.2.0
  - FN-9239 Improve errors handling - automatic errors reporting
 
+2.1.11
+ - FN-9483 Fix bug in order processing and payment creation (wrong tax id number)
+
 2.1.10
  - FN-9354 Improve errors handling
 
