@@ -93,7 +93,7 @@ class ComfinoApi
             'customer' => [
                 'firstName' => $address[$cart_data->id_address_delivery]->firstname,
                 'lastName' => $address[$cart_data->id_address_delivery]->lastname,
-                'taxId' => preg_match('/^[A-Z]{0,2}\d{7,}$/') ? $customerTaxId : '',
+                'taxId' => preg_match('/^[A-Z]{0,2}\d{7,}$/', $customerTaxId) ? $customerTaxId : '',
                 'email' => $customer->email,
                 'phoneNumber' => !empty($address[$cart_data->id_address_delivery]->phone)
                     ? $address[$cart_data->id_address_delivery]->phone
