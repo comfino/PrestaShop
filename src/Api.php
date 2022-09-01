@@ -39,11 +39,6 @@ class ComfinoApi
     private static $api_host;
     private static $api_key;
 
-    public static function init()
-    {
-
-    }
-
     /**
      * @param Cart $cart_data
      * @param string $order_id
@@ -122,7 +117,7 @@ class ComfinoApi
             ]
         ];
 
-        if (preg_match('/^[A-Z]{0,2}\d{7,}$/', $customerTaxId)) {
+        if (preg_match('/^[A-Z]{0,3}\d{7,}$/', $customerTaxId)) {
             $data['customer']['taxId'] = $customerTaxId;
         }
 
