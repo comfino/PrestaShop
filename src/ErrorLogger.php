@@ -135,6 +135,30 @@ class ErrorLogger
     }
 
     /**
+     * @param int $numLines
+     * @return string
+     */
+    public static function getErrorLog($numLines)
+    {
+        $errorsLog = '';
+        $logFilePath = _PS_MODULE_DIR_.'comfino/payment_log.log';
+
+        if (file_exists($logFilePath)) {
+            $file = new SplFileObject($logFilePath, 'r');
+            $file->seek(PHP_INT_MAX);
+            $lastLine = $file->key();
+            $lines = new LimitIterator(
+                $file,
+                $lastLine > $numLines ? $lastLine - $numLines : 0,
+                $lastLine
+            );
+            $errorsLog = implode('', iterator_to_array($lines));
+        }
+
+        return $errorsLog;
+    }
+
+    /**
      * @param int $errNo
      * @param string $errMsg
      * @param string $file
@@ -143,7 +167,7 @@ class ErrorLogger
      */
     public static function errorHandler($errNo, $errMsg, $file, $line)
     {
-        $errorType = array_key_exists($errNo, self::ERROR_TYPES) ? self::ERROR_TYPES[$errNo] : 'UNKNOWN';
+        $errorType = self::getErrorTypeName($errNo);
         self::sendError("Error $errorType in $file:$line", $errNo, $errMsg);
 
         return false;
@@ -152,7 +176,7 @@ class ErrorLogger
     public static function exceptionHandler(Exception $exception)
     {
         self::sendError(
-            "Exception in {$exception->getFile()}:{$exception->getLine()}",
+            "Exception ".get_class($exception)." in {$exception->getFile()}:{$exception->getLine()}",
             $exception->getCode(), $exception->getMessage(),
             null, null, null, $exception->getTraceAsString()
         );
@@ -160,18 +184,28 @@ class ErrorLogger
 
     public static function init()
     {
-        set_error_handler(['ErrorLogger', 'errorHandler']);
+        set_error_handler(['ErrorLogger', 'errorHandler'], E_ERROR | E_RECOVERABLE_ERROR | E_PARSE);
         set_exception_handler(['ErrorLogger', 'exceptionHandler']);
         register_shutdown_function(['ErrorLogger', 'shutdown']);
     }
 
     public static function shutdown()
     {
-        if (($error = error_get_last()) !== null && $error['type'] === E_ERROR) {
-            self::sendError("Fatal error in $error[file]:$error[line]", $error['type'], $error['message']);
+        if (($error = error_get_last()) !== null && ($error['type'] & (E_ERROR | E_RECOVERABLE_ERROR | E_PARSE))) {
+            $errorType = self::getErrorTypeName($error['type']);
+            self::sendError("Error $errorType in $error[file]:$error[line]", $error['type'], $error['message']);
         }
 
         restore_error_handler();
         restore_exception_handler();
+    }
+
+    /**
+     * @param int $errorType
+     * @return string
+     */
+    private static function getErrorTypeName($errorType)
+    {
+        return array_key_exists($errorType, self::ERROR_TYPES) ? self::ERROR_TYPES[$errorType] : 'UNKNOWN';
     }
 }

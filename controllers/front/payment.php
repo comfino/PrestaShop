@@ -35,6 +35,10 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
+        ErrorLogger::init();
+
+        parent::postProcess();
+
         if (!($this->module instanceof Comfino)) {
             Tools::redirect('index.php?controller=order&step=1');
 

@@ -28,10 +28,14 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once _PS_MODULE_DIR_.'comfino/src/ErrorLogger.php';
+
 class ComfinoOfferModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
+        ErrorLogger::init();
+
         parent::postProcess();
 
         if (Tools::getIsset('type')) {

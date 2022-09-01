@@ -39,6 +39,11 @@ class ComfinoApi
     private static $api_host;
     private static $api_key;
 
+    public static function init()
+    {
+
+    }
+
     /**
      * @param Cart $cart_data
      * @param string $order_id
