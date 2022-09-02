@@ -75,12 +75,12 @@ class Comfino extends PaymentModule
             'These are installment payments, deferred (buy now, pay later) and corporate '.
             'payments available on one platform with the help of quick integration. Grow your business with Comfino!'
         );
-
-        ErrorLogger::init();
     }
 
     public function install()
     {
+        ErrorLogger::init();
+
         if (!parent::install()) {
             return false;
         }
@@ -125,6 +125,8 @@ class Comfino extends PaymentModule
 
     public function getContent()
     {
+        ErrorLogger::init();
+
         $output = [];
         $outputType = 'success';
 
@@ -269,6 +271,8 @@ class Comfino extends PaymentModule
             return;
         }
 
+        ErrorLogger::init();
+
         $this->smarty->assign($this->getTemplateVars());
 
         $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
@@ -316,6 +320,8 @@ class Comfino extends PaymentModule
             return;
         }
 
+        ErrorLogger::init();
+
         $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
         if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
             return;
@@ -353,6 +359,8 @@ class Comfino extends PaymentModule
         if (!$this->active) {
             return '';
         }
+
+        ErrorLogger::init();
 
         if (COMFINO_PS_17) {
             $state = $params['order']->getCurrentState();
@@ -396,6 +404,8 @@ class Comfino extends PaymentModule
 
     public function hookActionOrderStatusPostUpdate($params)
     {
+        ErrorLogger::init();
+
         /** @var OrderState $orderState */
         $orderState = $params['newOrderStatus'];
 

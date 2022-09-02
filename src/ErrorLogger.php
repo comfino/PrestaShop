@@ -173,7 +173,11 @@ class ErrorLogger
         return false;
     }
 
-    public static function exceptionHandler(Exception $exception)
+    /**
+     * @param Throwable $exception
+     * @return void
+     */
+    public static function exceptionHandler($exception)
     {
         self::sendError(
             "Exception ".get_class($exception)." in {$exception->getFile()}:{$exception->getLine()}",
@@ -184,9 +188,15 @@ class ErrorLogger
 
     public static function init()
     {
-        set_error_handler(['ErrorLogger', 'errorHandler'], E_ERROR | E_RECOVERABLE_ERROR | E_PARSE);
-        set_exception_handler(['ErrorLogger', 'exceptionHandler']);
-        register_shutdown_function(['ErrorLogger', 'shutdown']);
+        static $initialized = false;
+
+        if (!$initialized) {
+            set_error_handler(['ErrorLogger', 'errorHandler'], E_ERROR | E_RECOVERABLE_ERROR | E_PARSE);
+            set_exception_handler(['ErrorLogger', 'exceptionHandler']);
+            register_shutdown_function(['ErrorLogger', 'shutdown']);
+
+            $initialized = true;
+        }
     }
 
     public static function shutdown()
