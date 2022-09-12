@@ -44,7 +44,7 @@ class Comfino extends PaymentModule
 {
     const WIDGET_SCRIPT_PRODUCTION_URL = '//widget.comfino.pl/comfino.min.js';
     const WIDGET_SCRIPT_SANDBOX_URL = '//widget.craty.pl/comfino.min.js';
-    const ERROR_LOG_NUM_LINES = 20;
+    const ERROR_LOG_NUM_LINES = 40;
     const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     const COMFINO_SUPPORT_PHONE = '887-106-027';
 
