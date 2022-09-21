@@ -28,24 +28,23 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once 'src/ColorVersion.php';
-require_once 'models/OrdersList.php';
-require_once 'src/PresentationType.php';
-require_once 'src/Api.php';
+require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
+require_once _PS_MODULE_DIR_.'comfino/src/PresentationType.php';
+require_once _PS_MODULE_DIR_.'comfino/src/Api.php';
 
 if (!defined('COMFINO_PS_17')) {
     define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='));
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.1.11');
+    define('COMFINO_VERSION', '2.2.0');
 }
 
 class Comfino extends PaymentModule
 {
     const WIDGET_SCRIPT_PRODUCTION_URL = '//widget.comfino.pl/comfino.min.js';
     const WIDGET_SCRIPT_SANDBOX_URL = '//widget.craty.pl/comfino.min.js';
-    const ERROR_LOG_NUM_LINES = 20;
+    const ERROR_LOG_NUM_LINES = 40;
     const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     const COMFINO_SUPPORT_PHONE = '887-106-027';
 
@@ -53,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.1.11';
+        $this->version = '2.2.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -80,6 +79,8 @@ class Comfino extends PaymentModule
 
     public function install()
     {
+        ErrorLogger::init();
+
         if (!parent::install()) {
             return false;
         }
@@ -124,6 +125,8 @@ class Comfino extends PaymentModule
 
     public function getContent()
     {
+        ErrorLogger::init();
+
         $output = [];
         $outputType = 'success';
 
@@ -268,6 +271,8 @@ class Comfino extends PaymentModule
             return;
         }
 
+        ErrorLogger::init();
+
         $this->smarty->assign($this->getTemplateVars());
 
         $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
@@ -315,6 +320,8 @@ class Comfino extends PaymentModule
             return;
         }
 
+        ErrorLogger::init();
+
         $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
         if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
             return;
@@ -352,6 +359,8 @@ class Comfino extends PaymentModule
         if (!$this->active) {
             return '';
         }
+
+        ErrorLogger::init();
 
         if (COMFINO_PS_17) {
             $state = $params['order']->getCurrentState();
@@ -395,6 +404,8 @@ class Comfino extends PaymentModule
 
     public function hookActionOrderStatusPostUpdate($params)
     {
+        ErrorLogger::init();
+
         /** @var OrderState $orderState */
         $orderState = $params['newOrderStatus'];
 
@@ -446,23 +457,7 @@ class Comfino extends PaymentModule
         $helper->fields_value['COMFINO_WIDGET_OFFER_TYPE'] = Configuration::get('COMFINO_WIDGET_OFFER_TYPE');
         $helper->fields_value['COMFINO_WIDGET_EMBED_METHOD'] = Configuration::get('COMFINO_WIDGET_EMBED_METHOD');
         $helper->fields_value['COMFINO_WIDGET_CODE'] = Configuration::get('COMFINO_WIDGET_CODE');
-
-        $errorsLog = '';
-        $logFilePath = _PS_MODULE_DIR_.'comfino/payment_log.log';
-
-        if (file_exists($logFilePath)) {
-            $file = new SplFileObject($logFilePath, 'r');
-            $file->seek(PHP_INT_MAX);
-            $lastLine = $file->key();
-            $lines = new LimitIterator(
-                $file,
-                $lastLine > self::ERROR_LOG_NUM_LINES ? $lastLine - self::ERROR_LOG_NUM_LINES : 0,
-                $lastLine
-            );
-            $errorsLog = implode('', iterator_to_array($lines));
-        }
-
-        $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = $errorsLog;
+        $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES);
 
         return $helper->generateForm($this->getFormFields());
     }

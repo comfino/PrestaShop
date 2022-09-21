@@ -28,12 +28,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once _PS_MODULE_DIR_.'comfino/src/ErrorLogger.php';
 require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
 
 class ComfinoNotifyModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
+        ErrorLogger::init();
+
         parent::postProcess();
 
         $jsonData = Tools::file_get_contents('php://input');

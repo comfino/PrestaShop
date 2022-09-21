@@ -28,6 +28,9 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once 'ShopPluginErrorRequest.php';
+require_once 'ErrorLogger.php';
+
 class ComfinoApi
 {
     const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
@@ -67,7 +70,7 @@ class ComfinoApi
         $address_explode = explode(' ', $address[$cart_data->id_address_delivery]->address1);
         $building_number = '';
 
-        if (count($address_explode) == 2) {
+        if (count($address_explode) === 2) {
             $building_number = $address_explode[1];
         }
 
@@ -114,11 +117,11 @@ class ComfinoApi
             ]
         ];
 
-        if (preg_match('/^[A-Z]{0,2}\d{7,}$/', $customerTaxId)) {
+        if (preg_match('/^[A-Z]{0,3}\d{7,}$/', $customerTaxId)) {
             $data['customer']['taxId'] = $customerTaxId;
         }
 
-        return self::sendRequest(self::getApiHost()."/v1/orders", 'POST', [CURLOPT_FOLLOWLOCATION => true], $data);
+        return self::sendRequest(self::getApiHost().'/v1/orders', 'POST', [CURLOPT_FOLLOWLOCATION => true], $data);
     }
 
     /**
@@ -151,12 +154,15 @@ class ComfinoApi
         self::sendRequest(self::getApiHost()."/v1/orders/$order_id/cancel", 'PUT');
     }
 
+    /**
+     * @return string|bool
+     */
     public static function getWidgetKey()
     {
         $widgetKey = '';
 
         if (!empty(self::getApiKey())) {
-            $widgetKey = self::sendRequest(self::getApiHost()."/v1/widget-key", 'GET');
+            $widgetKey = self::sendRequest(self::getApiHost().'/v1/widget-key', 'GET');
 
             if (!is_array($widgetKey)) {
                 $widgetKey = json_decode($widgetKey, true);
@@ -166,9 +172,29 @@ class ComfinoApi
         return $widgetKey;
     }
 
+    /**
+     * @param ShopPluginError $error
+     * @return bool
+     */
+    public static function sendLoggedError(ShopPluginError $error)
+    {
+        $request = new ShopPluginErrorRequest();
+
+        if (!$request->prepareRequest($error, self::getUserAgentHeader())) {
+            ErrorLogger::logError('Error request preparation failed', $error->errorMessage);
+
+            return false;
+        }
+
+        $data = ['error_details' => $request->errorDetails, 'hash' => $request->hash];
+        $response = self::sendRequest(self::getApiHost().'/v1/log-plugin-error', 'POST', [], $data, false);
+
+        return strpos($response, '"errors":') === false;
+    }
+
     public static function getLogoUrl()
     {
-        return self::getApiHost()."/v1/get-logo-url";
+        return self::getApiHost().'/v1/get-logo-url';
     }
 
     public static function setApiHost($api_host)
@@ -234,10 +260,11 @@ class ComfinoApi
      * @param string $request_type
      * @param array $extra_options
      * @param string $data
+     * @param bool $logErrors
      *
      * @return bool|string
      */
-    private static function sendRequest($url, $request_type, $extra_options = [], $data = null)
+    private static function sendRequest($url, $request_type, $extra_options = [], $data = null, $logErrors = true)
     {
         $options = [
             CURLOPT_URL => $url,
@@ -261,59 +288,53 @@ class ComfinoApi
 
         $curl = curl_init();
         curl_setopt_array($curl, $options + $extra_options);
-        $response = self::processResponse($curl, $data);
+        $response = self::processResponse($curl, $url, $data, $logErrors);
         curl_close($curl);
 
         return $response;
     }
 
-    private static function processResponse($curl, $data = null)
+    private static function processResponse($curl, $url, $data, $logErrors)
     {
         $response = curl_exec($curl);
 
         if ($response === false) {
             $error_id = time();
 
-            file_put_contents(
-                _PS_MODULE_DIR_.'comfino/payment_log.log',
-                '['.date('Y-m-d H:i:s').'] Communication error ['.$error_id.']: '.curl_error($curl)."\n",
-                FILE_APPEND
-            );
+            if ($logErrors) {
+                ErrorLogger::sendError(
+                    "Communication error [$error_id]", curl_errno($curl), curl_error($curl),
+                    $url, $data !== null ? json_encode($data) : null
+                );
+            }
 
             $response = json_encode([
-                'errors' => ['Communication error: '.$error_id.'. Please contact with support and note this error id.']
+                'errors' => ["Communication error: $error_id. Please contact with support and note this error id."]
             ]);
         } else {
             $decoded = json_decode($response, true);
 
             if ($decoded !== false && isset($decoded['errors'])) {
-                if ($data !== null) {
-                    file_put_contents(
-                        _PS_MODULE_DIR_.'comfino/payment_log.log',
-                        '['.date('Y-m-d H:i:s').'] Payment error - data: '.json_encode($data)."\n",
-                        FILE_APPEND
+                if ($logErrors) {
+                    ErrorLogger::sendError(
+                        'Payment error', 0, implode(', ', $decoded['errors']),
+                        $url, $data !== null ? json_encode($data) : null, $response
                     );
                 }
-
-                file_put_contents(
-                    _PS_MODULE_DIR_.'comfino/payment_log.log',
-                    '['.date('Y-m-d H:i:s').'] Payment error - response: '.$response."\n",
-                    FILE_APPEND
-                );
 
                 $response = json_encode(['errors' => array_values($decoded['errors'])]);
             } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
                 $error_id = time();
 
-                file_put_contents(
-                    _PS_MODULE_DIR_.'comfino/payment_log.log',
-                    '['.date('Y-m-d H:i:s').'] Payment error ['.$error_id.'] '.
-                    curl_getinfo($curl, CURLINFO_RESPONSE_CODE).' - response: '.$response."\n",
-                    FILE_APPEND
-                );
+                if ($logErrors) {
+                    ErrorLogger::sendError(
+                        "Payment error [$error_id]", curl_getinfo($curl, CURLINFO_RESPONSE_CODE),
+                        'API error.', $url, $data !== null ? json_encode($data) : null, $response
+                    );
+                }
 
                 $response = json_encode([
-                    'errors' => ['Payment error: '.$error_id.'. Please contact with support and note this error id.']
+                    'errors' => ["Payment error: $error_id. Please contact with support and note this error id."]
                 ]);
             }
         }
