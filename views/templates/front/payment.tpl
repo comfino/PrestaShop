@@ -447,13 +447,12 @@
 </div>
 
 <script>
-    window.onload = function () {
+    window.addEventListener('DOMContentLoaded', () => {
         let offerList = null;
         let selectedOffer = 0;
 
-        let selectTerm = function (loanTermBox, termElement)
-        {
-            loanTermBox.querySelectorAll('div > div.comfino-installments-quantity').forEach(function (item) {
+        let selectTerm = (loanTermBox, termElement) => {
+            loanTermBox.querySelectorAll('div > div.comfino-installments-quantity').forEach((item) => {
                 item.classList.remove('comfino-active');
             });
 
@@ -498,12 +497,11 @@
             }
         }
 
-        let selectCurrentTerm = function (loanTermBox, term)
-        {
+        let selectCurrentTerm = (loanTermBox, term) => {
             let termElement = loanTermBox.querySelector('div > div[data-term="' + term + '"]');
 
             if (termElement !== null) {
-                loanTermBox.querySelectorAll('div > div.comfino-installments-quantity').forEach(function (item) {
+                loanTermBox.querySelectorAll('div > div.comfino-installments-quantity').forEach((item) => {
                     item.classList.remove('comfino-active');
                 });
 
@@ -544,8 +542,7 @@
             }
         }
 
-        let fetchProductDetails = function (offerData)
-        {
+        let fetchProductDetails = (offerData) => {
             if (offerData.type === 'PAY_LATER') {
                 document.getElementById('comfino-payment-delay').style.display = 'block';
                 document.getElementById('comfino-installments').style.display = 'none';
@@ -553,7 +550,7 @@
                 let loanTermBox = document.getElementById('comfino-quantity-select');
                 let loanTermBoxContents = ``;
 
-                offerData.loanParameters.forEach(function (item, index) {
+                offerData.loanParameters.forEach((item, index) => {
                     if (index === 0) {
                         loanTermBoxContents += `<div class="comfino-select-box">`;
                     } else if (index % 3 === 0) {
@@ -569,8 +566,8 @@
 
                 loanTermBox.innerHTML = loanTermBoxContents;
 
-                loanTermBox.querySelectorAll('div > div.comfino-installments-quantity').forEach(function (item) {
-                    item.addEventListener('click', function (event) {
+                loanTermBox.querySelectorAll('div > div.comfino-installments-quantity').forEach((item) => {
+                    item.addEventListener('click', (event) => {
                         event.preventDefault();
                         selectTerm(loanTermBox, event.target);
                     });
@@ -581,12 +578,11 @@
             }
         }
 
-        let putDataIntoSection = function (data)
-        {
+        let putDataIntoSection = (data) => {
             let offerElements = [];
             let offerData = [];
 
-            data.forEach(function (item, index) {
+            data.forEach((item, index) => {
                 let comfinoOffer = document.createElement('div');
 
                 comfinoOffer.dataset.type = item.type;
@@ -623,8 +619,7 @@
             return { elements: offerElements, data: offerData };
         }
 
-        let getModuleApiUrl = function (queryStringParams)
-        {
+        let getModuleApiUrl = (queryStringParams) => {
             let moduleApiUrl = '{$set_info_url|escape:'javascript':'UTF-8'}'.replace(/&amp;/g, '&');
             let urlParams = new URLSearchParams(queryStringParams);
 
@@ -638,13 +633,13 @@
         /**
          * Get offers from API.
          */
-        document.querySelectorAll('.ps-shown-by-js').forEach(function (item) {
+        document.querySelectorAll('.ps-shown-by-js').forEach((item) => {
             if (item.dataset.moduleName === 'comfino') {
                 item.parentNode.parentNode.querySelector('label').style.display = 'inline-flex';
                 item.parentNode.parentNode.querySelector('label').style.flexDirection = 'row-reverse';
                 item.parentNode.parentNode.querySelector('label span').style.paddingLeft = '10px';
 
-                item.addEventListener('click', function () {
+                item.addEventListener('click', () => {
                     let offerWrapper = document.getElementById('comfino-offer-items');
 
                     document.getElementById('comfino-box').style.display = 'block';
@@ -653,7 +648,7 @@
 
                     fetch(getModuleApiUrl({ldelim}type: 'data'{rdelim}))
                         .then(response => response.json())
-                        .then(function (data) {
+                        .then((data) => {
                             if (!data.length) {
                                 offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='No offers available.' mod='comfino'}</p>`;
 
@@ -667,13 +662,13 @@
 
                             selectTerm(loanTermBox, loanTermBox.querySelector('div > div[data-term="' + offerList.data[selectedOffer].loanTerm + '"]'));
 
-                            offerList.elements.forEach(function (item, index) {
-                                item.querySelector('label').addEventListener('click', function () {
+                            offerList.elements.forEach((item, index) => {
+                                item.querySelector('label').addEventListener('click', () => {
                                     selectedOffer = index;
 
                                     fetchProductDetails(offerList.data[selectedOffer]);
 
-                                    offerList.elements.forEach(function () {
+                                    offerList.elements.forEach(() => {
                                         item.classList.remove('comfino-selected');
                                     });
 
@@ -683,25 +678,25 @@
                                 });
                             });
 
-                            document.getElementById('comfino-repr-example-link').addEventListener('click', function (event) {
+                            document.getElementById('comfino-repr-example-link').addEventListener('click', (event) => {
                                 event.preventDefault();
                                 document.getElementById('modal-repr-example').classList.add('open');
                             });
 
-                            document.getElementById('modal-repr-example').querySelector('button.comfino-modal-exit').addEventListener('click', function (event) {
+                            document.getElementById('modal-repr-example').querySelector('button.comfino-modal-exit').addEventListener('click', (event) => {
                                 event.preventDefault();
                                 document.getElementById('modal-repr-example').classList.remove('open');
                             });
 
-                            document.getElementById('modal-repr-example').querySelector('div.comfino-modal-exit').addEventListener('click', function (event) {
+                            document.getElementById('modal-repr-example').querySelector('div.comfino-modal-exit').addEventListener('click', (event) => {
                                 event.preventDefault();
                                 document.getElementById('modal-repr-example').classList.remove('open');
                             });
-                        }).catch(function (error) {
+                        }).catch((error) => {
                             offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
                         });
                 });
             }
         });
-    }
+    });
 </script>

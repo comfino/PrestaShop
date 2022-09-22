@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.1](https://github.com/comfino/PrestaShop/tree/2.2.1) (2022-09-21)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.0...2.2.1)
+
+**Merged pull requests:**
+
+- FN-9566 Fix bug in frontend initialization code present in some PS frontend themes [\#55](https://github.com/comfino/PrestaShop/pull/55) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.2.0](https://github.com/comfino/PrestaShop/tree/2.2.0) (2022-09-01)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.1.11...2.2.0)
