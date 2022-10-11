@@ -298,13 +298,13 @@ class ComfinoApi
     {
         $response = curl_exec($curl);
 
-        if ($response === false) {
+        if ($response === false || (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
             $error_id = time();
 
             if ($logErrors) {
                 ErrorLogger::sendError(
                     "Communication error [$error_id]", curl_errno($curl), curl_error($curl),
-                    $url, $data !== null ? json_encode($data) : null
+                    $url, $data !== null ? json_encode($data) : null, $response
                 );
             }
 
