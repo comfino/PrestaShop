@@ -479,7 +479,7 @@ class Comfino extends PaymentModule
         // Title and toolbar
         $helper->title = $this->displayName;
         $helper->show_toolbar = true; // false -> remove toolbar
-        $helper->toolbar_scroll = true; // yes - > Toolbar is always visible on the top of the screen.
+        $helper->toolbar_scroll = true; // yes - > Toolbar is always visible at the top of the screen.
         $helper->submit_action = $submit_action;
         $helper->toolbar_btn = [
             'save' => [
@@ -501,9 +501,38 @@ class Comfino extends PaymentModule
         return $helper;
     }
 
+    private function buildCategoriesList($categories, $position)
+    {
+        $categoriesList = [];
+        $subcategoriesList = [];
+
+        foreach ($categories as $category) {
+            $categoriesList[] = [
+                'key' => $category['id_category'],
+                'name' => str_repeat('&nbsp;&nbsp;', $category['level_depth'] - 1).$category['name'],
+                'position' => $category['position'] + $position
+            ];
+
+            if (isset($category['children'])) {
+                $subcategoriesList[] = $this->buildCategoriesList($category['children'], count($categoriesList) + $position);
+                $position += count($subcategoriesList[count($subcategoriesList) - 1]);
+            }
+        }
+
+        $categoriesList = array_merge($categoriesList, ...$subcategoriesList);
+
+        usort($categoriesList, static function ($val1, $val2) { return $val1['position'] - $val2['position']; });
+
+        return $categoriesList;
+    }
+
     private function getFormFields()
     {
         $fields = [];
+        $categories = array_merge(
+            [['key' => 0, 'name' => $this->l('All categories')]],
+            $this->buildCategoriesList(Category::getNestedCategories(), 0)
+        );
 
         $fields[0]['form'] = [
             'legend' => [
@@ -548,6 +577,110 @@ class Comfino extends PaymentModule
                     'label' => $this->l('Minimal amount in cart'),
                     'name' => 'COMFINO_MINIMAL_CART_AMOUNT',
                     'required' => true
+                ],
+                [
+                    'type' => 'select',
+                    'label' => $this->l('Comfino payments'). ' '.$this->l('enabled for categories'),
+                    'name' => 'COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES',
+                    'required' => false,
+                    'multiple' => true,
+                    'options' => [
+                        'query' => $categories,
+                        'id' => 'key',
+                        'name' => 'name'
+                    ],
+                    'desc' => ''
+                ],
+                [
+                    'type' => 'select',
+                    'label' => $this->l('Comfino payments'). ' '.$this->l('disabled for categories'),
+                    'name' => 'COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES',
+                    'required' => false,
+                    'multiple' => true,
+                    'options' => [
+                        'query' => $categories,
+                        'id' => 'key',
+                        'name' => 'name'
+                    ],
+                    'desc' => ''
+                ],
+                [
+                    'type' => 'select',
+                    'label' => '"'.$this->l('Zero percent installments').'" '.$this->l('enabled for categories'),
+                    'name' => 'COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES',
+                    'required' => false,
+                    'multiple' => true,
+                    'options' => [
+                        'query' => $categories,
+                        'id' => 'key',
+                        'name' => 'name'
+                    ],
+                    'desc' => ''
+                ],
+                [
+                    'type' => 'select',
+                    'label' => '"'.$this->l('Zero percent installments').'" '.$this->l('disabled for categories'),
+                    'name' => 'COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES',
+                    'required' => false,
+                    'multiple' => true,
+                    'options' => [
+                        'query' => $categories,
+                        'id' => 'key',
+                        'name' => 'name'
+                    ],
+                    'desc' => ''
+                ],
+                [
+                    'type' => 'select',
+                    'label' => '"'.$this->l('Convenient installments').'" '.$this->l('enabled for categories'),
+                    'name' => 'COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES',
+                    'required' => false,
+                    'multiple' => true,
+                    'options' => [
+                        'query' => $categories,
+                        'id' => 'key',
+                        'name' => 'name'
+                    ],
+                    'desc' => ''
+                ],
+                [
+                    'type' => 'select',
+                    'label' => '"'.$this->l('Convenient installments').'" '.$this->l('disabled for categories'),
+                    'name' => 'COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES',
+                    'required' => false,
+                    'multiple' => true,
+                    'options' => [
+                        'query' => $categories,
+                        'id' => 'key',
+                        'name' => 'name'
+                    ],
+                    'desc' => ''
+                ],
+                [
+                    'type' => 'select',
+                    'label' => '"'.$this->l('Pay later').'" '.$this->l('enabled for categories'),
+                    'name' => 'COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES',
+                    'required' => false,
+                    'multiple' => true,
+                    'options' => [
+                        'query' => $categories,
+                        'id' => 'key',
+                        'name' => 'name'
+                    ],
+                    'desc' => ''
+                ],
+                [
+                    'type' => 'select',
+                    'label' => '"'.$this->l('Pay later').'" '.$this->l('disabled for categories'),
+                    'name' => 'COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES',
+                    'required' => false,
+                    'multiple' => true,
+                    'options' => [
+                        'query' => $categories,
+                        'id' => 'key',
+                        'name' => 'name'
+                    ],
+                    'desc' => ''
                 ]
             ],
             'submit' => [

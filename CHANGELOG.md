@@ -7,6 +7,7 @@
 **Merged pull requests:**
 
 - FN-9566 Fix bug in frontend initialization code present in some PS frontend themes [\#55](https://github.com/comfino/PrestaShop/pull/55) ([akozubskicr](https://github.com/akozubskicr))
+- FN-9589 Filter financial products (offers) by cart item category [\#55](https://github.com/comfino/PrestaShop/pull/55) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.2.0](https://github.com/comfino/PrestaShop/tree/2.2.0) (2022-09-01)
 

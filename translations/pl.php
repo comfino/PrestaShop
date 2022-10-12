@@ -81,3 +81,6 @@ $_MODULE['<{comfino}prestashop>comfino_5d8c37b6154bdd3e7449eab7adbd862b'] = 'Pop
 $_MODULE['<{comfino}prestashop>comfino_747cd447bafcc9856739067bcde5663b'] = 'PrestaShop %s Comfino %s - pytanie';
 $_MODULE['<{comfino}prestashop>comfino_1dc6e1130e15c739199d363237758471'] = 'Chcesz o coś zapytać? Napisz do nas na adres';
 $_MODULE['<{comfino}prestashop>comfino_96851dc2ca18880d0549d7c4270119ea'] = 'lub skontaktuj się telefonicznie. Czekamy pod numerem: %s. Odpowiemy na każde Twoje pytanie!';
+$_MODULE['<{comfino}prestashop>comfino_62f5d708d6ad1fa1ddd9429a65cccbea'] = 'Wszystkie kategorie';
+$_MODULE['<{comfino}prestashop>comfino_2bbba9b4d3be71119411c744ec6f1841'] = 'włączone dla kategorii';
+$_MODULE['<{comfino}prestashop>comfino_089f3781d6a5d7042a2456bb1b93eb9f'] = 'wyłączone dla kategorii';
