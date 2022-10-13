@@ -640,6 +640,8 @@
          */
         initPayments()
         {
+            let pluginInitialized = false;
+
             document.querySelectorAll('.ps-shown-by-js').forEach((item) => {
                 if (item.dataset.moduleName === 'comfino') {
                     item.parentNode.parentNode.querySelector('label').style.display = 'inline-flex';
@@ -699,12 +701,18 @@
                                     event.preventDefault();
                                     document.getElementById('modal-repr-example').classList.remove('open');
                                 });
+
+                                pluginInitialized = true;
                             }).catch((error) => {
                                 offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
                             });
                     });
                 }
             });
+
+            if (!pluginInitialized) {
+                console.warn('Comfino plugin not initialized.');
+            }
         }
     };
 
