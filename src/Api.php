@@ -38,6 +38,7 @@ class ComfinoApi
 
     private static $api_host;
     private static $api_key;
+    private static $last_request_body;
 
     /**
      * @param Cart $cart_data
@@ -121,7 +122,10 @@ class ComfinoApi
             $data['customer']['taxId'] = $customerTaxId;
         }
 
-        return self::sendRequest(self::getApiHost().'/v1/orders', 'POST', [CURLOPT_FOLLOWLOCATION => true], $data);
+        return json_decode(
+            self::sendRequest(self::getApiHost().'/v1/orders', 'POST', [CURLOPT_FOLLOWLOCATION => true], $data),
+            true
+        );
     }
 
     /**
@@ -207,6 +211,11 @@ class ComfinoApi
         self::$api_key = $api_key;
     }
 
+    public static function getLastRequestBody()
+    {
+        return self::$last_request_body;
+    }
+
     private static function getApiHost()
     {
         return empty(self::$api_host)
@@ -260,12 +269,14 @@ class ComfinoApi
      * @param string $request_type
      * @param array $extra_options
      * @param string $data
-     * @param bool $logErrors
+     * @param bool $log_errors
      *
      * @return bool|string
      */
-    private static function sendRequest($url, $request_type, $extra_options = [], $data = null, $logErrors = true)
+    private static function sendRequest($url, $request_type, $extra_options = [], $data = null, $log_errors = true)
     {
+        self::$last_request_body = null;
+
         $options = [
             CURLOPT_URL => $url,
             CURLOPT_CUSTOMREQUEST => Tools::strtoupper($request_type),
@@ -280,28 +291,30 @@ class ComfinoApi
             case 'POST':
             case 'PUT':
                 if ($data !== null) {
+                    self::$last_request_body = json_encode($data);
+
                     $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
-                    $options[CURLOPT_POSTFIELDS] = json_encode($data);
+                    $options[CURLOPT_POSTFIELDS] = self::$last_request_body;
                 }
                 break;
         }
 
         $curl = curl_init();
         curl_setopt_array($curl, $options + $extra_options);
-        $response = self::processResponse($curl, $url, $data, $logErrors);
+        $response = self::processResponse($curl, $url, $data, $log_errors);
         curl_close($curl);
 
         return $response;
     }
 
-    private static function processResponse($curl, $url, $data, $logErrors)
+    private static function processResponse($curl, $url, $data, $log_errors)
     {
         $response = curl_exec($curl);
 
         if ($response === false || (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
             $error_id = time();
 
-            if ($logErrors) {
+            if ($log_errors) {
                 ErrorLogger::sendError(
                     "Communication error [$error_id]", curl_errno($curl), curl_error($curl),
                     $url, $data !== null ? json_encode($data) : null, $response
@@ -315,7 +328,7 @@ class ComfinoApi
             $decoded = json_decode($response, true);
 
             if ($decoded !== false && isset($decoded['errors'])) {
-                if ($logErrors) {
+                if ($log_errors) {
                     ErrorLogger::sendError(
                         'Payment error', 0, implode(', ', $decoded['errors']),
                         $url, $data !== null ? json_encode($data) : null, $response
@@ -326,7 +339,7 @@ class ComfinoApi
             } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
                 $error_id = time();
 
-                if ($logErrors) {
+                if ($log_errors) {
                     ErrorLogger::sendError(
                         "Payment error [$error_id]", curl_getinfo($curl, CURLINFO_RESPONSE_CODE),
                         'API error.', $url, $data !== null ? json_encode($data) : null, $response

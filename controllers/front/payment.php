@@ -118,24 +118,24 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $customer->secure_key
         );
 
-        $createOrderResponse = ComfinoApi::createOrder(
+        $orderConfirmation = ComfinoApi::createOrder(
             $this->context->cart,
             $this->module->currentOrder,
             'index.php?controller=order-confirmation&id_cart='.(int) $cart->id.'&id_module='.(int) $this->module->id.
             '&id_order='.$this->module->currentOrder.'&key='.$customer->secure_key
         );
 
-        $orderConfirmation = json_decode($createOrderResponse, true);
         $order = new Order($this->module->currentOrder);
 
         if (!is_array($orderConfirmation) || !isset($orderConfirmation['applicationUrl'])) {
             $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
             $order->save();
 
-            file_put_contents(
-                '.'._MODULE_DIR_.'comfino/payment_log.log',
-                '['.date('Y-m-d H:i:s').'] Order creation error - response: '.$createOrderResponse."\n",
-                FILE_APPEND
+            ErrorLogger::sendError(
+                'Order creation error', 0, 'Wrong Comfino API response.',
+                $_SERVER['REQUEST_URI'],
+                ComfinoApi::getLastRequestBody(),
+                is_array($orderConfirmation) ? json_encode($orderConfirmation) : null
             );
 
             Tools::redirect($this->context->link->getModuleLink(

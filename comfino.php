@@ -197,6 +197,38 @@ class Comfino extends PaymentModule
                     'COMFINO_MINIMAL_CART_AMOUNT',
                     Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT')
                 );
+                Configuration::updateValue(
+                    'COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES',
+                    implode(',', Tools::getValue('COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES'))
+                );
+                Configuration::updateValue(
+                    'COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES',
+                    implode(',', Tools::getValue('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES'))
+                );
+                Configuration::updateValue(
+                    'COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES',
+                    implode(',', Tools::getValue('COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES'))
+                );
+                Configuration::updateValue(
+                    'COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES',
+                    implode(',', Tools::getValue('COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES'))
+                );
+                Configuration::updateValue(
+                    'COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES',
+                    implode(',', Tools::getValue('COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES'))
+                );
+                Configuration::updateValue(
+                    'COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES',
+                    implode(',', Tools::getValue('COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES'))
+                );
+                Configuration::updateValue(
+                    'COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES',
+                    implode(',', Tools::getValue('COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES'))
+                );
+                Configuration::updateValue(
+                    'COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES',
+                    implode(',', Tools::getValue('COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES'))
+                );
 
                 // Widget
                 Configuration::updateValue('COMFINO_WIDGET_ENABLED', Tools::getValue('COMFINO_WIDGET_ENABLED'));
@@ -448,23 +480,7 @@ class Comfino extends PaymentModule
         $helper->fields_value['COMFINO_TAX_ID'] = Configuration::get('COMFINO_TAX_ID');
         $helper->fields_value['COMFINO_MINIMAL_CART_AMOUNT'] = Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
 
-        $payment_enabled = Configuration::get('COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES');
-        $payment_disabled = Configuration::get('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES');
-        $zero_percent_enabled = Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES');
-        $zero_percent_disabled = Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES');
-        $convenient_install_enabled = Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES');
-        $convenient_install_disabled = Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES');
-        $pay_later_enabled = Configuration::get('COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES');
-        $pay_later_disabled = Configuration::get('COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES');
-
-        $payment_enabled = explode(',', $payment_enabled);
-        $payment_disabled = explode(',', $payment_disabled);
-        $zero_percent_enabled = explode(',', $zero_percent_enabled);
-        $zero_percent_disabled = explode(',', $zero_percent_disabled);
-        $convenient_install_enabled = explode(',', $convenient_install_enabled);
-        $convenient_install_disabled = explode(',', $convenient_install_disabled);
-        $pay_later_enabled = explode(',', $pay_later_enabled);
-        $pay_later_disabled = explode(',', $pay_later_disabled);
+        $helper->fields_value = array_merge($helper->fields_value, $this->getCategoryOfferFilters());
 
         $helper->fields_value['COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES'] = $payment_enabled;
         $helper->fields_value['COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES'] = $payment_disabled;
@@ -917,6 +933,29 @@ class Comfino extends PaymentModule
         }
 
         return true;
+    }
+
+    private function getCategoryOfferFilters()
+    {
+        $payment_enabled = Configuration::get('COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES');
+        $payment_disabled = Configuration::get('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES');
+        $zero_percent_enabled = Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES');
+        $zero_percent_disabled = Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES');
+        $convenient_install_enabled = Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES');
+        $convenient_install_disabled = Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES');
+        $pay_later_enabled = Configuration::get('COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES');
+        $pay_later_disabled = Configuration::get('COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES');
+
+        return [
+            'COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES' => explode(',', $payment_enabled),
+            'COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES' => explode(',', $payment_disabled),
+            'COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES' => explode(',', $zero_percent_enabled),
+            'COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES' => explode(',', $zero_percent_disabled),
+            'COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES' => explode(',', $convenient_install_enabled),
+            'COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES' => explode(',', $convenient_install_disabled),
+            'COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES' => explode(',', $pay_later_enabled),
+            'COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES' => explode(',', $pay_later_disabled)
+        ];
     }
 
     private function checkConfiguration()
