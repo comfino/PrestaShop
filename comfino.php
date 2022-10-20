@@ -77,6 +77,9 @@ class Comfino extends PaymentModule
         );
     }
 
+    /**
+     * @return bool
+     */
     public function install()
     {
         ErrorLogger::init();
@@ -103,6 +106,9 @@ class Comfino extends PaymentModule
             $this->registerHook('header');
     }
 
+    /**
+     * @return bool
+     */
     public function uninstall()
     {
         include 'sql/uninstall.php';
@@ -123,6 +129,9 @@ class Comfino extends PaymentModule
             $this->unregisterHook('header');
     }
 
+    /**
+     * @return string
+     */
     public function getContent()
     {
         ErrorLogger::init();
@@ -291,15 +300,11 @@ class Comfino extends PaymentModule
      */
     public function hookPayment($params)
     {
-        if (!$this->active) {
+        if (!$this->active || !$this->checkCurrency($params['cart']) || !$this->checkConfiguration()) {
             return;
         }
 
-        if (!$this->checkCurrency($params['cart'])) {
-            return;
-        }
-
-        if (!$this->checkConfiguration()) {
+        if (!ComfinoApi::comfinoPaymentsAvailable($params['cart'])) {
             return;
         }
 
@@ -315,6 +320,11 @@ class Comfino extends PaymentModule
         return $this->display(__FILE__, 'payment.tpl');
     }
 
+    /**
+     * @param Cart $cart
+     *
+     * @return bool
+     */
     public function checkCurrency($cart)
     {
         $currency_order = new Currency($cart->id_currency);
@@ -334,21 +344,17 @@ class Comfino extends PaymentModule
     /**
      * Prestashop 1.7.* compatibility.
      *
-     * @param $params
+     * @param array $params
      *
      * @return PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
      */
     public function hookPaymentOptions($params)
     {
-        if (!$this->active) {
+        if (!$this->active || !$this->checkCurrency($params['cart']) || !$this->checkConfiguration()) {
             return;
         }
 
-        if (!$this->checkCurrency($params['cart'])) {
-            return;
-        }
-
-        if (!$this->checkConfiguration()) {
+        if (!ComfinoApi::comfinoPaymentsAvailable($params['cart'])) {
             return;
         }
 
@@ -386,6 +392,13 @@ class Comfino extends PaymentModule
         return [$newOption];
     }
 
+    /**
+     * @param array $params
+     *
+     * @return string
+     *
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     */
     public function hookPaymentReturn($params)
     {
         if (!$this->active) {
@@ -429,23 +442,36 @@ class Comfino extends PaymentModule
         return '';
     }
 
+    /**
+     * @param array $params
+     *
+     * @return string
+     */
     public function hookDisplayBackofficeComfinoForm($params)
     {
         return $this->displayForm();
     }
 
+    /**
+     * @param array $params
+     *
+     * @return void
+     */
     public function hookActionOrderStatusPostUpdate($params)
     {
         ErrorLogger::init();
 
-        /** @var OrderState $orderState */
-        $orderState = $params['newOrderStatus'];
+        /** @var OrderState $order_state */
+        $order_state = $params['newOrderStatus'];
 
-        if ($orderState->id == Configuration::get('PS_OS_CANCELED')) {
+        if ($order_state->id == Configuration::get('PS_OS_CANCELED')) {
             ComfinoApi::cancelOrder($params['id_order']);
         }
     }
 
+    /**
+     * @return void
+     */
     public function hookHeader()
     {
         if (Configuration::get('COMFINO_WIDGET_ENABLED')) {
@@ -471,6 +497,9 @@ class Comfino extends PaymentModule
         }
     }
 
+    /**
+     * @return string
+     */
     public function displayForm()
     {
         $helper = $this->getHelperForm('submit_configuration');
@@ -480,16 +509,7 @@ class Comfino extends PaymentModule
         $helper->fields_value['COMFINO_TAX_ID'] = Configuration::get('COMFINO_TAX_ID');
         $helper->fields_value['COMFINO_MINIMAL_CART_AMOUNT'] = Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
 
-        $helper->fields_value = array_merge($helper->fields_value, $this->getCategoryOfferFilters());
-
-        $helper->fields_value['COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES'] = $payment_enabled;
-        $helper->fields_value['COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES'] = $payment_disabled;
-        $helper->fields_value['COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES'] = $zero_percent_enabled;
-        $helper->fields_value['COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES'] = $zero_percent_disabled;
-        $helper->fields_value['COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES'] = $convenient_install_enabled;
-        $helper->fields_value['COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES'] = $convenient_install_disabled;
-        $helper->fields_value['COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES'] = $pay_later_enabled;
-        $helper->fields_value['COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES'] = $pay_later_disabled;
+        $helper->fields_value = array_merge($helper->fields_value, ComfinoApi::getCategoryOfferFilters());
 
         $helper->fields_value['COMFINO_IS_SANDBOX'] = Configuration::get('COMFINO_IS_SANDBOX');
         $helper->fields_value['COMFINO_SANDBOX_API_KEY'] = Configuration::get('COMFINO_SANDBOX_API_KEY');
@@ -506,6 +526,13 @@ class Comfino extends PaymentModule
         return $helper->generateForm($this->getFormFields());
     }
 
+    /**
+     * @param string $submit_action
+     * @param string $form_template_dir
+     * @param string $form_template
+     *
+     * @return HelperForm
+     */
     private function getHelperForm($submit_action, $form_template_dir = null, $form_template = null)
     {
         $helper = new HelperForm();
@@ -545,6 +572,12 @@ class Comfino extends PaymentModule
         return $helper;
     }
 
+    /**
+     * @param array $categories
+     * @param int $position
+     *
+     * @return array
+     */
     private function buildCategoriesList($categories, $position)
     {
         $categoriesList = [];
@@ -570,6 +603,9 @@ class Comfino extends PaymentModule
         return $categoriesList;
     }
 
+    /**
+     * @return array
+     */
     private function getFormFields()
     {
         $fields = [];
@@ -900,34 +936,37 @@ class Comfino extends PaymentModule
         return $fields;
     }
 
+    /**
+     * @return bool
+     */
     private function addOrderStates()
     {
         $languages = Language::getLanguages(false);
 
         foreach (OrdersList::ADD_ORDER_STATUSES as $state => $name) {
-            $newState = Configuration::get($state);
+            $new_state = Configuration::get($state);
 
-            if (empty($newState) || !Validate::isInt($newState) ||
-                !Validate::isLoadedObject(new OrderState($newState))
+            if (empty($new_state) || !Validate::isInt($new_state) ||
+                !Validate::isLoadedObject(new OrderState($new_state))
             ) {
-                $orderStateObject = new OrderState();
-                $orderStateObject->send_email = 0;
-                $orderStateObject->invoice = 0;
-                $orderStateObject->color = '#ffffff';
-                $orderStateObject->unremovable = false;
-                $orderStateObject->logable = 0;
-                $orderStateObject->module_name = $this->name;
+                $order_state_object = new OrderState();
+                $order_state_object->send_email = 0;
+                $order_state_object->invoice = 0;
+                $order_state_object->color = '#ffffff';
+                $order_state_object->unremovable = false;
+                $order_state_object->logable = 0;
+                $order_state_object->module_name = $this->name;
 
                 foreach ($languages as $language) {
                     if ($language['iso_code'] === 'pl') {
-                        $orderStateObject->name[$language['id_lang']] = OrdersList::ADD_ORDER_STATUSES_PL[$state];
+                        $order_state_object->name[$language['id_lang']] = OrdersList::ADD_ORDER_STATUSES_PL[$state];
                     } else {
-                        $orderStateObject->name[$language['id_lang']] = $name;
+                        $order_state_object->name[$language['id_lang']] = $name;
                     }
                 }
 
-                if ($orderStateObject->add()) {
-                    Configuration::updateValue($state, $orderStateObject->id);
+                if ($order_state_object->add()) {
+                    Configuration::updateValue($state, $order_state_object->id);
                 }
             }
         }
@@ -935,34 +974,17 @@ class Comfino extends PaymentModule
         return true;
     }
 
-    private function getCategoryOfferFilters()
-    {
-        $payment_enabled = Configuration::get('COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES');
-        $payment_disabled = Configuration::get('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES');
-        $zero_percent_enabled = Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES');
-        $zero_percent_disabled = Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES');
-        $convenient_install_enabled = Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES');
-        $convenient_install_disabled = Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES');
-        $pay_later_enabled = Configuration::get('COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES');
-        $pay_later_disabled = Configuration::get('COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES');
-
-        return [
-            'COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES' => explode(',', $payment_enabled),
-            'COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES' => explode(',', $payment_disabled),
-            'COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES' => explode(',', $zero_percent_enabled),
-            'COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES' => explode(',', $zero_percent_disabled),
-            'COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES' => explode(',', $convenient_install_enabled),
-            'COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES' => explode(',', $convenient_install_disabled),
-            'COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES' => explode(',', $pay_later_enabled),
-            'COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES' => explode(',', $pay_later_disabled)
-        ];
-    }
-
+    /**
+     * @return bool
+     */
     private function checkConfiguration()
     {
         return Configuration::get('COMFINO_API_KEY') !== null && Configuration::get('COMFINO_TAX_ID') !== null;
     }
 
+    /**
+     * @return array
+     */
     private function getTemplateVars()
     {
         return [
@@ -974,6 +996,9 @@ class Comfino extends PaymentModule
         ];
     }
 
+    /**
+     * @return bool
+     */
     private function initConfigurationValues()
     {
         $widgetCode = "
@@ -1016,6 +1041,9 @@ document.getElementsByTagName('head')[0].appendChild(script);
             Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widgetCode));
     }
 
+    /**
+     * @return bool
+     */
     private function deleteConfigurationValues()
     {
         return Configuration::deleteByName('COMFINO_PAYMENT_TEXT') &&

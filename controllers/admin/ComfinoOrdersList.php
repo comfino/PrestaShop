@@ -55,13 +55,13 @@ class ComfinoOrdersListController extends ModuleAdminController
     public function postProcess()
     {
         if (!empty($_POST['change_status'])) {
-            $data = json_decode(ComfinoApi::getOrder(Tools::getValue('self_link')), true);
+            $order = ComfinoApi::getOrder(Tools::getValue('self_link'));
 
-            if (!isset($data['status']) || !isset($data['orderId'])) {
+            if ($order === false || !isset($order['status']) || !isset($order['orderId'])) {
                 return false;
             }
 
-            OrdersList::processState($data['orderId'], $data['status']);
+            OrdersList::processState($order['orderId'], $order['status']);
 
             return true;
         }

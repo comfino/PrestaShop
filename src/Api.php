@@ -41,21 +41,21 @@ class ComfinoApi
     private static $last_request_body;
 
     /**
-     * @param Cart $cart_data
+     * @param Cart $cart
      * @param string $order_id
      * @param string $return_url
      *
-     * @return bool|string
+     * @return array|bool
      */
-    public static function createOrder($cart_data, $order_id, $return_url)
+    public static function createOrder($cart, $order_id, $return_url)
     {
-        $total = (int) floor(((float) $cart_data->getOrderTotal(true)) * 100);
-        $delivery = (int) floor(((float) $cart_data->getOrderTotal(true, Cart::ONLY_SHIPPING)) * 100);
+        $total = (int) floor(((float) $cart->getOrderTotal(true)) * 100);
+        $delivery = (int) floor(((float) $cart->getOrderTotal(true, Cart::ONLY_SHIPPING)) * 100);
 
-        $customer = new Customer($cart_data->id_customer);
+        $customer = new Customer($cart->id_customer);
         $products = [];
 
-        foreach ($cart_data->getProducts() as $product) {
+        foreach ($cart->getProducts() as $product) {
             $products[] = [
                 'name' => $product['name'],
                 'quantity' => (int) $product['cart_quantity'],
@@ -67,8 +67,8 @@ class ComfinoApi
             ];
         }
 
-        $address = $cart_data->getAddressCollection();
-        $address_explode = explode(' ', $address[$cart_data->id_address_delivery]->address1);
+        $address = $cart->getAddressCollection();
+        $address_explode = explode(' ', $address[$cart->id_address_delivery]->address1);
         $building_number = '';
 
         if (count($address_explode) === 2) {
@@ -76,7 +76,7 @@ class ComfinoApi
         }
 
         $context = Context::getContext();
-        $customerTaxId = trim(str_replace('-', '', $address[$cart_data->id_address_delivery]->vat_number));
+        $customer_tax_id = trim(str_replace('-', '', $address[$cart->id_address_delivery]->vat_number));
 
         $data = [
             'notifyUrl' => $context->link->getModuleLink($context->controller->module->name, 'notify', [], true),
@@ -95,12 +95,12 @@ class ComfinoApi
                 'products' => $products
             ],
             'customer' => [
-                'firstName' => $address[$cart_data->id_address_delivery]->firstname,
-                'lastName' => $address[$cart_data->id_address_delivery]->lastname,
+                'firstName' => $address[$cart->id_address_delivery]->firstname,
+                'lastName' => $address[$cart->id_address_delivery]->lastname,
                 'email' => $customer->email,
-                'phoneNumber' => !empty($address[$cart_data->id_address_delivery]->phone)
-                    ? $address[$cart_data->id_address_delivery]->phone
-                    : $address[$cart_data->id_address_delivery]->phone_mobile,
+                'phoneNumber' => !empty($address[$cart->id_address_delivery]->phone)
+                    ? $address[$cart->id_address_delivery]->phone
+                    : $address[$cart->id_address_delivery]->phone_mobile,
                 'ip' => Tools::getRemoteAddr(),
                 'regular' => !$customer->is_guest,
                 'logged' => $customer->isLogged(),
@@ -108,8 +108,8 @@ class ComfinoApi
                     'street' => $address_explode[0],
                     'buildingNumber' => $building_number,
                     'apartmentNumber' => '',
-                    'postalCode' => $address[$cart_data->id_address_delivery]->postcode,
-                    'city' => $address[$cart_data->id_address_delivery]->city,
+                    'postalCode' => $address[$cart->id_address_delivery]->postcode,
+                    'city' => $address[$cart->id_address_delivery]->city,
                     'countryCode' => 'PL'
                 ]
             ],
@@ -118,40 +118,44 @@ class ComfinoApi
             ]
         ];
 
-        if (preg_match('/^[A-Z]{0,3}\d{7,}$/', $customerTaxId)) {
-            $data['customer']['taxId'] = $customerTaxId;
+        if (preg_match('/^[A-Z]{0,3}\d{7,}$/', $customer_tax_id)) {
+            $data['customer']['taxId'] = $customer_tax_id;
         }
 
-        return json_decode(
-            self::sendRequest(self::getApiHost().'/v1/orders', 'POST', [CURLOPT_FOLLOWLOCATION => true], $data),
-            true
-        );
+        $response = self::sendRequest(self::getApiHost().'/v1/orders', 'POST', [CURLOPT_FOLLOWLOCATION => true], $data);
+
+        return $response !== false ? json_decode($response, true) : false;
     }
 
     /**
-     * @param $loanAmount
+     * @param $loan_amount
      *
-     * @return bool|string
+     * @return array|bool
      */
-    public static function getOffer($loanAmount)
+    public static function getOffers($loan_amount)
     {
-        $loanAmount = (float) $loanAmount;
+        $loan_amount = (float) $loan_amount;
+        $response = self::sendRequest(self::getApiHost()."/v1/financial-products?loanAmount=$loan_amount", 'GET');
 
-        return self::sendRequest(self::getApiHost()."/v1/financial-products?loanAmount=$loanAmount", 'GET');
+        return $response !== false ? json_decode($response, true) : false;
     }
 
     /**
      * @param $self_link
      *
-     * @return bool|string
+     * @return array|bool
      */
     public static function getOrder($self_link)
     {
-        return self::sendRequest(str_replace('https', 'http', $self_link), 'GET');
+        $response = self::sendRequest(str_replace('https', 'http', $self_link), 'GET');
+
+        return $response !== false ? json_decode($response, true) : false;
     }
 
     /**
      * @param string $order_id
+     *
+     * @return void
      */
     public static function cancelOrder($order_id)
     {
@@ -178,6 +182,7 @@ class ComfinoApi
 
     /**
      * @param ShopPluginError $error
+     *
      * @return bool
      */
     public static function sendLoggedError(ShopPluginError $error)
@@ -196,26 +201,132 @@ class ComfinoApi
         return strpos($response, '"errors":') === false;
     }
 
+    /**
+     * @return string
+     */
     public static function getLogoUrl()
     {
         return self::getApiHost().'/v1/get-logo-url';
     }
 
+    /**
+     * @param string $api_host
+     *
+     * @return void
+     */
     public static function setApiHost($api_host)
     {
         self::$api_host = $api_host;
     }
 
+    /**
+     * @param string $api_key
+     *
+     * @return void
+     */
     public static function setApiKey($api_key)
     {
         self::$api_key = $api_key;
     }
 
+    /**
+     * @return string|null
+     */
     public static function getLastRequestBody()
     {
         return self::$last_request_body;
     }
 
+    /**
+     * @return array
+     */
+    public static function getCategoryOfferFilters()
+    {
+        $payment_enabled = array_map(
+            function ($cat_id) { return (int) $cat_id; },
+            explode(',', Configuration::get('COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES'))
+        );
+        $payment_disabled = array_map(
+            function ($cat_id) { return (int) $cat_id; },
+            explode(',', Configuration::get('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES'))
+        );
+        $zero_percent_enabled = array_map(
+            function ($cat_id) { return (int) $cat_id; },
+            explode(',', Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES'))
+        );
+        $zero_percent_disabled = array_map(
+            function ($cat_id) { return (int) $cat_id; },
+            explode(',', Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES'))
+        );
+        $convenient_install_enabled = array_map(
+            function ($cat_id) { return (int) $cat_id; },
+            explode(',', Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES'))
+        );
+        $convenient_install_disabled = array_map(
+            function ($cat_id) { return (int) $cat_id; },
+            explode(',', Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES'))
+        );
+        $pay_later_enabled = array_map(
+            function ($cat_id) { return (int) $cat_id; },
+            explode(',', Configuration::get('COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES'))
+        );
+        $pay_later_disabled = array_map(
+            function ($cat_id) { return (int) $cat_id; },
+            explode(',', Configuration::get('COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES'))
+        );
+
+        return [
+            'COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES' => $payment_enabled,
+            'COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES' => $payment_disabled,
+            'COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES' => $zero_percent_enabled,
+            'COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES' => $zero_percent_disabled,
+            'COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES' => $convenient_install_enabled,
+            'COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES' => $convenient_install_disabled,
+            'COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES' => $pay_later_enabled,
+            'COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES' => $pay_later_disabled
+        ];
+    }
+
+    /**
+     * @param Cart $cart
+     *
+     * @return bool
+     */
+    public static function comfinoPaymentsAvailable($cart)
+    {
+        $category_filters = self::getCategoryOfferFilters();
+        $payment_enabled = $category_filters['COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES'];
+        $payment_disabled = $category_filters['COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES'];
+        $is_available = true;
+
+        if (count($payment_disabled)) {
+            foreach ($cart->getProducts() as $product) {
+                if (in_array($product['id_category_default'], $payment_disabled, true)) {
+                    $is_available = false;
+
+                    break;
+                }
+            }
+        }
+
+        if ($is_available && count($payment_enabled)) {
+            $valid_prod_cnt = 0;
+
+            foreach ($cart->getProducts() as $product) {
+                if (in_array($product['id_category_default'], $payment_enabled, true)) {
+                    ++$valid_prod_cnt;
+                }
+            }
+
+            $is_available = (count($cart->getProducts()) === $valid_prod_cnt);
+        }
+
+        return $is_available;
+    }
+
+    /**
+     * @return string
+     */
     private static function getApiHost()
     {
         return empty(self::$api_host)
@@ -223,6 +334,9 @@ class ComfinoApi
             : self::$api_host;
     }
 
+    /**
+     * @return string
+     */
     private static function getApiKey()
     {
         return empty(self::$api_key)
@@ -271,7 +385,7 @@ class ComfinoApi
      * @param string $data
      * @param bool $log_errors
      *
-     * @return bool|string
+     * @return string|bool
      */
     private static function sendRequest($url, $request_type, $extra_options = [], $data = null, $log_errors = true)
     {
@@ -296,17 +410,28 @@ class ComfinoApi
                     $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
                     $options[CURLOPT_POSTFIELDS] = self::$last_request_body;
                 }
+
                 break;
         }
 
         $curl = curl_init();
         curl_setopt_array($curl, $options + $extra_options);
+
         $response = self::processResponse($curl, $url, $data, $log_errors);
+
         curl_close($curl);
 
         return $response;
     }
 
+    /**
+     * @param resource $curl
+     * @param string $url
+     * @param mixed $data
+     * @param bool $log_errors
+     *
+     * @return string|bool
+     */
     private static function processResponse($curl, $url, $data, $log_errors)
     {
         $response = curl_exec($curl);
@@ -355,6 +480,9 @@ class ComfinoApi
         return $response;
     }
 
+    /**
+     * @return string
+     */
     private static function getUserAgentHeader()
     {
         return sprintf(
@@ -366,5 +494,22 @@ class ComfinoApi
                 : 'n/a',
             PHP_VERSION
         );
+    }
+
+    /**
+     * @param array $offers
+     *
+     * @return array
+     */
+    private static function filterOffers($offers)
+    {
+        $category_filters = self::getCategoryOfferFilters();
+        $filtered_offers = [];
+
+        foreach ($offers as $offer) {
+
+        }
+
+        return $filtered_offers;
     }
 }
