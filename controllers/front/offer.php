@@ -68,7 +68,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
         $set = false;
 
         if (is_array($offers) && !isset($offers['errors'])) {
-            foreach ($offers as $offer) {
+            foreach (ComfinoApi::filterOffers($offers, $cart) as $offer) {
                 $loan_amount = round(((float)$offer['instalmentAmount']) * ((float)$offer['loanTerm']) / 100, 2);
 
                 if ($loan_amount < ($total / 100)) {
