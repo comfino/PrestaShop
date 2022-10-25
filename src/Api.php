@@ -36,6 +36,10 @@ class ComfinoApi
     const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
     const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
 
+    const INSTALLMENTS_ZERO_PERCENT = 'INSTALLMENTS_ZERO_PERCENT';
+    const CONVENIENT_INSTALLMENTS = 'CONVENIENT_INSTALLMENTS';
+    const PAY_LATER = 'PAY_LATER';
+
     private static $api_host;
     private static $api_key;
     private static $last_request_body;
@@ -243,35 +247,35 @@ class ComfinoApi
     public static function getCategoryOfferFilters()
     {
         $payment_enabled = array_map(
-            function ($cat_id) { return (int)$cat_id; },
+            static function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES'))
         );
         $payment_disabled = array_map(
-            function ($cat_id) { return (int)$cat_id; },
+            static function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES'))
         );
         $zero_percent_enabled = array_map(
-            function ($cat_id) { return (int)$cat_id; },
+            static function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES'))
         );
         $zero_percent_disabled = array_map(
-            function ($cat_id) { return (int)$cat_id; },
+            static function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES'))
         );
         $convenient_install_enabled = array_map(
-            function ($cat_id) { return (int)$cat_id; },
+            static function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES'))
         );
         $convenient_install_disabled = array_map(
-            function ($cat_id) { return (int)$cat_id; },
+            static function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES'))
         );
         $pay_later_enabled = array_map(
-            function ($cat_id) { return (int)$cat_id; },
+            static function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES'))
         );
         $pay_later_disabled = array_map(
-            function ($cat_id) { return (int)$cat_id; },
+            static function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES'))
         );
 
@@ -297,19 +301,83 @@ class ComfinoApi
         $category_filters = self::getCategoryOfferFilters();
         $payment_enabled = $category_filters['COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES'];
         $payment_disabled = $category_filters['COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES'];
-        $is_available = true;
 
-        if (count($payment_disabled)) {
+        return self::cartItemsValid($cart, $payment_enabled, $payment_disabled);
+    }
+
+    /**
+     * @param array $offers
+     * @param Cart $cart
+     *
+     * @return array
+     */
+    public static function filterOffers($offers, $cart)
+    {
+        $category_filters = self::getCategoryOfferFilters();
+        $zero_percent_enabled = $category_filters['COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES'];
+        $zero_percent_disabled = $category_filters['COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES'];
+        $convenient_install_enabled = $category_filters['COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES'];
+        $convenient_install_disabled = $category_filters['COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES'];
+        $pay_later_enabled = $category_filters['COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES'];
+        $pay_later_disabled = $category_filters['COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES'];
+
+        if (
+            !count($zero_percent_enabled) && !count($zero_percent_disabled) &&
+            !count($convenient_install_enabled) && !count($convenient_install_disabled) &&
+            !count($pay_later_enabled) && !count($pay_later_disabled)
+        ) {
+            return $offers;
+        }
+
+        $offer_filters = [
+            'pass' => [
+                self::INSTALLMENTS_ZERO_PERCENT => $zero_percent_enabled,
+                self::CONVENIENT_INSTALLMENTS => $convenient_install_enabled,
+                self::PAY_LATER => $pay_later_enabled
+            ],
+            'reject' => [
+                self::INSTALLMENTS_ZERO_PERCENT => $zero_percent_disabled,
+                self::CONVENIENT_INSTALLMENTS => $convenient_install_disabled,
+                self::PAY_LATER => $pay_later_disabled
+            ]
+        ];
+
+        $filtered_offers = [];
+
+        foreach ($offers as $offer) {
+            $pass_filter = $offer_filters[$offer['type']]['pass'];
+            $reject_filter = $offer_filters[$offer['type']]['reject'];
+
+            if (self::cartItemsValid($cart, $pass_filter, $reject_filter)) {
+                $filtered_offers[] = $offer;
+            }
+        }
+
+        return $filtered_offers;
+    }
+
+    /**
+     * @param Cart $cart
+     * @param array $pass_filter
+     * @param array $reject_filter
+     *
+     * @return bool
+     */
+    private static function cartItemsValid($cart, $pass_filter, $reject_filter)
+    {
+        $cart_valid = true;
+
+        if (count($reject_filter)) {
             foreach ($cart->getProducts() as $product) {
-                if (in_array((int)$product['id_category_default'], $payment_disabled, true)) {
-                    $is_available = false;
+                if (in_array((int)$product['id_category_default'], $reject_filter, true)) {
+                    $cart_valid = false;
 
                     break;
                 }
 
-                foreach ($payment_disabled as $ref_category_id) {
+                foreach ($reject_filter as $ref_category_id) {
                     if (self::isChildCategoryOf($ref_category_id, (int)$product['id_category_default'])) {
-                        $is_available = false;
+                        $cart_valid = false;
 
                         break 2;
                     }
@@ -317,14 +385,14 @@ class ComfinoApi
             }
         }
 
-        if ($is_available && count($payment_enabled)) {
+        if ($cart_valid && count($pass_filter)) {
             $valid_prod_cnt = 0;
 
             foreach ($cart->getProducts() as $product) {
-                if (in_array((int)$product['id_category_default'], $payment_enabled, true)) {
+                if (in_array((int)$product['id_category_default'], $pass_filter, true)) {
                     ++$valid_prod_cnt;
                 } else {
-                    foreach ($payment_enabled as $ref_category_id) {
+                    foreach ($pass_filter as $ref_category_id) {
                         if (self::isChildCategoryOf($ref_category_id, (int)$product['id_category_default'])) {
                             ++$valid_prod_cnt;
 
@@ -334,10 +402,10 @@ class ComfinoApi
                 }
             }
 
-            $is_available = (count($cart->getProducts()) === $valid_prod_cnt);
+            $cart_valid = (count($cart->getProducts()) === $valid_prod_cnt);
         }
 
-        return $is_available;
+        return $cart_valid;
     }
 
     /**
@@ -510,34 +578,6 @@ class ComfinoApi
                 : 'n/a',
             PHP_VERSION
         );
-    }
-
-    /**
-     * @param array $offers
-     * @param Cart $cart
-     *
-     * @return array
-     */
-    private static function filterOffers($offers, $cart)
-    {
-        $category_filters = self::getCategoryOfferFilters();
-        $zero_percent_enabled = $category_filters['COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES'];
-        $zero_percent_disabled = $category_filters['COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES'];
-        $convenient_install_enabled = $category_filters['COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES'];
-        $convenient_install_disabled = $category_filters['COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES'];
-        $pay_later_enabled = $category_filters['COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES'];
-        $pay_later_disabled = $category_filters['COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES'];
-
-        $filtered_offers = [];
-
-        foreach ($offers as $offer) {
-            foreach ($cart->getProducts() as $product) {
-                if (in_array($product['id_category_default'], $payment_disabled, true)) {
-                }
-            }
-        }
-
-        return $filtered_offers;
     }
 
     /**

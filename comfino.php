@@ -835,9 +835,15 @@ class Comfino extends PaymentModule
                     'required' => false,
                     'options' => [
                         'query' => [
-                            ['key' => 'INSTALLMENTS_ZERO_PERCENT', 'name' => $this->l('Zero percent installments')],
-                            ['key' => 'CONVENIENT_INSTALLMENTS', 'name' => $this->l('Convenient installments')],
-                            ['key' => 'PAY_LATER', 'name' => $this->l('Pay later')],
+                            [
+                                'key' => ComfinoApi::INSTALLMENTS_ZERO_PERCENT,
+                                'name' => $this->l('Zero percent installments')
+                            ],
+                            [
+                                'key' => ComfinoApi::CONVENIENT_INSTALLMENTS,
+                                'name' => $this->l('Convenient installments')
+                            ],
+                            ['key' => ComfinoApi::PAY_LATER, 'name' => $this->l('Pay later')]
                         ],
                         'id' => 'key',
                         'name' => 'name'
