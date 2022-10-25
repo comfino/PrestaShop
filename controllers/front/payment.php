@@ -104,16 +104,16 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         $currency = $this->context->currency;
-        $total = (float) $cart->getOrderTotal(true, Cart::BOTH);
+        $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
 
         $this->module->validateOrder(
-            (int) $cart->id,
-            (int) Configuration::get('COMFINO_CREATED'),
+            (int)$cart->id,
+            (int)Configuration::get('COMFINO_CREATED'),
             $total,
             $this->module->displayName,
             null,
             '',
-            (int) $currency->id,
+            (int)$currency->id,
             false,
             $customer->secure_key
         );
@@ -121,7 +121,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $orderConfirmation = ComfinoApi::createOrder(
             $this->context->cart,
             $this->module->currentOrder,
-            'index.php?controller=order-confirmation&id_cart='.(int) $cart->id.'&id_module='.(int) $this->module->id.
+            'index.php?controller=order-confirmation&id_cart='.(int)$cart->id.'&id_module='.(int)$this->module->id.
             '&id_order='.$this->module->currentOrder.'&key='.$customer->secure_key
         );
 

@@ -49,8 +49,8 @@ class ComfinoApi
      */
     public static function createOrder($cart, $order_id, $return_url)
     {
-        $total = (int) floor(((float) $cart->getOrderTotal(true)) * 100);
-        $delivery = (int) floor(((float) $cart->getOrderTotal(true, Cart::ONLY_SHIPPING)) * 100);
+        $total = (int)floor(((float)$cart->getOrderTotal(true)) * 100);
+        $delivery = (int)floor(((float)$cart->getOrderTotal(true, Cart::ONLY_SHIPPING)) * 100);
 
         $customer = new Customer($cart->id_customer);
         $products = [];
@@ -58,11 +58,11 @@ class ComfinoApi
         foreach ($cart->getProducts() as $product) {
             $products[] = [
                 'name' => $product['name'],
-                'quantity' => (int) $product['cart_quantity'],
-                'price' => (int) ($product['total_wt'] / $product['cart_quantity'] * 100),
+                'quantity' => (int)$product['cart_quantity'],
+                'price' => (int)($product['total_wt'] / $product['cart_quantity'] * 100),
                 'photoUrl' => self::getProductsImageUrl($product),
                 'ean' => $product['ean13'],
-                'externalId' => (string) $product['id_product'],
+                'externalId' => (string)$product['id_product'],
                 'category' => $product['category']
             ];
         }
@@ -81,11 +81,11 @@ class ComfinoApi
         $data = [
             'notifyUrl' => $context->link->getModuleLink($context->controller->module->name, 'notify', [], true),
             'returnUrl' => Tools::getHttpHost(true).__PS_BASE_URI__.$return_url,
-            'orderId' => (string) $order_id,
+            'orderId' => (string)$order_id,
             'draft' => false,
             'loanParameters' => [
                 'amount' => $total,
-                'term' => (int) $context->cookie->loan_term,
+                'term' => (int)$context->cookie->loan_term,
                 'type' => $context->cookie->loan_type
             ],
             'cart' => [
@@ -134,7 +134,7 @@ class ComfinoApi
      */
     public static function getOffers($loan_amount)
     {
-        $loan_amount = (float) $loan_amount;
+        $loan_amount = (float)$loan_amount;
         $response = self::sendRequest(self::getApiHost()."/v1/financial-products?loanAmount=$loan_amount", 'GET');
 
         return $response !== false ? json_decode($response, true) : false;
@@ -243,35 +243,35 @@ class ComfinoApi
     public static function getCategoryOfferFilters()
     {
         $payment_enabled = array_map(
-            function ($cat_id) { return (int) $cat_id; },
+            function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES'))
         );
         $payment_disabled = array_map(
-            function ($cat_id) { return (int) $cat_id; },
+            function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES'))
         );
         $zero_percent_enabled = array_map(
-            function ($cat_id) { return (int) $cat_id; },
+            function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES'))
         );
         $zero_percent_disabled = array_map(
-            function ($cat_id) { return (int) $cat_id; },
+            function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES'))
         );
         $convenient_install_enabled = array_map(
-            function ($cat_id) { return (int) $cat_id; },
+            function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES'))
         );
         $convenient_install_disabled = array_map(
-            function ($cat_id) { return (int) $cat_id; },
+            function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES'))
         );
         $pay_later_enabled = array_map(
-            function ($cat_id) { return (int) $cat_id; },
+            function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES'))
         );
         $pay_later_disabled = array_map(
-            function ($cat_id) { return (int) $cat_id; },
+            function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES'))
         );
 
@@ -301,10 +301,18 @@ class ComfinoApi
 
         if (count($payment_disabled)) {
             foreach ($cart->getProducts() as $product) {
-                if (in_array($product['id_category_default'], $payment_disabled, true)) {
+                if (in_array((int)$product['id_category_default'], $payment_disabled, true)) {
                     $is_available = false;
 
                     break;
+                }
+
+                foreach ($payment_disabled as $ref_category_id) {
+                    if (self::isChildCategoryOf($ref_category_id, (int)$product['id_category_default'])) {
+                        $is_available = false;
+
+                        break 2;
+                    }
                 }
             }
         }
@@ -313,8 +321,16 @@ class ComfinoApi
             $valid_prod_cnt = 0;
 
             foreach ($cart->getProducts() as $product) {
-                if (in_array($product['id_category_default'], $payment_enabled, true)) {
+                if (in_array((int)$product['id_category_default'], $payment_enabled, true)) {
                     ++$valid_prod_cnt;
+                } else {
+                    foreach ($payment_enabled as $ref_category_id) {
+                        if (self::isChildCategoryOf($ref_category_id, (int)$product['id_category_default'])) {
+                            ++$valid_prod_cnt;
+
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -436,7 +452,7 @@ class ComfinoApi
     {
         $response = curl_exec($curl);
 
-        if ($response === false || (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
+        if ($response === false || (int)curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
             $error_id = time();
 
             if ($log_errors) {
@@ -498,18 +514,101 @@ class ComfinoApi
 
     /**
      * @param array $offers
+     * @param Cart $cart
      *
      * @return array
      */
-    private static function filterOffers($offers)
+    private static function filterOffers($offers, $cart)
     {
         $category_filters = self::getCategoryOfferFilters();
+        $zero_percent_enabled = $category_filters['COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES'];
+        $zero_percent_disabled = $category_filters['COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES'];
+        $convenient_install_enabled = $category_filters['COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES'];
+        $convenient_install_disabled = $category_filters['COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES'];
+        $pay_later_enabled = $category_filters['COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES'];
+        $pay_later_disabled = $category_filters['COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES'];
+
         $filtered_offers = [];
 
         foreach ($offers as $offer) {
-
+            foreach ($cart->getProducts() as $product) {
+                if (in_array($product['id_category_default'], $payment_disabled, true)) {
+                }
+            }
         }
 
         return $filtered_offers;
+    }
+
+    /**
+     * @param int $ref_category_id
+     * @param int $prod_category_to_check_id
+     *
+     * @return bool
+     */
+    private static function isChildCategoryOf($ref_category_id, $prod_category_to_check_id)
+    {
+        $categories_tree = self::getCategoriesTree();
+        $is_child = false;
+
+        if (isset($categories_tree[$prod_category_to_check_id])) {
+            $prod_cat_id = $prod_category_to_check_id;
+
+            while (!$is_child) {
+                if (isset($categories_tree[$prod_cat_id]['parent_id'])) {
+                    $is_child = ($categories_tree[$prod_cat_id]['parent_id'] === $ref_category_id);
+                } else {
+                    break;
+                }
+
+                $prod_cat_id = $categories_tree[$prod_cat_id]['parent_id'];
+            }
+        }
+
+        return $is_child;
+    }
+
+    /**
+     * @param array|null $categories
+     *
+     * @return array
+     */
+    private static function getCategoriesTree($categories = null)
+    {
+        static $categories_tree = null;
+
+        if ($categories_tree === null) {
+            if ($categories === null) {
+                $input_categories = Category::getNestedCategories();
+            } else {
+                $input_categories = $categories;
+            }
+
+            $categories_list = [];
+            $subcategories_list = [];
+
+            foreach ($input_categories as $category) {
+                $categories_list[] = ['id' => (int)$category['id_category'], 'parent_id' => (int)$category['id_parent']];
+
+                if (isset($category['children'])) {
+                    $subcategories_list[] = self::getCategoriesTree($category['children']);
+                }
+            }
+
+            $categories_list = array_merge($categories_list, ...$subcategories_list);
+
+            if ($categories !== null) {
+                return $categories_list;
+            }
+
+            $categories_tree = [];
+
+            foreach ($categories_list as $category) {
+                $categories_tree[$category['id']] = ['parent_id' => $category['parent_id'], 'children_ids' => []];
+                $categories_tree[$category['parent_id']]['children_ids'][] = $category['id'];
+            }
+        }
+
+        return $categories_tree;
     }
 }

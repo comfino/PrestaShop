@@ -312,7 +312,7 @@ class Comfino extends PaymentModule
 
         $this->smarty->assign($this->getTemplateVars());
 
-        $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
+        $minimal_cart_amount = (float)Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
         if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
             return;
         }
@@ -360,7 +360,7 @@ class Comfino extends PaymentModule
 
         ErrorLogger::init();
 
-        $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
+        $minimal_cart_amount = (float)Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
         if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
             return;
         }
@@ -536,7 +536,7 @@ class Comfino extends PaymentModule
     private function getHelperForm($submit_action, $form_template_dir = null, $form_template = null)
     {
         $helper = new HelperForm();
-        $language = (int) Configuration::get('PS_LANG_DEFAULT');
+        $language = (int)Configuration::get('PS_LANG_DEFAULT');
 
         $helper->module = $this;
         $helper->name_controller = $this->name;
@@ -580,27 +580,27 @@ class Comfino extends PaymentModule
      */
     private function buildCategoriesList($categories, $position)
     {
-        $categoriesList = [];
-        $subcategoriesList = [];
+        $categories_list = [];
+        $subcategories_list = [];
 
         foreach ($categories as $category) {
-            $categoriesList[] = [
+            $categories_list[] = [
                 'key' => $category['id_category'],
                 'name' => str_repeat('&nbsp;&nbsp;', $category['level_depth'] - 1).$category['name'],
                 'position' => $category['position'] + $position
             ];
 
             if (isset($category['children'])) {
-                $subcategoriesList[] = $this->buildCategoriesList($category['children'], count($categoriesList) + $position);
-                $position += count($subcategoriesList[count($subcategoriesList) - 1]);
+                $subcategories_list[] = $this->buildCategoriesList($category['children'], count($categories_list) + $position);
+                $position += count($subcategories_list[count($subcategories_list) - 1]);
             }
         }
 
-        $categoriesList = array_merge($categoriesList, ...$subcategoriesList);
+        $categories_list = array_merge($categories_list, ...$subcategories_list);
 
-        usort($categoriesList, static function ($val1, $val2) { return $val1['position'] - $val2['position']; });
+        usort($categories_list, static function ($val1, $val2) { return $val1['position'] - $val2['position']; });
 
-        return $categoriesList;
+        return $categories_list;
     }
 
     /**
@@ -1069,5 +1069,28 @@ document.getElementsByTagName('head')[0].appendChild(script);
             Configuration::deleteByName('COMFINO_WIDGET_OFFER_TYPE') &&
             Configuration::deleteByName('COMFINO_WIDGET_EMBED_METHOD') &&
             Configuration::deleteByName('COMFINO_WIDGET_CODE');
+    }
+
+    /**
+     * @param string $taxId
+     *
+     * @return bool
+     */
+    private function isValidTaxId($taxId)
+    {
+        if (empty($taxId) || strlen($taxId) !== 10 || !preg_match('/^\d+$/', $taxId)) {
+            return false;
+        }
+
+        $arrSteps = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+        $intSum = 0;
+
+        for ($i = 0; $i < 9; ++$i) {
+            $intSum += $arrSteps[$i] * $taxId[$i];
+        }
+
+        $int = $intSum % 11;
+
+        return ($int === 10 ? 0 : $int) === (int)$taxId[9];
     }
 }
