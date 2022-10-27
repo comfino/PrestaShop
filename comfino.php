@@ -143,9 +143,6 @@ class Comfino extends PaymentModule
             if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
                 $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('API key'));
             }
-            if (Tools::isEmpty(Tools::getValue('COMFINO_TAX_ID'))) {
-                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Tax ID'));
-            }
             if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_PRESENTATION'))) {
                 $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Payment presentation'));
             }
@@ -196,7 +193,6 @@ class Comfino extends PaymentModule
             } else {
                 // Payment settings
                 Configuration::updateValue('COMFINO_API_KEY', Tools::getValue('COMFINO_API_KEY'));
-                Configuration::updateValue('COMFINO_TAX_ID', Tools::getValue('COMFINO_TAX_ID'));
                 Configuration::updateValue(
                     'COMFINO_PAYMENT_PRESENTATION',
                     Tools::getValue('COMFINO_PAYMENT_PRESENTATION')
@@ -506,7 +502,6 @@ class Comfino extends PaymentModule
         $helper->fields_value['COMFINO_PAYMENT_TEXT'] = Configuration::get('COMFINO_PAYMENT_TEXT');
         $helper->fields_value['COMFINO_API_KEY'] = Configuration::get('COMFINO_API_KEY');
         $helper->fields_value['COMFINO_PAYMENT_PRESENTATION'] = Configuration::get('COMFINO_PAYMENT_PRESENTATION');
-        $helper->fields_value['COMFINO_TAX_ID'] = Configuration::get('COMFINO_TAX_ID');
         $helper->fields_value['COMFINO_MINIMAL_CART_AMOUNT'] = Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
 
         $helper->fields_value = array_merge($helper->fields_value, ComfinoApi::getCategoryOfferFilters(true));
@@ -623,12 +618,6 @@ class Comfino extends PaymentModule
                     'type' => 'text',
                     'label' => $this->l('API key'),
                     'name' => 'COMFINO_API_KEY',
-                    'required' => true
-                ],
-                [
-                    'type' => 'text',
-                    'label' => $this->l('Tax ID'),
-                    'name' => 'COMFINO_TAX_ID',
                     'required' => true
                 ],
                 [
@@ -985,7 +974,7 @@ class Comfino extends PaymentModule
      */
     private function checkConfiguration()
     {
-        return Configuration::get('COMFINO_API_KEY') !== null && Configuration::get('COMFINO_TAX_ID') !== null;
+        return Configuration::get('COMFINO_API_KEY') !== null;
     }
 
     /**
@@ -1054,7 +1043,6 @@ document.getElementsByTagName('head')[0].appendChild(script);
     {
         return Configuration::deleteByName('COMFINO_PAYMENT_TEXT') &&
             Configuration::deleteByName('COMFINO_API_KEY') &&
-            Configuration::deleteByName('COMFINO_TAX_ID') &&
             Configuration::deleteByName('COMFINO_MINIMAL_CART_AMOUNT') &&
             Configuration::deleteByName('COMFINO_WIDGET_ENABLED') &&
             Configuration::deleteByName('COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES') &&

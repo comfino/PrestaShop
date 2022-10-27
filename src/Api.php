@@ -116,9 +116,6 @@ class ComfinoApi
                     'city' => $address[$cart->id_address_delivery]->city,
                     'countryCode' => 'PL'
                 ]
-            ],
-            'seller' => [
-                'taxId' => Configuration::get("COMFINO_TAX_ID")
             ]
         ];
 
