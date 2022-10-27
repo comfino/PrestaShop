@@ -242,9 +242,11 @@ class ComfinoApi
     }
 
     /**
+     * @param bool $add_name_suffix
+     *
      * @return array
      */
-    public static function getCategoryOfferFilters()
+    public static function getCategoryOfferFilters($add_name_suffix = false)
     {
         $payment_enabled = array_map(
             static function ($cat_id) { return (int)$cat_id; },
@@ -279,15 +281,17 @@ class ComfinoApi
             explode(',', Configuration::get('COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES'))
         );
 
+        $name_suffix = ($add_name_suffix ? '[]' : '');
+
         return [
-            'COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES' => $payment_enabled,
-            'COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES' => $payment_disabled,
-            'COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES' => $zero_percent_enabled,
-            'COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES' => $zero_percent_disabled,
-            'COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES' => $convenient_install_enabled,
-            'COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES' => $convenient_install_disabled,
-            'COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES' => $pay_later_enabled,
-            'COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES' => $pay_later_disabled
+            "COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES$name_suffix" => $payment_enabled,
+            "COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES$name_suffix" => $payment_disabled,
+            "COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES$name_suffix" => $zero_percent_enabled,
+            "COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES$name_suffix" => $zero_percent_disabled,
+            "COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES$name_suffix" => $convenient_install_enabled,
+            "COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES$name_suffix" => $convenient_install_disabled,
+            "COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES$name_suffix" => $pay_later_enabled,
+            "COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES$name_suffix" => $pay_later_disabled
         ];
     }
 

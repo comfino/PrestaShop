@@ -509,7 +509,7 @@ class Comfino extends PaymentModule
         $helper->fields_value['COMFINO_TAX_ID'] = Configuration::get('COMFINO_TAX_ID');
         $helper->fields_value['COMFINO_MINIMAL_CART_AMOUNT'] = Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
 
-        $helper->fields_value = array_merge($helper->fields_value, ComfinoApi::getCategoryOfferFilters());
+        $helper->fields_value = array_merge($helper->fields_value, ComfinoApi::getCategoryOfferFilters(true));
 
         $helper->fields_value['COMFINO_IS_SANDBOX'] = Configuration::get('COMFINO_IS_SANDBOX');
         $helper->fields_value['COMFINO_SANDBOX_API_KEY'] = Configuration::get('COMFINO_SANDBOX_API_KEY');
