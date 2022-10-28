@@ -84,7 +84,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $authorized = false;
 
         foreach (Module::getPaymentModules() as $module) {
-            if ($module['name'] == 'comfino') {
+            if ($module['name'] === 'comfino') {
                 $authorized = true;
 
                 break;

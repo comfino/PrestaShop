@@ -261,11 +261,11 @@ class ComfinoApi
             static function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES'))
         );
-        $convenient_install_enabled = array_map(
+        $convenient_inst_enabled = array_map(
             static function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES'))
         );
-        $convenient_install_disabled = array_map(
+        $convenient_inst_disabled = array_map(
             static function ($cat_id) { return (int)$cat_id; },
             explode(',', Configuration::get('COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES'))
         );
@@ -285,8 +285,8 @@ class ComfinoApi
             "COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES$name_suffix" => $payment_disabled,
             "COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES$name_suffix" => $zero_percent_enabled,
             "COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES$name_suffix" => $zero_percent_disabled,
-            "COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES$name_suffix" => $convenient_install_enabled,
-            "COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES$name_suffix" => $convenient_install_disabled,
+            "COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES$name_suffix" => $convenient_inst_enabled,
+            "COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES$name_suffix" => $convenient_inst_disabled,
             "COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES$name_suffix" => $pay_later_enabled,
             "COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES$name_suffix" => $pay_later_disabled
         ];
@@ -303,6 +303,10 @@ class ComfinoApi
         $payment_enabled = $category_filters['COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES'];
         $payment_disabled = $category_filters['COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES'];
 
+        if (in_array(0, $payment_enabled, true) && in_array(0, $payment_disabled, true)) {
+            return true;
+        }
+
         return self::cartItemsValid($cart, $payment_enabled, $payment_disabled);
     }
 
@@ -317,14 +321,14 @@ class ComfinoApi
         $category_filters = self::getCategoryOfferFilters();
         $zero_percent_enabled = $category_filters['COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES'];
         $zero_percent_disabled = $category_filters['COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES'];
-        $convenient_install_enabled = $category_filters['COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES'];
-        $convenient_install_disabled = $category_filters['COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES'];
+        $convenient_inst_enabled = $category_filters['COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES'];
+        $convenient_inst_disabled = $category_filters['COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES'];
         $pay_later_enabled = $category_filters['COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES'];
         $pay_later_disabled = $category_filters['COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES'];
 
         if (
             !count($zero_percent_enabled) && !count($zero_percent_disabled) &&
-            !count($convenient_install_enabled) && !count($convenient_install_disabled) &&
+            !count($convenient_inst_enabled) && !count($convenient_inst_disabled) &&
             !count($pay_later_enabled) && !count($pay_later_disabled)
         ) {
             return $offers;
@@ -333,12 +337,12 @@ class ComfinoApi
         $offer_filters = [
             'pass' => [
                 self::INSTALLMENTS_ZERO_PERCENT => $zero_percent_enabled,
-                self::CONVENIENT_INSTALLMENTS => $convenient_install_enabled,
+                self::CONVENIENT_INSTALLMENTS => $convenient_inst_enabled,
                 self::PAY_LATER => $pay_later_enabled
             ],
             'reject' => [
                 self::INSTALLMENTS_ZERO_PERCENT => $zero_percent_disabled,
-                self::CONVENIENT_INSTALLMENTS => $convenient_install_disabled,
+                self::CONVENIENT_INSTALLMENTS => $convenient_inst_disabled,
                 self::PAY_LATER => $pay_later_disabled
             ]
         ];
@@ -368,7 +372,7 @@ class ComfinoApi
     {
         $cart_valid = true;
 
-        if (count($reject_filter)) {
+        if (count($reject_filter) && !in_array(0, $reject_filter, true)) {
             foreach ($cart->getProducts() as $product) {
                 if (in_array((int)$product['id_category_default'], $reject_filter, true)) {
                     $cart_valid = false;
@@ -386,7 +390,7 @@ class ComfinoApi
             }
         }
 
-        if ($cart_valid && count($pass_filter)) {
+        if ($cart_valid && count($pass_filter) && !in_array(0, $pass_filter, true)) {
             $valid_prod_cnt = 0;
 
             foreach ($cart->getProducts() as $product) {

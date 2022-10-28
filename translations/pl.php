@@ -84,3 +84,4 @@ $_MODULE['<{comfino}prestashop>comfino_96851dc2ca18880d0549d7c4270119ea'] = 'lub
 $_MODULE['<{comfino}prestashop>comfino_62f5d708d6ad1fa1ddd9429a65cccbea'] = 'Wszystkie kategorie';
 $_MODULE['<{comfino}prestashop>comfino_2bbba9b4d3be71119411c744ec6f1841'] = 'włączone dla kategorii';
 $_MODULE['<{comfino}prestashop>comfino_089f3781d6a5d7042a2456bb1b93eb9f'] = 'wyłączone dla kategorii';
+$_MODULE['<{comfino}prestashop>comfino_b2368b59bfec55786e6afe8911b6d53b'] = 'Filtr nieaktywny';
