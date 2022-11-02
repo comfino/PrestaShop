@@ -86,3 +86,4 @@ $_MODULE['<{comfino}prestashop>comfino_2bbba9b4d3be71119411c744ec6f1841'] = 'wł
 $_MODULE['<{comfino}prestashop>comfino_089f3781d6a5d7042a2456bb1b93eb9f'] = 'wyłączone dla kategorii';
 $_MODULE['<{comfino}prestashop>comfino_b2368b59bfec55786e6afe8911b6d53b'] = 'Filtr nieaktywny';
 $_MODULE['<{comfino}prestashop>comfino_f3ebffd526642b32c38f50c59f1940df'] = 'Nieprawidłowy numer NIP.';
+$_MODULE['<{comfino}prestashop>comfino_3e0ede60f9789db92b546cd69e061a43'] = 'Klucz API %s jest nieprawidłowy.';

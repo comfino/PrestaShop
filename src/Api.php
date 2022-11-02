@@ -203,6 +203,16 @@ class ComfinoApi
     }
 
     /**
+     * @return bool
+     */
+    public static function isApiKeyValid()
+    {
+        $response = self::sendRequest(self::getApiHost().'/v1/user/is-active', 'GET', [], null, false);
+
+        return strpos($response, 'errors') === false;
+    }
+
+    /**
      * @return string
      */
     public static function getLogoUrl()

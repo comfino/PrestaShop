@@ -175,16 +175,20 @@ class Comfino extends PaymentModule
                     ComfinoApi::setApiHost($apiHost);
                     ComfinoApi::setApiKey($apiKey);
 
-                    $widgetKey = ComfinoApi::getWidgetKey();
+                    if (!ComfinoApi::isApiKeyValid()) {
+                        $output[] = sprintf($this->l('API key %s is not valid.'), $apiKey);
+                    } else {
+                        $widgetKey = ComfinoApi::getWidgetKey();
 
-                    if (is_array($widgetKey)) {
-                        if (isset($widgetKey['errors'])) {
-                            $output = array_merge($output, $widgetKey['errors']);
-                            $outputType = 'warning';
-                            $widgetKeyError = true;
+                        if (is_array($widgetKey)) {
+                            if (isset($widgetKey['errors'])) {
+                                $output = array_merge($output, $widgetKey['errors']);
+                                $outputType = 'warning';
+                                $widgetKeyError = true;
+                            }
+
+                            $widgetKey = '';
                         }
-
-                        $widgetKey = '';
                     }
                 }
             }
