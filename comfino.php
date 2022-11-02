@@ -103,7 +103,7 @@ class Comfino extends PaymentModule
             $ps16hooks &&
             $this->registerHook('displayBackofficeComfinoForm') &&
             $this->registerHook('actionOrderStatusPostUpdate') &&
-            $this->registerHook('actionValidateOrder') &&
+            $this->registerHook('actionValidateCustomerAddressForm') &&
             $this->registerHook('header');
     }
 
@@ -127,6 +127,7 @@ class Comfino extends PaymentModule
             $ps16hooks &&
             $this->unregisterHook('displayBackofficeComfinoForm') &&
             $this->unregisterHook('actionOrderStatusPostUpdate') &&
+            $this->unregisterHook('actionValidateCustomerAddressForm') &&
             $this->unregisterHook('header');
     }
 
@@ -497,13 +498,21 @@ class Comfino extends PaymentModule
     /**
      * @param array $params
      *
-     * @return void
+     * @return string
      */
-    public function hookActionValidateOrder($params)
+    public function hookActionValidateCustomerAddressForm($params)
     {
-        $order = $params['order'];
-        $customer = $params['customer'];
-        $delivery = new Address((int)$order->id_address_delivery);
+        $vat_number = $params['form']->getField('vat_number');
+
+        if (!empty($vat_number->getValue())) {
+            if (!$this->isValidTaxId($vat_number->getValue())) {
+                $vat_number->addError($this->l('Invalid VAT number.'));
+
+                return '0';
+            }
+        }
+
+        return '1';
     }
 
     /**
@@ -616,27 +625,27 @@ class Comfino extends PaymentModule
      */
     private function buildCategoriesList($categories, $position)
     {
-        $categories_list = [];
-        $subcategories_list = [];
+        $cat_list = [];
+        $subcat_list = [];
 
         foreach ($categories as $category) {
-            $categories_list[] = [
+            $cat_list[] = [
                 'key' => $category['id_category'],
                 'name' => str_repeat('&nbsp;&nbsp;', $category['level_depth'] - 1).$category['name'],
                 'position' => $category['position'] + $position
             ];
 
             if (isset($category['children'])) {
-                $subcategories_list[] = $this->buildCategoriesList($category['children'], count($categories_list) + $position);
-                $position += count($subcategories_list[count($subcategories_list) - 1]);
+                $subcat_list[] = $this->buildCategoriesList($category['children'], count($cat_list) + $position);
+                $position += count($subcat_list[count($subcat_list) - 1]);
             }
         }
 
-        $categories_list = array_merge($categories_list, ...$subcategories_list);
+        $cat_list = array_merge($cat_list, ...$subcat_list);
 
-        usort($categories_list, static function ($val1, $val2) { return $val1['position'] - $val2['position']; });
+        usort($cat_list, static function ($val1, $val2) { return $val1['position'] - $val2['position']; });
 
-        return $categories_list;
+        return $cat_list;
     }
 
     /**
@@ -1107,25 +1116,25 @@ document.getElementsByTagName('head')[0].appendChild(script);
     }
 
     /**
-     * @param string $taxId
+     * @param string $tax_id
      *
      * @return bool
      */
-    private function isValidTaxId($taxId)
+    private function isValidTaxId($tax_id)
     {
-        if (empty($taxId) || strlen($taxId) !== 10 || !preg_match('/^\d+$/', $taxId)) {
+        if (empty($tax_id) || strlen($tax_id) !== 10 || !preg_match('/^\d+$/', $tax_id)) {
             return false;
         }
 
-        $arrSteps = [6, 5, 7, 2, 3, 4, 5, 6, 7];
-        $intSum = 0;
+        $arr_steps = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+        $int_sum = 0;
 
         for ($i = 0; $i < 9; ++$i) {
-            $intSum += $arrSteps[$i] * $taxId[$i];
+            $int_sum += $arr_steps[$i] * $tax_id[$i];
         }
 
-        $int = $intSum % 11;
+        $int = $int_sum % 11;
 
-        return ($int === 10 ? 0 : $int) === (int)$taxId[9];
+        return ($int === 10 ? 0 : $int) === (int)$tax_id[9];
     }
 }

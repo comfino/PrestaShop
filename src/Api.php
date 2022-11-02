@@ -633,7 +633,10 @@ class ComfinoApi
             $subcategories_list = [];
 
             foreach ($input_categories as $category) {
-                $categories_list[] = ['id' => (int)$category['id_category'], 'parent_id' => (int)$category['id_parent']];
+                $categories_list[] = [
+                    'id' => (int)$category['id_category'],
+                    'parent_id' => (int)$category['id_parent']
+                ];
 
                 if (isset($category['children'])) {
                     $subcategories_list[] = self::getCategoriesTree($category['children']);
