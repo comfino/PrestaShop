@@ -198,40 +198,6 @@ class Comfino extends PaymentModule
                 $output[] = $this->l('Settings not updated.');
             } else {
                 // Payment settings
-                $payment_enabled = Tools::getValue('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES');
-                $payment_disabled = Tools::getValue('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES');
-                $zero_percent_enabled = Tools::getValue('COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES');
-                $zero_percent_disabled = Tools::getValue('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES');
-                $convenient_inst_enabled = Tools::getValue('COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES');
-                $convenient_inst_disabled = Tools::getValue('COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES');
-                $pay_later_enabled = Tools::getValue('COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES');
-                $pay_later_disabled = Tools::getValue('COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES');
-
-                if (in_array(0, $payment_enabled, true)) {
-                    $payment_enabled = [0];
-                }
-                if (in_array(0, $payment_disabled, true)) {
-                    $payment_disabled = [0];
-                }
-                if (in_array(0, $zero_percent_enabled, true)) {
-                    $zero_percent_enabled = [0];
-                }
-                if (in_array(0, $zero_percent_disabled, true)) {
-                    $zero_percent_disabled = [0];
-                }
-                if (in_array(0, $convenient_inst_enabled, true)) {
-                    $convenient_inst_enabled = [0];
-                }
-                if (in_array(0, $convenient_inst_disabled, true)) {
-                    $convenient_inst_disabled = [0];
-                }
-                if (in_array(0, $pay_later_enabled, true)) {
-                    $pay_later_enabled = [0];
-                }
-                if (in_array(0, $pay_later_disabled, true)) {
-                    $pay_later_disabled = [0];
-                }
-
                 Configuration::updateValue('COMFINO_API_KEY', Tools::getValue('COMFINO_API_KEY'));
                 Configuration::updateValue(
                     'COMFINO_PAYMENT_PRESENTATION',
@@ -241,32 +207,6 @@ class Comfino extends PaymentModule
                 Configuration::updateValue(
                     'COMFINO_MINIMAL_CART_AMOUNT',
                     Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT')
-                );
-                Configuration::updateValue('COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES', implode(',', $payment_enabled));
-                Configuration::updateValue('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES', implode(',', $payment_disabled));
-                Configuration::updateValue(
-                    'COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES',
-                    implode(',', $zero_percent_enabled)
-                );
-                Configuration::updateValue(
-                    'COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES',
-                    implode(',', $zero_percent_disabled)
-                );
-                Configuration::updateValue(
-                    'COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES',
-                    implode(',', $convenient_inst_enabled)
-                );
-                Configuration::updateValue(
-                    'COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES',
-                    implode(',', $convenient_inst_disabled)
-                );
-                Configuration::updateValue(
-                    'COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES',
-                    implode(',', $pay_later_enabled)
-                );
-                Configuration::updateValue(
-                    'COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES',
-                    implode(',', $pay_later_disabled)
                 );
 
                 // Widget
@@ -557,9 +497,6 @@ class Comfino extends PaymentModule
         $helper->fields_value['COMFINO_API_KEY'] = Configuration::get('COMFINO_API_KEY');
         $helper->fields_value['COMFINO_PAYMENT_PRESENTATION'] = Configuration::get('COMFINO_PAYMENT_PRESENTATION');
         $helper->fields_value['COMFINO_MINIMAL_CART_AMOUNT'] = Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
-
-        $helper->fields_value = array_merge($helper->fields_value, ComfinoApi::getCategoryOfferFilters(true));
-
         $helper->fields_value['COMFINO_IS_SANDBOX'] = Configuration::get('COMFINO_IS_SANDBOX');
         $helper->fields_value['COMFINO_SANDBOX_API_KEY'] = Configuration::get('COMFINO_SANDBOX_API_KEY');
         $helper->fields_value['COMFINO_WIDGET_ENABLED'] = Configuration::get('COMFINO_WIDGET_ENABLED');
@@ -622,46 +559,11 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * @param array $categories
-     * @param int $position
-     *
-     * @return array
-     */
-    private function buildCategoriesList($categories, $position)
-    {
-        $cat_list = [];
-        $subcat_list = [];
-
-        foreach ($categories as $category) {
-            $cat_list[] = [
-                'key' => $category['id_category'],
-                'name' => str_repeat('&nbsp;&nbsp;', $category['level_depth'] - 1).$category['name'],
-                'position' => $category['position'] + $position
-            ];
-
-            if (isset($category['children'])) {
-                $subcat_list[] = $this->buildCategoriesList($category['children'], count($cat_list) + $position);
-                $position += count($subcat_list[count($subcat_list) - 1]);
-            }
-        }
-
-        $cat_list = array_merge($cat_list, ...$subcat_list);
-
-        usort($cat_list, static function ($val1, $val2) { return $val1['position'] - $val2['position']; });
-
-        return $cat_list;
-    }
-
-    /**
      * @return array
      */
     private function getFormFields()
     {
         $fields = [];
-        $categories = array_merge(
-            [['key' => 0, 'name' => $this->l('Filter inactive')]],
-            $this->buildCategoriesList(Category::getNestedCategories(), 0)
-        );
 
         $fields[0]['form'] = [
             'legend' => [
@@ -700,110 +602,6 @@ class Comfino extends PaymentModule
                     'label' => $this->l('Minimal amount in cart'),
                     'name' => 'COMFINO_MINIMAL_CART_AMOUNT',
                     'required' => true
-                ],
-                [
-                    'type' => 'select',
-                    'label' => $this->l('Comfino payments'). ' '.$this->l('enabled for categories'),
-                    'name' => 'COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES',
-                    'required' => false,
-                    'multiple' => true,
-                    'options' => [
-                        'query' => $categories,
-                        'id' => 'key',
-                        'name' => 'name'
-                    ],
-                    'desc' => ''
-                ],
-                [
-                    'type' => 'select',
-                    'label' => $this->l('Comfino payments'). ' '.$this->l('disabled for categories'),
-                    'name' => 'COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES',
-                    'required' => false,
-                    'multiple' => true,
-                    'options' => [
-                        'query' => $categories,
-                        'id' => 'key',
-                        'name' => 'name'
-                    ],
-                    'desc' => ''
-                ],
-                [
-                    'type' => 'select',
-                    'label' => '"'.$this->l('Zero percent installments').'" '.$this->l('enabled for categories'),
-                    'name' => 'COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES',
-                    'required' => false,
-                    'multiple' => true,
-                    'options' => [
-                        'query' => $categories,
-                        'id' => 'key',
-                        'name' => 'name'
-                    ],
-                    'desc' => ''
-                ],
-                [
-                    'type' => 'select',
-                    'label' => '"'.$this->l('Zero percent installments').'" '.$this->l('disabled for categories'),
-                    'name' => 'COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES',
-                    'required' => false,
-                    'multiple' => true,
-                    'options' => [
-                        'query' => $categories,
-                        'id' => 'key',
-                        'name' => 'name'
-                    ],
-                    'desc' => ''
-                ],
-                [
-                    'type' => 'select',
-                    'label' => '"'.$this->l('Convenient installments').'" '.$this->l('enabled for categories'),
-                    'name' => 'COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES',
-                    'required' => false,
-                    'multiple' => true,
-                    'options' => [
-                        'query' => $categories,
-                        'id' => 'key',
-                        'name' => 'name'
-                    ],
-                    'desc' => ''
-                ],
-                [
-                    'type' => 'select',
-                    'label' => '"'.$this->l('Convenient installments').'" '.$this->l('disabled for categories'),
-                    'name' => 'COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES',
-                    'required' => false,
-                    'multiple' => true,
-                    'options' => [
-                        'query' => $categories,
-                        'id' => 'key',
-                        'name' => 'name'
-                    ],
-                    'desc' => ''
-                ],
-                [
-                    'type' => 'select',
-                    'label' => '"'.$this->l('Pay later').'" '.$this->l('enabled for categories'),
-                    'name' => 'COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES',
-                    'required' => false,
-                    'multiple' => true,
-                    'options' => [
-                        'query' => $categories,
-                        'id' => 'key',
-                        'name' => 'name'
-                    ],
-                    'desc' => ''
-                ],
-                [
-                    'type' => 'select',
-                    'label' => '"'.$this->l('Pay later').'" '.$this->l('disabled for categories'),
-                    'name' => 'COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES',
-                    'required' => false,
-                    'multiple' => true,
-                    'options' => [
-                        'query' => $categories,
-                        'id' => 'key',
-                        'name' => 'name'
-                    ],
-                    'desc' => ''
                 ]
             ],
             'submit' => [
@@ -1099,14 +897,6 @@ document.getElementsByTagName('head')[0].appendChild(script);
             Configuration::deleteByName('COMFINO_API_KEY') &&
             Configuration::deleteByName('COMFINO_MINIMAL_CART_AMOUNT') &&
             Configuration::deleteByName('COMFINO_WIDGET_ENABLED') &&
-            Configuration::deleteByName('COMFINO_PAYMENT_ENABLED_FOR_CATEGORIES') &&
-            Configuration::deleteByName('COMFINO_PAYMENT_DISABLED_FOR_CATEGORIES') &&
-            Configuration::deleteByName('COMFINO_INSTALLMENTS_ZERO_PERCENT_ENABLED_FOR_CATEGORIES') &&
-            Configuration::deleteByName('COMFINO_INSTALLMENTS_ZERO_PERCENT_DISABLED_FOR_CATEGORIES') &&
-            Configuration::deleteByName('COMFINO_CONVENIENT_INSTALLMENTS_ENABLED_FOR_CATEGORIES') &&
-            Configuration::deleteByName('COMFINO_CONVENIENT_INSTALLMENTS_DISABLED_FOR_CATEGORIES') &&
-            Configuration::deleteByName('COMFINO_PAY_LATER_ENABLED_FOR_CATEGORIES') &&
-            Configuration::deleteByName('COMFINO_PAY_LATER_DISABLED_FOR_CATEGORIES') &&
             Configuration::deleteByName('COMFINO_IS_SANDBOX') &&
             Configuration::deleteByName('COMFINO_SANDBOX_API_KEY') &&
             Configuration::deleteByName('COMFINO_WIDGET_ENABLED') &&
