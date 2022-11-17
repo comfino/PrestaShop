@@ -320,13 +320,10 @@ class Comfino extends PaymentModule
             return;
         }
 
-        if (!ComfinoApi::comfinoPaymentsAvailable($params['cart'])) {
-            return;
-        }
-
         ErrorLogger::init();
 
         $minimal_cart_amount = (float)Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
+
         if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
             return;
         }
