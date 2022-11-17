@@ -274,10 +274,6 @@ class Comfino extends PaymentModule
             return;
         }
 
-        if (!ComfinoApi::comfinoPaymentsAvailable($params['cart'])) {
-            return;
-        }
-
         ErrorLogger::init();
 
         $this->smarty->assign($this->getTemplateVars());

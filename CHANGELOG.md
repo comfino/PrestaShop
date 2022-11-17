@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.2.1](https://github.com/comfino/PrestaShop/tree/2.2.1) (2022-11-16)
+## [2.2.1](https://github.com/comfino/PrestaShop/tree/2.2.1) (2022-11-17)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.0...2.2.1)
 
