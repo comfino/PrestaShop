@@ -81,3 +81,5 @@ $_MODULE['<{comfino}prestashop>comfino_5d8c37b6154bdd3e7449eab7adbd862b'] = 'Pop
 $_MODULE['<{comfino}prestashop>comfino_747cd447bafcc9856739067bcde5663b'] = 'PrestaShop %s Comfino %s - pytanie';
 $_MODULE['<{comfino}prestashop>comfino_1dc6e1130e15c739199d363237758471'] = 'Chcesz o coś zapytać? Napisz do nas na adres';
 $_MODULE['<{comfino}prestashop>comfino_96851dc2ca18880d0549d7c4270119ea'] = 'lub skontaktuj się telefonicznie. Czekamy pod numerem: %s. Odpowiemy na każde Twoje pytanie!';
+$_MODULE['<{comfino}prestashop>comfino_f3ebffd526642b32c38f50c59f1940df'] = 'Nieprawidłowy numer NIP.';
+$_MODULE['<{comfino}prestashop>comfino_3e0ede60f9789db92b546cd69e061a43'] = 'Klucz API %s jest nieprawidłowy.';

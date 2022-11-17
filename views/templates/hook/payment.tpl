@@ -695,6 +695,8 @@
          */
         initPayments()
         {
+            let pluginInitialized = false;
+
             document.getElementById('pay-with-comperia').addEventListener('click', () => {
                 let offerWrapper = document.getElementById('comfino-offer-items');
 
@@ -748,10 +750,16 @@
                             event.preventDefault();
                             document.getElementById('modal-repr-example').classList.remove('open');
                         });
+
+                        pluginInitialized = true;
                     }).catch((error) => {
                         offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
                     });
             });
+
+            if (!pluginInitialized) {
+                console.warn('Comfino plugin not initialized.');
+            }
         }
     };
 

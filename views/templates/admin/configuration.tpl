@@ -51,11 +51,11 @@
                 <img style="width: 300px" src="{$logoUrl|escape:'htmlall':'UTF-8'}" alt="Comfino logo">
             </div>
             <div class="panel-body">
-                {$contactMsg1}
+                {$contactMsg1|escape:'htmlall':'UTF-8'}
                 <a href="mailto:{$supportEmailAddress}?subject={$supportEmailSubject}&body={$supportEmailBody}">
                     {$supportEmailAddress}
                 </a>
-                {$contactMsg2}
+                {$contactMsg2|escape:'htmlall':'UTF-8'}
             </div>
             <div class="panel-body">
                 {hook h='displayBackofficeComfinoForm'}

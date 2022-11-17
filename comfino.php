@@ -77,6 +77,9 @@ class Comfino extends PaymentModule
         );
     }
 
+    /**
+     * @return bool
+     */
     public function install()
     {
         ErrorLogger::init();
@@ -100,9 +103,13 @@ class Comfino extends PaymentModule
             $ps16hooks &&
             $this->registerHook('displayBackofficeComfinoForm') &&
             $this->registerHook('actionOrderStatusPostUpdate') &&
+            $this->registerHook('actionValidateCustomerAddressForm') &&
             $this->registerHook('header');
     }
 
+    /**
+     * @return bool
+     */
     public function uninstall()
     {
         include 'sql/uninstall.php';
@@ -120,9 +127,13 @@ class Comfino extends PaymentModule
             $ps16hooks &&
             $this->unregisterHook('displayBackofficeComfinoForm') &&
             $this->unregisterHook('actionOrderStatusPostUpdate') &&
+            $this->unregisterHook('actionValidateCustomerAddressForm') &&
             $this->unregisterHook('header');
     }
 
+    /**
+     * @return string
+     */
     public function getContent()
     {
         ErrorLogger::init();
@@ -133,9 +144,6 @@ class Comfino extends PaymentModule
         if (Tools::isSubmit('submit_configuration')) {
             if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
                 $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('API key'));
-            }
-            if (Tools::isEmpty(Tools::getValue('COMFINO_TAX_ID'))) {
-                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Tax ID'));
             }
             if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_PRESENTATION'))) {
                 $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Payment presentation'));
@@ -167,16 +175,20 @@ class Comfino extends PaymentModule
                     ComfinoApi::setApiHost($apiHost);
                     ComfinoApi::setApiKey($apiKey);
 
-                    $widgetKey = ComfinoApi::getWidgetKey();
+                    if (!ComfinoApi::isApiKeyValid()) {
+                        $output[] = sprintf($this->l('API key %s is not valid.'), $apiKey);
+                    } else {
+                        $widgetKey = ComfinoApi::getWidgetKey();
 
-                    if (is_array($widgetKey)) {
-                        if (isset($widgetKey['errors'])) {
-                            $output = array_merge($output, $widgetKey['errors']);
-                            $outputType = 'warning';
-                            $widgetKeyError = true;
+                        if (is_array($widgetKey)) {
+                            if (isset($widgetKey['errors'])) {
+                                $output = array_merge($output, $widgetKey['errors']);
+                                $outputType = 'warning';
+                                $widgetKeyError = true;
+                            }
+
+                            $widgetKey = '';
                         }
-
-                        $widgetKey = '';
                     }
                 }
             }
@@ -187,7 +199,6 @@ class Comfino extends PaymentModule
             } else {
                 // Payment settings
                 Configuration::updateValue('COMFINO_API_KEY', Tools::getValue('COMFINO_API_KEY'));
-                Configuration::updateValue('COMFINO_TAX_ID', Tools::getValue('COMFINO_TAX_ID'));
                 Configuration::updateValue(
                     'COMFINO_PAYMENT_PRESENTATION',
                     Tools::getValue('COMFINO_PAYMENT_PRESENTATION')
@@ -259,15 +270,7 @@ class Comfino extends PaymentModule
      */
     public function hookPayment($params)
     {
-        if (!$this->active) {
-            return;
-        }
-
-        if (!$this->checkCurrency($params['cart'])) {
-            return;
-        }
-
-        if (!$this->checkConfiguration()) {
+        if (!$this->active || !$this->checkCurrency($params['cart']) || !$this->checkConfiguration()) {
             return;
         }
 
@@ -275,7 +278,7 @@ class Comfino extends PaymentModule
 
         $this->smarty->assign($this->getTemplateVars());
 
-        $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
+        $minimal_cart_amount = (float)Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
         if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
             return;
         }
@@ -283,6 +286,11 @@ class Comfino extends PaymentModule
         return $this->display(__FILE__, 'payment.tpl');
     }
 
+    /**
+     * @param Cart $cart
+     *
+     * @return bool
+     */
     public function checkCurrency($cart)
     {
         $currency_order = new Currency($cart->id_currency);
@@ -302,27 +310,20 @@ class Comfino extends PaymentModule
     /**
      * Prestashop 1.7.* compatibility.
      *
-     * @param $params
+     * @param array $params
      *
      * @return PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
      */
     public function hookPaymentOptions($params)
     {
-        if (!$this->active) {
-            return;
-        }
-
-        if (!$this->checkCurrency($params['cart'])) {
-            return;
-        }
-
-        if (!$this->checkConfiguration()) {
+        if (!$this->active || !$this->checkCurrency($params['cart']) || !$this->checkConfiguration()) {
             return;
         }
 
         ErrorLogger::init();
 
-        $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
+        $minimal_cart_amount = (float)Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
+
         if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
             return;
         }
@@ -354,6 +355,13 @@ class Comfino extends PaymentModule
         return [$newOption];
     }
 
+    /**
+     * @param array $params
+     *
+     * @return string
+     *
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     */
     public function hookPaymentReturn($params)
     {
         if (!$this->active) {
@@ -397,23 +405,56 @@ class Comfino extends PaymentModule
         return '';
     }
 
+    /**
+     * @param array $params
+     *
+     * @return string
+     */
     public function hookDisplayBackofficeComfinoForm($params)
     {
         return $this->displayForm();
     }
 
+    /**
+     * @param array $params
+     *
+     * @return void
+     */
     public function hookActionOrderStatusPostUpdate($params)
     {
         ErrorLogger::init();
 
-        /** @var OrderState $orderState */
-        $orderState = $params['newOrderStatus'];
+        /** @var OrderState $order_state */
+        $order_state = $params['newOrderStatus'];
 
-        if ($orderState->id == Configuration::get('PS_OS_CANCELED')) {
+        if ($order_state->id == Configuration::get('PS_OS_CANCELED')) {
             ComfinoApi::cancelOrder($params['id_order']);
         }
     }
 
+    /**
+     * @param array $params
+     *
+     * @return string
+     */
+    public function hookActionValidateCustomerAddressForm($params)
+    {
+        $vat_number = $params['form']->getField('vat_number');
+
+        if (!empty($vat_number->getValue())) {
+            if (!$this->isValidTaxId($vat_number->getValue())) {
+                $vat_number->addError($this->l('Invalid VAT number.'));
+
+                return '0';
+            }
+        }
+
+        return '1';
+    }
+
+    /**
+     * @return void
+     */
     public function hookHeader()
     {
         if (Configuration::get('COMFINO_WIDGET_ENABLED')) {
@@ -439,13 +480,15 @@ class Comfino extends PaymentModule
         }
     }
 
+    /**
+     * @return string
+     */
     public function displayForm()
     {
         $helper = $this->getHelperForm('submit_configuration');
         $helper->fields_value['COMFINO_PAYMENT_TEXT'] = Configuration::get('COMFINO_PAYMENT_TEXT');
         $helper->fields_value['COMFINO_API_KEY'] = Configuration::get('COMFINO_API_KEY');
         $helper->fields_value['COMFINO_PAYMENT_PRESENTATION'] = Configuration::get('COMFINO_PAYMENT_PRESENTATION');
-        $helper->fields_value['COMFINO_TAX_ID'] = Configuration::get('COMFINO_TAX_ID');
         $helper->fields_value['COMFINO_MINIMAL_CART_AMOUNT'] = Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
         $helper->fields_value['COMFINO_IS_SANDBOX'] = Configuration::get('COMFINO_IS_SANDBOX');
         $helper->fields_value['COMFINO_SANDBOX_API_KEY'] = Configuration::get('COMFINO_SANDBOX_API_KEY');
@@ -462,10 +505,17 @@ class Comfino extends PaymentModule
         return $helper->generateForm($this->getFormFields());
     }
 
+    /**
+     * @param string $submit_action
+     * @param string $form_template_dir
+     * @param string $form_template
+     *
+     * @return HelperForm
+     */
     private function getHelperForm($submit_action, $form_template_dir = null, $form_template = null)
     {
         $helper = new HelperForm();
-        $language = (int) Configuration::get('PS_LANG_DEFAULT');
+        $language = (int)Configuration::get('PS_LANG_DEFAULT');
 
         $helper->module = $this;
         $helper->name_controller = $this->name;
@@ -479,7 +529,7 @@ class Comfino extends PaymentModule
         // Title and toolbar
         $helper->title = $this->displayName;
         $helper->show_toolbar = true; // false -> remove toolbar
-        $helper->toolbar_scroll = true; // yes - > Toolbar is always visible on the top of the screen.
+        $helper->toolbar_scroll = true; // yes - > Toolbar is always visible at the top of the screen.
         $helper->submit_action = $submit_action;
         $helper->toolbar_btn = [
             'save' => [
@@ -501,6 +551,9 @@ class Comfino extends PaymentModule
         return $helper;
     }
 
+    /**
+     * @return array
+     */
     private function getFormFields()
     {
         $fields = [];
@@ -514,12 +567,6 @@ class Comfino extends PaymentModule
                     'type' => 'text',
                     'label' => $this->l('API key'),
                     'name' => 'COMFINO_API_KEY',
-                    'required' => true
-                ],
-                [
-                    'type' => 'text',
-                    'label' => $this->l('Tax ID'),
-                    'name' => 'COMFINO_TAX_ID',
                     'required' => true
                 ],
                 [
@@ -622,9 +669,15 @@ class Comfino extends PaymentModule
                     'required' => false,
                     'options' => [
                         'query' => [
-                            ['key' => 'INSTALLMENTS_ZERO_PERCENT', 'name' => $this->l('Zero percent installments')],
-                            ['key' => 'CONVENIENT_INSTALLMENTS', 'name' => $this->l('Convenient installments')],
-                            ['key' => 'PAY_LATER', 'name' => $this->l('Pay later')],
+                            [
+                                'key' => ComfinoApi::INSTALLMENTS_ZERO_PERCENT,
+                                'name' => $this->l('Zero percent installments')
+                            ],
+                            [
+                                'key' => ComfinoApi::CONVENIENT_INSTALLMENTS,
+                                'name' => $this->l('Convenient installments')
+                            ],
+                            ['key' => ComfinoApi::PAY_LATER, 'name' => $this->l('Pay later')]
                         ],
                         'id' => 'key',
                         'name' => 'name'
@@ -723,34 +776,37 @@ class Comfino extends PaymentModule
         return $fields;
     }
 
+    /**
+     * @return bool
+     */
     private function addOrderStates()
     {
         $languages = Language::getLanguages(false);
 
         foreach (OrdersList::ADD_ORDER_STATUSES as $state => $name) {
-            $newState = Configuration::get($state);
+            $new_state = Configuration::get($state);
 
-            if (empty($newState) || !Validate::isInt($newState) ||
-                !Validate::isLoadedObject(new OrderState($newState))
+            if (empty($new_state) || !Validate::isInt($new_state) ||
+                !Validate::isLoadedObject(new OrderState($new_state))
             ) {
-                $orderStateObject = new OrderState();
-                $orderStateObject->send_email = 0;
-                $orderStateObject->invoice = 0;
-                $orderStateObject->color = '#ffffff';
-                $orderStateObject->unremovable = false;
-                $orderStateObject->logable = 0;
-                $orderStateObject->module_name = $this->name;
+                $order_state_object = new OrderState();
+                $order_state_object->send_email = 0;
+                $order_state_object->invoice = 0;
+                $order_state_object->color = '#ffffff';
+                $order_state_object->unremovable = false;
+                $order_state_object->logable = 0;
+                $order_state_object->module_name = $this->name;
 
                 foreach ($languages as $language) {
                     if ($language['iso_code'] === 'pl') {
-                        $orderStateObject->name[$language['id_lang']] = OrdersList::ADD_ORDER_STATUSES_PL[$state];
+                        $order_state_object->name[$language['id_lang']] = OrdersList::ADD_ORDER_STATUSES_PL[$state];
                     } else {
-                        $orderStateObject->name[$language['id_lang']] = $name;
+                        $order_state_object->name[$language['id_lang']] = $name;
                     }
                 }
 
-                if ($orderStateObject->add()) {
-                    Configuration::updateValue($state, $orderStateObject->id);
+                if ($order_state_object->add()) {
+                    Configuration::updateValue($state, $order_state_object->id);
                 }
             }
         }
@@ -758,11 +814,17 @@ class Comfino extends PaymentModule
         return true;
     }
 
+    /**
+     * @return bool
+     */
     private function checkConfiguration()
     {
-        return Configuration::get('COMFINO_API_KEY') !== null && Configuration::get('COMFINO_TAX_ID') !== null;
+        return Configuration::get('COMFINO_API_KEY') !== null;
     }
 
+    /**
+     * @return array
+     */
     private function getTemplateVars()
     {
         return [
@@ -774,6 +836,9 @@ class Comfino extends PaymentModule
         ];
     }
 
+    /**
+     * @return bool
+     */
     private function initConfigurationValues()
     {
         $widgetCode = "
@@ -803,7 +868,6 @@ document.getElementsByTagName('head')[0].appendChild(script);
                 '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)'
             ) &&
             Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 30) &&
-            Configuration::updateValue('COMFINO_ENABLED', false) &&
             Configuration::updateValue('COMFINO_WIDGET_ENABLED', false) &&
             Configuration::updateValue('COMFINO_WIDGET_KEY', '') &&
             Configuration::updateValue(
@@ -817,11 +881,17 @@ document.getElementsByTagName('head')[0].appendChild(script);
             Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widgetCode));
     }
 
+    /**
+     * @return bool
+     */
     private function deleteConfigurationValues()
     {
         return Configuration::deleteByName('COMFINO_PAYMENT_TEXT') &&
-            Configuration::deleteByName('COMFINO_TAX_ID') &&
-            Configuration::deleteByName('COMFINO_ENABLED') &&
+            Configuration::deleteByName('COMFINO_API_KEY') &&
+            Configuration::deleteByName('COMFINO_MINIMAL_CART_AMOUNT') &&
+            Configuration::deleteByName('COMFINO_WIDGET_ENABLED') &&
+            Configuration::deleteByName('COMFINO_IS_SANDBOX') &&
+            Configuration::deleteByName('COMFINO_SANDBOX_API_KEY') &&
             Configuration::deleteByName('COMFINO_WIDGET_ENABLED') &&
             Configuration::deleteByName('COMFINO_WIDGET_KEY') &&
             Configuration::deleteByName('COMFINO_WIDGET_PRICE_SELECTOR') &&
@@ -830,5 +900,28 @@ document.getElementsByTagName('head')[0].appendChild(script);
             Configuration::deleteByName('COMFINO_WIDGET_OFFER_TYPE') &&
             Configuration::deleteByName('COMFINO_WIDGET_EMBED_METHOD') &&
             Configuration::deleteByName('COMFINO_WIDGET_CODE');
+    }
+
+    /**
+     * @param string $tax_id
+     *
+     * @return bool
+     */
+    private function isValidTaxId($tax_id)
+    {
+        if (empty($tax_id) || strlen($tax_id) !== 10 || !preg_match('/^\d+$/', $tax_id)) {
+            return false;
+        }
+
+        $arr_steps = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+        $int_sum = 0;
+
+        for ($i = 0; $i < 9; ++$i) {
+            $int_sum += $arr_steps[$i] * $tax_id[$i];
+        }
+
+        $int = $int_sum % 11;
+
+        return ($int === 10 ? 0 : $int) === (int)$tax_id[9];
     }
 }
