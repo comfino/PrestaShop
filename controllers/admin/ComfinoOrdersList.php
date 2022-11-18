@@ -21,16 +21,16 @@
  * @author PrestaShop SA <contact@prestashop.com>
  * @copyright  2007-2021 PrestaShop SA
  * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *
  * @version  Release: $Revision$
  *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
-require_once _PS_MODULE_DIR_.'comfino/src/Api.php';
+require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
 
 class ComfinoOrdersListController extends ModuleAdminController
 {

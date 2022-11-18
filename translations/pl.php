@@ -1,7 +1,7 @@
 <?php
 
 global $_MODULE;
-$_MODULE = array();
+$_MODULE = [];
 $_MODULE['<{comfino}prestashop>comfino_fb0ddcd75b912899916741320e7f8537'] = 'Zamówienia Comfino';
 $_MODULE['<{comfino}prestashop>comfino_f38f5974cdc23279ffe6d203641a8bdf'] = 'Ustawienia zaktualizowane.';
 $_MODULE['<{comfino}prestashop>comfino_4b2e2ac9eae1a16beda68109acf0b384'] = 'Ustawienia nie zostały zaktualizowane.';

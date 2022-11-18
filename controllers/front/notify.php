@@ -23,13 +23,12 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_.'comfino/src/ErrorLogger.php';
-require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
+require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
 class ComfinoNotifyModuleFrontController extends ModuleFrontController
 {
@@ -41,23 +40,23 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
 
         $jsonData = Tools::file_get_contents('php://input');
 
-        if ($this->getSignature() !== hash('sha3-256', Configuration::get('COMFINO_API_KEY').$jsonData)) {
-            die($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
+        if ($this->getSignature() !== hash('sha3-256', Configuration::get('COMFINO_API_KEY') . $jsonData)) {
+            exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
         }
 
         $data = json_decode($jsonData, true);
 
         if (!isset($data['externalId'])) {
-            die($this->setResponse(400, 'External ID must be set.'));
+            exit($this->setResponse(400, 'External ID must be set.'));
         }
 
         if (!isset($data['status'])) {
-            die($this->setResponse(400, 'Status must be set.'));
+            exit($this->setResponse(400, 'Status must be set.'));
         }
 
         OrdersList::processState($data['externalId'], $data['status']);
 
-        die($this->setResponse(200, 'OK'));
+        exit($this->setResponse(200, 'OK'));
     }
 
     private function getSignature()

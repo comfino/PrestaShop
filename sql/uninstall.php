@@ -23,13 +23,12 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 $sql = [];
-$sql[] = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'comfino_orders`;';
+$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`;';
 
 foreach ($sql as $query) {
     if (Db::getInstance()->execute($query) == false) {

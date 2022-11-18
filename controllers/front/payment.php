@@ -23,13 +23,12 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_.'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
+require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
 class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
@@ -50,9 +49,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 ||
             $cart->id_address_invoice == 0 || !$this->module->active
         ) {
-                Tools::redirect('index.php?controller=order&step=1');
+            Tools::redirect('index.php?controller=order&step=1');
 
-                return;
+            return;
         }
 
         $cookie = Context::getContext()->cookie;
@@ -92,7 +91,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         if (!$authorized) {
-            die($this->module->l('This payment method is not available.'));
+            exit($this->module->l('This payment method is not available.'));
         }
 
         $customer = new Customer($cart->id_customer);
@@ -104,16 +103,16 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         $currency = $this->context->currency;
-        $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
+        $total = (float) $cart->getOrderTotal(true, Cart::BOTH);
 
         $this->module->validateOrder(
-            (int)$cart->id,
-            (int)Configuration::get('COMFINO_CREATED'),
+            (int) $cart->id,
+            (int) Configuration::get('COMFINO_CREATED'),
             $total,
             $this->module->displayName,
             null,
             '',
-            (int)$currency->id,
+            (int) $currency->id,
             false,
             $customer->secure_key
         );
@@ -121,8 +120,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $orderConfirmation = ComfinoApi::createOrder(
             $this->context->cart,
             $this->module->currentOrder,
-            'index.php?controller=order-confirmation&id_cart='.(int)$cart->id.'&id_module='.(int)$this->module->id.
-            '&id_order='.$this->module->currentOrder.'&key='.$customer->secure_key
+            'index.php?controller=order-confirmation&id_cart=' . (int) $cart->id . '&id_module=' . (int) $this->module->id .
+            '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key
         );
 
         $order = new Order($this->module->currentOrder);
@@ -144,7 +143,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 [
                     'error' => is_array($orderConfirmation) && isset($orderConfirmation['errors'])
                         ? implode(',', $orderConfirmation['errors'])
-                        : 'Order creation error.'
+                        : 'Order creation error.',
                 ],
                 true
             ));
@@ -159,7 +158,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                     ? $orderConfirmation['_links']['legalize']['href']
                     : '',
                 'self_link' => $orderConfirmation['_links']['self']['href'],
-                'cancel_link' => $orderConfirmation['_links']['cancel']['href']
+                'cancel_link' => $orderConfirmation['_links']['cancel']['href'],
             ]
         );
 

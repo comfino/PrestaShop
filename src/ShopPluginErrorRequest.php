@@ -23,7 +23,6 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -43,6 +42,7 @@ final class ShopPluginErrorRequest
     /**
      * @param ShopPluginError $shopPluginError
      * @param string $hashKey
+     *
      * @return bool
      */
     public function prepareRequest(ShopPluginError $shopPluginError, $hashKey)
@@ -56,7 +56,7 @@ final class ShopPluginErrorRequest
             'api_request_url' => $shopPluginError->apiRequestUrl,
             'api_request' => $shopPluginError->apiRequest,
             'api_response' => $shopPluginError->apiResponse,
-            'stack_trace' => $shopPluginError->stackTrace
+            'stack_trace' => $shopPluginError->stackTrace,
         ];
 
         if (($encodedErrorDetails = json_encode($errorDetailsArray)) === false) {
