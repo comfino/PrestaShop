@@ -250,23 +250,23 @@ class ComfinoApi
     /**
      * @return string
      */
-    private static function getApiHost()
-    {
-        return empty(self::$api_host)
-            ? Configuration::get('COMFINO_IS_SANDBOX') ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST
-            : self::$api_host;
-    }
-
-    /**
-     * @return string
-     */
-    private static function getApiKey()
+    public static function getApiKey()
     {
         return empty(self::$api_key)
             ? Configuration::get('COMFINO_IS_SANDBOX')
                 ? Configuration::get('COMFINO_SANDBOX_API_KEY')
                 : Configuration::get('COMFINO_API_KEY')
             : self::$api_key;
+    }
+
+    /**
+     * @return string
+     */
+    private static function getApiHost()
+    {
+        return empty(self::$api_host)
+            ? Configuration::get('COMFINO_IS_SANDBOX') ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST
+            : self::$api_host;
     }
 
     /**

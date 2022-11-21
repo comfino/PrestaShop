@@ -40,7 +40,7 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
 
         $jsonData = Tools::file_get_contents('php://input');
 
-        if ($this->getSignature() !== hash('sha3-256', Configuration::get('COMFINO_API_KEY') . $jsonData)) {
+        if ($this->getSignature() !== hash('sha3-256', ComfinoApi::getApiKey() . $jsonData)) {
             exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
         }
 
