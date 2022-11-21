@@ -1,5 +1,8 @@
 {
     "name": "comfino/comfino",
+    "config": {
+        "prepend-autoloader": false
+    },
     "autoload": {
         "psr-4": {"Comfino\\": "src/"},
         "classmap": ["comfino.php"],
