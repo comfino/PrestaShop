@@ -10,6 +10,7 @@
         "type": "prestashop-module"
     },
     "require": {
+        "php": ">=5.6.0",
         "ext-curl": "*",
         "ext-json": "*",
         "ext-zlib": "*"
