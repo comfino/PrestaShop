@@ -21,10 +21,10 @@
  * @author PrestaShop SA <contact@prestashop.com>
  * @copyright  2007-2021 PrestaShop SA
  * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *
  * @version  Release: $Revision$
  *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -123,7 +123,7 @@ class OrdersList extends ObjectModel
             'legalize_link' => ['type' => self::TYPE_STRING],
             'self_link' => ['type' => self::TYPE_STRING],
             'cancel_link' => ['type' => self::TYPE_STRING],
-        ]
+        ],
     ];
 
     /**
@@ -145,6 +145,7 @@ class OrdersList extends ObjectModel
      * @param array $data
      *
      * @return bool
+     *
      * @throws PrestaShopException
      */
     public static function createOrder($data)
@@ -167,7 +168,7 @@ class OrdersList extends ObjectModel
 
     public static function getAllOrders()
     {
-        $sql = sprintf("SELECT * FROM %scomfino_orders", _DB_PREFIX_);
+        $sql = sprintf('SELECT * FROM %scomfino_orders', _DB_PREFIX_);
 
         if ($row = Db::getInstance()->executeS($sql)) {
             $result = [];
@@ -175,7 +176,7 @@ class OrdersList extends ObjectModel
             foreach ($row as $item) {
                 $customer = new Customer($item['id_customer']);
 
-                $customer_email = "";
+                $customer_email = '';
                 if ($customer != null) {
                     $customer_email = $customer->email;
                 }
@@ -191,9 +192,10 @@ class OrdersList extends ObjectModel
                     'order_status' => $status->name[$context->language->id],
                     'self_link' => $item['self_link'],
                     'cancel_link' => $item['cancel_link'],
-                    'legalize_link' => $item['legalize_link']
+                    'legalize_link' => $item['legalize_link'],
                 ];
             }
+
             return $result;
         }
 

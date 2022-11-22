@@ -1,6 +1,7 @@
 2.2.1
  - FN-9566 Fix bug in frontend initialization code present in some PS frontend themes
  - FN-9832 Bug fixes and code clean up
+ - FN-9844 Code clean up, update to the latest PrestaShop coding standards
 
 2.2.0
  - FN-9239 Improve errors handling - automatic errors reporting

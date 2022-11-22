@@ -1,2 +1,5 @@
 .idea
 config.xml
+/.php-cs-fixer.dist.php
+/.php-cs-fixer.cache
+/vendor/

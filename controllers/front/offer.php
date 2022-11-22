@@ -23,12 +23,11 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_.'comfino/src/ErrorLogger.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
 
 class ComfinoOfferModuleFrontController extends ModuleFrontController
 {
@@ -51,9 +50,9 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
 
         echo json_encode([
             'status' => 'OK',
-            'amount' => (float)$cookie->loan_amount,
+            'amount' => (float) $cookie->loan_amount,
             'type' => $cookie->loan_type,
-            'term' => (int)$cookie->loan_term
+            'term' => (int) $cookie->loan_term,
         ]);
 
         exit;
@@ -69,7 +68,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
 
         if (is_array($offers) && !isset($offers['errors'])) {
             foreach ($offers as $offer) {
-                $loan_amount = round(((float)$offer['instalmentAmount']) * ((float)$offer['loanTerm']) / 100, 2);
+                $loan_amount = round(((float) $offer['instalmentAmount']) * ((float) $offer['loanTerm']) / 100, 2);
 
                 if ($loan_amount < ($total / 100)) {
                     $loan_amount = round($total / 100, 2);
@@ -92,24 +91,24 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                     'sumAmount' => $total / 100,
                     'sumAmountFormatted' => Tools::displayPrice($total / 100),
                     'representativeExample' => $offer['representativeExample'],
-                    'rrso' => ((float)$offer['rrso']) * 100,
+                    'rrso' => round((float) $offer['rrso'] * 100, 2),
                     'loanTerm' => $offer['loanTerm'],
-                    'instalmentAmount' => ((float)$offer['instalmentAmount']) / 100,
-                    'instalmentAmountFormatted' => Tools::displayPrice(((float)$offer['instalmentAmount']) / 100),
-                    'toPay' => ((float)$offer['toPay']) / 100,
-                    'toPayFormatted' => Tools::displayPrice(((float)$offer['toPay']) / 100),
+                    'instalmentAmount' => ((float) $offer['instalmentAmount']) / 100,
+                    'instalmentAmountFormatted' => Tools::displayPrice(((float) $offer['instalmentAmount']) / 100),
+                    'toPay' => ((float) $offer['toPay']) / 100,
+                    'toPayFormatted' => Tools::displayPrice(((float) $offer['toPay']) / 100),
                     'loanParameters' => array_map(static function ($loan_params) use ($total) {
                         return [
                             'loanTerm' => $loan_params['loanTerm'],
-                            'instalmentAmount' => ((float)$loan_params['instalmentAmount']) / 100,
+                            'instalmentAmount' => ((float) $loan_params['instalmentAmount']) / 100,
                             'instalmentAmountFormatted' => Tools::displayPrice(
-                                ((float)$loan_params['instalmentAmount']) / 100
+                                ((float) $loan_params['instalmentAmount']) / 100
                             ),
-                            'toPay' => ((float)$loan_params['toPay']) / 100,
-                            'toPayFormatted' => Tools::displayPrice(((float)$loan_params['toPay']) / 100),
+                            'toPay' => ((float) $loan_params['toPay']) / 100,
+                            'toPayFormatted' => Tools::displayPrice(((float) $loan_params['toPay']) / 100),
                             'sumAmount' => $total / 100,
                             'sumAmountFormatted' => Tools::displayPrice($total / 100),
-                            'rrso' => ((float)$loan_params['rrso']) * 100,
+                            'rrso' => round((float) $loan_params['rrso'] * 100, 2),
                         ];
                     }, $offer['loanParameters']),
                 ];

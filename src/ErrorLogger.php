@@ -23,7 +23,6 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -47,19 +46,20 @@ class ErrorLogger
         E_STRICT => 'E_STRICT',
         E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
         E_DEPRECATED => 'E_DEPRECATED',
-        E_USER_DEPRECATED => 'E_USER_DEPRECATED'
+        E_USER_DEPRECATED => 'E_USER_DEPRECATED',
     ];
 
     /**
      * @param string $errorPrefix
      * @param string $errorMessage
+     *
      * @return void
      */
     public static function logError($errorPrefix, $errorMessage)
     {
         @file_put_contents(
-            _PS_MODULE_DIR_.'comfino/payment_log.log',
-            "[".date('Y-m-d H:i:s')."] $errorPrefix: $errorMessage\n",
+            _PS_MODULE_DIR_ . 'comfino/payment_log.log',
+            '[' . date('Y-m-d H:i:s') . "] $errorPrefix: $errorMessage\n",
             FILE_APPEND
         );
     }
@@ -72,6 +72,7 @@ class ErrorLogger
      * @param string|null $apiRequest
      * @param string|null $apiResponse
      * @param string|null $stackTrace
+     *
      * @return void
      */
     public static function sendError(
@@ -82,8 +83,7 @@ class ErrorLogger
         $apiRequest = null,
         $apiResponse = null,
         $stackTrace = null
-    )
-    {
+    ) {
         $error = new ShopPluginError(
             Tools::getShopDomain(),
             'PrestaShop',
@@ -97,7 +97,7 @@ class ErrorLogger
                 'server_software' => $_SERVER['SERVER_SOFTWARE'],
                 'server_name' => $_SERVER['SERVER_NAME'],
                 'server_addr' => $_SERVER['SERVER_ADDR'],
-                'database_version' => Db::getInstance()->getVersion()
+                'database_version' => Db::getInstance()->getVersion(),
             ],
             $errorCode,
             "$errorPrefix: $errorMessage",
@@ -123,7 +123,7 @@ class ErrorLogger
             }
 
             if (count($requestInfo)) {
-                $errorMessage .= "\n".implode("\n", $requestInfo);
+                $errorMessage .= "\n" . implode("\n", $requestInfo);
             }
 
             if ($stackTrace !== null) {
@@ -136,12 +136,13 @@ class ErrorLogger
 
     /**
      * @param int $numLines
+     *
      * @return string
      */
     public static function getErrorLog($numLines)
     {
         $errorsLog = '';
-        $logFilePath = _PS_MODULE_DIR_.'comfino/payment_log.log';
+        $logFilePath = _PS_MODULE_DIR_ . 'comfino/payment_log.log';
 
         if (file_exists($logFilePath)) {
             $file = new SplFileObject($logFilePath, 'r');
@@ -163,6 +164,7 @@ class ErrorLogger
      * @param string $errMsg
      * @param string $file
      * @param int $line
+     *
      * @return bool
      */
     public static function errorHandler($errNo, $errMsg, $file, $line)
@@ -175,12 +177,13 @@ class ErrorLogger
 
     /**
      * @param Throwable $exception
+     *
      * @return void
      */
     public static function exceptionHandler($exception)
     {
         self::sendError(
-            "Exception ".get_class($exception)." in {$exception->getFile()}:{$exception->getLine()}",
+            'Exception ' . get_class($exception) . " in {$exception->getFile()}:{$exception->getLine()}",
             $exception->getCode(), $exception->getMessage(),
             null, null, null, $exception->getTraceAsString()
         );
@@ -212,6 +215,7 @@ class ErrorLogger
 
     /**
      * @param int $errorType
+     *
      * @return string
      */
     private static function getErrorTypeName($errorType)

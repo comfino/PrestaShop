@@ -23,12 +23,11 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
+require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
 class ComfinoScriptModuleFrontController extends ModuleFrontController
 {
@@ -47,7 +46,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     '{WIDGET_TYPE}',
                     '{OFFER_TYPE}',
                     '{EMBED_METHOD}',
-                    '{WIDGET_SCRIPT_URL}'
+                    '{WIDGET_SCRIPT_URL}',
                 ],
                 [
                     Configuration::get('COMFINO_WIDGET_KEY'),
@@ -58,7 +57,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     Configuration::get('COMFINO_WIDGET_EMBED_METHOD'),
                     Configuration::get('COMFINO_IS_SANDBOX')
                         ? Comfino::WIDGET_SCRIPT_SANDBOX_URL
-                        : Comfino::WIDGET_SCRIPT_PRODUCTION_URL
+                        : Comfino::WIDGET_SCRIPT_PRODUCTION_URL,
                 ],
                 Configuration::get('COMFINO_WIDGET_CODE')
             );

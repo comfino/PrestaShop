@@ -23,14 +23,13 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_.'comfino/models/OrdersList.php';
-require_once _PS_MODULE_DIR_.'comfino/src/PresentationType.php';
-require_once _PS_MODULE_DIR_.'comfino/src/Api.php';
+require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/PresentationType.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
 
 if (!defined('COMFINO_PS_17')) {
     define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='));
@@ -71,8 +70,8 @@ class Comfino extends PaymentModule
         $this->confirmUninstall = $this->l('Are you sure to uninstall Comfino payments?');
 
         $this->description = $this->l(
-            'Comfino is an innovative payment method for customers of e-commerce stores! '.
-            'These are installment payments, deferred (buy now, pay later) and corporate '.
+            'Comfino is an innovative payment method for customers of e-commerce stores! ' .
+            'These are installment payments, deferred (buy now, pay later) and corporate ' .
             'payments available on one platform with the help of quick integration. Grow your business with Comfino!'
         );
     }
@@ -255,7 +254,7 @@ class Comfino extends PaymentModule
                     'or contact us by phone. We are waiting on the number: %s. We will answer all your questions!'
                 ),
                 self::COMFINO_SUPPORT_PHONE
-            )
+            ),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/configuration.tpl');
@@ -278,7 +277,7 @@ class Comfino extends PaymentModule
 
         $this->smarty->assign($this->getTemplateVars());
 
-        $minimal_cart_amount = (float)Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
+        $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
         if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
             return;
         }
@@ -322,7 +321,7 @@ class Comfino extends PaymentModule
 
         ErrorLogger::init();
 
-        $minimal_cart_amount = (float)Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
+        $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
 
         if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
             return;
@@ -343,7 +342,7 @@ class Comfino extends PaymentModule
                 break;
 
             case ComfinoPresentationType::ONLY_ICON:
-                $newOption->setCallToActionText("");
+                $newOption->setCallToActionText('');
                 $newOption->setLogo('//widget.comfino.pl/image/comfino/ecommerce/prestashop/logo.svg');
                 break;
 
@@ -377,8 +376,8 @@ class Comfino extends PaymentModule
             if (in_array($state, [
                 Configuration::get('COMFINO_CREATED'),
                 Configuration::get('PS_OS_OUTOFSTOCK'),
-                Configuration::get('PS_OS_OUTOFSTOCK_UNPAID')])
-            ) {
+                Configuration::get('PS_OS_OUTOFSTOCK_UNPAID'),
+            ])) {
                 $this->smarty->assign(
                     [
                         'total_to_pay' => Tools::displayPrice(
@@ -459,9 +458,9 @@ class Comfino extends PaymentModule
     {
         if (Configuration::get('COMFINO_WIDGET_ENABLED')) {
             $configCrc = crc32(
-                Configuration::get('COMFINO_WIDGET_KEY').Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR').
-                Configuration::get('COMFINO_WIDGET_TARGET_SELECTOR').Configuration::get('COMFINO_WIDGET_TYPE').
-                Configuration::get('COMFINO_WIDGET_OFFER_TYPE').Configuration::get('COMFINO_WIDGET_EMBED_METHOD').
+                Configuration::get('COMFINO_WIDGET_KEY') . Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR') .
+                Configuration::get('COMFINO_WIDGET_TARGET_SELECTOR') . Configuration::get('COMFINO_WIDGET_TYPE') .
+                Configuration::get('COMFINO_WIDGET_OFFER_TYPE') . Configuration::get('COMFINO_WIDGET_EMBED_METHOD') .
                 Configuration::get('COMFINO_WIDGET_CODE')
             );
 
@@ -515,12 +514,12 @@ class Comfino extends PaymentModule
     private function getHelperForm($submit_action, $form_template_dir = null, $form_template = null)
     {
         $helper = new HelperForm();
-        $language = (int)Configuration::get('PS_LANG_DEFAULT');
+        $language = (int) Configuration::get('PS_LANG_DEFAULT');
 
         $helper->module = $this;
         $helper->name_controller = $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
+        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
 
         // Language
         $helper->default_form_language = $language;
@@ -534,13 +533,13 @@ class Comfino extends PaymentModule
         $helper->toolbar_btn = [
             'save' => [
                 'desc' => $this->l('Save'),
-                'href' => AdminController::$currentIndex.'&configure='.$this->name.'&save'.$this->name.'&token='.
+                'href' => AdminController::$currentIndex . '&configure=' . $this->name . '&save' . $this->name . '&token=' .
                     Tools::getAdminTokenLite('AdminModules'),
             ],
             'back' => [
-                'href' => AdminController::$currentIndex.'&token='.Tools::getAdminTokenLite('AdminModules'),
-                'desc' => $this->l('Back to list')
-            ]
+                'href' => AdminController::$currentIndex . '&token=' . Tools::getAdminTokenLite('AdminModules'),
+                'desc' => $this->l('Back to list'),
+            ],
         ];
 
         if ($form_template !== null && $form_template_dir !== null) {
@@ -567,7 +566,7 @@ class Comfino extends PaymentModule
                     'type' => 'text',
                     'label' => $this->l('API key'),
                     'name' => 'COMFINO_API_KEY',
-                    'required' => true
+                    'required' => true,
                 ],
                 [
                     'type' => 'select',
@@ -581,27 +580,27 @@ class Comfino extends PaymentModule
                             ['key' => ComfinoPresentationType::ICON_AND_TEXT, 'name' => $this->l('Icon and text')],
                         ],
                         'id' => 'key',
-                        'name' => 'name'
-                    ]
+                        'name' => 'name',
+                    ],
                 ],
                 [
                     'type' => 'text',
                     'label' => $this->l('Payment text'),
                     'name' => 'COMFINO_PAYMENT_TEXT',
-                    'required' => true
+                    'required' => true,
                 ],
                 [
                     'type' => 'text',
                     'label' => $this->l('Minimal amount in cart'),
                     'name' => 'COMFINO_MINIMAL_CART_AMOUNT',
-                    'required' => true
-                ]
+                    'required' => true,
+                ],
             ],
             'submit' => [
                 'title' => $this->l('Save'),
                 'class' => 'btn btn-default pull-right',
-                'name' => 'submit_configuration'
-            ]
+                'name' => 'submit_configuration',
+            ],
         ];
 
         $fields[1]['form'] = [
@@ -617,32 +616,32 @@ class Comfino extends PaymentModule
                         [
                             'id' => 'widget_enabled',
                             'value' => true,
-                            'label' => $this->l('Enabled')
+                            'label' => $this->l('Enabled'),
                         ],
                         [
                             'id' => 'widget_disabled',
                             'value' => false,
-                            'label' => $this->l('Disabled')
-                        ]
-                    ]
+                            'label' => $this->l('Disabled'),
+                        ],
+                    ],
                 ],
                 [
                     'type' => 'hidden',
                     'label' => $this->l('Widget key'),
                     'name' => 'COMFINO_WIDGET_KEY',
-                    'required' => false
+                    'required' => false,
                 ],
                 [
                     'type' => 'text',
                     'label' => $this->l('Widget price element selector'),
                     'name' => 'COMFINO_WIDGET_PRICE_SELECTOR',
-                    'required' => false
+                    'required' => false,
                 ],
                 [
                     'type' => 'text',
                     'label' => $this->l('Widget anchor element selector'),
                     'name' => 'COMFINO_WIDGET_TARGET_SELECTOR',
-                    'required' => false
+                    'required' => false,
                 ],
                 [
                     'type' => 'select',
@@ -655,12 +654,12 @@ class Comfino extends PaymentModule
                             ['key' => 'mixed', 'name' => $this->l('Graphical widget with banner')],
                             [
                                 'key' => 'with-modal',
-                                'name' => $this->l('Graphical widget with installments calculator')
+                                'name' => $this->l('Graphical widget with installments calculator'),
                             ],
                         ],
                         'id' => 'key',
-                        'name' => 'name'
-                    ]
+                        'name' => 'name',
+                    ],
                 ],
                 [
                     'type' => 'select',
@@ -671,21 +670,21 @@ class Comfino extends PaymentModule
                         'query' => [
                             [
                                 'key' => ComfinoApi::INSTALLMENTS_ZERO_PERCENT,
-                                'name' => $this->l('Zero percent installments')
+                                'name' => $this->l('Zero percent installments'),
                             ],
                             [
                                 'key' => ComfinoApi::CONVENIENT_INSTALLMENTS,
-                                'name' => $this->l('Convenient installments')
+                                'name' => $this->l('Convenient installments'),
                             ],
-                            ['key' => ComfinoApi::PAY_LATER, 'name' => $this->l('Pay later')]
+                            ['key' => ComfinoApi::PAY_LATER, 'name' => $this->l('Pay later')],
                         ],
                         'id' => 'key',
-                        'name' => 'name'
+                        'name' => 'name',
                     ],
                     'desc' => $this->l(
-                        'Other payment methods (Installments 0%, Buy now, pay later, Installments for Companies) '.
+                        'Other payment methods (Installments 0%, Buy now, pay later, Installments for Companies) ' .
                         'available after consulting a Comfino advisor (kontakt@comfino.pl).'
-                    )
+                    ),
                 ],
                 [
                     'type' => 'select',
@@ -700,8 +699,8 @@ class Comfino extends PaymentModule
                             ['key' => 'INSERT_AFTER', 'name' => 'INSERT_AFTER'],
                         ],
                         'id' => 'key',
-                        'name' => 'name'
-                    ]
+                        'name' => 'name',
+                    ],
                 ],
                 [
                     'type' => 'textarea',
@@ -709,14 +708,14 @@ class Comfino extends PaymentModule
                     'name' => 'COMFINO_WIDGET_CODE',
                     'required' => false,
                     'rows' => 15,
-                    'cols' => 60
-                ]
+                    'cols' => 60,
+                ],
             ],
             'submit' => [
                 'title' => $this->l('Save'),
                 'class' => 'btn btn-default pull-right',
-                'name' => 'submit_configuration'
-            ]
+                'name' => 'submit_configuration',
+            ],
         ];
 
         $fields[2]['form'] = [
@@ -732,20 +731,20 @@ class Comfino extends PaymentModule
                         [
                             'id' => 'sandbox_enabled',
                             'value' => true,
-                            'label' => $this->l('Enabled')
+                            'label' => $this->l('Enabled'),
                         ],
                         [
                             'id' => 'sandbox_disabled',
                             'value' => false,
-                            'label' => $this->l('Disabled')
-                        ]
+                            'label' => $this->l('Disabled'),
+                        ],
                     ],
                     'desc' => $this->l(
-                        'The test environment allows the store owner to get acquainted with the '.
-                        'functionality of the Comfino module. This is a Comfino simulator, thanks to which you can '.
-                        'get to know all the advantages of this payment method. The use of the test mode is free '.
+                        'The test environment allows the store owner to get acquainted with the ' .
+                        'functionality of the Comfino module. This is a Comfino simulator, thanks to which you can ' .
+                        'get to know all the advantages of this payment method. The use of the test mode is free ' .
                         '(there are also no charges for orders).'
-                    )
+                    ),
                 ],
                 [
                     'type' => 'text',
@@ -753,9 +752,9 @@ class Comfino extends PaymentModule
                     'name' => 'COMFINO_SANDBOX_API_KEY',
                     'required' => false,
                     'desc' => $this->l(
-                        'Ask the supervisor for access to the test environment (key, login, password, link). '.
+                        'Ask the supervisor for access to the test environment (key, login, password, link). ' .
                         'Remember, the test key is different from the production key.'
-                    )
+                    ),
                 ],
                 [
                     'type' => 'textarea',
@@ -763,14 +762,14 @@ class Comfino extends PaymentModule
                     'name' => 'COMFINO_WIDGET_ERRORS_LOG',
                     'required' => false,
                     'rows' => 20,
-                    'cols' => 60
-                ]
+                    'cols' => 60,
+                ],
             ],
             'submit' => [
                 'title' => $this->l('Save'),
                 'class' => 'btn btn-default pull-right',
-                'name' => 'submit_configuration'
-            ]
+                'name' => 'submit_configuration',
+            ],
         ];
 
         return $fields;
@@ -922,6 +921,6 @@ document.getElementsByTagName('head')[0].appendChild(script);
 
         $int = $int_sum % 11;
 
-        return ($int === 10 ? 0 : $int) === (int)$tax_id[9];
+        return ($int === 10 ? 0 : $int) === (int) $tax_id[9];
     }
 }

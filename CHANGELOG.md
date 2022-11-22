@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.2.1](https://github.com/comfino/PrestaShop/tree/2.2.1) (2022-11-17)
+## [2.2.1](https://github.com/comfino/PrestaShop/tree/2.2.1) (2022-11-21)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.0...2.2.1)
 
@@ -8,6 +8,7 @@
 
 - FN-9566 Fix bug in frontend initialization code present in some PS frontend themes [\#57](https://github.com/comfino/PrestaShop/pull/57) ([akozubskicr](https://github.com/akozubskicr))
 - FN-9832 Bug fixes and code clean up [\#57](https://github.com/comfino/PrestaShop/pull/57) ([akozubskicr](https://github.com/akozubskicr))
+- FN-9844 Code clean up, update to the latest PrestaShop coding standards [\#58](https://github.com/comfino/PrestaShop/pull/58) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.2.0](https://github.com/comfino/PrestaShop/tree/2.2.0) (2022-09-01)
 

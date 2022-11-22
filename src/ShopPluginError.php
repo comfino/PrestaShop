@@ -23,7 +23,6 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -86,7 +85,7 @@ final class ShopPluginError
      * @param string|null $apiResponse
      * @param string|null $stackTrace
      */
-    public function  __construct(
+    public function __construct(
         $host,
         $platform,
         $environment,
@@ -96,8 +95,7 @@ final class ShopPluginError
         $apiRequest = null,
         $apiResponse = null,
         $stackTrace = null
-    )
-    {
+    ) {
         $this->host = $host;
         $this->platform = $platform;
         $this->environment = $environment;
