@@ -6,7 +6,6 @@ use desktopd\SHA3\Sponge as SHA3;
 
 require __DIR__ . '/namespaced/desktopd/SHA3/Sponge.php';
 
-
 // 1024 bytes
 const DATA = '
 4v9WYVupNPLoX6SLlFaBbmKrcxnf5tHcln6UT1V5O/wqdjLsue1w80yuCsqs/vmtWoHRVFLE7pzu
@@ -29,9 +28,7 @@ kF6HRUL7DlKQf3p1icoesdP/b2owW1NorvOW4Nbpx9/uQ0aO6ghPxnopFALkyBt78oqnSNS3Wk/+
 +6ChZqqnmOJEhiMWo+3vEiJ30xFsap4CDdgVbWytjGQiw1INKRqItWfwWTEnmyVou3hHWMurOQ==
 ';
 
-
-$sponge = SHA3::init (SHA3::SHA3_512);
-$sponge->absorb (base64_decode (DATA));
-$hash = $sponge->squeeze ();
-echo bin2hex ($hash), PHP_EOL;
-
+$sponge = SHA3::init(SHA3::SHA3_512);
+$sponge->absorb(base64_decode(DATA));
+$hash = $sponge->squeeze();
+echo bin2hex($hash), PHP_EOL;

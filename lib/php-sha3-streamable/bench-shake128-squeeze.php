@@ -7,19 +7,16 @@ use desktopd\SHA3\Sponge as SHA3;
 require __DIR__ . '/namespaced/desktopd/SHA3/Sponge.php';
 
 $length = 1024 * 1024; // 1MiB
-$data = str_repeat ("\0", $length);
+$data = str_repeat("\0", $length);
 
-$start = microtime ();
-$sponge = SHA3::init (SHA3::SHAKE128);
-$sponge->absorb ('');
+$start = microtime();
+$sponge = SHA3::init(SHA3::SHAKE128);
+$sponge->absorb('');
 for ($i = 0; $i < 1024; ++$i) {
-	$sponge->squeeze (1024);
+    $sponge->squeeze(1024);
 }
-$end = microtime ();
+$end = microtime();
 
-$start = explode (' ', $start);
-$end = explode (' ', $end);
-printf ("Squeezed %d Bytes in %.6f seconds\n"
-	, $length
-	, ($end[1] - $start[1]) + ($end[0] - $start[0]));
-
+$start = explode(' ', $start);
+$end = explode(' ', $end);
+printf("Squeezed %d Bytes in %.6f seconds\n", $length, ($end[1] - $start[1]) + ($end[0] - $start[0]));

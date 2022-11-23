@@ -2,8 +2,7 @@
 <?php /* -*- coding: utf-8; indent-tabs-mode: t; tab-width: 4 -*-
 vim: ts=4 noet ai */
 
-require dirname (__FILE__) . '/SHA3.php';
-
+require dirname(__FILE__) . '/SHA3.php';
 
 // 1024 bytes
 $DATA = '
@@ -27,10 +26,8 @@ kF6HRUL7DlKQf3p1icoesdP/b2owW1NorvOW4Nbpx9/uQ0aO6ghPxnopFALkyBt78oqnSNS3Wk/+
 +6ChZqqnmOJEhiMWo+3vEiJ30xFsap4CDdgVbWytjGQiw1INKRqItWfwWTEnmyVou3hHWMurOQ==
 ';
 
-
-$sponge = SHA3::init (SHA3::SHA3_512);
-$sponge->absorb (base64_decode ($DATA));
-$hash = $sponge->squeeze ();
-echo bin2hex ($hash);
+$sponge = SHA3::init(SHA3::SHA3_512);
+$sponge->absorb(base64_decode($DATA));
+$hash = $sponge->squeeze();
+echo bin2hex($hash);
 echo PHP_EOL;
-
