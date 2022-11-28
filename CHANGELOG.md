@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.2](https://github.com/comfino/PrestaShop/tree/2.2.2) (2022-11-28)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.1...2.2.2)
+
+**Merged pull requests:**
+
+- FN-9865 Update styles to avoid conflicts with some PrestaShop frontend themes [\#60](https://github.com/comfino/PrestaShop/pull/60) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.2.1](https://github.com/comfino/PrestaShop/tree/2.2.1) (2022-11-23)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.0...2.2.1)
