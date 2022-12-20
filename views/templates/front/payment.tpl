@@ -24,7 +24,7 @@
 *}
 
 <style>
-    body#checkout section.checkout-step .payment-options .comfino {
+    div#comfino-box.comfino {
         max-width: 700px;
         margin: 0 auto;
         padding: 10px;
@@ -33,21 +33,18 @@
         display: none;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-box {
-    }
-
-    body#checkout section.checkout-step .payment-options .header {
+    div#comfino-box.comfino div.comfino-box .header {
         display: flex;
         flex-direction: column;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-logo {
+    div#comfino-box.comfino div.comfino-box .header .comfino-logo {
         max-height: 40px;
         width: 260px;
         margin: 0 auto;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-title {
+    div#comfino-box.comfino div.comfino-box .header .comfino-title {
         text-align: center;
         font-weight: bold;
         font-size: 1.2rem;
@@ -55,34 +52,41 @@
         color: #232323;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-single-payment {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox {
+        background-color: #fff;
+        box-shadow: none;
+        -moz-box-shadow: none;
+        -webkit-box-shadow: none;
+    }
+
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment {
         border-bottom: 1px solid #ddd;
         display: flex;
         align-items: center;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-single-payment label {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment label {
         display: flex;
         align-items: center;
         width: 100%;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-single-payment__text {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment label .comfino-single-payment__text {
         padding-left: 5px;
         font-weight: normal;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-single-payment input {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment input {
         width: 25px;
         height: 25px;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-input[type="radio"]:checked, .comfino-input[type="radio"]:not(:checked) {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment .comfino-input[type="radio"]:checked, div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment .comfino-input[type="radio"]:not(:checked) {
         position: absolute;
         left: -9999px;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-input[type="radio"]:checked+label, .comfino-input[type="radio"]:not(:checked)+label {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment .comfino-input[type="radio"]:checked+label, div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment .comfino-input[type="radio"]:not(:checked)+label {
         position: relative;
         padding-left: 28px;
         cursor: pointer;
@@ -90,7 +94,7 @@
         color: #666;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-input[type="radio"]:checked+label:before, .comfino-input[type="radio"]:not(:checked)+label:before {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment .comfino-input[type="radio"]:checked+label:before, div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment .comfino-input[type="radio"]:not(:checked)+label:before {
         content: '';
         position: absolute;
         left: 2px;
@@ -101,7 +105,7 @@
         background: #fff;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-input[type="radio"]:checked+label:after, .comfino-input[type="radio"]:not(:checked)+label:after {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment .comfino-input[type="radio"]:checked+label:after, div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment .comfino-input[type="radio"]:not(:checked)+label:after {
         content: '';
         width: 8px;
         height: 8px;
@@ -113,19 +117,19 @@
         transition: all 0.2s ease;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-input[type="radio"]:not(:checked)+label:after {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment .comfino-input[type="radio"]:not(:checked)+label:after {
         opacity: 0;
         -webkit-transform: scale(0);
         transform: scale(0);
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-input[type="radio"]:checked+label:after {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-select-payment div.comfino-order .comfino-single-payment .comfino-input[type="radio"]:checked+label:after {
         opacity: 1;
         -webkit-transform: scale(1);
         transform: scale(1);
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-payment-box {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-payment-box {
         background-color: rgb(221, 221, 221);
         display: flex;
         flex-direction: column;
@@ -135,21 +139,21 @@
         margin-top: 1rem;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-payment-title {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-payment-box .comfino-payment-title {
         color: #666;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-total-payment {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox section.comfino-payment-box .comfino-total-payment {
         font-weight: bold;
         color: #232323;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-installments-box {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-installments-box {
         display: flex;
         flex-direction: column;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-installments-title {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-installments-box .comfino-installments-title {
         font-size: 1.2rem;
         font-weight: bold;
         color: #232323;
@@ -157,7 +161,7 @@
         padding: 20px 0;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-quantity-select {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-installments-box .comfino-quantity-select {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
@@ -166,11 +170,11 @@
         margin: 0 auto;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-select-box {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-installments-box .comfino-quantity-select .comfino-select-box {
         display: flex;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-installments-quantity {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-installments-box .comfino-quantity-select .comfino-select-box .comfino-installments-quantity {
         width: 50px;
         height: 50px;
         border-radius: 50%;
@@ -184,11 +188,11 @@
         cursor: pointer;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-active {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-installments-box .comfino-quantity-select .comfino-select-box .comfino-active {
         background-color: #599e33;;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-monthly-box {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-monthly-box {
         background-color: #599e33;;
         display: flex;
         flex-direction: column;
@@ -199,29 +203,29 @@
         margin-top: 1rem;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-monthly-title {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-monthly-box .comfino-monthly-title {
         font-size: 1.2rem;
         text-align: center;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-monthly-installment {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-monthly-box .comfino-monthly-installment {
         font-weight: bold;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-summary-box {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-summary-box {
         text-align: center;
         font-size: .8rem;
         color: gray;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-summary-total {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-summary-box .comfino-summary-total {
         padding: .5rem 0;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-rrso {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-summary-box .comfino-rrso {
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-footer-link {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox footer .comfino-footer-link {
         display: block;
         text-align: center;
         padding: .5rem 0;
@@ -230,35 +234,35 @@
         margin: 1rem 0 2rem 0;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-payment-delay {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-payment-delay {
         padding: 1rem;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-payment-delay__title {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-payment-delay .comfino-payment-delay__title {
         text-align: center;
         font-weight: bold;
         font-size: 1.2rem;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-payment-delay__title span {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-payment-delay .comfino-payment-delay__title span {
         display: block;
         color: #599e33;
         padding: .3rem 0;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-payment-delay__box {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-payment-delay .comfino-payment-delay__box {
         display: flex;
         align-items: center;
         justify-content: center;
         flex-wrap: wrap;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-helper-box {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-payment-delay .comfino-payment-delay__box .comfino-helper-box {
         display: flex;
         margin-top: 10px;
     }
 
-    body#checkout section.checkout-step .payment-options .comfino-payment-delay__single-instruction {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-payment-delay .comfino-payment-delay__box .comfino-helper-box .comfino-payment-delay__single-instruction {
         width: 140px;
         margin: 10px;
         display: flex;
@@ -266,14 +270,14 @@
         align-items: center;
     }
 
-    body#checkout section.checkout-step .payment-options .comfin-single-instruction__text {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-payment-delay .comfino-payment-delay__box .comfino-helper-box .comfino-payment-delay__single-instruction .comfin-single-instruction__text {
         text-align: center;
         font-size: .9rem;
         padding-top: 1rem;
         color: #666;
     }
 
-    body#checkout section.checkout-step .payment-options .single-instruction-img__background {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-payment-delay .comfino-payment-delay__box .comfino-helper-box .comfino-payment-delay__single-instruction .single-instruction-img__background {
         width: 50px;
         height: 50px;
         background-color: #599e33;
@@ -284,12 +288,12 @@
         padding: .5rem;
     }
 
-    body#checkout section.checkout-step .payment-options .single-instruction-img {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-payment-delay .comfino-payment-delay__box .comfino-helper-box .comfino-payment-delay__single-instruction .single-instruction-img__background .single-instruction-img {
         width: 100px;
         filter: invert(100%)
     }
 
-    .comfino-modal {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox footer .comfino-modal {
         position: fixed;
         width: 100vw;
         height: 100vh;
@@ -304,20 +308,20 @@
         z-index: 999;
     }
 
-    .comfino-modal.open {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox footer .comfino-modal.open {
         visibility: visible;
         opacity: 1;
         transition-delay: 0s;
     }
 
-    .comfino-modal-bg {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox footer .comfino-modal-bg {
         position: absolute;
         background: rgba(0,0,0,0.2);
         width: 100%;
         height: 100%;
     }
 
-    .comfino-modal-container {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox footer .comfino-modal-container {
         width: 50%;
         border-radius: 10px;
         background: #fff;
@@ -327,7 +331,7 @@
         overflow: auto;
     }
 
-    .comfino-modal-close {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox footer .comfino-modal-close {
         position: absolute;
         right: 15px;
         top: 15px;
@@ -340,15 +344,15 @@
         cursor: pointer;
     }
 
-    a.representative {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox footer a.representative {
         cursor: pointer;
     }
 
-    a.representative:hover {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox footer a.representative:hover {
         filter: brightness(150%);
     }
 
-    .comfino-icon {
+    div#comfino-box.comfino .comfino-icon {
         width: 32px;
         height: 32px;
         padding-top: 2px;
@@ -356,18 +360,11 @@
         margin-bottom: 3px;
     }
 
-    main.comfino-subbox {
-        background-color: #fff;
-        box-shadow: none;
-        -moz-box-shadow: none;
-        -webkit-box-shadow: none;
-    }
-
-    #comfino-installments {
+    div#comfino-box.comfino #comfino-installments {
         display: none;
     }
 
-    #comfino-payment-delay {
+    div#comfino-box.comfino #comfino-payment-delay {
         display: none;
     }
 </style>

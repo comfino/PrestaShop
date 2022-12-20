@@ -1,3 +1,6 @@
+2.2.2
+ - FN-9865 Update styles to avoid conflicts with some PrestaShop frontend themes
+
 2.2.1
  - FN-9566 Fix bug in frontend initialization code present in some PS frontend themes
  - FN-9832 Bug fixes and code clean up
