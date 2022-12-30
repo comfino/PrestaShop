@@ -47,21 +47,27 @@ class Comfino extends PaymentModule
     const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     const COMFINO_SUPPORT_PHONE = '887-106-027';
     const COMFINO_SETTINGS_OPTIONS = [
-        'COMFINO_PAYMENT_TEXT',
-        'COMFINO_API_KEY',
-        'COMFINO_PAYMENT_PRESENTATION',
-        'COMFINO_MINIMAL_CART_AMOUNT',
-        'COMFINO_IS_SANDBOX',
-        'COMFINO_SANDBOX_API_KEY',
-        'COMFINO_WIDGET_ENABLED',
-        'COMFINO_WIDGET_KEY',
-        'COMFINO_WIDGET_PRICE_SELECTOR',
-        'COMFINO_WIDGET_TARGET_SELECTOR',
-        'COMFINO_WIDGET_TYPE',
-        'COMFINO_WIDGET_OFFER_TYPE',
-        'COMFINO_WIDGET_EMBED_METHOD',
-        'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-        'COMFINO_WIDGET_CODE',
+        'payment_settings' => [
+            'COMFINO_API_KEY',
+            'COMFINO_PAYMENT_TEXT',
+            'COMFINO_PAYMENT_PRESENTATION',
+            'COMFINO_MINIMAL_CART_AMOUNT',
+        ],
+        'widget_settings' => [
+            'COMFINO_WIDGET_ENABLED',
+            'COMFINO_WIDGET_KEY',
+            'COMFINO_WIDGET_PRICE_SELECTOR',
+            'COMFINO_WIDGET_TARGET_SELECTOR',
+            'COMFINO_WIDGET_TYPE',
+            'COMFINO_WIDGET_OFFER_TYPE',
+            'COMFINO_WIDGET_EMBED_METHOD',
+            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+            'COMFINO_WIDGET_CODE',
+        ],
+        'developer_settings' => [
+            'COMFINO_IS_SANDBOX',
+            'COMFINO_SANDBOX_API_KEY',
+        ]
     ];
 
     public function __construct()
@@ -239,7 +245,7 @@ class Comfino extends PaymentModule
                 $output_type = 'warning';
                 $output[] = $this->l('Settings not updated.');
             } else {
-                foreach (self::COMFINO_SETTINGS_OPTIONS as $option_name) {
+                foreach (self::COMFINO_SETTINGS_OPTIONS[$active_tab] as $option_name) {
                     if ($option_name !== 'COMFINO_WIDGET_KEY') {
                         Configuration::updateValue($option_name, Tools::getValue($option_name));
                     } else {
@@ -511,8 +517,10 @@ class Comfino extends PaymentModule
         $helper = $this->getHelperForm('submit_configuration');
         $helper->fields_value['active_tab'] = isset($params['config_tab']) ? $params['config_tab'] : '';
 
-        foreach (self::COMFINO_SETTINGS_OPTIONS as $option_name) {
-            $helper->fields_value[$option_name] = Configuration::get($option_name);
+        foreach (self::COMFINO_SETTINGS_OPTIONS as $options) {
+            foreach ($options as $option_name) {
+                $helper->fields_value[$option_name] = Configuration::get($option_name);
+            }
         }
 
         $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES);
@@ -836,7 +844,7 @@ class Comfino extends PaymentModule
 
                 break;
 
-             default:
+            default:
         }
 
         if (!empty($config_tab) && isset($params['messages'])) {
@@ -922,7 +930,7 @@ script.onload = function () {
         type: '{WIDGET_TYPE}',
         offerType: '{OFFER_TYPE}',
         embedMethod: '{EMBED_METHOD}',
-        priceObserverLevel: '{PRICE_OBSERVER_LEVEL}',
+        priceObserverLevel: {PRICE_OBSERVER_LEVEL},
         price: null,
         callbackBefore: function () {},
         callbackAfter: function () {}
@@ -960,8 +968,10 @@ document.getElementsByTagName('head')[0].appendChild(script);
     {
         $result = true;
 
-        foreach (self::COMFINO_SETTINGS_OPTIONS as $option_name) {
-            $result &= Configuration::deleteByName($option_name);
+        foreach (self::COMFINO_SETTINGS_OPTIONS as $options) {
+            foreach ($options as $option_name) {
+                $result &= Configuration::deleteByName($option_name);
+            }
         }
 
         return $result;
