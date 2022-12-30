@@ -46,6 +46,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     '{WIDGET_TYPE}',
                     '{OFFER_TYPE}',
                     '{EMBED_METHOD}',
+                    '{PRICE_OBSERVER_LEVEL}',
                     '{WIDGET_SCRIPT_URL}',
                 ],
                 [
@@ -55,6 +56,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     Configuration::get('COMFINO_WIDGET_TYPE'),
                     Configuration::get('COMFINO_WIDGET_OFFER_TYPE'),
                     Configuration::get('COMFINO_WIDGET_EMBED_METHOD'),
+                    Configuration::get('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL'),
                     Configuration::get('COMFINO_IS_SANDBOX')
                         ? Comfino::WIDGET_SCRIPT_SANDBOX_URL
                         : Comfino::WIDGET_SCRIPT_PRODUCTION_URL,

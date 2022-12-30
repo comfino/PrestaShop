@@ -373,30 +373,30 @@
     <div class="comfino-box">
         <div class="header">
             <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/comfino_logo.svg" alt="" class="comfino-logo" />
-            <div class="comfino-title">{l s='Choose payment method' mod='comfino'}</div>
+            <div class="comfino-title">{l s="Choose payment method" mod="comfino"}</div>
         </div>
         <main class="comfino-subbox">
             <section id="comfino-offer-items" class="comfino-select-payment"></section>
             <section class="comfino-payment-box">
-                <div class="comfino-payment-title">{l s='Value of purchase' mod='comfino'}:</div>
+                <div class="comfino-payment-title">{l s="Value of purchase" mod="comfino"}:</div>
                 <div id="comfino-total-payment" class="comfino-total-payment"></div>
             </section>
             <section id="comfino-installments">
                 <section class="comfino-installments-box">
-                    <div class="comfino-installments-title">{l s='Choose number of instalments' mod='comfino'}</div>
+                    <div class="comfino-installments-title">{l s="Choose number of instalments" mod="comfino"}</div>
                     <div id="comfino-quantity-select" class="comfino-quantity-select"></div>
                 </section>
                 <section class="comfino-monthly-box">
-                    <div class="comfino-monthly-title">{l s='Monthly instalment' mod='comfino'}:</div>
+                    <div class="comfino-monthly-title">{l s="Monthly instalment" mod="comfino"}:</div>
                     <div id="comfino-monthly-installment" class="comfino-monthly-installment"></div>
                 </section>
                 <section class="comfino-summary-box">
-                    <div class="comfino-summary-total">{l s='Total amount to pay' mod='comfino'}: <span id="comfino-summary-total"></span></div>
+                    <div class="comfino-summary-total">{l s="Total amount to pay" mod="comfino"}: <span id="comfino-summary-total"></span></div>
                     <div class="comfino-rrso">RRSO <span id="comfino-rrso"></span></div>
                     <div id="comfino-description-box" class="comfino-description-box"></div>
                 </section>
                 <footer>
-                    <a id="comfino-repr-example-link" class="representative comfino-footer-link">{l s='Representative example' mod='comfino'}</a>
+                    <a id="comfino-repr-example-link" class="representative comfino-footer-link">{l s="Representative example" mod="comfino"}</a>
                     <div id="modal-repr-example" class="comfino-modal">
                         <div class="comfino-modal-bg comfino-modal-exit"></div>
                         <div class="comfino-modal-container">
@@ -407,20 +407,20 @@
                 </footer>
             </section>
             <section id="comfino-payment-delay" class="comfino-payment-delay">
-                <div class="comfino-payment-delay__title">{l s='Buy now, pay in 30 days' mod='comfino'} <span>{l s='How it\'s working?' mod='comfino'}</span></div>
+                <div class="comfino-payment-delay__title">{l s="Buy now, pay in 30 days" mod="comfino"} <span>{l s="How it's working?" mod="comfino"}</span></div>
                 <div class="comfino-payment-delay__box">
                     <div class="comfino-helper-box">
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
                                 <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/cart.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">{l s='Put the product in the basket' mod='comfino'}</div>
+                            <div class="comfin-single-instruction__text">{l s="Put the product in the basket" mod="comfino"}</div>
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
                                 <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/twisto.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">{l s='Choose Twisto payment' mod='comfino'}</div>
+                            <div class="comfin-single-instruction__text">{l s="Choose Twisto payment" mod="comfino"}</div>
                         </div>
                     </div>
                     <div class="comfino-helper-box">
@@ -428,13 +428,13 @@
                             <div class="single-instruction-img__background">
                                 <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/check.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">{l s='Check the products at home' mod='comfino'}</div>
+                            <div class="comfin-single-instruction__text">{l s="Check the products at home" mod="comfino"}</div>
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
                                 <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/wallet.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">{l s='Pay in 30 days' mod='comfino'}</div>
+                            <div class="comfin-single-instruction__text">{l s="Pay in 30 days" mod="comfino"}</div>
                         </div>
                     </div>
                 </div>
@@ -622,7 +622,7 @@
 
         getModuleApiUrl(queryStringParams)
         {
-            let moduleApiUrl = '{$set_info_url|escape:'javascript':'UTF-8'}'.replace(/&amp;/g, '&');
+            let moduleApiUrl = '{$set_info_url|escape:"javascript":"UTF-8"}'.replace(/&amp;/g, '&');
             let urlParams = new URLSearchParams(queryStringParams);
 
             if (queryStringParams) {
@@ -650,13 +650,13 @@
 
                         document.getElementById('comfino-box').style.display = 'block';
 
-                        offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>';
+                        offerWrapper.innerHTML = '<p>{l s="Loading..." mod="comfino"}</p>';
 
                         fetch(Comfino.getModuleApiUrl({ldelim}type: 'data'{rdelim}))
                             .then(response => response.json())
                             .then((data) => {
                                 if (!data.length) {
-                                    offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='No offers available.' mod='comfino'}</p>`;
+                                    offerWrapper.innerHTML = `<p class="alert alert-danger">{l s="No offers available." mod="comfino"}</p>`;
 
                                     return;
                                 }
@@ -701,7 +701,7 @@
 
                                 pluginInitialized = true;
                             }).catch((error) => {
-                                offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
+                                offerWrapper.innerHTML = `<p class="alert alert-danger">{l s="There was an error while performing this operation" mod="comfino"}: ` + error + `</p>`;
                             });
                     });
                 }

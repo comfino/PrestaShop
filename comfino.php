@@ -46,6 +46,23 @@ class Comfino extends PaymentModule
     const ERROR_LOG_NUM_LINES = 40;
     const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     const COMFINO_SUPPORT_PHONE = '887-106-027';
+    const COMFINO_SETTINGS_OPTIONS = [
+        'COMFINO_PAYMENT_TEXT',
+        'COMFINO_API_KEY',
+        'COMFINO_PAYMENT_PRESENTATION',
+        'COMFINO_MINIMAL_CART_AMOUNT',
+        'COMFINO_IS_SANDBOX',
+        'COMFINO_SANDBOX_API_KEY',
+        'COMFINO_WIDGET_ENABLED',
+        'COMFINO_WIDGET_KEY',
+        'COMFINO_WIDGET_PRICE_SELECTOR',
+        'COMFINO_WIDGET_TARGET_SELECTOR',
+        'COMFINO_WIDGET_TYPE',
+        'COMFINO_WIDGET_OFFER_TYPE',
+        'COMFINO_WIDGET_EMBED_METHOD',
+        'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+        'COMFINO_WIDGET_CODE',
+    ];
 
     public function __construct()
     {
@@ -137,119 +154,126 @@ class Comfino extends PaymentModule
     {
         ErrorLogger::init();
 
+        $active_tab = 'registration';
         $output = [];
-        $outputType = 'success';
+        $output_type = 'success';
 
         if (Tools::isSubmit('submit_configuration')) {
-            if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
-                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('API key'));
-            }
-            if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_PRESENTATION'))) {
-                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Payment presentation'));
-            }
-            if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
-                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Payment text'));
-            }
-            if (Tools::isEmpty(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
-                $output[] = sprintf($this->l("Field '%s' can not be empty."), $this->l('Minimal amount in cart'));
-            } elseif (!is_numeric(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
-                $output[] = sprintf(
-                    $this->l("Field '%s' has wrong numeric format."), $this->l('Minimal amount in cart')
-                );
-            }
+            $active_tab = Tools::getValue('active_tab');
+            $widget_key_error = false;
+            $widget_key = '';
 
-            $widgetKeyError = false;
-            $widgetKey = '';
+            $error_empty_msg = $this->l("Field '%s' can not be empty.");
+            $error_numeric_format_msg = $this->l("Field '%s' has wrong numeric format.");
 
-            if (!count($output)) {
-                $apiHost = Tools::getValue('COMFINO_IS_SANDBOX')
-                    ? ComfinoApi::COMFINO_SANDBOX_HOST
-                    : ComfinoApi::COMFINO_PRODUCTION_HOST;
+            switch ($active_tab) {
+                case 'payment_settings':
+                case 'developer_settings':
+                    if ($active_tab === 'payment_settings') {
+                        $api_host = Configuration::get('COMFINO_IS_SANDBOX')
+                            ? ComfinoApi::COMFINO_SANDBOX_HOST
+                            : ComfinoApi::COMFINO_PRODUCTION_HOST;
 
-                $apiKey = Tools::getValue('COMFINO_IS_SANDBOX')
-                    ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
-                    : Tools::getValue('COMFINO_API_KEY');
+                        $api_key = Configuration::get('COMFINO_IS_SANDBOX')
+                            ? Configuration::get('COMFINO_SANDBOX_API_KEY')
+                            : Tools::getValue('COMFINO_API_KEY');
 
-                if (!empty($apiKey)) {
-                    ComfinoApi::setApiHost($apiHost);
-                    ComfinoApi::setApiKey($apiKey);
-
-                    if (!ComfinoApi::isApiKeyValid()) {
-                        $output[] = sprintf($this->l('API key %s is not valid.'), $apiKey);
+                        if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
+                            $output[] = sprintf($error_empty_msg, $this->l('API key'));
+                        }
+                        if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_PRESENTATION'))) {
+                            $output[] = sprintf($error_empty_msg, $this->l('Payment presentation'));
+                        }
+                        if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
+                            $output[] = sprintf($error_empty_msg, $this->l('Payment text'));
+                        }
+                        if (Tools::isEmpty(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
+                            $output[] = sprintf($error_empty_msg, $this->l('Minimal amount in cart'));
+                        } elseif (!is_numeric(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
+                            $output[] = sprintf($error_numeric_format_msg, $this->l('Minimal amount in cart'));
+                        }
                     } else {
-                        $widgetKey = ComfinoApi::getWidgetKey();
+                        $api_host = Tools::getValue('COMFINO_IS_SANDBOX')
+                            ? ComfinoApi::COMFINO_SANDBOX_HOST
+                            : ComfinoApi::COMFINO_PRODUCTION_HOST;
 
-                        if (is_array($widgetKey)) {
-                            if (isset($widgetKey['errors'])) {
-                                $output = array_merge($output, $widgetKey['errors']);
-                                $outputType = 'warning';
-                                $widgetKeyError = true;
+                        $api_key = Tools::getValue('COMFINO_IS_SANDBOX')
+                            ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
+                            : Configuration::get('COMFINO_API_KEY');
+                    }
+
+                    if (!count($output)) {
+                        if (!empty($api_key)) {
+                            ComfinoApi::setApiHost($api_host);
+                            ComfinoApi::setApiKey($api_key);
+
+                            if (!ComfinoApi::isApiKeyValid()) {
+                                $output[] = sprintf($this->l('API key %s is not valid.'), $api_key);
+                            } else {
+                                $widget_key = ComfinoApi::getWidgetKey();
+
+                                if (is_array($widget_key)) {
+                                    if (isset($widget_key['errors'])) {
+                                        $output = array_merge($output, $widget_key['errors']);
+                                        $output_type = 'warning';
+                                        $widget_key_error = true;
+                                    }
+
+                                    $widget_key = '';
+                                }
                             }
-
-                            $widgetKey = '';
                         }
                     }
-                }
+
+                    break;
+
+                case 'widget_settings':
+                    if (!is_numeric(Tools::getValue('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL'))) {
+                        $output[] = sprintf($error_numeric_format_msg, $this->l('Price change detection level'));
+                    }
+
+                    break;
             }
 
-            if (!$widgetKeyError && count($output)) {
-                $outputType = 'warning';
+            if (!$widget_key_error && count($output)) {
+                $output_type = 'warning';
                 $output[] = $this->l('Settings not updated.');
             } else {
-                // Payment settings
-                Configuration::updateValue('COMFINO_API_KEY', Tools::getValue('COMFINO_API_KEY'));
-                Configuration::updateValue(
-                    'COMFINO_PAYMENT_PRESENTATION',
-                    Tools::getValue('COMFINO_PAYMENT_PRESENTATION')
-                );
-                Configuration::updateValue('COMFINO_PAYMENT_TEXT', Tools::getValue('COMFINO_PAYMENT_TEXT'));
-                Configuration::updateValue(
-                    'COMFINO_MINIMAL_CART_AMOUNT',
-                    Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT')
-                );
-
-                // Widget
-                Configuration::updateValue('COMFINO_WIDGET_ENABLED', Tools::getValue('COMFINO_WIDGET_ENABLED'));
-                Configuration::updateValue('COMFINO_WIDGET_KEY', $widgetKey);
-                Configuration::updateValue(
-                    'COMFINO_WIDGET_PRICE_SELECTOR',
-                    Tools::getValue('COMFINO_WIDGET_PRICE_SELECTOR')
-                );
-                Configuration::updateValue(
-                    'COMFINO_WIDGET_TARGET_SELECTOR',
-                    Tools::getValue('COMFINO_WIDGET_TARGET_SELECTOR')
-                );
-                Configuration::updateValue('COMFINO_WIDGET_TYPE', Tools::getValue('COMFINO_WIDGET_TYPE'));
-                Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', Tools::getValue('COMFINO_WIDGET_OFFER_TYPE'));
-                Configuration::updateValue(
-                    'COMFINO_WIDGET_EMBED_METHOD',
-                    Tools::getValue('COMFINO_WIDGET_EMBED_METHOD')
-                );
-                Configuration::updateValue('COMFINO_WIDGET_CODE', Tools::getValue('COMFINO_WIDGET_CODE'));
-
-                // For developers
-                Configuration::updateValue('COMFINO_IS_SANDBOX', Tools::getValue('COMFINO_IS_SANDBOX'));
-                Configuration::updateValue('COMFINO_SANDBOX_API_KEY', Tools::getValue('COMFINO_SANDBOX_API_KEY'));
+                foreach (self::COMFINO_SETTINGS_OPTIONS as $option_name) {
+                    if ($option_name !== 'COMFINO_WIDGET_KEY') {
+                        Configuration::updateValue($option_name, Tools::getValue($option_name));
+                    } else {
+                        Configuration::updateValue('COMFINO_WIDGET_KEY', Tools::getValue($widget_key));
+                    }
+                }
 
                 $output[] = $this->l('Settings updated.');
             }
         }
 
         $this->context->smarty->assign([
+            'active_tab' => $active_tab,
+            'tab_labels' => [
+                'registration' => $this->l('Registration in Comfino'),
+                'payment_settings' => $this->l('Payment settings'),
+                'widget_settings' => $this->l('Widget settings'),
+                'developer_settings' => $this->l('Developer settings'),
+                'plugin_diagnostics' => $this->l('Plugin diagnostics'),
+            ],
             'output' => $output,
-            'outputType' => $outputType,
-            'logoUrl' => ComfinoApi::getLogoUrl(),
-            'supportEmailAddress' => self::COMFINO_SUPPORT_EMAIL,
-            'supportEmailSubject' => sprintf(
+            'output_type' => $output_type,
+            'logo_url' => ComfinoApi::getLogoUrl(),
+            'support_email_address' => self::COMFINO_SUPPORT_EMAIL,
+            'support_email_subject' => sprintf(
                 $this->l('PrestaShop %s Comfino %s - question'),
                 _PS_VERSION_, COMFINO_VERSION
             ),
-            'supportEmailBody' => sprintf(
+            'support_email_body' => sprintf(
                 'PrestaShop %s Comfino %s, PHP %s',
                 _PS_VERSION_, COMFINO_VERSION, PHP_VERSION
             ),
-            'contactMsg1' => $this->l('Do you want to ask about something? Write to us at'),
-            'contactMsg2' => sprintf(
+            'contact_msg1' => $this->l('Do you want to ask about something? Write to us at'),
+            'contact_msg2' => sprintf(
                 $this->l(
                     'or contact us by phone. We are waiting on the number: %s. We will answer all your questions!'
                 ),
@@ -321,37 +345,35 @@ class Comfino extends PaymentModule
 
         ErrorLogger::init();
 
-        $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
-
-        if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
+        if ($this->context->cart->getOrderTotal() < (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT')) {
             return;
         }
 
         $this->smarty->assign($this->getTemplateVars());
 
-        $newOption = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
-        $newOption->setModuleName($this->name)
+        $new_option = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
+        $new_option->setModuleName($this->name)
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
             ->setAdditionalInformation($this->fetch('module:comfino/views/templates/front/payment.tpl'));
 
         switch (Configuration::get('COMFINO_PAYMENT_PRESENTATION')) {
             default:
             case ComfinoPresentationType::ICON_AND_TEXT:
-                $newOption->setCallToActionText(Configuration::get('COMFINO_PAYMENT_TEXT'));
-                $newOption->setLogo('//widget.comfino.pl/image/comfino/ecommerce/prestashop/logo.svg');
+                $new_option->setCallToActionText(Configuration::get('COMFINO_PAYMENT_TEXT'));
+                $new_option->setLogo('//widget.comfino.pl/image/comfino/ecommerce/prestashop/logo.svg');
                 break;
 
             case ComfinoPresentationType::ONLY_ICON:
-                $newOption->setCallToActionText('');
-                $newOption->setLogo('//widget.comfino.pl/image/comfino/ecommerce/prestashop/logo.svg');
+                $new_option->setCallToActionText('');
+                $new_option->setLogo('//widget.comfino.pl/image/comfino/ecommerce/prestashop/logo.svg');
                 break;
 
             case ComfinoPresentationType::ONLY_TEXT:
-                $newOption->setCallToActionText(Configuration::get('COMFINO_PAYMENT_TEXT'));
+                $new_option->setCallToActionText(Configuration::get('COMFINO_PAYMENT_TEXT'));
                 break;
         }
 
-        return [$newOption];
+        return [$new_option];
     }
 
     /**
@@ -411,7 +433,7 @@ class Comfino extends PaymentModule
      */
     public function hookDisplayBackofficeComfinoForm($params)
     {
-        return $this->displayForm();
+        return $this->displayForm($params);
     }
 
     /**
@@ -480,28 +502,22 @@ class Comfino extends PaymentModule
     }
 
     /**
+     * @param array $params
+     *
      * @return string
      */
-    public function displayForm()
+    private function displayForm($params)
     {
         $helper = $this->getHelperForm('submit_configuration');
-        $helper->fields_value['COMFINO_PAYMENT_TEXT'] = Configuration::get('COMFINO_PAYMENT_TEXT');
-        $helper->fields_value['COMFINO_API_KEY'] = Configuration::get('COMFINO_API_KEY');
-        $helper->fields_value['COMFINO_PAYMENT_PRESENTATION'] = Configuration::get('COMFINO_PAYMENT_PRESENTATION');
-        $helper->fields_value['COMFINO_MINIMAL_CART_AMOUNT'] = Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
-        $helper->fields_value['COMFINO_IS_SANDBOX'] = Configuration::get('COMFINO_IS_SANDBOX');
-        $helper->fields_value['COMFINO_SANDBOX_API_KEY'] = Configuration::get('COMFINO_SANDBOX_API_KEY');
-        $helper->fields_value['COMFINO_WIDGET_ENABLED'] = Configuration::get('COMFINO_WIDGET_ENABLED');
-        $helper->fields_value['COMFINO_WIDGET_KEY'] = Configuration::get('COMFINO_WIDGET_KEY');
-        $helper->fields_value['COMFINO_WIDGET_PRICE_SELECTOR'] = Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR');
-        $helper->fields_value['COMFINO_WIDGET_TARGET_SELECTOR'] = Configuration::get('COMFINO_WIDGET_TARGET_SELECTOR');
-        $helper->fields_value['COMFINO_WIDGET_TYPE'] = Configuration::get('COMFINO_WIDGET_TYPE');
-        $helper->fields_value['COMFINO_WIDGET_OFFER_TYPE'] = Configuration::get('COMFINO_WIDGET_OFFER_TYPE');
-        $helper->fields_value['COMFINO_WIDGET_EMBED_METHOD'] = Configuration::get('COMFINO_WIDGET_EMBED_METHOD');
-        $helper->fields_value['COMFINO_WIDGET_CODE'] = Configuration::get('COMFINO_WIDGET_CODE');
+        $helper->fields_value['active_tab'] = isset($params['config_tab']) ? $params['config_tab'] : '';
+
+        foreach (self::COMFINO_SETTINGS_OPTIONS as $option_name) {
+            $helper->fields_value[$option_name] = Configuration::get($option_name);
+        }
+
         $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES);
 
-        return $helper->generateForm($this->getFormFields());
+        return $helper->generateForm($this->getFormFields($params));
     }
 
     /**
@@ -533,8 +549,8 @@ class Comfino extends PaymentModule
         $helper->toolbar_btn = [
             'save' => [
                 'desc' => $this->l('Save'),
-                'href' => AdminController::$currentIndex . '&configure=' . $this->name . '&save' . $this->name . '&token=' .
-                    Tools::getAdminTokenLite('AdminModules'),
+                'href' => AdminController::$currentIndex . '&configure=' . $this->name . '&save' . $this->name .
+                    '&token=' . Tools::getAdminTokenLite('AdminModules'),
             ],
             'back' => [
                 'href' => AdminController::$currentIndex . '&token=' . Tools::getAdminTokenLite('AdminModules'),
@@ -551,226 +567,282 @@ class Comfino extends PaymentModule
     }
 
     /**
+     * @param array $params
+     *
      * @return array
      */
-    private function getFormFields()
+    private function getFormFields($params)
     {
         $fields = [];
+        $config_tab = isset($params['config_tab']) ? $params['config_tab'] : '';
 
-        $fields[0]['form'] = [
-            'legend' => [
-                'title' => $this->l('Payment methods'),
-            ],
-            'input' => [
-                [
-                    'type' => 'text',
-                    'label' => $this->l('API key'),
-                    'name' => 'COMFINO_API_KEY',
-                    'required' => true,
-                ],
-                [
-                    'type' => 'select',
-                    'label' => $this->l('Payment presentation'),
-                    'name' => 'COMFINO_PAYMENT_PRESENTATION',
-                    'required' => true,
-                    'options' => [
-                        'query' => [
-                            ['key' => ComfinoPresentationType::ONLY_ICON, 'name' => $this->l('Only icon')],
-                            ['key' => ComfinoPresentationType::ONLY_TEXT, 'name' => $this->l('Only text')],
-                            ['key' => ComfinoPresentationType::ICON_AND_TEXT, 'name' => $this->l('Icon and text')],
-                        ],
-                        'id' => 'key',
-                        'name' => 'name',
-                    ],
-                ],
-                [
-                    'type' => 'text',
-                    'label' => $this->l('Payment text'),
-                    'name' => 'COMFINO_PAYMENT_TEXT',
-                    'required' => true,
-                ],
-                [
-                    'type' => 'text',
-                    'label' => $this->l('Minimal amount in cart'),
-                    'name' => 'COMFINO_MINIMAL_CART_AMOUNT',
-                    'required' => true,
-                ],
-            ],
-            'submit' => [
-                'title' => $this->l('Save'),
-                'class' => 'btn btn-default pull-right',
-                'name' => 'submit_configuration',
-            ],
-        ];
+        switch ($params['config_tab']) {
+            case 'registration':
+                break;
 
-        $fields[1]['form'] = [
-            'legend' => [
-                'title' => 'Widget',
-            ],
-            'input' => [
-                [
-                    'type' => 'switch',
-                    'label' => $this->l('Widget is active?'),
-                    'name' => 'COMFINO_WIDGET_ENABLED',
-                    'values' => [
+            case 'payment_settings':
+                $fields[$config_tab]['form'] = [
+                    'legend' => ['title' => $this->l('Payment methods')],
+                    'input' => [
                         [
-                            'id' => 'widget_enabled',
-                            'value' => true,
-                            'label' => $this->l('Enabled'),
+                            'type' => 'hidden',
+                            'name' => 'active_tab',
+                            'required' => false,
                         ],
                         [
-                            'id' => 'widget_disabled',
-                            'value' => false,
-                            'label' => $this->l('Disabled'),
+                            'type' => 'text',
+                            'label' => $this->l('API key'),
+                            'name' => 'COMFINO_API_KEY',
+                            'required' => true,
+                            'placeholder' => $this->l('Please enter the key provided during registration'),
                         ],
-                    ],
-                ],
-                [
-                    'type' => 'hidden',
-                    'label' => $this->l('Widget key'),
-                    'name' => 'COMFINO_WIDGET_KEY',
-                    'required' => false,
-                ],
-                [
-                    'type' => 'text',
-                    'label' => $this->l('Widget price element selector'),
-                    'name' => 'COMFINO_WIDGET_PRICE_SELECTOR',
-                    'required' => false,
-                ],
-                [
-                    'type' => 'text',
-                    'label' => $this->l('Widget anchor element selector'),
-                    'name' => 'COMFINO_WIDGET_TARGET_SELECTOR',
-                    'required' => false,
-                ],
-                [
-                    'type' => 'select',
-                    'label' => $this->l('Widget type'),
-                    'name' => 'COMFINO_WIDGET_TYPE',
-                    'required' => false,
-                    'options' => [
-                        'query' => [
-                            ['key' => 'simple', 'name' => $this->l('Textual widget')],
-                            ['key' => 'mixed', 'name' => $this->l('Graphical widget with banner')],
-                            [
-                                'key' => 'with-modal',
-                                'name' => $this->l('Graphical widget with installments calculator'),
+                        [
+                            'type' => 'select',
+                            'label' => $this->l('Payment presentation'),
+                            'name' => 'COMFINO_PAYMENT_PRESENTATION',
+                            'required' => true,
+                            'options' => [
+                                'query' => [
+                                    ['key' => ComfinoPresentationType::ONLY_ICON, 'name' => $this->l('Only icon')],
+                                    ['key' => ComfinoPresentationType::ONLY_TEXT, 'name' => $this->l('Only text')],
+                                    [
+                                        'key' => ComfinoPresentationType::ICON_AND_TEXT,
+                                        'name' => $this->l('Icon and text')
+                                    ],
+                                ],
+                                'id' => 'key',
+                                'name' => 'name',
                             ],
                         ],
-                        'id' => 'key',
-                        'name' => 'name',
-                    ],
-                ],
-                [
-                    'type' => 'select',
-                    'label' => $this->l('Offer type'),
-                    'name' => 'COMFINO_WIDGET_OFFER_TYPE',
-                    'required' => false,
-                    'options' => [
-                        'query' => [
-                            [
-                                'key' => ComfinoApi::INSTALLMENTS_ZERO_PERCENT,
-                                'name' => $this->l('Zero percent installments'),
-                            ],
-                            [
-                                'key' => ComfinoApi::CONVENIENT_INSTALLMENTS,
-                                'name' => $this->l('Convenient installments'),
-                            ],
-                            ['key' => ComfinoApi::PAY_LATER, 'name' => $this->l('Pay later')],
+                        [
+                            'type' => 'text',
+                            'label' => $this->l('Payment text'),
+                            'name' => 'COMFINO_PAYMENT_TEXT',
+                            'required' => true,
                         ],
-                        'id' => 'key',
-                        'name' => 'name',
-                    ],
-                    'desc' => $this->l(
-                        'Other payment methods (Installments 0%, Buy now, pay later, Installments for Companies) ' .
-                        'available after consulting a Comfino advisor (kontakt@comfino.pl).'
-                    ),
-                ],
-                [
-                    'type' => 'select',
-                    'label' => $this->l('Embedding method'),
-                    'name' => 'COMFINO_WIDGET_EMBED_METHOD',
-                    'required' => false,
-                    'options' => [
-                        'query' => [
-                            ['key' => 'INSERT_INTO_FIRST', 'name' => 'INSERT_INTO_FIRST'],
-                            ['key' => 'INSERT_INTO_LAST', 'name' => 'INSERT_INTO_LAST'],
-                            ['key' => 'INSERT_BEFORE', 'name' => 'INSERT_BEFORE'],
-                            ['key' => 'INSERT_AFTER', 'name' => 'INSERT_AFTER'],
+                        [
+                            'type' => 'text',
+                            'label' => $this->l('Minimal amount in cart'),
+                            'name' => 'COMFINO_MINIMAL_CART_AMOUNT',
+                            'required' => true,
                         ],
-                        'id' => 'key',
-                        'name' => 'name',
                     ],
-                ],
-                [
-                    'type' => 'textarea',
-                    'label' => $this->l('Widget initialization code'),
-                    'name' => 'COMFINO_WIDGET_CODE',
-                    'required' => false,
-                    'rows' => 15,
-                    'cols' => 60,
-                ],
-            ],
-            'submit' => [
-                'title' => $this->l('Save'),
-                'class' => 'btn btn-default pull-right',
-                'name' => 'submit_configuration',
-            ],
-        ];
+                    'submit' => [
+                        'title' => $this->l('Save'),
+                        'class' => 'btn btn-default pull-right',
+                        'name' => 'submit_configuration',
+                    ],
+                ];
 
-        $fields[2]['form'] = [
-            'legend' => [
-                'title' => $this->l('For developers'),
-            ],
-            'input' => [
-                [
-                    'type' => 'switch',
-                    'label' => $this->l('Use test environment'),
-                    'name' => 'COMFINO_IS_SANDBOX',
-                    'values' => [
+                break;
+
+            case 'widget_settings':
+                $fields[$config_tab]['form'] = [
+                    'legend' => ['title' => 'Widget'],
+                    'input' => [
                         [
-                            'id' => 'sandbox_enabled',
-                            'value' => true,
-                            'label' => $this->l('Enabled'),
+                            'type' => 'hidden',
+                            'name' => 'active_tab',
+                            'required' => false,
                         ],
                         [
-                            'id' => 'sandbox_disabled',
-                            'value' => false,
-                            'label' => $this->l('Disabled'),
+                            'type' => 'switch',
+                            'label' => $this->l('Widget is active?'),
+                            'name' => 'COMFINO_WIDGET_ENABLED',
+                            'values' => [
+                                [
+                                    'id' => 'widget_enabled',
+                                    'value' => true,
+                                    'label' => $this->l('Enabled'),
+                                ],
+                                [
+                                    'id' => 'widget_disabled',
+                                    'value' => false,
+                                    'label' => $this->l('Disabled'),
+                                ],
+                            ],
+                        ],
+                        [
+                            'type' => 'hidden',
+                            'label' => $this->l('Widget key'),
+                            'name' => 'COMFINO_WIDGET_KEY',
+                            'required' => false,
+                        ],
+                        [
+                            'type' => 'text',
+                            'label' => $this->l('Widget price element selector'),
+                            'name' => 'COMFINO_WIDGET_PRICE_SELECTOR',
+                            'required' => false,
+                        ],
+                        [
+                            'type' => 'text',
+                            'label' => $this->l('Widget anchor element selector'),
+                            'name' => 'COMFINO_WIDGET_TARGET_SELECTOR',
+                            'required' => false,
+                        ],
+                        [
+                            'type' => 'select',
+                            'label' => $this->l('Widget type'),
+                            'name' => 'COMFINO_WIDGET_TYPE',
+                            'required' => false,
+                            'options' => [
+                                'query' => [
+                                    ['key' => 'simple', 'name' => $this->l('Textual widget')],
+                                    ['key' => 'mixed', 'name' => $this->l('Graphical widget with banner')],
+                                    [
+                                        'key' => 'with-modal',
+                                        'name' => $this->l('Graphical widget with installments calculator'),
+                                    ],
+                                ],
+                                'id' => 'key',
+                                'name' => 'name',
+                            ],
+                        ],
+                        [
+                            'type' => 'select',
+                            'label' => $this->l('Offer type'),
+                            'name' => 'COMFINO_WIDGET_OFFER_TYPE',
+                            'required' => false,
+                            'options' => [
+                                'query' => [
+                                    [
+                                        'key' => ComfinoApi::INSTALLMENTS_ZERO_PERCENT,
+                                        'name' => $this->l('Zero percent installments'),
+                                    ],
+                                    [
+                                        'key' => ComfinoApi::CONVENIENT_INSTALLMENTS,
+                                        'name' => $this->l('Convenient installments'),
+                                    ],
+                                    ['key' => ComfinoApi::PAY_LATER, 'name' => $this->l('Pay later')],
+                                ],
+                                'id' => 'key',
+                                'name' => 'name',
+                            ],
+                            'desc' => $this->l(
+                                'Other payment methods (Installments 0%, Buy now, pay later, Installments for ' .
+                                'Companies) available after consulting a Comfino advisor (kontakt@comfino.pl).'
+                            ),
+                        ],
+                        [
+                            'type' => 'select',
+                            'label' => $this->l('Embedding method'),
+                            'name' => 'COMFINO_WIDGET_EMBED_METHOD',
+                            'required' => false,
+                            'options' => [
+                                'query' => [
+                                    ['key' => 'INSERT_INTO_FIRST', 'name' => 'INSERT_INTO_FIRST'],
+                                    ['key' => 'INSERT_INTO_LAST', 'name' => 'INSERT_INTO_LAST'],
+                                    ['key' => 'INSERT_BEFORE', 'name' => 'INSERT_BEFORE'],
+                                    ['key' => 'INSERT_AFTER', 'name' => 'INSERT_AFTER'],
+                                ],
+                                'id' => 'key',
+                                'name' => 'name',
+                            ],
+                        ],
+                        [
+                            'type' => 'text',
+                            'label' => $this->l('Price change detection level'),
+                            'name' => 'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+                            'required' => false,
+                            'desc' => $this->l(
+                                'Hierarchy level of observed parent element relative to the price element.'
+                            ),
+                        ],
+                        [
+                            'type' => 'textarea',
+                            'label' => $this->l('Widget initialization code'),
+                            'name' => 'COMFINO_WIDGET_CODE',
+                            'required' => false,
+                            'rows' => 15,
+                            'cols' => 60,
                         ],
                     ],
-                    'desc' => $this->l(
-                        'The test environment allows the store owner to get acquainted with the ' .
-                        'functionality of the Comfino module. This is a Comfino simulator, thanks to which you can ' .
-                        'get to know all the advantages of this payment method. The use of the test mode is free ' .
-                        '(there are also no charges for orders).'
-                    ),
-                ],
-                [
-                    'type' => 'text',
-                    'label' => $this->l('Test environment API key'),
-                    'name' => 'COMFINO_SANDBOX_API_KEY',
-                    'required' => false,
-                    'desc' => $this->l(
-                        'Ask the supervisor for access to the test environment (key, login, password, link). ' .
-                        'Remember, the test key is different from the production key.'
-                    ),
-                ],
-                [
-                    'type' => 'textarea',
-                    'label' => $this->l('Errors log'),
-                    'name' => 'COMFINO_WIDGET_ERRORS_LOG',
-                    'required' => false,
-                    'rows' => 20,
-                    'cols' => 60,
-                ],
-            ],
-            'submit' => [
-                'title' => $this->l('Save'),
-                'class' => 'btn btn-default pull-right',
-                'name' => 'submit_configuration',
-            ],
-        ];
+                    'submit' => [
+                        'title' => $this->l('Save'),
+                        'class' => 'btn btn-default pull-right',
+                        'name' => 'submit_configuration',
+                    ],
+                ];
+
+                break;
+
+            case 'developer_settings':
+                $fields[$config_tab]['form'] = [
+                    'legend' => ['title' => $this->l('For developers')],
+                    'input' => [
+                        [
+                            'type' => 'hidden',
+                            'name' => 'active_tab',
+                            'required' => false,
+                        ],
+                        [
+                            'type' => 'switch',
+                            'label' => $this->l('Use test environment'),
+                            'name' => 'COMFINO_IS_SANDBOX',
+                            'values' => [
+                                [
+                                    'id' => 'sandbox_enabled',
+                                    'value' => true,
+                                    'label' => $this->l('Enabled'),
+                                ],
+                                [
+                                    'id' => 'sandbox_disabled',
+                                    'value' => false,
+                                    'label' => $this->l('Disabled'),
+                                ],
+                            ],
+                            'desc' => $this->l(
+                                'The test environment allows the store owner to get acquainted with the ' .
+                                'functionality of the Comfino module. This is a Comfino simulator, thanks to which ' .
+                                'you can get to know all the advantages of this payment method. The use of the ' .
+                                'test mode is free (there are also no charges for orders).'
+                            ),
+                        ],
+                        [
+                            'type' => 'text',
+                            'label' => $this->l('Test environment API key'),
+                            'name' => 'COMFINO_SANDBOX_API_KEY',
+                            'required' => false,
+                            'desc' => $this->l(
+                                'Ask the supervisor for access to the test environment (key, login, password, link). ' .
+                                'Remember, the test key is different from the production key.'
+                            ),
+                        ],
+                    ],
+                    'submit' => [
+                        'title' => $this->l('Save'),
+                        'class' => 'btn btn-default pull-right',
+                        'name' => 'submit_configuration',
+                    ],
+                ];
+
+                break;
+
+            case 'plugin_diagnostics':
+                $fields[$config_tab]['form'] = [
+                    'legend' => ['title' => $this->l('For developers')],
+                    'input' => [
+                        [
+                            'type' => 'textarea',
+                            'label' => $this->l('Errors log'),
+                            'name' => 'COMFINO_WIDGET_ERRORS_LOG',
+                            'required' => false,
+                            'readonly' => true,
+                            'rows' => 20,
+                            'cols' => 60,
+                        ],
+                    ]
+                ];
+
+                break;
+
+             default:
+        }
+
+        if (!empty($config_tab) && isset($params['messages'])) {
+            // Messages list displayed in the form header (type => message): description, warning, success, error
+            $fields[$config_tab]['form'] = array_merge($fields[$config_tab]['form'], $params['messages']);
+        }
 
         return $fields;
     }
@@ -840,7 +912,7 @@ class Comfino extends PaymentModule
      */
     private function initConfigurationValues()
     {
-        $widgetCode = "
+        $widget_code = "
 var script = document.createElement('script');
 script.onload = function () {
     ComfinoProductWidget.init({
@@ -850,7 +922,7 @@ script.onload = function () {
         type: '{WIDGET_TYPE}',
         offerType: '{OFFER_TYPE}',
         embedMethod: '{EMBED_METHOD}',
-        priceObserverLevel: 0,
+        priceObserverLevel: '{PRICE_OBSERVER_LEVEL}',
         price: null,
         callbackBefore: function () {},
         callbackAfter: function () {}
@@ -877,7 +949,8 @@ document.getElementsByTagName('head')[0].appendChild(script);
             Configuration::updateValue('COMFINO_WIDGET_TYPE', 'with-modal') &&
             Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', 'CONVENIENT_INSTALLMENTS') &&
             Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', 'INSERT_INTO_LAST') &&
-            Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widgetCode));
+            Configuration::updateValue('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL', '0') &&
+            Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widget_code));
     }
 
     /**
@@ -885,20 +958,13 @@ document.getElementsByTagName('head')[0].appendChild(script);
      */
     private function deleteConfigurationValues()
     {
-        return Configuration::deleteByName('COMFINO_PAYMENT_TEXT') &&
-            Configuration::deleteByName('COMFINO_API_KEY') &&
-            Configuration::deleteByName('COMFINO_MINIMAL_CART_AMOUNT') &&
-            Configuration::deleteByName('COMFINO_WIDGET_ENABLED') &&
-            Configuration::deleteByName('COMFINO_IS_SANDBOX') &&
-            Configuration::deleteByName('COMFINO_SANDBOX_API_KEY') &&
-            Configuration::deleteByName('COMFINO_WIDGET_ENABLED') &&
-            Configuration::deleteByName('COMFINO_WIDGET_KEY') &&
-            Configuration::deleteByName('COMFINO_WIDGET_PRICE_SELECTOR') &&
-            Configuration::deleteByName('COMFINO_WIDGET_TARGET_SELECTOR') &&
-            Configuration::deleteByName('COMFINO_WIDGET_TYPE') &&
-            Configuration::deleteByName('COMFINO_WIDGET_OFFER_TYPE') &&
-            Configuration::deleteByName('COMFINO_WIDGET_EMBED_METHOD') &&
-            Configuration::deleteByName('COMFINO_WIDGET_CODE');
+        $result = true;
+
+        foreach (self::COMFINO_SETTINGS_OPTIONS as $option_name) {
+            $result &= Configuration::deleteByName($option_name);
+        }
+
+        return $result;
     }
 
     /**
