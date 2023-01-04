@@ -88,7 +88,7 @@
                     </ul>
                     <div class="tab-content" id="TabmiraklContent">
                         <div class="tab-pane {if $active_tab == "registration"}active{else}fade{/if}" id="registration" role="tabpanel" aria-labelledby="registration-tab">
-                            {*include file="./registration.tpl"*}
+                            {include file="./registration.tpl"}
                         </div>
                         <div class="tab-pane {if $active_tab == "payment_settings"}active{else}fade{/if}" id="payment_settings" role="tabpanel" aria-labelledby="payment_settings-tab">
                             {hook h="displayBackofficeComfinoForm" config_tab="payment_settings"}
