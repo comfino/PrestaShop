@@ -62,27 +62,27 @@
                     <ul class="nav nav-tabs" id="comfino_settings_tabs" role="tablist">
                         <li class="nav-item{if $active_tab == "registration"} active{/if}">
                             <a class="nav-link" id="comfino_registration" data-toggle="tab" href="#registration" role="tab" aria-controls="comfino_registration" aria-selected="true">
-                                {$tab_labels.registration}
+                                {l s="Registration in Comfino" mod="comfino"}
                             </a>
                         </li>
                         <li class="nav-item{if $active_tab == "payment_settings"} active{/if}">
                             <a class="nav-link" id="comfino_payment_settings" data-toggle="tab" href="#payment_settings" role="tab" aria-controls="comfino_payment_settings" aria-selected="true">
-                                {$tab_labels.payment_settings}
+                                {l s="Payment settings" mod="comfino"}
                             </a>
                         </li>
                         <li class="nav-item{if $active_tab == "widget_settings"} active{/if}">
                             <a class="nav-link" id="comfino_widget_settings" data-toggle="tab" href="#widget_settings" role="tab" aria-controls="comfino_widget_settings" aria-selected="true">
-                                {$tab_labels.widget_settings}
+                                {l s="Widget settings" mod="comfino"}
                             </a>
                         </li>
                         <li class="nav-item{if $active_tab == "developer_settings"} active{/if}">
                             <a class="nav-link" id="comfino_developer_settings" data-toggle="tab" href="#developer_settings" role="tab" aria-controls="comfino_developer_settings" aria-selected="true">
-                                {$tab_labels.developer_settings}
+                                {l s="Developer settings" mod="comfino"}
                             </a>
                         </li>
                         <li class="nav-item{if $active_tab == "plugin_diagnostics"} active{/if}">
                             <a class="nav-link" id="comfino_plugin_diagnostics" data-toggle="tab" href="#plugin_diagnostics" role="tab" aria-controls="comfino_plugin_diagnostics" aria-selected="true">
-                                {$tab_labels.plugin_diagnostics}
+                                {l s="Plugin diagnostics" mod="comfino"}
                             </a>
                         </li>
                     </ul>
