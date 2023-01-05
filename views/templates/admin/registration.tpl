@@ -28,7 +28,7 @@
         display: grid;
         grid-template-columns: 56fr 44fr;
         max-width: 894px;
-        margin: 30px auto;
+        margin: 30px 0 30px 0;
         grid-gap: 27px;
     }
 

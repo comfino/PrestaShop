@@ -129,9 +129,14 @@ class ComfinoApi
             $data['customer']['taxId'] = $customer_tax_id;
         }
 
-        $response = self::sendRequest(self::getApiHost() . '/v1/orders', 'POST', [CURLOPT_FOLLOWLOCATION => true], $data);
+        $response = self::sendRequest(
+            self::getApiHost() . '/v1/orders',
+            'POST',
+            [CURLOPT_FOLLOWLOCATION => true],
+            $data
+        );
 
-        return $response !== false ? json_decode($response, true) : false;
+        return !count(self::$last_errors) ? json_decode($response, true) : false;
     }
 
     /**
@@ -189,21 +194,59 @@ class ComfinoApi
         return $widget_key;
     }
 
-    public static function registerShopAccount()
+    /**
+     * @param string $name
+     * @param string $url
+     * @param string $contactName
+     * @param string $email
+     * @param string $phone
+     * @param array $agreements
+     *
+     * @return array|bool
+     */
+    public static function registerShopAccount($name, $url, $contactName, $email, $phone, $agreements)
     {
+        $data = [
+            'name' => $name,
+            'webSiteUrl' => $url,
+            'contactName' => $contactName,
+            'contactEmail' => $email,
+            'contactPhone' => $phone,
+            'platformId' => 11,
+            'agreements' => $agreements,
+        ];
 
+        $response = self::sendRequest(self::getApiHost() . '/v1/user', 'POST', $data);
+
+        return !count(self::$last_errors) ? json_decode($response, true) : false;
     }
 
+    /**
+     * @return array|bool
+     */
     public function getShopAccountAgreements()
     {
+        $response = self::sendRequest(self::getApiHost() . '/v1/fetch-agreements', 'GET');
 
+        return !count(self::$last_errors) ? json_decode($response, true) : false;
     }
 
+    /**
+     * @return bool
+     */
     public static function isShopAccountActive()
     {
-        $response = self::sendRequest(self::getApiHost() . '/v1/user/is-active', 'GET', [], null, false);
+        $account_active = false;
 
-        return strpos($response, 'errors') === false;
+        if (!empty(self::getApiKey())) {
+            $response = self::sendRequest(self::getApiHost() . '/v1/user/is-active', 'GET', [], null, false);
+
+            if (!count(self::$last_errors)) {
+                $account_active = json_decode($response, true);
+            }
+        }
+
+        return $account_active;
     }
 
     /**
@@ -350,7 +393,7 @@ class ComfinoApi
      * @param string $data
      * @param bool $log_errors
      *
-     * @return string|bool
+     * @return string
      */
     private static function sendRequest($url, $request_type, $extra_options = [], $data = null, $log_errors = true)
     {
@@ -399,7 +442,7 @@ class ComfinoApi
      * @param mixed $data
      * @param bool $log_errors
      *
-     * @return string|bool
+     * @return string
      */
     private static function processResponse($curl, $url, $data, $log_errors)
     {
@@ -431,7 +474,7 @@ class ComfinoApi
                     );
                 }
 
-                self::$last_errors = array_values($decoded['errors']);
+                self::$last_errors = $decoded['errors'];
 
                 $response = json_encode(['errors' => self::$last_errors]);
             } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {

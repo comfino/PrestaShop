@@ -86,7 +86,7 @@
                             </a>
                         </li>
                     </ul>
-                    <div class="tab-content" id="TabmiraklContent">
+                    <div class="tab-content">
                         <div class="tab-pane {if $active_tab == "registration"}active{else}fade{/if}" id="registration" role="tabpanel" aria-labelledby="registration-tab">
                             {include file="./registration.tpl"}
                         </div>
