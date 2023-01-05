@@ -259,13 +259,6 @@ class Comfino extends PaymentModule
 
         $this->context->smarty->assign([
             'active_tab' => $active_tab,
-            'tab_labels' => [
-                'registration' => $this->l('Registration in Comfino'),
-                'payment_settings' => $this->l('Payment settings'),
-                'widget_settings' => $this->l('Widget settings'),
-                'developer_settings' => $this->l('Developer settings'),
-                'plugin_diagnostics' => $this->l('Plugin diagnostics'),
-            ],
             'output' => $output,
             'output_type' => $output_type,
             'logo_url' => ComfinoApi::getLogoUrl(),
