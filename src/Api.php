@@ -39,9 +39,16 @@ class ComfinoApi
     const CONVENIENT_INSTALLMENTS = 'CONVENIENT_INSTALLMENTS';
     const PAY_LATER = 'PAY_LATER';
 
+    /** @var string */
     private static $api_host;
+    /** @var string */
     private static $api_key;
+    /** @var string|null */
     private static $last_request_body;
+    /** @var string|null */
+    private static $last_response_body;
+    /** @var array */
+    private static $last_errors = [];
 
     /**
      * @param Cart $cart
@@ -167,17 +174,36 @@ class ComfinoApi
      */
     public static function getWidgetKey()
     {
-        $widgetKey = '';
+        $widget_key = '';
 
         if (!empty(self::getApiKey())) {
-            $widgetKey = self::sendRequest(self::getApiHost() . '/v1/widget-key', 'GET');
+            $widget_key = self::sendRequest(self::getApiHost() . '/v1/widget-key', 'GET');
 
-            if (!is_array($widgetKey)) {
-                $widgetKey = json_decode($widgetKey, true);
+            if (!count(self::$last_errors)) {
+                $widget_key = json_decode($widget_key, true);
+            } else {
+                $widget_key = false;
             }
         }
 
-        return $widgetKey;
+        return $widget_key;
+    }
+
+    public static function registerShopAccount()
+    {
+
+    }
+
+    public function getShopAccountAgreements()
+    {
+
+    }
+
+    public static function isShopAccountActive()
+    {
+        $response = self::sendRequest(self::getApiHost() . '/v1/user/is-active', 'GET', [], null, false);
+
+        return strpos($response, 'errors') === false;
     }
 
     /**
@@ -198,7 +224,7 @@ class ComfinoApi
         $data = ['error_details' => $request->errorDetails, 'hash' => $request->hash];
         $response = self::sendRequest(self::getApiHost() . '/v1/log-plugin-error', 'POST', [], $data, false);
 
-        return strpos($response, '"errors":') === false;
+        return strpos($response, 'errors') === false;
     }
 
     /**
@@ -245,6 +271,22 @@ class ComfinoApi
     public static function getLastRequestBody()
     {
         return self::$last_request_body;
+    }
+
+    /**
+     * @return string|null
+     */
+    public static function getLastResponseBody()
+    {
+        return self::$last_response_body;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getLastErrors()
+    {
+        return self::$last_errors;
     }
 
     /**
@@ -313,6 +355,8 @@ class ComfinoApi
     private static function sendRequest($url, $request_type, $extra_options = [], $data = null, $log_errors = true)
     {
         self::$last_request_body = null;
+        self::$last_response_body = null;
+        self::$last_errors = [];
 
         $options = [
             CURLOPT_URL => $url,
@@ -344,6 +388,8 @@ class ComfinoApi
 
         curl_close($curl);
 
+        self::$last_response_body = $response;
+
         return $response;
     }
 
@@ -369,9 +415,11 @@ class ComfinoApi
                 );
             }
 
-            $response = json_encode([
-                'errors' => ["Communication error: $error_id. Please contact with support and note this error id."],
-            ]);
+            self::$last_errors = [
+                "Communication error: $error_id. Please contact with support and note this error id."
+            ];
+
+            $response = json_encode(['errors' => self::$last_errors]);
         } else {
             $decoded = json_decode($response, true);
 
@@ -383,7 +431,9 @@ class ComfinoApi
                     );
                 }
 
-                $response = json_encode(['errors' => array_values($decoded['errors'])]);
+                self::$last_errors = array_values($decoded['errors']);
+
+                $response = json_encode(['errors' => self::$last_errors]);
             } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
                 $error_id = time();
 
@@ -394,9 +444,9 @@ class ComfinoApi
                     );
                 }
 
-                $response = json_encode([
-                    'errors' => ["Payment error: $error_id. Please contact with support and note this error id."],
-                ]);
+                self::$last_errors = ["Payment error: $error_id. Please contact with support and note this error id."];
+
+                $response = json_encode(['errors' => self::$last_errors]);
             }
         }
 
