@@ -250,6 +250,8 @@ class Comfino extends PaymentModule
 
                 $output[] = $this->l('Settings updated.');
             }
+        } elseif (Tools::isSubmit('submit_registration')) {
+            //COMFINO_REGISTERED_AT
         }
 
         $this->context->smarty->assign([
@@ -518,6 +520,19 @@ class Comfino extends PaymentModule
         $messages = [];
 
         switch ($config_tab) {
+            case 'registration':
+                $params['form_fields'] = [
+                    'register_form' => [
+                        'name' => $this->context->employee->firstname,
+                        'surname' => $this->context->employee->lastname,
+                        'email' => $this->context->employee->email,
+                        'url' => parse_url(_PS_BASE_URL_, PHP_URL_HOST),
+                    ],
+                    'agreements' => [],
+                ];
+
+                break;
+
             case 'payment_settings':
                 if (Configuration::get('COMFINO_IS_SANDBOX')) {
                     $messages['warning'] = $this->l('Developer mode is active. You are using test environment.');
@@ -601,9 +616,30 @@ class Comfino extends PaymentModule
     {
         $fields = [];
         $config_tab = isset($params['config_tab']) ? $params['config_tab'] : '';
+        $form_name = isset($params['form_name']) ? $params['form_name'] : 'submit_configuration';
+        $form_fields = isset($params['form_fields']) ? $params['form_fields'] : [];
 
         switch ($config_tab) {
             case 'registration':
+                $fields['registration']['form'] = [];
+
+                if (isset($params['messages'])) {
+                    // Messages list in the form header (type => message): description, warning, success, error
+                    $fields['registration']['form'] = array_merge(
+                        $fields['registration']['form'],
+                        $params['messages']
+                    );
+                }
+
+                $this->context->smarty->assign($form_fields);
+
+                $reg_form_html = $this->display(__FILE__, 'views/templates/admin/registration_form.tpl');
+
+                $fields['registration']['form'] = array_merge(
+                    $fields['registration']['form'],
+                    ['input' => [['type' => 'html', 'html_content' => $reg_form_html]]]
+                );
+
                 break;
 
             case 'payment_settings':
@@ -667,7 +703,7 @@ class Comfino extends PaymentModule
                         'submit' => [
                             'title' => $this->l('Save'),
                             'class' => 'btn btn-default pull-right',
-                            'name' => 'submit_configuration',
+                            'name' => $form_name,
                         ],
                     ]
                 );
@@ -764,7 +800,7 @@ class Comfino extends PaymentModule
                         'submit' => [
                             'title' => $this->l('Save'),
                             'class' => 'btn btn-default pull-right',
-                            'name' => 'submit_configuration',
+                            'name' => $form_name,
                         ]
                     ]
                 );
@@ -821,7 +857,7 @@ class Comfino extends PaymentModule
                     'submit' => [
                         'title' => $this->l('Save'),
                         'class' => 'btn btn-default pull-right',
-                        'name' => 'submit_configuration',
+                        'name' => $form_name,
                     ],
                 ];
 
@@ -884,7 +920,7 @@ class Comfino extends PaymentModule
                         'submit' => [
                             'title' => $this->l('Save'),
                             'class' => 'btn btn-default pull-right',
-                            'name' => 'submit_configuration',
+                            'name' => $form_name,
                         ],
                     ]
                 );
@@ -1030,7 +1066,8 @@ document.getElementsByTagName('head')[0].appendChild(script);
             Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', 'CONVENIENT_INSTALLMENTS') &&
             Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', 'INSERT_INTO_LAST') &&
             Configuration::updateValue('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL', '0') &&
-            Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widget_code));
+            Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widget_code)) &&
+            Configuration::updateValue('COMFINO_REGISTERED_AT', '');
     }
 
     /**

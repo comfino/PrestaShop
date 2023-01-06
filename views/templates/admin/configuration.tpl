@@ -91,16 +91,16 @@
                             {include file="./registration.tpl"}
                         </div>
                         <div class="tab-pane {if $active_tab == "payment_settings"}active{else}fade{/if}" id="payment_settings" role="tabpanel" aria-labelledby="payment_settings-tab">
-                            {hook h="displayBackofficeComfinoForm" config_tab="payment_settings"}
+                            {hook h="displayBackofficeComfinoForm" config_tab="payment_settings" form_name="submit_configuration"}
                         </div>
                         <div class="tab-pane {if $active_tab == "widget_settings"}active{else}fade{/if}" id="widget_settings" role="tabpanel" aria-labelledby="widget_settings-tab">
-                            {hook h="displayBackofficeComfinoForm" config_tab="widget_settings"}
+                            {hook h="displayBackofficeComfinoForm" config_tab="widget_settings" form_name="submit_configuration"}
                         </div>
                         <div class="tab-pane {if $active_tab == "developer_settings"}active{else}fade{/if}" id="developer_settings" role="tabpanel" aria-labelledby="developer_settings-tab">
-                            {hook h="displayBackofficeComfinoForm" config_tab="developer_settings"}
+                            {hook h="displayBackofficeComfinoForm" config_tab="developer_settings" form_name="submit_configuration"}
                         </div>
                         <div class="tab-pane {if $active_tab == "plugin_diagnostics"}active{else}fade{/if}" id="plugin_diagnostics" role="tabpanel" aria-labelledby="plugin_diagnostics-tab">
-                            {hook h="displayBackofficeComfinoForm" config_tab="plugin_diagnostics"}
+                            {hook h="displayBackofficeComfinoForm" config_tab="plugin_diagnostics" form_name="submit_configuration"}
                         </div>
                     </div>
                 </div>
