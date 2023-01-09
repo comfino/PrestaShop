@@ -505,8 +505,17 @@ class Comfino extends PaymentModule
     private function displayForm($params)
     {
         $config_tab = isset($params['config_tab']) ? $params['config_tab'] : '';
+        $form_name = isset($params['form_name']) ? $params['form_name'] : 'submit_configuration';
 
-        $helper = $this->getHelperForm('submit_configuration');
+        if ($form_name === 'submit_registration') {
+            $form_template_dir = _PS_MODULE_DIR_ . 'comfino/views/templates/admin';
+            $form_template = 'registration_form.tpl';
+        } else {
+            $form_template_dir = null;
+            $form_template = null;
+        }
+
+        $helper = $this->getHelperForm($form_name, $form_template_dir, $form_template);
         $helper->fields_value['active_tab'] = $config_tab;
 
         foreach (self::COMFINO_SETTINGS_OPTIONS as $options) {
@@ -631,14 +640,14 @@ class Comfino extends PaymentModule
                     );
                 }
 
-                $this->context->smarty->assign($form_fields);
+                /*$this->context->smarty->assign($form_fields);
 
                 $reg_form_html = $this->display(__FILE__, 'views/templates/admin/registration_form.tpl');
 
                 $fields['registration']['form'] = array_merge(
                     $fields['registration']['form'],
                     ['input' => [['type' => 'html', 'html_content' => $reg_form_html]]]
-                );
+                );*/
 
                 break;
 

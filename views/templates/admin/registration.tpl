@@ -33,7 +33,7 @@
     }
 
     .register_left {
-        padding: 33px 0 33px 33px;
+        padding: 0;
     }
 
     .register_left a {
