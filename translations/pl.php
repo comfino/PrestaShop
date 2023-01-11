@@ -122,4 +122,3 @@ $_MODULE['<{comfino}prestashop>registration_8f55f363aa7ceb8183b22b2c792d35e8'] =
 $_MODULE['<{comfino}prestashop>registration_459811b0e760a9ebb5c04659721aae52'] = 'Jesteś w dobrym miejscu :)';
 $_MODULE['<{comfino}prestashop>registration_23a083efc78731f83df71561ec7dfcc5'] = 'Jeśli masz już założone konto i podpisaną umowę, oznacza to, że masz dostęp do API produkcyjnego.';
 $_MODULE['<{comfino}prestashop>registration_32ca0ea90a6dbd633d49882d18548b9a'] = 'Jedyne, co musisz zrobić, to skonfigurować i aktywować bramkę płatności Comfino.';
-$_MODULE['<{comfino}prestashop>registration_f1206f9fadc5ce41694f69129aecac26'] = 'Skonfiguruj';
