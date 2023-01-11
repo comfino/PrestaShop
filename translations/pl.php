@@ -91,8 +91,8 @@ $_MODULE['<{comfino}prestashop>configuration_f1a9672d88ab0cae23402867e2def274'] 
 $_MODULE['<{comfino}prestashop>configuration_dbdcee2a8f33547e13199af86a38688e'] = 'Ustawienia widgetu';
 $_MODULE['<{comfino}prestashop>configuration_0fa6c048c824482bf4dd381c78ef2418'] = 'Ustawienia deweloperskie';
 $_MODULE['<{comfino}prestashop>configuration_24e673cdc2684bde9fe70162a3fbe6a3'] = 'Diagnostyka wtyczki';
-$_MODULE['<{comfino}prestashop>configuration_93d74901738e996378295fb0a59bb977'] = 'Ustawienia podstawowe';
-$_MODULE['<{comfino}prestashop>configuration_fe4c6a5e7bd6793b37370e4e46daf998'] = 'Ustawienia zaawansowane';
+$_MODULE['<{comfino}prestashop>comfino_93d74901738e996378295fb0a59bb977'] = 'Ustawienia podstawowe';
+$_MODULE['<{comfino}prestashop>comfino_fe4c6a5e7bd6793b37370e4e46daf998'] = 'Ustawienia zaawansowane';
 $_MODULE['<{comfino}prestashop>comfino_ca396e064e57b09ef3a8227238228c45'] = 'Tryb deweloperski jest aktywny. Używasz środowiska testowego.';
 $_MODULE['<{comfino}prestashop>comfino_772334dceeb09c4dc6ef018726673aa6'] = 'Tryb produkcyjny jest aktywny.';
 $_MODULE['<{comfino}prestashop>comfino_e4508aa0faf1ee9371ce84fc2aaa95a5'] = 'Brak produkcyjnego klucza API.';
