@@ -28,7 +28,7 @@
         display: grid;
         grid-template-columns: 56fr 44fr;
         max-width: 894px;
-        margin: 30px 0 30px 0;
+        margin: 0 0 30px 0;
         grid-gap: 27px;
     }
 
@@ -50,7 +50,6 @@
         transition: 0.3s;
         cursor: pointer;
         font-size: 13px;
-        color: #c2cacd;
     }
 
     .register_tab:hover {
@@ -223,50 +222,48 @@
     }
 </style>
 
-<div class="register_all">
-    <div class="register_left">
-        <div class="register_tabs">
-            <div class="register_tab register_tab_left tab_active" data-tab="reg">
-                <div class="register_tab_icon register_tab_icon_reg"></div>
-                {l s="Register" mod="comfino"}
+<div class="panel">
+    <div class="register_all">
+        <div class="register_left">
+            <div class="register_tabs">
+                <div class="register_tab register_tab_left tab_active" data-tab="reg">
+                    <div class="register_tab_icon register_tab_icon_reg"></div>
+                    {l s="Register" mod="comfino"}
+                </div>
             </div>
-            <div class="register_tab register_tab_right" data-tab="log">
-                <div class="register_tab_icon register_tab_icon_log"></div>
-                {l s="Log in" mod="comfino"}
+            <img src="/modules/comfino/views/img/registration/logo.png" alt="Comfino" class="register_logo">
+            <div class="max_wrap"></div>
+            <div class="register_tab_reg"{if $registration_available} style="display: none"{/if}>
+                <div class="register_h">
+                    {l s="Register your shop in Comfino!" mod="comfino"}
+                </div>
+                <div class="register_caption">
+                    {l s="Fill in the fields below and we\'ll set up an account for you. This is the first step to start a joint adventure with Comfino installment payments." mod="comfino"}
+                </div>
+                <div class="register_h_mini">
+                    {l s="Why is it worth it?" mod="comfino"}
+                </div>
+                <ol class="register_ol">
+                    <li>{l s="Minimal formalities - you can sign the contract online," mod="comfino"}</li>
+                    <li>{l s="No implementation costs and subscription fees," mod="comfino"}</li>
+                    <li>{l s="Improving the competitiveness of the offer and increasing sales." mod="comfino"}</li>
+                </ol>
+                {hook h="displayBackofficeComfinoForm" config_tab="registration" form_name="submit_registration"}
             </div>
-        </div>
-        <img src="/modules/comfino/views/img/registration/logo.png" alt="Comfino" class="register_logo">
-        <div class="max_wrap"></div>
-        <div class="register_tab_reg">
-            <div class="register_h">
-                {l s="Register your shop in Comfino!" mod="comfino"}
-            </div>
-            <div class="register_caption">
-                {l s="Fill in the fields below and we\'ll set up an account for you. This is the first step to start a joint adventure with Comfino installment payments." mod="comfino"}
-            </div>
-            <div class="register_h_mini">
-                {l s="Why is it worth it?" mod="comfino"}
-            </div>
-            <ol class="register_ol">
-                <li>{l s="Minimal formalities - you can sign the contract online," mod="comfino"}</li>
-                <li>{l s="No implementation costs and subscription fees," mod="comfino"}</li>
-                <li>{l s="Improving the competitiveness of the offer and increasing sales." mod="comfino"}</li>
-            </ol>
-            {hook h="displayBackofficeComfinoForm" config_tab="registration" form_name="submit_registration"}
-        </div>
-        <div class="register_tab_log" style="display: none;">
-            <div class="register_h">
-                {l s="Already have an account at Comfino.pl?" mod="comfino"}
-            </div>
-            <div class="register_caption">
-                {l s="You are in the right place :)" mod="comfino"}<br><br>
-                {l s="If you already have an account and a signed contract, it means that you have access to the production API." mod="comfino"}<br><br>
-                {l s="All you need to do is set up and activate the Comfino payment gateway." mod="comfino"}
-            </div>
-            <div class="center">
-                <a href="/" class="register_register_btn">{l s="Configure" mod="comfino"}</a>
+            <div class="register_tab_log"{if !$registration_available} style="display: none"{/if}>
+                <div class="register_h">
+                    {l s="Already have an account at Comfino.pl?" mod="comfino"}
+                </div>
+                <div class="register_caption">
+                    {l s="You are in the right place :)" mod="comfino"}<br><br>
+                    {l s="If you already have an account and a signed contract, it means that you have access to the production API." mod="comfino"}<br><br>
+                    {l s="All you need to do is set up and activate the Comfino payment gateway." mod="comfino"}
+                </div>
+                <div class="center">
+                    <a href="/" class="register_register_btn">{l s="Configure" mod="comfino"}</a>
+                </div>
             </div>
         </div>
+        <div class="register_right"></div>
     </div>
-    <div class="register_right"></div>
 </div>

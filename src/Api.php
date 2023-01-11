@@ -41,12 +41,19 @@ class ComfinoApi
 
     /** @var string */
     private static $api_host;
+
     /** @var string */
     private static $api_key;
+
     /** @var string|null */
     private static $last_request_body;
+
     /** @var string|null */
     private static $last_response_body;
+
+    /** @var int|null */
+    private static $last_response_code;
+
     /** @var array */
     private static $last_errors = [];
 
@@ -224,7 +231,7 @@ class ComfinoApi
     /**
      * @return array|bool
      */
-    public function getShopAccountAgreements()
+    public static function getShopAccountAgreements()
     {
         $response = self::sendRequest(self::getApiHost() . '/v1/fetch-agreements', 'GET');
 
@@ -325,6 +332,14 @@ class ComfinoApi
     }
 
     /**
+     * @return int|null
+     */
+    public static function getLastResponseCode()
+    {
+        return self::$last_response_code;
+    }
+
+    /**
      * @return array
      */
     public static function getLastErrors()
@@ -399,6 +414,7 @@ class ComfinoApi
     {
         self::$last_request_body = null;
         self::$last_response_body = null;
+        self::$last_response_code = null;
         self::$last_errors = [];
 
         $options = [
@@ -448,8 +464,28 @@ class ComfinoApi
     {
         $response = curl_exec($curl);
 
-        if ($response === false || (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
+        self::$last_response_code = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+
+        if ($response === false || self::$last_response_code >= 400) {
             $error_id = time();
+
+            self::$last_errors = [
+                "Communication error: $error_id. Please contact with support and note this error id."
+            ];
+
+            if ($response !== false) {
+                $decoded = json_decode($response, true);
+
+                if ($decoded !== false) {
+                    if (isset($decoded['errors'])) {
+                        self::$last_errors = array_merge(self::$last_errors, $decoded['errors']);
+                    } elseif (isset($decoded['message'])) {
+                        self::$last_errors[] = $decoded['message'];
+                    }
+                }
+            } else {
+                $response = '';
+            }
 
             if ($log_errors) {
                 ErrorLogger::sendError(
@@ -458,26 +494,30 @@ class ComfinoApi
                 );
             }
 
-            self::$last_errors = [
-                "Communication error: $error_id. Please contact with support and note this error id."
-            ];
-
             $response = json_encode(['errors' => self::$last_errors]);
         } else {
             $decoded = json_decode($response, true);
 
-            if ($decoded !== false && isset($decoded['errors'])) {
+            if ($decoded !== false && (isset($decoded['errors']) || isset($decoded['message']))) {
+                $errors = [];
+
+                if (isset($decoded['errors'])) {
+                    $errors = $decoded['errors'];
+                } elseif (isset($decoded['message'])) {
+                    $errors[] = $decoded['message'];
+                }
+
                 if ($log_errors) {
                     ErrorLogger::sendError(
-                        'Payment error', 0, implode(', ', $decoded['errors']),
+                        'Payment error', 0, implode(', ', $errors),
                         $url, $data !== null ? json_encode($data) : null, $response
                     );
                 }
 
-                self::$last_errors = $decoded['errors'];
+                self::$last_errors = $errors;
 
                 $response = json_encode(['errors' => self::$last_errors]);
-            } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
+            } elseif (self::$last_response_code >= 400) {
                 $error_id = time();
 
                 if ($log_errors) {

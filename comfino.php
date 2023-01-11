@@ -251,7 +251,7 @@ class Comfino extends PaymentModule
                 $output[] = $this->l('Settings updated.');
             }
         } elseif (Tools::isSubmit('submit_registration')) {
-            //COMFINO_REGISTERED_AT
+            // Configuration::updateValue('COMFINO_REGISTERED_AT', date('Y-m-d H:i:s'));
         }
 
         $this->context->smarty->assign([
@@ -508,7 +508,7 @@ class Comfino extends PaymentModule
         $form_name = isset($params['form_name']) ? $params['form_name'] : 'submit_configuration';
 
         if ($form_name === 'submit_registration') {
-            $form_template_dir = _PS_MODULE_DIR_ . 'comfino/views/templates/admin';
+            $form_template_dir = '';
             $form_template = 'registration_form.tpl';
         } else {
             $form_template_dir = null;
@@ -530,6 +530,37 @@ class Comfino extends PaymentModule
 
         switch ($config_tab) {
             case 'registration':
+                $registration_available = true;
+                $user_active = false;
+                $api_error = false;
+                $registered_at = Configuration::get('COMFINO_REGISTERED_AT');
+                $api_key = Configuration::get('COMFINO_API_KEY');
+                $agreements = [];
+
+                if (!empty($registered_at) || !empty($api_key)) {
+                    $registration_available = false;
+                }
+
+                if (!empty($api_key)) {
+                    $user_active = ComfinoApi::isShopAccountActive();
+
+                    if (!$user_active) {
+                        if (count(ComfinoApi::getLastErrors())) {
+                            $api_error = true;
+                            $messages['error'] = implode('<br />', ComfinoApi::getLastErrors());
+                        }
+                    }
+                }
+
+                if ($registration_available) {
+                    $agreements = ComfinoApi::getShopAccountAgreements();
+
+                    if ($agreements === false) {
+                        $messages['error'] = implode('<br />', ComfinoApi::getLastErrors());
+                        $registration_available = false;
+                    }
+                }
+
                 $params['form_fields'] = [
                     'register_form' => [
                         'name' => $this->context->employee->firstname,
@@ -537,7 +568,10 @@ class Comfino extends PaymentModule
                         'email' => $this->context->employee->email,
                         'url' => parse_url(_PS_BASE_URL_, PHP_URL_HOST),
                     ],
-                    'agreements' => [],
+                    'agreements' => $agreements !== false ? $agreements : [],
+                    'registration_available' => $registration_available,
+                    'user_active' => $user_active,
+                    'api_error' => $api_error,
                 ];
 
                 break;
@@ -550,14 +584,58 @@ class Comfino extends PaymentModule
                 break;
 
             case 'plugin_diagnostics':
+                $success_messages = [];
+                $warning_messages = [];
+                $error_messages = [];
+
                 if (Configuration::get('COMFINO_IS_SANDBOX')) {
-                    $messages['warning'] = $this->l('Developer mode is active. You are using test environment.');
-                } else {
+                    $warning_messages[] = $this->l('Developer mode is active. You are using test environment.');
+
                     if (!empty(ComfinoApi::getApiKey())) {
-                        $messages['success'] = $this->l('Production mode is active.');
+                        if (ComfinoApi::isShopAccountActive()) {
+                            $success_messages[] = $this->l('Test account is active.');
+                        } else {
+                            if (count(ComfinoApi::getLastErrors())) {
+                                $error_messages = array_merge($error_messages, ComfinoApi::getLastErrors());
+
+                                if (ComfinoApi::getLastResponseCode() === 401) {
+                                    $error_messages[] = $this->l('Invalid test API key.');
+                                }
+                            } else {
+                                $warning_messages[] = $this->l('Test account is not active.');
+                            }
+                        }
                     } else {
-                        $messages['error'] = $this->l('Production API key not present.');
+                        $error_messages[] = $this->l('Test API key not present.');
                     }
+                } else if (!empty(ComfinoApi::getApiKey())) {
+                    $success_messages[] = $this->l('Production mode is active.');
+
+                    if (ComfinoApi::isShopAccountActive()) {
+                        $success_messages[] = $this->l('Production account is active.');
+                    } else {
+                        if (count(ComfinoApi::getLastErrors())) {
+                            $error_messages = array_merge($error_messages, ComfinoApi::getLastErrors());
+
+                            if (ComfinoApi::getLastResponseCode() === 401) {
+                                $error_messages[] = $this->l('Invalid production API key.');
+                            }
+                        } else {
+                            $warning_messages[] = $this->l('Production account is not active.');
+                        }
+                    }
+                } else {
+                    $error_messages[] = $this->l('Production API key not present.');
+                }
+
+                if (count($success_messages)) {
+                    $messages['success'] = implode('<br />', $success_messages);
+                }
+                if (count($warning_messages)) {
+                    $messages['warning'] = implode('<br />', $warning_messages);
+                }
+                if (count($error_messages)) {
+                    $messages['error'] = implode('<br />', $error_messages);
                 }
 
                 break;
@@ -640,14 +718,7 @@ class Comfino extends PaymentModule
                     );
                 }
 
-                /*$this->context->smarty->assign($form_fields);
-
-                $reg_form_html = $this->display(__FILE__, 'views/templates/admin/registration_form.tpl');
-
-                $fields['registration']['form'] = array_merge(
-                    $fields['registration']['form'],
-                    ['input' => [['type' => 'html', 'html_content' => $reg_form_html]]]
-                );*/
+                $this->context->smarty->assign($form_fields);
 
                 break;
 

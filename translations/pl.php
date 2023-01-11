@@ -96,8 +96,14 @@ $_MODULE['<{comfino}prestashop>configuration_fe4c6a5e7bd6793b37370e4e46daf998'] 
 $_MODULE['<{comfino}prestashop>comfino_ca396e064e57b09ef3a8227238228c45'] = 'Tryb deweloperski jest aktywny. Używasz środowiska testowego.';
 $_MODULE['<{comfino}prestashop>comfino_772334dceeb09c4dc6ef018726673aa6'] = 'Tryb produkcyjny jest aktywny.';
 $_MODULE['<{comfino}prestashop>comfino_e4508aa0faf1ee9371ce84fc2aaa95a5'] = 'Brak produkcyjnego klucza API.';
+$_MODULE['<{comfino}prestashop>comfino_c0a83dcf74156466027c59cdd1352e42'] = 'Brak testowego klucza API.';
+$_MODULE['<{comfino}prestashop>comfino_8892163cfc3ad42229ee8605b68831fc'] = 'Produkcyjny klucz API jest nieprawidłowy.';
+$_MODULE['<{comfino}prestashop>comfino_2acacb8b9b6027d122b787c63b5ef986'] = 'Testowy klucz API jest nieprawidłowy.';
+$_MODULE['<{comfino}prestashop>comfino_4f31b87f1d0c45a02b68dee39d8d6057'] = 'Konto produkcyjne jest aktywne.';
+$_MODULE['<{comfino}prestashop>comfino_8c460352e5f7c630dba13fc925463859'] = 'Konto produkcyjne jest nieaktywne.';
+$_MODULE['<{comfino}prestashop>comfino_7b7c2d5fe7aad47b9b6b04c8409fb8ab'] = 'Konto testowe jest aktywne.';
+$_MODULE['<{comfino}prestashop>comfino_c659a3feae56eb805ca07914c33b7490'] = 'Konto testowe jest nieaktywne.';
 $_MODULE['<{comfino}prestashop>registration_0ba7583639a274c434bbe6ef797115a4'] = 'Zarejestruj się';
-$_MODULE['<{comfino}prestashop>registration_bffe9a3c9a7e00ba00a11749e022d911'] = 'Zaloguj się';
 $_MODULE['<{comfino}prestashop>registration_170e847760321c1eb297031b8143b5f5'] = 'Zarejestruj swój sklep w Comfino!';
 $_MODULE['<{comfino}prestashop>registration_9fbc28a4fdae8b39a587463dff657e59'] = 'Wypełnij poniższe pola, a my założymy Ci konto. To pierwszy krok do rozpoczęcia wspólnej przygody z płatnościami ratalnymi Comfino.';
 $_MODULE['<{comfino}prestashop>registration_69573c98f580fc1b3c7487bd8a5ba5e8'] = 'Dlaczego warto?';
