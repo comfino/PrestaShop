@@ -43,7 +43,6 @@
 
     .register_tab {
         transition: 0.3s;
-        cursor: pointer;
         font-size: 13px;
     }
 

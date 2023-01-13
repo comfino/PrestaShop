@@ -17,7 +17,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
  *}
 
-<form{if isset($current) && $current} action="{$current|escape:'html':'UTF-8'}{if isset($token) && $token}&amp;token={$token|escape:'html':'UTF-8'}{/if}"{/if} method="post" enctype="multipart/form-data" class="register_form">
+<form id="registration_form"{if isset($current) && $current} action="{$current|escape:'html':'UTF-8'}{if isset($token) && $token}&amp;token={$token|escape:'html':'UTF-8'}{/if}"{/if} method="post" enctype="multipart/form-data" class="register_form" novalidate>
     {if !empty($submit_action)}<input type="hidden" name="{$submit_action}" value="1" />{/if}
     {foreach $fields as $f => $fieldset}
         {block name="fieldset"}
@@ -49,21 +49,21 @@
         <div class="register_form_col">
             <div class="register_form_label">{l s="Name" mod="comfino"}</div>
             <div class="register_form_input">
-                <input type="text" name="register[name]" value="{$register_form.name|escape:"htmlall":"UTF-8"}" tabindex="1" required>
+                <input type="text" name="register[name]" value="{$register_form.name|escape:"htmlall":"UTF-8"}" tabindex="1" required="required" />
             </div>
             <div class="register_form_label">{l s="E-mail address" mod="comfino"}</div>
             <div class="register_form_input">
-                <input type="text" name="register[email]" value="{$register_form.email|escape:"htmlall":"UTF-8"}" tabindex="3" required>
+                <input type="text" name="register[email]" value="{$register_form.email|escape:"htmlall":"UTF-8"}" tabindex="3" required="required" />
             </div>
         </div>
         <div class="register_form_col">
             <div class="register_form_label">{l s="Surname" mod="comfino"}</div>
             <div class="register_form_input">
-                <input type="text" name="register[surname]" value="{$register_form.surname|escape:"htmlall":"UTF-8"}" tabindex="2" required>
+                <input type="text" name="register[surname]" value="{$register_form.surname|escape:"htmlall":"UTF-8"}" tabindex="2" required="required" />
             </div>
             <div class="register_form_label">{l s="Phone number" mod="comfino"}</div>
             <div class="register_form_input">
-                <input type="text" name="register[phone]" value="{$register_form.phone|escape:"htmlall":"UTF-8"}" tabindex="4" required>
+                <input type="text" name="register[phone]" value="{$register_form.phone|escape:"htmlall":"UTF-8"}" tabindex="4" required="required" />
             </div>
         </div>
     </div>
@@ -72,12 +72,12 @@
         {l s="Website address where the Comfino payment will be installed" mod="comfino"}
     </div>
     <div class="register_form_input">
-        <input type="text" name="register[url]" value="{$register_form.url|escape:"htmlall":"UTF-8"}" tabindex="5" required>
+        <input type="text" name="register[url]" value="{$register_form.url|escape:"htmlall":"UTF-8"}" tabindex="5" required="required" />
     </div>
     <div class="register_agreements_list">
         {foreach $agreements as $agreement}
             <div class="register_agreement">
-                <input type="checkbox" name="register[agreements][{$agreement.id|escape:"htmlall":"UTF-8"}]" id="register_agreement_{$agreement.id|escape:"htmlall":"UTF-8"}"{if $agreement.required} required{/if}>
+                <input type="checkbox" name="register[agreements][{$agreement.id|escape:"htmlall":"UTF-8"}]" id="register_agreement_{$agreement.id|escape:"htmlall":"UTF-8"}"{if $agreement.required} required="required"{/if} />
                 <label for="register_agreement_{$agreement.id|escape:"htmlall":"UTF-8"}">
                     - {$agreement.content|escape:"htmlall":"UTF-8"}
                 </label>
@@ -89,6 +89,6 @@
         <a href="https://comfino.pl/polityka-prywatnosci/" target="_blank" rel="noopener">{l s="Read the full information on the processing of personal data" mod="comfino"}</a>.
     </div>
     <div class="center">
-        <button name="submit_registration" type="submit" value="1" class="register_register_btn"{if !$registration_available} disabled{/if}>{l s="Create an account" mod="comfino"}</button>
+        <button id="registration_form_submit_btn" name="submit_registration" type="submit" value="1" class="register_register_btn"{if !$registration_available} disabled{/if}>{l s="Create an account" mod="comfino"}</button>
     </div>
 </form>

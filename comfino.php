@@ -31,7 +31,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.2.3', false);
+    define('COMFINO_VERSION', '2.3.0', false);
 }
 
 class Comfino extends PaymentModule
@@ -69,7 +69,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.2.3';
+        $this->version = '2.3.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -235,6 +235,7 @@ class Comfino extends PaymentModule
                 $output_type = 'warning';
                 $output[] = $this->l('Settings not updated.');
             } else {
+                // Update plugin configuration
                 foreach (self::COMFINO_SETTINGS_OPTIONS[$active_tab] as $option_name) {
                     if ($option_name !== 'COMFINO_WIDGET_KEY') {
                         Configuration::updateValue($option_name, Tools::getValue($option_name));
@@ -246,8 +247,67 @@ class Comfino extends PaymentModule
                 $output[] = $this->l('Settings updated.');
             }
         } elseif (Tools::isSubmit('submit_registration')) {
-            // Configuration::updateValue('COMFINO_REGISTERED_AT', date('Y-m-d H:i:s'));
+            $shop_data = Tools::getValue('register');
+            $error_empty_msg = $this->l("Field '%s' can not be empty.");
+            $error_req_consent_msg = $this->l("'%s' consent is required.");
+
+            if (Tools::isEmpty($shop_data['name'])) {
+                $output[] = sprintf($error_empty_msg, $this->l('Name'));
+            }
+            if (Tools::isEmpty($shop_data['surname'])) {
+                $output[] = sprintf($error_empty_msg, $this->l('Surname'));
+            }
+            if (Tools::isEmpty($shop_data['email'])) {
+                $output[] = sprintf($error_empty_msg, $this->l('E-mail address'));
+            }
+            if (Tools::isEmpty($shop_data['phone'])) {
+                $output[] = sprintf($error_empty_msg, $this->l('Phone number'));
+            }
+            if (Tools::isEmpty($shop_data['url'])) {
+                $output[] = sprintf(
+                    $error_empty_msg,
+                    $this->l('Website address where the Comfino payment will be installed')
+                );
+            }
+
+            $selected_agreements = [];
+
+            if (count($agreements = ComfinoApi::getShopAccountAgreements())) {
+                if (Tools::isEmpty($shop_data['agreements'])) {
+                    $output[] = $this->l('No required consents.');
+                } else {
+                    foreach ($agreements as $agreement) {
+                        if ($agreement['required'] && !isset($shop_data['agreements'][$agreement['id']])) {
+                            $output[] = sprintf($this->l("'%s' consent is required."), $agreement['content']);
+                        }
+
+                        $selected_agreements[] = $agreement['id'];
+                    }
+                }
+            }
+
+            if (count($output)) {
+                $output_type = 'warning';
+            } else {
+                $result = ComfinoApi::registerShopAccount(
+                    '',
+                    $shop_data['url'],
+                    $shop_data['name'] . ' ' . $shop_data['surname'],
+                    $shop_data['email'],
+                    $shop_data['phone'],
+                    $selected_agreements
+                );
+
+                if ($result === false) {
+
+                } else {
+                    // Configuration::updateValue('COMFINO_REGISTERED_AT', date('Y-m-d H:i:s'));
+                }
+            }
         }
+
+        $registered_at = Configuration::get('COMFINO_REGISTERED_AT');
+        $api_key = Configuration::get('COMFINO_API_KEY');
 
         $this->context->smarty->assign([
             'active_tab' => $active_tab,
@@ -270,6 +330,7 @@ class Comfino extends PaymentModule
                 ),
                 self::COMFINO_SUPPORT_PHONE
             ),
+            'registration_available' => true//empty($registered_at) && empty($api_key),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/configuration.tpl');
