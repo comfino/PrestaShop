@@ -27,11 +27,11 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/PresentationType.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
 
 if (!defined('COMFINO_PS_17')) {
-    define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='));
+    define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='), false);
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.2.2');
+    define('COMFINO_VERSION', '2.2.3', false);
 }
 
 class Comfino extends PaymentModule
@@ -69,7 +69,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.2.2';
+        $this->version = '2.2.3';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -393,10 +393,9 @@ class Comfino extends PaymentModule
             ])) {
                 $this->smarty->assign(
                     [
-                        'total_to_pay' => Tools::displayPrice(
+                        'total_to_pay' => $this->context->currentLocale->formatPrice(
                             $rest_to_paid,
-                            new Currency($params['order']->id_currency),
-                            false
+                            (new Currency($params['order']->id_currency))->iso_code
                         ),
                         'shop_name' => $this->context->shop->name,
                         'status' => 'ok',

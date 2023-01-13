@@ -1,3 +1,6 @@
+2.2.3
+ - FN-9991 Remove deprecated Tools::displayPrice() calls
+
 2.2.2
  - FN-9865 Update styles to avoid conflicts with some PrestaShop frontend themes
 

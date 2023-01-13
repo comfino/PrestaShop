@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.3](https://github.com/comfino/PrestaShop/tree/2.2.3) (2023-01-09)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.2...2.2.3)
+
+**Merged pull requests:**
+
+- FN-9991 Remove deprecated Tools::displayPrice() calls [\#61](https://github.com/comfino/PrestaShop/pull/61) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.2.2](https://github.com/comfino/PrestaShop/tree/2.2.2) (2022-11-28)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.1...2.2.2)

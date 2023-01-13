@@ -61,6 +61,9 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
         $payment_offers = [];
         $set = false;
 
+        $locale = $this->context->currentLocale;
+        $currency_iso = (new Currency($cart->id_currency))->iso_code;
+
         if (is_array($offers) && !isset($offers['errors'])) {
             foreach ($offers as $offer) {
                 $loan_amount = round(((float) $offer['instalmentAmount']) * ((float) $offer['loanTerm']) / 100, 2);
@@ -84,25 +87,32 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                     'icon' => str_ireplace('<?xml version="1.0" encoding="UTF-8"?>', '', $offer['icon']),
                     'type' => $offer['type'],
                     'sumAmount' => $total / 100,
-                    'sumAmountFormatted' => Tools::displayPrice($total / 100),
+                    'sumAmountFormatted' => $locale->formatPrice($total / 100, $currency_iso),
                     'representativeExample' => $offer['representativeExample'],
                     'rrso' => round((float) $offer['rrso'] * 100, 2),
                     'loanTerm' => $offer['loanTerm'],
                     'instalmentAmount' => ((float) $offer['instalmentAmount']) / 100,
-                    'instalmentAmountFormatted' => Tools::displayPrice(((float) $offer['instalmentAmount']) / 100),
+                    'instalmentAmountFormatted' => $locale->formatPrice(
+                        ((float) $offer['instalmentAmount']) / 100,
+                        $currency_iso
+                    ),
                     'toPay' => ((float) $offer['toPay']) / 100,
-                    'toPayFormatted' => Tools::displayPrice(((float) $offer['toPay']) / 100),
-                    'loanParameters' => array_map(static function ($loan_params) use ($total) {
+                    'toPayFormatted' => $locale->formatPrice(((float) $offer['toPay']) / 100, $currency_iso),
+                    'loanParameters' => array_map(static function ($loan_params) use ($total, $locale, $currency_iso) {
                         return [
                             'loanTerm' => $loan_params['loanTerm'],
                             'instalmentAmount' => ((float) $loan_params['instalmentAmount']) / 100,
-                            'instalmentAmountFormatted' => Tools::displayPrice(
-                                ((float) $loan_params['instalmentAmount']) / 100
+                            'instalmentAmountFormatted' => $locale->formatPrice(
+                                ((float) $loan_params['instalmentAmount']) / 100,
+                                $currency_iso
                             ),
                             'toPay' => ((float) $loan_params['toPay']) / 100,
-                            'toPayFormatted' => Tools::displayPrice(((float) $loan_params['toPay']) / 100),
+                            'toPayFormatted' => $locale->formatPrice(
+                                ((float) $loan_params['toPay']) / 100,
+                                $currency_iso
+                            ),
                             'sumAmount' => $total / 100,
-                            'sumAmountFormatted' => Tools::displayPrice($total / 100),
+                            'sumAmountFormatted' => $locale->formatPrice($total / 100, $currency_iso),
                             'rrso' => round((float) $loan_params['rrso'] * 100, 2),
                         ];
                     }, $offer['loanParameters']),
