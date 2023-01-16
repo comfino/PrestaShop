@@ -277,7 +277,14 @@ class Comfino extends PaymentModule
                 } else {
                     foreach ($agreements as $agreement) {
                         if ($agreement['required'] && !isset($shop_data['agreements'][$agreement['id']])) {
-                            $output[] = sprintf($this->l("'%s' consent is required."), $agreement['content']);
+                            $output[] = sprintf(
+                                $this->l("'%s' consent is required."),
+                                preg_replace(
+                                    '/<a\s+href="[^"]*"[^>]*>([^<\/]+)<\/a>/mU',
+                                    '$1',
+                                    strip_tags($agreement['content'], '<a>')
+                                )
+                            );
                         }
 
                         $selected_agreements[] = $agreement['id'];
@@ -633,6 +640,20 @@ class Comfino extends PaymentModule
                     if ($agreements === false) {
                         $messages['error'] = implode('<br />', ComfinoApi::getLastErrors());
                         $registration_available = false;
+                    } else {
+                        foreach ($agreements as &$agreement) {
+                            $agreement['content'] = preg_replace_callback(
+                                '/<a(\s+href="[^"]*"[^>]*)>[^<\/]+<\/a>/mU',
+                                static function (array $matches) {
+                                    return stripos($matches[1], 'target=') === false
+                                        ? str_replace($matches[1], $matches[1] . ' target="_blank"', $matches[0])
+                                        : $matches[0];
+                                },
+                                strip_tags($agreement['content'], '<a>')
+                            );
+                        }
+
+                        unset($agreement);
                     }
                 }
 

@@ -87,6 +87,7 @@
     .register_ol {
         margin: 15px 0 30px 0;
         list-style-type: disc;
+        padding-left: 10px;
     }
     .register_ol li {
         margin: 0 0 7px 23px;
@@ -118,6 +119,12 @@
     .register_form_label {
         font-size: 17px;
         margin-bottom: 7px;
+    }
+
+    .register_form_label label {
+        font-weight: normal;
+        display: inline;
+        margin: 0;
     }
 
     .register_form_input {

@@ -133,6 +133,11 @@ $_MODULE['<{comfino}prestashop>registration_form_8b5dd64ab8d0b8158906796b53a200e
 $_MODULE['<{comfino}prestashop>registration_form_8e55577a8ed3b20bff65d23c000280d4'] = 'Nazwisko';
 $_MODULE['<{comfino}prestashop>registration_form_1f8261d17452a959e013666c5df45e07'] = 'Numer telefonu';
 $_MODULE['<{comfino}prestashop>registration_form_2279612ffecf9ce48d43372cb3524e23'] = 'Adres strony, gdzie będzie instalowana płatność Comfino';
+$_MODULE['<{comfino}prestashop>comfino_49ee3087348e8d44e1feda1917443987'] = 'Imię';
+$_MODULE['<{comfino}prestashop>comfino_8b5dd64ab8d0b8158906796b53a200e2'] = 'Adres e-mail';
+$_MODULE['<{comfino}prestashop>comfino_8e55577a8ed3b20bff65d23c000280d4'] = 'Nazwisko';
+$_MODULE['<{comfino}prestashop>comfino_1f8261d17452a959e013666c5df45e07'] = 'Numer telefonu';
+$_MODULE['<{comfino}prestashop>comfino_2279612ffecf9ce48d43372cb3524e23'] = 'Adres strony, gdzie będzie instalowana płatność Comfino';
 $_MODULE['<{comfino}prestashop>registration_form_b58c19998766b187215e3f0bf48f180d'] = 'Administratorem danych osobowych jest Comperia.pl S.A.';
 $_MODULE['<{comfino}prestashop>registration_form_c77f22ea825c9ec516ef4c6b5c57292a'] = 'Zapoznaj się z pełną informacją o przetwarzaniu danych osobowych';
 $_MODULE['<{comfino}prestashop>registration_form_2fdfd506efea08144c0794c32ca8250a'] = 'Załóż konto';
@@ -141,4 +146,4 @@ $_MODULE['<{comfino}prestashop>registration_459811b0e760a9ebb5c04659721aae52'] =
 $_MODULE['<{comfino}prestashop>registration_23a083efc78731f83df71561ec7dfcc5'] = 'Jeśli masz już założone konto i podpisaną umowę, oznacza to, że masz dostęp do API produkcyjnego.';
 $_MODULE['<{comfino}prestashop>registration_32ca0ea90a6dbd633d49882d18548b9a'] = 'Jedyne, co musisz zrobić, to skonfigurować i aktywować bramkę płatności Comfino.';
 $_MODULE['<{comfino}prestashop>comfino_1967c57cba6f7da486ca66a16a0728fe'] = 'Brak wymaganych zgód.';
-$_MODULE['<{comfino}prestashop>comfino_bd9db62c4787ffe89f6e3d433cdf59a9'] = "Udzielenie zgody '%s' jest wymagane.";
+$_MODULE['<{comfino}prestashop>comfino_6d1b21962599e6d64ae6a15ab0898e81'] = "Udzielenie zgody '%s' jest wymagane.";
