@@ -3,7 +3,7 @@
     Order deny,allow
     Deny from all
 
-    <FilesMatch "logo.png">
+    <FilesMatch "(logo\.png|views/img/registration/+\.png)">
         Allow from All
     </FilesMatch>
 </IfModule>
@@ -12,7 +12,7 @@
 <IfModule mod_authz_core.c>
     Require all denied
 
-    <FilesMatch "logo.png">
+    <FilesMatch "(logo\.png|views/img/registration/+\.png)">
         Require all granted
     </FilesMatch>
 </IfModule>
