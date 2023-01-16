@@ -249,7 +249,6 @@ class Comfino extends PaymentModule
         } elseif (Tools::isSubmit('submit_registration')) {
             $shop_data = Tools::getValue('register');
             $error_empty_msg = $this->l("Field '%s' can not be empty.");
-            $error_req_consent_msg = $this->l("'%s' consent is required.");
 
             if (Tools::isEmpty($shop_data['name'])) {
                 $output[] = sprintf($error_empty_msg, $this->l('Name'));
@@ -290,7 +289,7 @@ class Comfino extends PaymentModule
                 $output_type = 'warning';
             } else {
                 $result = ComfinoApi::registerShopAccount(
-                    '',
+                    Configuration::get('PS_SHOP_NAME'),
                     $shop_data['url'],
                     $shop_data['name'] . ' ' . $shop_data['surname'],
                     $shop_data['email'],
@@ -299,15 +298,25 @@ class Comfino extends PaymentModule
                 );
 
                 if ($result === false) {
-
+                    $output = array_merge($output, ComfinoApi::getLastErrors());
+                    $output_type = 'error';
                 } else {
-                    // Configuration::updateValue('COMFINO_REGISTERED_AT', date('Y-m-d H:i:s'));
+                    if (Configuration::get('COMFINO_IS_SANDBOX')) {
+                        Configuration::updateValue('COMFINO_SANDBOX_REGISTERED_AT', date('Y-m-d H:i:s'));
+                    } else {
+                        Configuration::updateValue('COMFINO_REGISTERED_AT', date('Y-m-d H:i:s'));
+                    }
                 }
             }
         }
 
-        $registered_at = Configuration::get('COMFINO_REGISTERED_AT');
-        $api_key = Configuration::get('COMFINO_API_KEY');
+        if (Configuration::get('COMFINO_IS_SANDBOX')) {
+            $registered_at = Configuration::get('COMFINO_SANDBOX_REGISTERED_AT');
+            $api_key = Configuration::get('COMFINO_SANDBOX_API_KEY');
+        } else {
+            $registered_at = Configuration::get('COMFINO_REGISTERED_AT');
+            $api_key = Configuration::get('COMFINO_API_KEY');
+        }
 
         $this->context->smarty->assign([
             'active_tab' => $active_tab,
@@ -588,9 +597,15 @@ class Comfino extends PaymentModule
                 $registration_available = true;
                 $user_active = false;
                 $api_error = false;
-                $registered_at = Configuration::get('COMFINO_REGISTERED_AT');
-                $api_key = Configuration::get('COMFINO_API_KEY');
                 $agreements = [];
+
+                if (Configuration::get('COMFINO_IS_SANDBOX')) {
+                    $registered_at = Configuration::get('COMFINO_SANDBOX_REGISTERED_AT');
+                    $api_key = Configuration::get('COMFINO_SANDBOX_API_KEY');
+                } else {
+                    $registered_at = Configuration::get('COMFINO_REGISTERED_AT');
+                    $api_key = Configuration::get('COMFINO_API_KEY');
+                }
 
                 if (!empty($registered_at) || !empty($api_key)) {
                     $registration_available = false;
@@ -1202,7 +1217,8 @@ document.getElementsByTagName('head')[0].appendChild(script);
             Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', 'INSERT_INTO_LAST') &&
             Configuration::updateValue('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL', '0') &&
             Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widget_code)) &&
-            Configuration::updateValue('COMFINO_REGISTERED_AT', '');
+            Configuration::updateValue('COMFINO_REGISTERED_AT', '') &&
+            Configuration::updateValue('COMFINO_SANDBOX_REGISTERED_AT');
     }
 
     /**
@@ -1217,6 +1233,9 @@ document.getElementsByTagName('head')[0].appendChild(script);
                 $result &= Configuration::deleteByName($option_name);
             }
         }
+
+        $result &= Configuration::deleteByName('COMFINO_REGISTERED_AT');
+        $result &= Configuration::deleteByName('COMFINO_SANDBOX_REGISTERED_AT');
 
         return $result;
     }
