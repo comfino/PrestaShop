@@ -302,10 +302,14 @@ class Comfino extends PaymentModule
                     $output_type = 'error';
                 } else {
                     if (Configuration::get('COMFINO_IS_SANDBOX')) {
+                        Configuration::updateValue('COMFINO_SANDBOX_API_KEY', $result['apiKey']);
                         Configuration::updateValue('COMFINO_SANDBOX_REGISTERED_AT', date('Y-m-d H:i:s'));
                     } else {
+                        Configuration::updateValue('COMFINO_API_KEY', $result['apiKey']);
                         Configuration::updateValue('COMFINO_REGISTERED_AT', date('Y-m-d H:i:s'));
                     }
+
+                    Configuration::updateValue('COMFINO_WIDGET_KEY', $result['widgetKey']);
                 }
             }
         }
@@ -339,7 +343,8 @@ class Comfino extends PaymentModule
                 ),
                 self::COMFINO_SUPPORT_PHONE
             ),
-            'registration_available' => true//empty($registered_at) && empty($api_key),
+            'plugin_version' => $this->version,
+            'registration_available' => empty($registered_at) && empty($api_key),
         ]);
 
         return $this->display(__FILE__, 'views/templates/admin/configuration.tpl');
@@ -654,9 +659,31 @@ class Comfino extends PaymentModule
                 break;
 
             case 'plugin_diagnostics':
+                $info_messages = [];
                 $success_messages = [];
                 $warning_messages = [];
                 $error_messages = [];
+
+                if (COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')) {
+                    $info_messages[] = sprintf(
+                        'PrestaShop Comfino %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
+                        COMFINO_VERSION,
+                        _PS_VERSION_,
+                        \Symfony\Component\HttpKernel\Kernel::VERSION,
+                        PHP_VERSION,
+                        $_SERVER['SERVER_SOFTWARE'],
+                        Db::getInstance()->getVersion()
+                    );
+                } else {
+                    $info_messages[] = sprintf(
+                        'PrestaShop Comfino %s, PrestaShop %s, PHP %s, web server %s, database %s',
+                        COMFINO_VERSION,
+                        _PS_VERSION_,
+                        PHP_VERSION,
+                        $_SERVER['SERVER_SOFTWARE'],
+                        Db::getInstance()->getVersion()
+                    );
+                }
 
                 if (Configuration::get('COMFINO_IS_SANDBOX')) {
                     $warning_messages[] = $this->l('Developer mode is active. You are using test environment.');
@@ -698,6 +725,9 @@ class Comfino extends PaymentModule
                     $error_messages[] = $this->l('Production API key not present.');
                 }
 
+                if (count($info_messages)) {
+                    $messages['description'] = implode('<br />', $info_messages);
+                }
                 if (count($success_messages)) {
                     $messages['success'] = implode('<br />', $success_messages);
                 }

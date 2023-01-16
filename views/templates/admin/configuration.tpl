@@ -42,7 +42,7 @@
     <div class="col-md-12">
         <div class="panel">
             <div class="panel-body">
-                <img style="width: 300px" src="{$logo_url|escape:"htmlall":"UTF-8"}" alt="Comfino logo">
+                <img style="width: 300px" src="{$logo_url|escape:"htmlall":"UTF-8"}" alt="Comfino logo"> <span style="font-weight: bold; font-size: 16px; vertical-align: bottom">{$plugin_version}</span>
             </div>
             <div class="panel-body">
                 {$contact_msg1|escape:"htmlall":"UTF-8"}
