@@ -76,11 +76,6 @@
         margin: 30px 0;
     }
 
-    .register_done_logo {
-        width: 177px;
-        margin: 0 0 15px 0;
-    }
-
     .register_h {
         font-size: 22px;
         margin: 0 0 30px;
@@ -97,39 +92,8 @@
         margin: 0 0 7px 23px;
     }
 
-    .register_done_green_h {
-        font-size: 27px;
-        margin: 0 0 30px;
-        color: #87b825;
-    }
-
-    .register_done_h {
-        font-size: 27px;
-        margin: 0 0 30px;
-    }
-
-    .register_done_icon_block {
-        display: grid;
-        grid-template-columns: 13fr 87fr;
-        margin: 0 0 7px 0;
-    }
-
-    .register_done_caption {
-        padding-top: 4px;
-    }
-
-    .register_done_caption_medium {
-        margin: 27px 0;
-        font-size: 19px;
-    }
-
     .register_right {
         background: url('/modules/comfino/views/img/registration/register_right.png') no-repeat top left;
-    }
-
-    .register_right.register_thankyou_right {
-        background: url('/modules/comfino/views/img/registration/register_done_right.png') no-repeat top left;
-
     }
 
     .register_tabs {
@@ -187,7 +151,7 @@
         margin-top: 22px;
     }
 
-    button.register_register_btn,a.register_register_btn {
+    button.register_register_btn, a.register_register_btn {
         background: #87b825;
         width: 227px;
         height: 54px;
