@@ -501,9 +501,9 @@ class Comfino extends PaymentModule
             ], true)) {
                 $this->smarty->assign(
                     [
-                        'total_to_pay' => $this->context->currentLocale->formatPrice(
+                        'total_to_pay' => (new \Comfino\Tools($this->context))->formatPrice(
                             $rest_to_paid,
-                            (new Currency($params['order']->id_currency))->iso_code
+                            $params['order']->id_currency
                         ),
                         'shop_name' => $this->context->shop->name,
                         'status' => 'ok',
