@@ -498,7 +498,7 @@ class Comfino extends PaymentModule
                 Configuration::get('COMFINO_CREATED'),
                 Configuration::get('PS_OS_OUTOFSTOCK'),
                 Configuration::get('PS_OS_OUTOFSTOCK_UNPAID'),
-            ])) {
+            ], true)) {
                 $this->smarty->assign(
                     [
                         'total_to_pay' => $this->context->currentLocale->formatPrice(
