@@ -270,12 +270,13 @@ class Comfino extends PaymentModule
             }
 
             $selected_agreements = [];
+            $agreements = ComfinoApi::getShopAccountAgreements();
 
-            if (count($agreements = ComfinoApi::getShopAccountAgreements())) {
+            if ($agreements !== false && count($agreements)) {
                 if (Tools::isEmpty($shop_data['agreements'])) {
                     $output[] = $this->l('No required consents.');
                 } else {
-                    foreach ($agreements as $agreement) {
+                    foreach ($agreements as &$agreement) {
                         if ($agreement['required'] && !isset($shop_data['agreements'][$agreement['id']])) {
                             $output[] = sprintf(
                                 $this->l("'%s' consent is required."),
@@ -288,13 +289,23 @@ class Comfino extends PaymentModule
                         }
 
                         $selected_agreements[] = $agreement['id'];
+                        $agreement['checked'] = true;
                     }
+
+                    unset($agreement);
+
+                    // Update form fields with submitted values
+                    $this->context->smarty->assign('agreements', $agreements);
                 }
             }
+
+            // Update form fields with submitted values
+            $this->context->smarty->assign('register_form', $shop_data);
 
             if (count($output)) {
                 $output_type = 'warning';
             } else {
+                // Send request to the registration API endpoint
                 $result = ComfinoApi::registerShopAccount(
                     Configuration::get('PS_SHOP_NAME'),
                     $shop_data['url'],
@@ -662,7 +673,7 @@ class Comfino extends PaymentModule
                         'name' => $this->context->employee->firstname,
                         'surname' => $this->context->employee->lastname,
                         'email' => $this->context->employee->email,
-                        'url' => parse_url(_PS_BASE_URL_, PHP_URL_HOST),
+                        'url' => _PS_BASE_URL_,
                     ],
                     'agreements' => $agreements !== false ? $agreements : [],
                     'registration_available' => $registration_available,
