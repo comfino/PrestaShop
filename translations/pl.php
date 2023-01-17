@@ -147,3 +147,4 @@ $_MODULE['<{comfino}prestashop>registration_23a083efc78731f83df71561ec7dfcc5'] =
 $_MODULE['<{comfino}prestashop>registration_32ca0ea90a6dbd633d49882d18548b9a'] = 'Jedyne, co musisz zrobić, to skonfigurować i aktywować bramkę płatności Comfino.';
 $_MODULE['<{comfino}prestashop>comfino_1967c57cba6f7da486ca66a16a0728fe'] = 'Brak wymaganych zgód.';
 $_MODULE['<{comfino}prestashop>comfino_6d1b21962599e6d64ae6a15ab0898e81'] = "Udzielenie zgody '%s' jest wymagane.";
+$_MODULE['<{comfino}prestashop>comfino_d4aad807f5cb785b565800d6dd1d1221'] = 'Błąd rejestracji w Comfino.';

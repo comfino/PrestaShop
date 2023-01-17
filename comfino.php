@@ -321,9 +321,18 @@ class Comfino extends PaymentModule
                     $selected_agreements
                 );
 
-                if ($result === false) {
-                    $output = array_merge($output, ComfinoApi::getLastErrors());
-                    $output_type = 'error';
+                if ($result === false || isset($result['errors'])) {
+                    if (isset($result['errors'])) {
+                        if (count($result['errors'])) {
+                            $output = array_merge($output, $result['errors']);
+                        } else {
+                            $output[] = $this->l('Comfino registration error.');
+                        }
+                    } else {
+                        $output = array_merge($output, ComfinoApi::getLastErrors());
+                    }
+
+                    $output_type = 'danger';
                 } else {
                     if (Configuration::get('COMFINO_IS_SANDBOX')) {
                         Configuration::updateValue('COMFINO_SANDBOX_API_KEY', $result['apiKey']);
