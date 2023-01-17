@@ -277,7 +277,10 @@ class Comfino extends PaymentModule
                     $output[] = $this->l('No required consents.');
                 } else {
                     foreach ($agreements as &$agreement) {
-                        if ($agreement['required'] && !isset($shop_data['agreements'][$agreement['id']])) {
+                        if (isset($shop_data['agreements'][$agreement['id']])) {
+                            $selected_agreements[] = $agreement['id'];
+                            $agreement['checked'] = true;
+                        } elseif ($agreement['required']) {
                             $output[] = sprintf(
                                 $this->l("'%s' consent is required."),
                                 preg_replace(
@@ -287,20 +290,23 @@ class Comfino extends PaymentModule
                                 )
                             );
                         }
-
-                        $selected_agreements[] = $agreement['id'];
-                        $agreement['checked'] = true;
                     }
 
                     unset($agreement);
-
-                    // Update form fields with submitted values
-                    $this->context->smarty->assign('agreements', $agreements);
                 }
             }
 
             // Update form fields with submitted values
-            $this->context->smarty->assign('register_form', $shop_data);
+            $this->context->smarty->assign([
+                'register_form' => [
+                    'name' => $shop_data['name'],
+                    'surname' => $shop_data['surname'],
+                    'email' => $shop_data['email'],
+                    'phone' => $shop_data['phone'],
+                    'url' => $shop_data['url']
+                ],
+                'agreements' => $agreements !== false ? $agreements : [],
+            ]);
 
             if (count($output)) {
                 $output_type = 'warning';
@@ -850,7 +856,12 @@ class Comfino extends PaymentModule
                     );
                 }
 
-                $this->context->smarty->assign($form_fields);
+                // Initialize form fields - default values for input elements
+                foreach ($form_fields as $field_name => $field_value) {
+                    if ($this->context->smarty->getTemplateVars($field_name) === null) {
+                        $this->context->smarty->assign($field_name, $field_value);
+                    }
+                }
 
                 break;
 

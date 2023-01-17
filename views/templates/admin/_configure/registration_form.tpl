@@ -89,7 +89,7 @@
                     <label for="register_agreement_{$agreement.id|escape:"htmlall":"UTF-8"}"{if $agreement.required} class="required"{/if}> {$agreement.content}</label>
                 </div>
                 <div class="register_form_input" style="float: left">
-                    <input type="checkbox" name="register[agreements][{$agreement.id|escape:"htmlall":"UTF-8"}]" id="register_agreement_{$agreement.id|escape:"htmlall":"UTF-8"}"{if $agreement.required} required="required"{/if} />
+                    <input type="checkbox" name="register[agreements][{$agreement.id|escape:"htmlall":"UTF-8"}]" id="register_agreement_{$agreement.id|escape:"htmlall":"UTF-8"}"{if $agreement.checked} checked="checked"{/if}{if $agreement.required} required="required"{/if} />
                 </div>
             </div>
         {/foreach}
