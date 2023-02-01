@@ -204,6 +204,7 @@ class Comfino extends PaymentModule
                     }
 
                     if (!empty($api_key) && !count($output)) {
+                        // Update widget key.
                         ComfinoApi::setApiHost($api_host);
                         ComfinoApi::setApiKey($api_key);
 
@@ -226,6 +227,35 @@ class Comfino extends PaymentModule
                 case 'widget_settings':
                     if (!is_numeric(Tools::getValue('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL'))) {
                         $output[] = sprintf($error_numeric_format_msg, $this->l('Price change detection level'));
+                    }
+
+                    if (!count($output)) {
+                        $api_host = Tools::getValue('COMFINO_IS_SANDBOX')
+                            ? ComfinoApi::COMFINO_SANDBOX_HOST
+                            : ComfinoApi::COMFINO_PRODUCTION_HOST;
+
+                        $api_key = Tools::getValue('COMFINO_IS_SANDBOX')
+                            ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
+                            : Configuration::get('COMFINO_API_KEY');
+
+                        if (!empty($api_key)) {
+                            // Update widget key.
+                            ComfinoApi::setApiHost($api_host);
+                            ComfinoApi::setApiKey($api_key);
+
+                            if (!ComfinoApi::isApiKeyValid()) {
+                                $output[] = sprintf($this->l('API key %s is not valid.'), $api_key);
+                            } else {
+                                $widget_key = ComfinoApi::getWidgetKey();
+
+                                if ($widget_key === false) {
+                                    $output = array_merge($output, ComfinoApi::getLastErrors());
+                                    $output_type = 'warning';
+                                    $widget_key_error = true;
+                                    $widget_key = '';
+                                }
+                            }
+                        }
                     }
 
                     break;
