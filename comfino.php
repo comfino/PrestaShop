@@ -180,7 +180,7 @@ class Comfino extends PaymentModule
                             : Tools::getValue('COMFINO_API_KEY');
 
                         if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
-                            $output[] = sprintf($error_empty_msg, $this->l('API key'));
+                            $output[] = sprintf($error_empty_msg, $this->l('Production environment API key'));
                         }
                         if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_PRESENTATION'))) {
                             $output[] = sprintf($error_empty_msg, $this->l('Payment presentation'));
@@ -926,7 +926,7 @@ class Comfino extends PaymentModule
                             ],
                             [
                                 'type' => 'text',
-                                'label' => $this->l('API key'),
+                                'label' => $this->l('Production environment API key'),
                                 'name' => 'COMFINO_API_KEY',
                                 'required' => true,
                                 'placeholder' => $this->l('Please enter the key provided during registration'),
