@@ -28,6 +28,7 @@ if (!defined('_PS_VERSION_')) {
 }
 
 require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
 
 class ComfinoOfferModuleFrontController extends ModuleFrontController
 {
@@ -42,7 +43,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
             exit;
         }
 
-        $cookie = Context::getContext()->cookie;
+        $cookie = (new \Comfino\Tools($this->context))->getCookie();
         $cookie->loan_amount = Tools::getValue('loan_amount');
         $cookie->loan_type = Tools::getValue('loan_type');
         $cookie->loan_term = Tools::getValue('loan_term');
@@ -61,13 +62,12 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
     private function getContent()
     {
         $cart = $this->context->cart;
+        $tools = new \Comfino\Tools($this->context);
+
         $total = $cart->getOrderTotal() * 100;
         $offers = ComfinoApi::getOffers($total);
         $payment_offers = [];
         $set = false;
-
-        $locale = $this->context->currentLocale;
-        $currency_iso = (new Currency($cart->id_currency))->iso_code;
 
         if (is_array($offers) && !isset($offers['errors'])) {
             foreach ($offers as $offer) {
@@ -78,7 +78,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                 }
 
                 if (!$set) {
-                    $cookie = Context::getContext()->cookie;
+                    $cookie = $tools->getCookie();
                     $cookie->loan_amount = $loan_amount;
                     $cookie->loan_type = $offer['type'];
                     $cookie->write();
@@ -92,32 +92,32 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                     'icon' => str_ireplace('<?xml version="1.0" encoding="UTF-8"?>', '', $offer['icon']),
                     'type' => $offer['type'],
                     'sumAmount' => $total / 100,
-                    'sumAmountFormatted' => $locale->formatPrice($total / 100, $currency_iso),
+                    'sumAmountFormatted' => $tools->formatPrice($total / 100, $cart->id_currency),
                     'representativeExample' => $offer['representativeExample'],
                     'rrso' => round((float) $offer['rrso'] * 100, 2),
                     'loanTerm' => $offer['loanTerm'],
                     'instalmentAmount' => ((float) $offer['instalmentAmount']) / 100,
-                    'instalmentAmountFormatted' => $locale->formatPrice(
+                    'instalmentAmountFormatted' => $tools->formatPrice(
                         ((float) $offer['instalmentAmount']) / 100,
-                        $currency_iso
+                        $cart->id_currency
                     ),
                     'toPay' => ((float) $offer['toPay']) / 100,
-                    'toPayFormatted' => $locale->formatPrice(((float) $offer['toPay']) / 100, $currency_iso),
-                    'loanParameters' => array_map(static function ($loan_params) use ($total, $locale, $currency_iso) {
+                    'toPayFormatted' => $tools->formatPrice(((float) $offer['toPay']) / 100, $cart->id_currency),
+                    'loanParameters' => array_map(static function ($loan_params) use ($total, $tools, $cart) {
                         return [
                             'loanTerm' => $loan_params['loanTerm'],
                             'instalmentAmount' => ((float) $loan_params['instalmentAmount']) / 100,
-                            'instalmentAmountFormatted' => $locale->formatPrice(
+                            'instalmentAmountFormatted' => $tools->formatPrice(
                                 ((float) $loan_params['instalmentAmount']) / 100,
-                                $currency_iso
+                                $cart->id_currency
                             ),
                             'toPay' => ((float) $loan_params['toPay']) / 100,
-                            'toPayFormatted' => $locale->formatPrice(
+                            'toPayFormatted' => $tools->formatPrice(
                                 ((float) $loan_params['toPay']) / 100,
-                                $currency_iso
+                                $cart->id_currency
                             ),
                             'sumAmount' => $total / 100,
-                            'sumAmountFormatted' => $locale->formatPrice($total / 100, $currency_iso),
+                            'sumAmountFormatted' => $tools->formatPrice($total / 100, $cart->id_currency),
                             'rrso' => round((float) $loan_params['rrso'] * 100, 2),
                         ];
                     }, $offer['loanParameters']),
