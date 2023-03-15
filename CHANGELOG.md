@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.4](https://github.com/comfino/PrestaShop/tree/2.2.4) (2023-01-09)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.3...2.2.4)
+
+**Merged pull requests:**
+
+- FN-10290 Add a new helper class Tools, remove incompatibilities with PrestaShop 1.6, fix bugs with Tools::displayPrice() usage [\#62](https://github.com/comfino/PrestaShop/pull/62) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.2.3](https://github.com/comfino/PrestaShop/tree/2.2.3) (2023-01-09)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.2...2.2.3)

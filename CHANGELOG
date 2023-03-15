@@ -1,102 +1,104 @@
+2.2.4
+ - FN-10290 Add a new helper class Tools, remove incompatibilities with PrestaShop 1.6, fix bugs with Tools::displayPrice() usage.
+
 2.2.3
- - FN-9991 Remove deprecated Tools::displayPrice() calls
+ - FN-9991 Remove deprecated Tools::displayPrice() calls.
 
 2.2.2
- - FN-9865 Update styles to avoid conflicts with some PrestaShop frontend themes
+ - FN-9865 Update styles to avoid conflicts with some PrestaShop frontend themes.
 
 2.2.1
- - FN-9566 Fix bug in frontend initialization code present in some PS frontend themes
- - FN-9832 Bug fixes and code clean up
- - FN-9844 Code clean up, update to the latest PrestaShop coding standards
- - FN-9849 Add external dependency - library with SHA3 PHP implementation, update notification endpoint
+ - FN-9566 Fix bug in frontend initialization code present in some PS frontend themes.
+ - FN-9832 Bug fixes and code clean up.
+ - FN-9844 Code clean up, update to the latest PrestaShop coding standards.
+ - FN-9849 Add external dependency - library with SHA3 PHP implementation, update notification endpoint.
 
 2.2.0
- - FN-9239 Improve errors handling - automatic errors reporting
+ - FN-9239 Improve errors handling - automatic errors reporting.
 
 2.1.11
- - FN-9483 Fix bug in order processing and payment creation (wrong tax id number)
+ - FN-9483 Fix bug in order processing and payment creation (wrong tax id number).
 
 2.1.10
- - FN-9354 Improve errors handling
+ - FN-9354 Improve errors handling.
 
 2.1.9
- - FN-9171 Add CRC32 code for widget configuration to force refreshing widget initialization JS script
+ - FN-9171 Add CRC32 code for widget configuration to force refreshing widget initialization JS script.
 
 2.1.8
- - FN-9164 Link all images (Comfino logo, icons) to the external host (Comfino widgets static) to avoid problems with hosting configurations at some websites (403 error)
+ - FN-9164 Link all images (Comfino logo, icons) to the external host (Comfino widgets static) to avoid problems with hosting configurations at some websites (403 error).
 
 2.1.7
- - FN-9048 Add a new offer type in Comfino widget: Pay later (PAY_LATER)
+ - FN-9048 Add a new offer type in Comfino widget: Pay later (PAY_LATER).
 
 2.1.6
- - FN-9017 Update configuration form: add logo and contact information (e-mail and phone to the Comfino support office)
+ - FN-9017 Update configuration form: add logo and contact information (e-mail and phone to the Comfino support office).
 
 2.1.5
- - FN-8843 Fix bugs in configuration form (widget key retrieving and sandbox settings)
+ - FN-8843 Fix bugs in configuration form (widget key retrieving and sandbox settings).
 
 2.1.4
- - FN-8865 Improved module security
+ - FN-8865 Improved module security.
 
 2.1.3
- - FN-8790 Code cleanup, changelog update
+ - FN-8790 Code cleanup, changelog update.
 
 2.1.2
- - FN-8790 Code cleanup
+ - FN-8790 Code cleanup.
 
 2.1.1
- - FN-8790 Add a new input field in the module configuration form: API key for test environment
- - FN-8773 Improve notifications endpoint security - add request signature verification
+ - FN-8790 Add a new input field in the module configuration form: API key for test environment.
+ - FN-8773 Improve notifications endpoint security - add request signature verification.
 
 2.1.0
- - Bugs fixing and backend logic simplification
+ - Bugs fixing and backend logic simplification.
  
 2.0.6
- - FN-8658 Unconditional widget key retrieving from API after configuration saving
- - FN-8635 Update frontend templates, update order state names and add Polish translations, update widgets init script
- - FN-8619 Update plugin icon and configuration form, widget key auto-initialization
- - FN-8589 Remove logic for preventing cancellation of accepted orders paid via Comfino
- - FN-8583 Code refactoring - PS coding and security standards implemented
+ - FN-8658 Unconditional widget key retrieving from API after configuration saving.
+ - FN-8635 Update frontend templates, update order state names and add Polish translations, update widgets init script.
+ - FN-8619 Update plugin icon and configuration form, widget key auto-initialization.
+ - FN-8589 Remove logic for preventing cancellation of accepted orders paid via Comfino.
+ - FN-8583 Code refactoring - PS coding and security standards implemented.
 
 2.0.4
- - FN-8568 Fix bug in payment controller
- - FN-8543 Update Comfino logo used in payment form - use vector format
- - FN-8535 Update styles
+ - FN-8568 Fix bug in payment controller.
+ - FN-8543 Update Comfino logo used in payment form - use vector format.
+ - FN-8535 Update styles.
  
 2.0.3
- - FN-8442 Comfino widget (product card)
- - FN-8428 Update styles - correct font sizes and colors for PrestaShop 1.6
+ - FN-8442 Comfino widget (product card).
+ - FN-8428 Update styles - correct font sizes and colors for PrestaShop 1.6.
  
 2.0.2
- - Set proper version value
- - FN-8417 Fix some compatibility bugs with PrestaShop 1.7.7.5
- - FN-8368 Use RRSO values from loanParameters
- - FN-8406 Fix bug in cancel notifications under PS 1.6
- - FN-8350 Compatibility with PrestaShop 1.7
+ - Set proper version value.
+ - FN-8417 Fix some compatibility bugs with PrestaShop 1.7.7.5.
+ - FN-8368 Use RRSO values from loanParameters.
+ - FN-8406 Fix bug in cancel notifications under PS 1.6.
+ - FN-8350 Compatibility with PrestaShop 1.7.
 
 2.0.1
- - FN-8380 Update AdminOrders controller (override)
- - FN-8297 Update admin logic (add compatibility with PrestaShop 1.6)
+ - FN-8380 Update AdminOrders controller (override).
+ - FN-8297 Update admin logic (add compatibility with PrestaShop 1.6).
 
 2.0.0
-- FN-8164 New frontend layout
+- FN-8164 New frontend layout.
 
 1.2.0
- - FN-8098 Remove hosts from settings form, disable displaying box if representative example is empty
- - FN-8120 Update documentation
- - FN-8113 Remove COMFINO_LOAN_TERM parameter from plugin configuration
+ - FN-8098 Remove hosts from settings form, disable displaying box if representative example is empty.
+ - FN-8120 Update documentation.
+ - FN-8113 Remove COMFINO_LOAN_TERM parameter from plugin configuration.
  
 1.1.0
- - FN-8028 Remove typo from documentation
- - FN-7972 Change Comfino API hosts
- - FN-7939 Add a hook for order status update (Canceled)
- - FN-7846 Disable order cancellation after payment initialization
- - FN-7818 Remove parameter
- - FN-7754 Add documentactions
- - FN-7754 Add documentactions
+ - FN-8028 Remove typo from documentation.
+ - FN-7972 Change Comfino API hosts.
+ - FN-7939 Add a hook for order status update (Canceled).
+ - FN-7846 Disable order cancellation after payment initialization.
+ - FN-7818 Remove parameter.
+ - FN-7754 Add documentation.
 
 1.0.0
- - FN-7731 - fix no error message on missing phone number
- - FN-7718 - uporządkowanie statusów
- - Remove duplicated option update
- - FN-7653 Add mapping of ACCEPTED and WAITING_FOR_PAYMENT
- - FN-7647 Use toPay field from ecommerce API response
+ - FN-7731 - fix no error message on missing phone number.
+ - FN-7718 - uporządkowanie statusów.
+ - Remove duplicated option update.
+ - FN-7653 Add mapping of ACCEPTED and WAITING_FOR_PAYMENT.
+ - FN-7647 Use toPay field from ecommerce API response.
