@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.3.0](https://github.com/comfino/PrestaShop/tree/2.3.0) (2023-04-03)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.4...2.3.0)
+
+**Merged pull requests:**
+
+- FN-10362 Remove SHA3 library (PHP implementation), update notifications endpoint (new headers for hashing algorithms management - better compatibility with PHP older than 7.1), modifications for improving local development, update frontend logic for paywall rendering (better detection of Comfino control container in untypical PS frontend templates). [\#63](https://github.com/comfino/PrestaShop/pull/63) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.2.4](https://github.com/comfino/PrestaShop/tree/2.2.4) (2023-01-09)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.3...2.2.4)
