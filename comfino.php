@@ -37,13 +37,11 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.2.4', false);
+    define('COMFINO_VERSION', '2.3.0', false);
 }
 
 class Comfino extends PaymentModule
 {
-    const WIDGET_SCRIPT_PRODUCTION_URL = '//widget.comfino.pl/comfino.min.js';
-    const WIDGET_SCRIPT_SANDBOX_URL = '//widget.craty.pl/comfino.min.js';
     const ERROR_LOG_NUM_LINES = 40;
     const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     const COMFINO_SUPPORT_PHONE = '887-106-027';
@@ -52,7 +50,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.2.43';
+        $this->version = '2.3.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 

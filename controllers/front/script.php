@@ -55,9 +55,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     Configuration::get('COMFINO_WIDGET_TYPE'),
                     Configuration::get('COMFINO_WIDGET_OFFER_TYPE'),
                     Configuration::get('COMFINO_WIDGET_EMBED_METHOD'),
-                    Configuration::get('COMFINO_IS_SANDBOX')
-                        ? Comfino::WIDGET_SCRIPT_SANDBOX_URL
-                        : Comfino::WIDGET_SCRIPT_PRODUCTION_URL,
+                    ComfinoApi::getWidgetScriptUrl(),
                 ],
                 Configuration::get('COMFINO_WIDGET_CODE')
             );

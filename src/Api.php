@@ -34,6 +34,8 @@ class ComfinoApi
 {
     const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
     const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
+    const WIDGET_SCRIPT_PRODUCTION_URL = '//widget.comfino.pl/comfino.min.js';
+    const WIDGET_SCRIPT_SANDBOX_URL = '//widget.craty.pl/comfino.min.js';
 
     const INSTALLMENTS_ZERO_PERCENT = 'INSTALLMENTS_ZERO_PERCENT';
     const CONVENIENT_INSTALLMENTS = 'CONVENIENT_INSTALLMENTS';
@@ -216,7 +218,7 @@ class ComfinoApi
      */
     public static function getLogoUrl()
     {
-        return self::getApiHost() . '/v1/get-logo-url';
+        return self::getApiHost(true) . '/v1/get-logo-url';
     }
 
     /**
@@ -262,8 +264,41 @@ class ComfinoApi
     /**
      * @return string
      */
-    private static function getApiHost()
+    public static function getWidgetScriptUrl()
     {
+        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') &&
+            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN') &&
+            getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')
+        ) {
+            return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
+        }
+
+        return Configuration::get('COMFINO_IS_SANDBOX')
+            ? self::WIDGET_SCRIPT_SANDBOX_URL
+            : self::WIDGET_SCRIPT_PRODUCTION_URL;
+    }
+
+    /**
+     * @param bool $frontendHost
+     *
+     * @return string
+     */
+    private static function getApiHost($frontendHost = false)
+    {
+        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') &&
+            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        ) {
+            if ($frontendHost) {
+                if (getenv('COMFINO_DEV_API_HOST_FRONTEND')) {
+                    return getenv('COMFINO_DEV_API_HOST_FRONTEND');
+                }
+            } else {
+                if (getenv('COMFINO_DEV_API_HOST_BACKEND')) {
+                    return getenv('COMFINO_DEV_API_HOST_BACKEND');
+                }
+            }
+        }
+
         return empty(self::$api_host)
             ? Configuration::get('COMFINO_IS_SANDBOX') ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST
             : self::$api_host;
