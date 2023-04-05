@@ -640,9 +640,11 @@
             let comfinoPaywallItem = document.querySelector('input[data-module-name="comfino"]');
 
             if (comfinoPaywallItem) {
-                comfinoPaywallItem.parentNode.parentNode.querySelector('label').style.display = 'inline-flex';
-                comfinoPaywallItem.parentNode.parentNode.querySelector('label').style.flexDirection = 'row-reverse';
-                comfinoPaywallItem.parentNode.parentNode.querySelector('label span').style.paddingLeft = '10px';
+                if (comfinoPaywallItem.parentNode.parentNode.querySelector('label span')) {
+                    comfinoPaywallItem.parentNode.parentNode.querySelector('label').style.display = 'inline-flex';
+                    comfinoPaywallItem.parentNode.parentNode.querySelector('label').style.flexDirection = 'row-reverse';
+                    comfinoPaywallItem.parentNode.parentNode.querySelector('label span').style.paddingLeft = '10px';
+                }
 
                 comfinoPaywallItem.addEventListener('click', () => {
                     let offerWrapper = document.getElementById('comfino-offer-items');
