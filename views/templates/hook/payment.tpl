@@ -503,11 +503,25 @@
 
 <script>
     window.Comfino = {
-        offerList: { elements: null, data: null },
+        offerList: { data: null, elements: null },
         selectedOffer: 0,
 
         selectTerm(loanTermBox, termElement)
         {
+            if (Comfino.offerList.data === null || Comfino.offerList.elements === null) {
+                let offers = JSON.parse(sessionStorage.getItem('Comfino.offers'));
+                let offerData = [];
+                let offerElements = [];
+
+                offers.forEach((item, index) => {
+                    offerData[index] = item;
+                    offerElements[index] = document.getElementById('comfino-opt-' + item.type);
+                });
+
+                Comfino.offerList.data = offerData;
+                Comfino.offerList.elements = offerElements;
+            }
+
             loanTermBox.querySelectorAll('div > div.comfino-installments-quantity').forEach((item) => {
                 item.classList.remove('comfino-active');
             });
@@ -638,8 +652,8 @@
 
         putDataIntoSection(data)
         {
-            let offerElements = [];
             let offerData = [];
+            let offerElements = [];
 
             data.forEach((item, index) => {
                 let comfinoOffer = document.createElement('div');
@@ -675,7 +689,7 @@
                 offerElements[index] = document.getElementById('comfino-offer-items').appendChild(comfinoOffer);
             });
 
-            return { elements: offerElements, data: offerData };
+            return { data: offerData, elements: offerElements };
         },
 
         getModuleApiUrl(queryStringParams)
@@ -706,8 +720,10 @@
                     offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>';
 
                     fetch(Comfino.getModuleApiUrl({ldelim}type: 'data'{rdelim}))
-                        .then(response => response.json())
+                        .then((response) => response.json())
                         .then((data) => {
+                            sessionStorage.setItem('Comfino.offers', JSON.stringify(data));
+
                             if (!data.length) {
                                 offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='No offers available.' mod='comfino'}</p>`;
 

@@ -1,5 +1,6 @@
 2.3.1
  - FN-10401 Fixed bug in frontend initialization in case of using untypical PS templates.
+ - Prevent losing of application state (loaded offers list) in case of some dynamically loaded PS templates.
 
 2.3.0
  - FN-10362 Remove SHA3 library (PHP implementation), update notifications endpoint (new headers for hashing algorithms management - better compatibility with PHP older than 7.1), modifications for improving local development, update frontend logic for paywall rendering (better detection of Comfino control container in untypical PS frontend templates).

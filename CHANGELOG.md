@@ -6,7 +6,7 @@
 
 **Merged pull requests:**
 
-- FN-10401 Fixed bug in frontend initialization in case of using untypical PS templates. [\#64](https://github.com/comfino/PrestaShop/pull/64) ([akozubskicr](https://github.com/akozubskicr))
+- FN-10401 Fixed bug in frontend initialization in case of using untypical PS templates. Prevent losing of application state (loaded offers list) in case of some dynamically loaded PS templates. [\#64](https://github.com/comfino/PrestaShop/pull/64) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.3.0](https://github.com/comfino/PrestaShop/tree/2.3.0) (2023-04-03)
 
