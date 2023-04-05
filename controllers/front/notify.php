@@ -24,8 +24,6 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
-use desktopd\SHA3\Sponge as SHA3;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -42,9 +40,16 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
         parent::postProcess();
 
         $jsonData = Tools::file_get_contents('php://input');
+        $hashAlgorithm = $this->getHashAlgorithm();
+        $hashAlgos = hash_algos();
 
-        if ($this->getSignature() !== $this->hash(ComfinoApi::getApiKey() . $jsonData)) {
-            exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
+        if (in_array($hashAlgorithm, $hashAlgos, true)) {
+            if ($this->getSignature() !== hash($hashAlgorithm, ComfinoApi::getApiKey() . $jsonData)) {
+                exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
+            }
+        } else {
+            header('CR-Signature-Algos: ' . implode(',', $hashAlgos));
+            exit($this->setResponse(403, 'Unsupported hash algorithm.'));
         }
 
         $data = json_decode($jsonData, true);
@@ -67,29 +72,16 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
         return isset($_SERVER['HTTP_CR_SIGNATURE']) ? $_SERVER['HTTP_CR_SIGNATURE'] : '';
     }
 
+    private function getHashAlgorithm()
+    {
+        return isset($_SERVER['HTTP_CR_SIGNATURE_ALGO']) ? $_SERVER['HTTP_CR_SIGNATURE_ALGO'] : 'sha3-256';
+    }
+
     private function setResponse($code, $content)
     {
         http_response_code($code);
         header('Content-Type: application/json');
 
         return json_encode(['status' => $content]);
-    }
-
-    private function hash($inputString)
-    {
-        $hash = null;
-
-        if (in_array('sha3-256', hash_algos(), true)) {
-            $hash = hash('sha3-256', $inputString);
-        } else {
-            require_once _PS_MODULE_DIR_ . 'comfino/lib/php-sha3-streamable/namespaced/desktopd/SHA3/Sponge.php';
-
-            $sponge = SHA3::init(SHA3::SHA3_256);
-            $sponge->absorb($inputString);
-
-            $hash = bin2hex($sponge->squeeze());
-        }
-
-        return $hash;
     }
 }
