@@ -84,8 +84,8 @@ class ComfinoApi
         $customer_tax_id = trim(str_replace('-', '', $address[$cart->id_address_delivery]->vat_number));
 
         $data = [
-            'notifyUrl' => $context->link->getModuleLink($context->controller->module->name, 'notify', [], true),
-            'returnUrl' => Tools::getHttpHost(true) . __PS_BASE_URI__ . $return_url,
+            'notifyUrl' => self::getNotifyUrl($context),
+            'returnUrl' => self::getReturnUrl($return_url),
             'orderId' => (string) $order_id,
             'draft' => false,
             'loanParameters' => [
@@ -334,6 +334,35 @@ class ComfinoApi
         }
 
         return $imageUrl;
+    }
+
+    /**
+     * @param Context $context
+     *
+     * @return string
+     */
+    private static function getNotifyUrl($context)
+    {
+        $notifyUrl = $context->link->getModuleLink($context->controller->module->name, 'notify', [], true);
+
+        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') &&
+            getenv('COMFINO_DEV_NOTIFY_HOST') &&
+            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        ) {
+            $notifyUrl = str_replace(getenv('PS_DOMAIN'), getenv('COMFINO_DEV_NOTIFY_HOST'), $notifyUrl);
+        }
+
+        return $notifyUrl;
+    }
+
+    /**
+     * @param string $return_url
+     *
+     * @return string
+     */
+    private static function getReturnUrl($return_url)
+    {
+        return Tools::getHttpHost(true) . __PS_BASE_URI__ . $return_url;
     }
 
     /**
