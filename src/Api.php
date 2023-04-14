@@ -429,7 +429,15 @@ class ComfinoApi
                     );
                 }
 
-                $response = json_encode(['errors' => array_values($decoded['errors'])]);
+                $response = json_encode(
+                    [
+                        'errors' => array_map(
+                            static function ($k, $v) { return "$k: $v"; },
+                            array_keys($decoded['errors']),
+                            array_values($decoded['errors'])
+                        )
+                    ]
+                );
             } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
                 $error_id = time();
 
