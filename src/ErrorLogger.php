@@ -151,7 +151,7 @@ class ErrorLogger
             $lines = new LimitIterator(
                 $file,
                 $lastLine > $numLines ? $lastLine - $numLines : 0,
-                $lastLine
+                $lastLine ?: 1
             );
             $errorsLog = implode('', iterator_to_array($lines));
         }
