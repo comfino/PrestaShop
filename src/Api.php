@@ -404,7 +404,7 @@ class ComfinoApi
     {
         $response = curl_exec($curl);
 
-        if ($response === false || (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
+        if ($response === false || (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE) > 400) {
             $error_id = time();
 
             if ($log_errors) {
