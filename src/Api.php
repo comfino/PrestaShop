@@ -438,7 +438,7 @@ class ComfinoApi
                             static function ($k, $v) { return "$k: $v"; },
                             array_keys($decoded['errors']),
                             array_values($decoded['errors'])
-                        )
+                        ),
                     ]
                 );
             } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
