@@ -83,6 +83,11 @@ class ComfinoApi
 
         $context = Context::getContext();
         $customer_tax_id = trim(str_replace('-', '', $address[$cart->id_address_delivery]->vat_number));
+        $phone_number = trim($address[$cart->id_address_delivery]->phone);
+
+        if (empty($phone_number)) {
+            $phone_number = trim($address[$cart->id_address_delivery]->phone_mobile);
+        }
 
         $data = [
             'notifyUrl' => $context->link->getModuleLink($context->controller->module->name, 'notify', [], true),
@@ -104,9 +109,7 @@ class ComfinoApi
                 'firstName' => $address[$cart->id_address_delivery]->firstname,
                 'lastName' => $address[$cart->id_address_delivery]->lastname,
                 'email' => $customer->email,
-                'phoneNumber' => !empty($address[$cart->id_address_delivery]->phone)
-                    ? $address[$cart->id_address_delivery]->phone
-                    : $address[$cart->id_address_delivery]->phone_mobile,
+                'phoneNumber' => $phone_number,
                 'ip' => Tools::getRemoteAddr(),
                 'regular' => !$customer->is_guest,
                 'logged' => $customer->isLogged(),
