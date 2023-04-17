@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.3.2](https://github.com/comfino/PrestaShop/tree/2.3.2) (2023-04-17)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.3.1...2.3.2)
+
+**Merged pull requests:**
+
+- FN-10421 Improve errors handling in order creation process. Improve phone number extraction from order details. Fix bug in LoggerError. Improve errors logging. Filter all E_USER_ and NOTICE errors - ignore them in logger. [\#65](https://github.com/comfino/PrestaShop/pull/65) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.3.1](https://github.com/comfino/PrestaShop/tree/2.3.1) (2023-04-05)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.3.0...2.3.1)
