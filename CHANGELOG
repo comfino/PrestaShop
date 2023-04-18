@@ -1,4 +1,5 @@
 2.3.3
+ - FN-10331 Update notifications endpoint - improve processing input message signature (accepted hash algorithm restrictions based on hosted PHP version).
  - FN-10331 Simplify Comfino states to internal PS states mapping to avoid sending of redundand e-mails.
  - FN-10331 Add some logic for development mode.
  - FN-10331 Remove config directory and add .htaccess file in the docs directory.
