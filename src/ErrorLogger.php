@@ -151,7 +151,7 @@ class ErrorLogger
             $lines = new LimitIterator(
                 $file,
                 $lastLine > $numLines ? $lastLine - $numLines : 0,
-                $lastLine
+                $lastLine ?: 1
             );
             $errorsLog = implode('', iterator_to_array($lines));
         }
@@ -170,7 +170,10 @@ class ErrorLogger
     public static function errorHandler($errNo, $errMsg, $file, $line)
     {
         $errorType = self::getErrorTypeName($errNo);
-        self::sendError("Error $errorType in $file:$line", $errNo, $errMsg);
+
+        if (strpos($errorType, 'E_USER_') === false && strpos($errorType, 'NOTICE') === false) {
+            self::sendError("Error $errorType in $file:$line", $errNo, $errMsg);
+        }
 
         return false;
     }
