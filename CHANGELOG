@@ -1,3 +1,9 @@
+2.3.3
+ - FN-10331 Simplify Comfino states to internal PS states mapping to avoid sending of redundand e-mails.
+ - FN-10331 Add some logic for development mode.
+ - FN-10331 Remove config directory and add .htaccess file in the docs directory.
+ - FN-10331 Add missing index file in the docs directory.
+
 2.3.2
  - FN-10421 Fix bug in LoggerError.
  - FN-10421 Improve errors logging.
