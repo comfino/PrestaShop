@@ -44,6 +44,7 @@ class ComfinoApi
     private static $api_host;
     private static $api_key;
     private static $last_request_body;
+    private static $last_response_body;
 
     /**
      * @param Cart $cart
@@ -82,6 +83,11 @@ class ComfinoApi
 
         $context = Context::getContext();
         $customer_tax_id = trim(str_replace('-', '', $address[$cart->id_address_delivery]->vat_number));
+        $phone_number = trim($address[$cart->id_address_delivery]->phone);
+
+        if (empty($phone_number)) {
+            $phone_number = trim($address[$cart->id_address_delivery]->phone_mobile);
+        }
 
         $data = [
             'notifyUrl' => $context->link->getModuleLink($context->controller->module->name, 'notify', [], true),
@@ -103,9 +109,7 @@ class ComfinoApi
                 'firstName' => $address[$cart->id_address_delivery]->firstname,
                 'lastName' => $address[$cart->id_address_delivery]->lastname,
                 'email' => $customer->email,
-                'phoneNumber' => !empty($address[$cart->id_address_delivery]->phone)
-                    ? $address[$cart->id_address_delivery]->phone
-                    : $address[$cart->id_address_delivery]->phone_mobile,
+                'phoneNumber' => $phone_number,
                 'ip' => Tools::getRemoteAddr(),
                 'regular' => !$customer->is_guest,
                 'logged' => $customer->isLogged(),
@@ -250,6 +254,14 @@ class ComfinoApi
     }
 
     /**
+     * @return string|null
+     */
+    public static function getLastResponseBody()
+    {
+        return self::$last_response_body;
+    }
+
+    /**
      * @return string
      */
     public static function getApiKey()
@@ -348,6 +360,7 @@ class ComfinoApi
     private static function sendRequest($url, $request_type, $extra_options = [], $data = null, $log_errors = true)
     {
         self::$last_request_body = null;
+        self::$last_response_body = null;
 
         $options = [
             CURLOPT_URL => $url,
@@ -394,13 +407,14 @@ class ComfinoApi
     {
         $response = curl_exec($curl);
 
-        if ($response === false || (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
+        if ($response === false || (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE) > 400) {
             $error_id = time();
 
             if ($log_errors) {
                 ErrorLogger::sendError(
                     "Communication error [$error_id]", curl_errno($curl), curl_error($curl),
-                    $url, $data !== null ? json_encode($data) : null, $response
+                    $url, $data !== null ? json_encode($data) : null,
+                    $response !== false ? $response : curl_getinfo($curl, CURLINFO_RESPONSE_CODE)
                 );
             }
 
@@ -418,7 +432,15 @@ class ComfinoApi
                     );
                 }
 
-                $response = json_encode(['errors' => array_values($decoded['errors'])]);
+                $response = json_encode(
+                    [
+                        'errors' => array_map(
+                            static function ($k, $v) { return "$k: $v"; },
+                            array_keys($decoded['errors']),
+                            array_values($decoded['errors'])
+                        ),
+                    ]
+                );
             } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
                 $error_id = time();
 
@@ -433,6 +455,10 @@ class ComfinoApi
                     'errors' => ["Payment error: $error_id. Please contact with support and note this error id."],
                 ]);
             }
+        }
+
+        if ($response !== false) {
+            self::$last_response_body = $response;
         }
 
         return $response;

@@ -40,14 +40,12 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
 
         $jsonData = Tools::file_get_contents('php://input');
         $hashAlgorithm = $this->getHashAlgorithm();
-        $hashAlgos = hash_algos();
 
-        if (in_array($hashAlgorithm, $hashAlgos, true)) {
+        if (in_array($hashAlgorithm, hash_algos(), true)) {
             if ($this->getSignature() !== hash($hashAlgorithm, ComfinoApi::getApiKey() . $jsonData)) {
                 exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
             }
         } else {
-            header('CR-Signature-Algos: ' . implode(',', $hashAlgos));
             exit($this->setResponse(403, 'Unsupported hash algorithm.'));
         }
 

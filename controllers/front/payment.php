@@ -134,7 +134,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 'Order creation error', 0, 'Wrong Comfino API response.',
                 $_SERVER['REQUEST_URI'],
                 ComfinoApi::getLastRequestBody(),
-                is_array($orderConfirmation) ? json_encode($orderConfirmation) : null
+                is_array($orderConfirmation) ? json_encode($orderConfirmation) : ComfinoApi::getLastResponseBody()
             );
 
             Tools::redirect($this->context->link->getModuleLink(
