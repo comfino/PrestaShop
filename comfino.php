@@ -88,21 +88,22 @@ class Comfino extends PaymentModule
 
         include 'sql/install.php';
 
-        $ps16hooks = true;
+        $this->initConfigurationValues();
+        $this->addCustomOrderStatuses();
 
         if (!COMFINO_PS_17) {
-            $ps16hooks = $this->registerHook('payment') && $this->registerHook('displayPaymentEU');
+            $this->registerHook('payment');
+            $this->registerHook('displayPaymentEU');
         }
 
-        return $this->initConfigurationValues() &&
-            $this->addOrderStates() &&
-            $this->registerHook('paymentOptions') &&
-            $this->registerHook('paymentReturn') &&
-            $ps16hooks &&
-            $this->registerHook('displayBackofficeComfinoForm') &&
-            $this->registerHook('actionOrderStatusPostUpdate') &&
-            $this->registerHook('actionValidateCustomerAddressForm') &&
-            $this->registerHook('header');
+        $this->registerHook('paymentOptions');
+        $this->registerHook('paymentReturn');
+        $this->registerHook('displayBackofficeComfinoForm');
+        $this->registerHook('actionOrderStatusPostUpdate');
+        $this->registerHook('actionValidateCustomerAddressForm');
+        $this->registerHook('header');
+
+        return true;
     }
 
     /**
@@ -112,21 +113,25 @@ class Comfino extends PaymentModule
     {
         include 'sql/uninstall.php';
 
-        $ps16hooks = true;
+        if (parent::uninstall()) {
+            $this->deleteConfigurationValues();
 
-        if (!COMFINO_PS_17) {
-            $ps16hooks = $this->unregisterHook('payment') && $this->unregisterHook('displayPaymentEU');
+            if (!COMFINO_PS_17) {
+                $this->unregisterHook('payment');
+                $this->unregisterHook('displayPaymentEU');
+            }
+
+            $this->unregisterHook('paymentOptions');
+            $this->unregisterHook('paymentReturn');
+            $this->unregisterHook('displayBackofficeComfinoForm');
+            $this->unregisterHook('actionOrderStatusPostUpdate');
+            $this->unregisterHook('actionValidateCustomerAddressForm');
+            $this->unregisterHook('header');
+
+            return true;
         }
 
-        return parent::uninstall() &&
-            $this->deleteConfigurationValues() &&
-            $this->unregisterHook('paymentOptions') &&
-            $this->unregisterHook('paymentReturn') &&
-            $ps16hooks &&
-            $this->unregisterHook('displayBackofficeComfinoForm') &&
-            $this->unregisterHook('actionOrderStatusPostUpdate') &&
-            $this->unregisterHook('actionValidateCustomerAddressForm') &&
-            $this->unregisterHook('header');
+        return false;
     }
 
     /**
@@ -776,7 +781,7 @@ class Comfino extends PaymentModule
     /**
      * @return bool
      */
-    private function addOrderStates()
+    private function addCustomOrderStatuses()
     {
         $languages = Language::getLanguages(false);
 
@@ -847,11 +852,16 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * @return bool
+     * @return void
      */
     private function initConfigurationValues()
     {
-        $widgetCode = "
+        if (Configuration::hasKey('COMFINO_API_KEY')) {
+            // Avoid overwriting of existing configuration if plugin is reinstalled/upgraded.
+            return;
+        }
+
+        $widget_code = "
 var script = document.createElement('script');
 script.onload = function () {
     ComfinoProductWidget.init({
@@ -872,23 +882,23 @@ script.async = true;
 document.getElementsByTagName('head')[0].appendChild(script);
 ";
 
-        return Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', ComfinoPresentationType::ICON_AND_TEXT) &&
-            Configuration::updateValue(
-                'COMFINO_PAYMENT_TEXT',
-                '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)'
-            ) &&
-            Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 30) &&
-            Configuration::updateValue('COMFINO_WIDGET_ENABLED', false) &&
-            Configuration::updateValue('COMFINO_WIDGET_KEY', '') &&
-            Configuration::updateValue(
-                'COMFINO_WIDGET_PRICE_SELECTOR',
-                COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]'
-            ) &&
-            Configuration::updateValue('COMFINO_WIDGET_TARGET_SELECTOR', 'div.product-actions') &&
-            Configuration::updateValue('COMFINO_WIDGET_TYPE', 'with-modal') &&
-            Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', 'CONVENIENT_INSTALLMENTS') &&
-            Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', 'INSERT_INTO_LAST') &&
-            Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widgetCode));
+        $initial_config_values = [
+            'COMFINO_PAYMENT_PRESENTATION' => ComfinoPresentationType::ICON_AND_TEXT,
+            'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)',
+            'COMFINO_MINIMAL_CART_AMOUNT' => 30,
+            'COMFINO_WIDGET_ENABLED' => false,
+            'COMFINO_WIDGET_KEY' => '',
+            'COMFINO_WIDGET_PRICE_SELECTOR' => COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]',
+            'COMFINO_WIDGET_TARGET_SELECTOR' => 'div.product-actions',
+            'COMFINO_WIDGET_TYPE' => 'with-modal',
+            'COMFINO_WIDGET_OFFER_TYPE' => 'CONVENIENT_INSTALLMENTS',
+            'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
+            'COMFINO_WIDGET_CODE' => trim($widget_code),
+        ];
+
+        foreach ($initial_config_values as $opt_name => $opt_value) {
+            Configuration::updateValue($opt_name, $opt_value);
+        }
     }
 
     /**
@@ -896,20 +906,20 @@ document.getElementsByTagName('head')[0].appendChild(script);
      */
     private function deleteConfigurationValues()
     {
-        return Configuration::deleteByName('COMFINO_PAYMENT_TEXT') &&
-            Configuration::deleteByName('COMFINO_API_KEY') &&
-            Configuration::deleteByName('COMFINO_MINIMAL_CART_AMOUNT') &&
-            Configuration::deleteByName('COMFINO_WIDGET_ENABLED') &&
-            Configuration::deleteByName('COMFINO_IS_SANDBOX') &&
-            Configuration::deleteByName('COMFINO_SANDBOX_API_KEY') &&
-            Configuration::deleteByName('COMFINO_WIDGET_ENABLED') &&
-            Configuration::deleteByName('COMFINO_WIDGET_KEY') &&
-            Configuration::deleteByName('COMFINO_WIDGET_PRICE_SELECTOR') &&
-            Configuration::deleteByName('COMFINO_WIDGET_TARGET_SELECTOR') &&
-            Configuration::deleteByName('COMFINO_WIDGET_TYPE') &&
-            Configuration::deleteByName('COMFINO_WIDGET_OFFER_TYPE') &&
-            Configuration::deleteByName('COMFINO_WIDGET_EMBED_METHOD') &&
-            Configuration::deleteByName('COMFINO_WIDGET_CODE');
+        Configuration::deleteByName('COMFINO_PAYMENT_TEXT');
+        Configuration::deleteByName('COMFINO_API_KEY');
+        Configuration::deleteByName('COMFINO_MINIMAL_CART_AMOUNT');
+        Configuration::deleteByName('COMFINO_WIDGET_ENABLED');
+        Configuration::deleteByName('COMFINO_IS_SANDBOX');
+        Configuration::deleteByName('COMFINO_SANDBOX_API_KEY');
+        Configuration::deleteByName('COMFINO_WIDGET_ENABLED');
+        Configuration::deleteByName('COMFINO_WIDGET_KEY');
+        Configuration::deleteByName('COMFINO_WIDGET_PRICE_SELECTOR');
+        Configuration::deleteByName('COMFINO_WIDGET_TARGET_SELECTOR');
+        Configuration::deleteByName('COMFINO_WIDGET_TYPE');
+        Configuration::deleteByName('COMFINO_WIDGET_OFFER_TYPE');
+        Configuration::deleteByName('COMFINO_WIDGET_EMBED_METHOD');
+        Configuration::deleteByName('COMFINO_WIDGET_CODE');
     }
 
     /**
