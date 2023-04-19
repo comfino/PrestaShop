@@ -60,7 +60,9 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
             exit($this->setResponse(400, 'Status must be set.'));
         }
 
-        OrdersList::processState($data['externalId'], $data['status']);
+        if (!OrdersList::processState($data['externalId'], $data['status'])) {
+            exit($this->setResponse(400, sprintf('Invalid status %s.', $data['status'])));
+        }
 
         exit($this->setResponse(200, 'OK'));
     }

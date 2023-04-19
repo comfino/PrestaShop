@@ -48,6 +48,7 @@ class OrdersList extends ObjectModel
     const ACCEPTED = 'ACCEPTED';
     const PAID = 'PAID';
     const REJECTED = 'REJECTED';
+    const RESIGN = 'RESIGN';
     const CANCELLED_BY_SHOP = 'CANCELLED_BY_SHOP';
     const CANCELLED = 'CANCELLED';
 
@@ -58,6 +59,7 @@ class OrdersList extends ObjectModel
     const COMFINO_ACCEPTED = 'COMFINO_ACCEPTED';
     const COMFINO_PAID = 'COMFINO_PAID';
     const COMFINO_REJECTED = 'COMFINO_REJECTED';
+    const COMFINO_RESIGN = 'COMFINO_RESIGN';
     const COMFINO_CANCELLED_BY_SHOP = 'COMFINO_CANCELLED_BY_SHOP';
     const COMFINO_CANCELLED = 'COMFINO_CANCELLED';
 
@@ -69,6 +71,7 @@ class OrdersList extends ObjectModel
         self::ACCEPTED => self::COMFINO_ACCEPTED,
         self::REJECTED => self::COMFINO_REJECTED,
         self::PAID => self::COMFINO_PAID,
+        self::RESIGN => self::COMFINO_RESIGN,
         self::CANCELLED_BY_SHOP => self::COMFINO_CANCELLED_BY_SHOP,
         self::CANCELLED => self::COMFINO_CANCELLED,
     ];
@@ -81,6 +84,7 @@ class OrdersList extends ObjectModel
         self::CANCELLED => 'PS_OS_CANCELED',
         self::CANCELLED_BY_SHOP => 'PS_OS_CANCELED',
         self::REJECTED => 'PS_OS_CANCELED',
+        self::RESIGN => 'PS_OS_CANCELED',
     ];
 
     const ADD_ORDER_STATUSES = [
@@ -91,6 +95,7 @@ class OrdersList extends ObjectModel
         self::COMFINO_ACCEPTED => 'Credit granted (Comfino)',
         self::COMFINO_PAID => 'Paid (Comfino)',
         self::COMFINO_REJECTED => 'Credit rejected (Comfino)',
+        self::COMFINO_RESIGN => 'Resigned (Comfino)',
         self::COMFINO_CANCELLED_BY_SHOP => 'Cancelled by shop (Comfino)',
         self::COMFINO_CANCELLED => 'Cancelled (Comfino)',
     ];
@@ -103,6 +108,7 @@ class OrdersList extends ObjectModel
         self::COMFINO_ACCEPTED => 'Kredyt udzielony (Comfino)',
         self::COMFINO_PAID => 'Zapłacono (Comfino)',
         self::COMFINO_REJECTED => 'Wniosek kredytowy odrzucony (Comfino)',
+        self::COMFINO_RESIGN => 'Odstąpiono (Comfino)',
         self::COMFINO_CANCELLED_BY_SHOP => 'Anulowano przez sklep (Comfino)',
         self::COMFINO_CANCELLED => 'Anulowano (Comfino)',
     ];
@@ -232,6 +238,13 @@ class OrdersList extends ObjectModel
         return 'PS_OS_ERROR';
     }
 
+    /**
+     * @param string $orderId
+     * @param string $status
+     *
+     * @return bool
+     * @throws Exception
+     */
     public static function processState($orderId, $status)
     {
         $order = new OrderCore($orderId);
@@ -240,9 +253,17 @@ class OrdersList extends ObjectModel
             throw new \Exception(sprintf('Order not found by id: %s', $orderId));
         }
 
-        $order->setCurrentState(Configuration::get(self::getState($status)));
+        $internalStatus = self::getState($status);
+
+        if ($internalStatus === 'PS_OS_ERROR') {
+            return false;
+        }
+
+        $order->setCurrentState(Configuration::get($internalStatus));
 
         self::setSecondState($status, $order);
+
+        return true;
     }
 
     private static function setSecondState($status, OrderCore $order)
