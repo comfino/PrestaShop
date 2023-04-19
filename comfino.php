@@ -37,7 +37,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.3.3', false);
+    define('COMFINO_VERSION', '2.4.0', false);
 }
 
 class Comfino extends PaymentModule
@@ -50,7 +50,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.3.3';
+        $this->version = '2.4.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -780,31 +780,44 @@ class Comfino extends PaymentModule
     {
         $languages = Language::getLanguages(false);
 
-        foreach (OrdersList::ADD_ORDER_STATUSES as $state => $name) {
-            $new_state = Configuration::get($state);
+        foreach (OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
+            $comfino_status_id = Configuration::get($status_code);
 
-            if (empty($new_state) || !Validate::isInt($new_state) ||
-                !Validate::isLoadedObject(new OrderState($new_state))
-            ) {
-                $order_state_object = new OrderState();
-                $order_state_object->send_email = 0;
-                $order_state_object->invoice = 0;
-                $order_state_object->color = '#ffffff';
-                $order_state_object->unremovable = false;
-                $order_state_object->logable = 0;
-                $order_state_object->module_name = $this->name;
+            if (!empty($comfino_status_id) && Validate::isInt($comfino_status_id)) {
+                $order_status = new OrderState($comfino_status_id);
 
-                foreach ($languages as $language) {
-                    if ($language['iso_code'] === 'pl') {
-                        $order_state_object->name[$language['id_lang']] = OrdersList::ADD_ORDER_STATUSES_PL[$state];
-                    } else {
-                        $order_state_object->name[$language['id_lang']] = $name;
-                    }
+                if (Validate::isLoadedObject($order_status)) {
+                    // Update existing status definition.
+                    $order_status->color = $status_details['color'];
+                    $order_status->paid = $status_details['paid'];
+                    $order_status->deleted = $status_details['deleted'];
+
+                    $order_status->save();
+
+                    continue;
                 }
+            } elseif ($status_details['deleted']) {
+                // Ignore deleted statuses in first time plugin installations.
+                continue;
+            }
 
-                if ($order_state_object->add()) {
-                    Configuration::updateValue($state, $order_state_object->id);
-                }
+            // Add a new status definition.
+            $order_status = new OrderState();
+            $order_status->send_email = false;
+            $order_status->invoice = false;
+            $order_status->color = $status_details['color'];
+            $order_status->unremovable = false;
+            $order_status->logable = false;
+            $order_status->module_name = $this->name;
+            $order_status->paid = $status_details['paid'];
+
+            foreach ($languages as $language) {
+                $status_name = $language['iso_code'] === 'pl' ? $status_details['name_pl'] : $status_details['name'];
+                $order_status->name[$language['id_lang']] = $status_name;
+            }
+
+            if ($order_status->add()) {
+                Configuration::updateValue($status_code, $order_status->id);
             }
         }
 
