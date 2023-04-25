@@ -40,8 +40,9 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
 
         $jsonData = Tools::file_get_contents('php://input');
         $hashAlgorithm = $this->getHashAlgorithm();
+        $hashAlgos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
 
-        if (in_array($hashAlgorithm, hash_algos(), true)) {
+        if (in_array($hashAlgorithm, $hashAlgos, true)) {
             if ($this->getSignature() !== hash($hashAlgorithm, ComfinoApi::getApiKey() . $jsonData)) {
                 exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
             }
@@ -59,7 +60,9 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
             exit($this->setResponse(400, 'Status must be set.'));
         }
 
-        OrdersList::processState($data['externalId'], $data['status']);
+        if (!OrdersList::processState($data['externalId'], $data['status'])) {
+            exit($this->setResponse(400, sprintf('Invalid status %s.', $data['status'])));
+        }
 
         exit($this->setResponse(200, 'OK'));
     }

@@ -48,6 +48,7 @@ class OrdersList extends ObjectModel
     const ACCEPTED = 'ACCEPTED';
     const PAID = 'PAID';
     const REJECTED = 'REJECTED';
+    const RESIGN = 'RESIGN';
     const CANCELLED_BY_SHOP = 'CANCELLED_BY_SHOP';
     const CANCELLED = 'CANCELLED';
 
@@ -58,6 +59,7 @@ class OrdersList extends ObjectModel
     const COMFINO_ACCEPTED = 'COMFINO_ACCEPTED';
     const COMFINO_PAID = 'COMFINO_PAID';
     const COMFINO_REJECTED = 'COMFINO_REJECTED';
+    const COMFINO_RESIGN = 'COMFINO_RESIGN';
     const COMFINO_CANCELLED_BY_SHOP = 'COMFINO_CANCELLED_BY_SHOP';
     const COMFINO_CANCELLED = 'COMFINO_CANCELLED';
 
@@ -69,6 +71,7 @@ class OrdersList extends ObjectModel
         self::ACCEPTED => self::COMFINO_ACCEPTED,
         self::REJECTED => self::COMFINO_REJECTED,
         self::PAID => self::COMFINO_PAID,
+        self::RESIGN => self::COMFINO_RESIGN,
         self::CANCELLED_BY_SHOP => self::COMFINO_CANCELLED_BY_SHOP,
         self::CANCELLED => self::COMFINO_CANCELLED,
     ];
@@ -77,39 +80,91 @@ class OrdersList extends ObjectModel
      * After setting notification status we want some statuses to change to internal PrestaShop statuses right away.
      */
     const CHANGE_STATUS_MAP = [
-        self::CREATED => 'PS_OS_BANKWIRE',
-        self::WAITING_FOR_FILLING => 'PS_OS_BANKWIRE',
-        self::WAITING_FOR_CONFIRMATION => 'PS_OS_BANKWIRE',
-        self::WAITING_FOR_PAYMENT => 'PS_OS_WS_PAYMENT',
         self::ACCEPTED => 'PS_OS_WS_PAYMENT',
-        self::PAID => 'PS_OS_WS_PAYMENT',
         self::CANCELLED => 'PS_OS_CANCELED',
         self::CANCELLED_BY_SHOP => 'PS_OS_CANCELED',
         self::REJECTED => 'PS_OS_CANCELED',
+        self::RESIGN => 'PS_OS_CANCELED',
     ];
 
-    const ADD_ORDER_STATUSES = [
-        self::COMFINO_CREATED => 'Order created (Comfino)',
-        self::COMFINO_WAITING_FOR_FILLING => 'Waiting for form\'s filling (Comfino)',
-        self::COMFINO_WAITING_FOR_CONFIRMATION => 'Waiting for form\'s confirmation (Comfino)',
-        self::COMFINO_WAITING_FOR_PAYMENT => 'Waiting for payment (Comfino)',
-        self::COMFINO_ACCEPTED => 'Credit granted (Comfino)',
-        self::COMFINO_PAID => 'Paid (Comfino)',
-        self::COMFINO_REJECTED => 'Credit rejected (Comfino)',
-        self::COMFINO_CANCELLED_BY_SHOP => 'Cancelled by shop (Comfino)',
-        self::COMFINO_CANCELLED => 'Cancelled (Comfino)',
+    const CUSTOM_ORDER_STATUSES = [
+        self::COMFINO_CREATED => [
+            'name' => 'Order created - waiting for payment (Comfino)',
+            'name_pl' => 'Zamówienie utworzone - oczekiwanie na płatność (Comfino)',
+            'color' => '#87b921',
+            'paid' => false,
+            'deleted' => false,
+        ],
+        self::COMFINO_WAITING_FOR_FILLING => [
+            'name' => 'Waiting for form\'s filling (Comfino)',
+            'name_pl' => 'Oczekiwanie na wypełnienie formularza (Comfino)',
+            'color' => '#ffffff',
+            'paid' => false,
+            'deleted' => true,
+        ],
+        self::COMFINO_WAITING_FOR_CONFIRMATION => [
+            'name' => 'Waiting for form\'s confirmation (Comfino)',
+            'name_pl' => 'Oczekiwanie na zatwierdzenie formularza (Comfino)',
+            'color' => '#ffffff',
+            'paid' => false,
+            'deleted' => true,
+        ],
+        self::COMFINO_WAITING_FOR_PAYMENT => [
+            'name' => 'Waiting for payment (Comfino)',
+            'name_pl' => 'Oczekiwanie na płatność (Comfino)',
+            'color' => '#ffffff',
+            'paid' => false,
+            'deleted' => true,
+        ],
+        self::COMFINO_ACCEPTED => [
+            'name' => 'Credit granted (Comfino)',
+            'name_pl' => 'Kredyt udzielony (Comfino)',
+            'color' => '#227b34',
+            'paid' => true,
+            'deleted' => false,
+        ],
+        self::COMFINO_PAID => [
+            'name' => 'Paid (Comfino)',
+            'name_pl' => 'Zapłacono (Comfino)',
+            'color' => '#227b34',
+            'paid' => true,
+            'deleted' => true,
+        ],
+        self::COMFINO_REJECTED => [
+            'name' => 'Credit rejected (Comfino)',
+            'name_pl' => 'Wniosek kredytowy odrzucony (Comfino)',
+            'color' => '#ba3f1d',
+            'paid' => false,
+            'deleted' => false,
+        ],
+        self::COMFINO_RESIGN => [
+            'name' => 'Resigned (Comfino)',
+            'name_pl' => 'Odstąpiono (Comfino)',
+            'color' => '#ba3f1d',
+            'paid' => false,
+            'deleted' => false,
+        ],
+        self::COMFINO_CANCELLED_BY_SHOP => [
+            'name' => 'Cancelled by shop (Comfino)',
+            'name_pl' => 'Anulowano przez sklep (Comfino)',
+            'color' => '#ba3f1d',
+            'paid' => false,
+            'deleted' => false,
+        ],
+        self::COMFINO_CANCELLED => [
+            'name' => 'Cancelled (Comfino)',
+            'name_pl' => 'Anulowano (Comfino)',
+            'color' => '#ba3f1d',
+            'paid' => false,
+            'deleted' => false,
+        ],
     ];
 
-    const ADD_ORDER_STATUSES_PL = [
-        self::COMFINO_CREATED => 'Zamówienie utworzone (Comfino)',
-        self::COMFINO_WAITING_FOR_FILLING => 'Oczekiwanie na wypełnienie formularza (Comfino)',
-        self::COMFINO_WAITING_FOR_CONFIRMATION => 'Oczekiwanie na zatwierdzenie formularza (Comfino)',
-        self::COMFINO_WAITING_FOR_PAYMENT => 'Oczekiwanie na płatność (Comfino)',
-        self::COMFINO_ACCEPTED => 'Kredyt udzielony (Comfino)',
-        self::COMFINO_PAID => 'Zapłacono (Comfino)',
-        self::COMFINO_REJECTED => 'Wniosek kredytowy odrzucony (Comfino)',
-        self::COMFINO_CANCELLED_BY_SHOP => 'Anulowano przez sklep (Comfino)',
-        self::COMFINO_CANCELLED => 'Anulowano (Comfino)',
+    const IGNORED_STATUSES = [
+        self::WAITING_FOR_FILLING,
+        self::WAITING_FOR_CONFIRMATION,
+        self::WAITING_FOR_PAYMENT,
+        self::PAID,
     ];
 
     public static $definition = [
@@ -175,14 +230,13 @@ class OrdersList extends ObjectModel
 
             foreach ($row as $item) {
                 $customer = new Customer($item['id_customer']);
-
                 $customer_email = '';
-                if ($customer != null) {
+
+                if (Validate::isLoadedObject($customer)) {
                     $customer_email = $customer->email;
                 }
 
                 $order = new Order($item['id_comfino']);
-
                 $status = $order->getCurrentOrderState();
                 $context = Context::getContext();
 
@@ -219,11 +273,7 @@ class OrdersList extends ObjectModel
             pSQL($order_id)
         );
 
-        if ($row = Db::getInstance()->execute($sql)) {
-            return !($row === null);
-        }
-
-        return false;
+        return Db::getInstance()->execute($sql);
     }
 
     public static function getState($state)
@@ -237,17 +287,36 @@ class OrdersList extends ObjectModel
         return 'PS_OS_ERROR';
     }
 
+    /**
+     * @param string $orderId
+     * @param string $status
+     *
+     * @return bool
+     * @throws Exception
+     */
     public static function processState($orderId, $status)
     {
+        if (in_array($status, self::IGNORED_STATUSES, true)) {
+            return true;
+        }
+
         $order = new OrderCore($orderId);
 
         if (!ValidateCore::isLoadedObject($order)) {
             throw new \Exception(sprintf('Order not found by id: %s', $orderId));
         }
 
-        $order->setCurrentState(Configuration::get(self::getState($status)));
+        $internalStatus = self::getState($status);
+
+        if ($internalStatus === 'PS_OS_ERROR') {
+            return false;
+        }
+
+        $order->setCurrentState(Configuration::get($internalStatus));
 
         self::setSecondState($status, $order);
+
+        return true;
     }
 
     private static function setSecondState($status, OrderCore $order)

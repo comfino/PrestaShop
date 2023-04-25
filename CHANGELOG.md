@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.0](https://github.com/comfino/PrestaShop/tree/2.4.0) (2023-04-25)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.3.2...2.4.0)
+
+**Merged pull requests:**
+
+- FN-10331 Complete rewrite of plugin configuration management and install/uninstall logic. Complete rewrite of custom Comfino payment statuses management. Update notifications endpoint - improve processing input message signature (accepted hash algorithm restrictions based on hosted PHP version). Simplify Comfino states to internal PS states mapping to avoid sending of redundant e-mails. Add some logic for development mode. Remove config directory and add .htaccess file in the docs directory. Add missing index file in the docs directory. [\#66](https://github.com/comfino/PrestaShop/pull/66) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.3.2](https://github.com/comfino/PrestaShop/tree/2.3.2) (2023-04-17)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.3.1...2.3.2)
