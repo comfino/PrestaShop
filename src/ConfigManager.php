@@ -17,9 +17,6 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
  */
-
-namespace Comfino;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -52,7 +49,7 @@ class ConfigManager
             'COMFINO_WIDGET_TYPE' => 'with-modal',
             'COMFINO_WIDGET_OFFER_TYPE' => 'CONVENIENT_INSTALLMENTS',
             'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
-            'COMFINO_WIDGET_CODE' => (new \Comfino\ConfigManager())->getInitialWidgetCode(),
+            'COMFINO_WIDGET_CODE' => $this->getInitialWidgetCode(),
         ];
 
         foreach ($initial_config_values as $opt_name => $opt_value) {

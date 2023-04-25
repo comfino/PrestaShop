@@ -89,7 +89,7 @@ class Comfino extends PaymentModule
 
         include 'sql/install.php';
 
-        $config_manager = new \Comfino\ConfigManager();
+        $config_manager = new ConfigManager();
         $config_manager->initConfigurationValues();
         $config_manager->addCustomOrderStatuses();
 

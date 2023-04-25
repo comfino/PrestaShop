@@ -152,7 +152,7 @@ class OrdersList extends ObjectModel
             'deleted' => false,
         ],
         self::COMFINO_CANCELLED => [
-            'Cancelled (Comfino)',
+            'name' => 'Cancelled (Comfino)',
             'name_pl' => 'Anulowano (Comfino)',
             'color' => '#ba3f1d',
             'paid' => false,
