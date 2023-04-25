@@ -33,13 +33,13 @@ class ConfigManager
      */
     public function initConfigurationValues()
     {
-        if (\Configuration::hasKey('COMFINO_API_KEY')) {
+        if (Configuration::hasKey('COMFINO_API_KEY')) {
             // Avoid overwriting of existing configuration if plugin is reinstalled/upgraded.
             return;
         }
 
         $initial_config_values = [
-            'COMFINO_PAYMENT_PRESENTATION' => \ComfinoPresentationType::ICON_AND_TEXT,
+            'COMFINO_PAYMENT_PRESENTATION' => ComfinoPresentationType::ICON_AND_TEXT,
             'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_WIDGET_ENABLED' => false,
@@ -53,7 +53,7 @@ class ConfigManager
         ];
 
         foreach ($initial_config_values as $opt_name => $opt_value) {
-            \Configuration::updateValue($opt_name, $opt_value);
+            Configuration::updateValue($opt_name, $opt_value);
         }
     }
 
@@ -62,15 +62,15 @@ class ConfigManager
      */
     public function addCustomOrderStatuses()
     {
-        $languages = \Language::getLanguages(false);
+        $languages = Language::getLanguages(false);
 
-        foreach (\OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
-            $comfino_status_id = \Configuration::get($status_code);
+        foreach (OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
+            $comfino_status_id = Configuration::get($status_code);
 
-            if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
-                $order_status = new \OrderState($comfino_status_id);
+            if (!empty($comfino_status_id) && Validate::isInt($comfino_status_id)) {
+                $order_status = new OrderState($comfino_status_id);
 
-                if (\Validate::isLoadedObject($order_status)) {
+                if (Validate::isLoadedObject($order_status)) {
                     // Update existing status definition.
                     $order_status->color = $status_details['color'];
                     $order_status->paid = $status_details['paid'];
@@ -86,7 +86,7 @@ class ConfigManager
             }
 
             // Add a new status definition.
-            $order_status = new \OrderState();
+            $order_status = new OrderState();
             $order_status->send_email = false;
             $order_status->invoice = false;
             $order_status->color = $status_details['color'];
@@ -101,7 +101,7 @@ class ConfigManager
             }
 
             if ($order_status->add()) {
-                \Configuration::updateValue($status_code, $order_status->id);
+                Configuration::updateValue($status_code, $order_status->id);
             }
         }
 
@@ -113,15 +113,15 @@ class ConfigManager
      */
     public function updateOrderStatuses()
     {
-        $languages = \Language::getLanguages(false);
+        $languages = Language::getLanguages(false);
 
-        foreach (\OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
-            $comfino_status_id = \Configuration::get($status_code);
+        foreach (OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
+            $comfino_status_id = Configuration::get($status_code);
 
-            if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
-                $order_status = new \OrderState($comfino_status_id);
+            if (!empty($comfino_status_id) && Validate::isInt($comfino_status_id)) {
+                $order_status = new OrderState($comfino_status_id);
 
-                if (\Validate::isLoadedObject($order_status)) {
+                if (Validate::isLoadedObject($order_status)) {
                     // Update existing status definition.
                     foreach ($languages as $language) {
                         $status_name = $language['iso_code'] === 'pl' ? $status_details['name_pl'] : $status_details['name'];
@@ -144,11 +144,11 @@ class ConfigManager
     public function updateWidgetCode()
     {
         $initial_widget_code = $this->getInitialWidgetCode();
-        $current_widget_code = trim(\Configuration::get('COMFINO_WIDGET_CODE'));
+        $current_widget_code = trim(Configuration::get('COMFINO_WIDGET_CODE'));
 
         if (md5($current_widget_code) === $this->last_widget_code_hash) {
             // Widget code not changed since last installed version - safely replace with new one.
-            \Configuration::updateValue('COMFINO_WIDGET_CODE', $initial_widget_code);
+            Configuration::updateValue('COMFINO_WIDGET_CODE', $initial_widget_code);
         }
     }
 
