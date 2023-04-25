@@ -31,6 +31,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/PresentationType.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 
 if (!defined('COMFINO_PS_17')) {
     define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='), false);
@@ -88,8 +89,9 @@ class Comfino extends PaymentModule
 
         include 'sql/install.php';
 
-        $this->initConfigurationValues();
-        $this->addCustomOrderStatuses();
+        $config_manager = new \Comfino\ConfigManager();
+        $config_manager->initConfigurationValues();
+        $config_manager->addCustomOrderStatuses();
 
         if (!COMFINO_PS_17) {
             $this->registerHook('payment');
@@ -781,57 +783,6 @@ class Comfino extends PaymentModule
     /**
      * @return bool
      */
-    private function addCustomOrderStatuses()
-    {
-        $languages = Language::getLanguages(false);
-
-        foreach (OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
-            $comfino_status_id = Configuration::get($status_code);
-
-            if (!empty($comfino_status_id) && Validate::isInt($comfino_status_id)) {
-                $order_status = new OrderState($comfino_status_id);
-
-                if (Validate::isLoadedObject($order_status)) {
-                    // Update existing status definition.
-                    $order_status->color = $status_details['color'];
-                    $order_status->paid = $status_details['paid'];
-                    $order_status->deleted = $status_details['deleted'];
-
-                    $order_status->save();
-
-                    continue;
-                }
-            } elseif ($status_details['deleted']) {
-                // Ignore deleted statuses in first time plugin installations.
-                continue;
-            }
-
-            // Add a new status definition.
-            $order_status = new OrderState();
-            $order_status->send_email = false;
-            $order_status->invoice = false;
-            $order_status->color = $status_details['color'];
-            $order_status->unremovable = false;
-            $order_status->logable = false;
-            $order_status->module_name = $this->name;
-            $order_status->paid = $status_details['paid'];
-
-            foreach ($languages as $language) {
-                $status_name = $language['iso_code'] === 'pl' ? $status_details['name_pl'] : $status_details['name'];
-                $order_status->name[$language['id_lang']] = $status_name;
-            }
-
-            if ($order_status->add()) {
-                Configuration::updateValue($status_code, $order_status->id);
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @return bool
-     */
     private function checkConfiguration()
     {
         return Configuration::get('COMFINO_API_KEY') !== null;
@@ -849,56 +800,6 @@ class Comfino extends PaymentModule
             'presentation_type' => Configuration::get('COMFINO_PAYMENT_PRESENTATION'),
             'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
         ];
-    }
-
-    /**
-     * @return void
-     */
-    private function initConfigurationValues()
-    {
-        if (Configuration::hasKey('COMFINO_API_KEY')) {
-            // Avoid overwriting of existing configuration if plugin is reinstalled/upgraded.
-            return;
-        }
-
-        $widget_code = "
-var script = document.createElement('script');
-script.onload = function () {
-    ComfinoProductWidget.init({
-        widgetKey: '{WIDGET_KEY}',
-        priceSelector: '{WIDGET_PRICE_SELECTOR}',
-        widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',        
-        type: '{WIDGET_TYPE}',
-        offerType: '{OFFER_TYPE}',
-        embedMethod: '{EMBED_METHOD}',
-        priceObserverLevel: 0,
-        price: null,
-        callbackBefore: function () {},
-        callbackAfter: function () {}
-    });
-};
-script.src = '{WIDGET_SCRIPT_URL}';
-script.async = true;
-document.getElementsByTagName('head')[0].appendChild(script);
-";
-
-        $initial_config_values = [
-            'COMFINO_PAYMENT_PRESENTATION' => ComfinoPresentationType::ICON_AND_TEXT,
-            'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)',
-            'COMFINO_MINIMAL_CART_AMOUNT' => 30,
-            'COMFINO_WIDGET_ENABLED' => false,
-            'COMFINO_WIDGET_KEY' => '',
-            'COMFINO_WIDGET_PRICE_SELECTOR' => COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]',
-            'COMFINO_WIDGET_TARGET_SELECTOR' => 'div.product-actions',
-            'COMFINO_WIDGET_TYPE' => 'with-modal',
-            'COMFINO_WIDGET_OFFER_TYPE' => 'CONVENIENT_INSTALLMENTS',
-            'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
-            'COMFINO_WIDGET_CODE' => trim($widget_code),
-        ];
-
-        foreach ($initial_config_values as $opt_name => $opt_value) {
-            Configuration::updateValue($opt_name, $opt_value);
-        }
     }
 
     /**
