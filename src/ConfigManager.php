@@ -76,7 +76,7 @@ class ConfigManager
                     $order_status->paid = $status_details['paid'];
                     $order_status->deleted = $status_details['deleted'];
 
-                    $order_status->save();
+                    $order_status->update();
 
                     continue;
                 }
