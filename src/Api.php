@@ -55,8 +55,8 @@ class ComfinoApi
      */
     public static function createOrder($cart, $order_id, $return_url)
     {
-        $total = (int) floor(((float) $cart->getOrderTotal(true)) * 100);
-        $delivery = (int) floor(((float) $cart->getOrderTotal(true, Cart::ONLY_SHIPPING)) * 100);
+        $total = (int) round(((float) $cart->getOrderTotal(true)) * 100);
+        $delivery = (int) round(((float) $cart->getOrderTotal(true, Cart::ONLY_SHIPPING)) * 100);
 
         $customer = new Customer($cart->id_customer);
         $products = [];

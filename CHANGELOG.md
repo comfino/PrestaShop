@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.1](https://github.com/comfino/PrestaShop/tree/2.4.1) (2023-04-26)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.4.0...2.4.1)
+
+**Merged pull requests:**
+
+- FN-10500 Fix bug in total amount calculation - float to int conversion caused loose of precision in some cases. [\#67](https://github.com/comfino/PrestaShop/pull/67) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.4.0](https://github.com/comfino/PrestaShop/tree/2.4.0) (2023-04-25)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.3.2...2.4.0)
