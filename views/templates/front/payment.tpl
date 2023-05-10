@@ -660,7 +660,7 @@
                     comfinoPaywallItem.parentNode.parentNode.querySelector('label span').style.paddingLeft = '10px';
                 }
 
-                comfinoPaywallItem.addEventListener('click', () => {
+                comfinoPaywallItem.addEventListener('mousedown', () => {
                     let offerWrapper = document.getElementById('comfino-offer-items');
 
                     document.getElementById('comfino-box').style.display = 'block';

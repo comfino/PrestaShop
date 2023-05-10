@@ -712,7 +712,7 @@
             let comfinoPaywallItem = document.getElementById('pay-with-comperia');
 
             if (comfinoPaywallItem) {
-                comfinoPaywallItem.addEventListener('click', () => {
+                comfinoPaywallItem.addEventListener('mousedown', () => {
                     let offerWrapper = document.getElementById('comfino-offer-items');
 
                     document.getElementById('comfino-box').style.display = 'block';
