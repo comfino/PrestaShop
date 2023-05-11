@@ -355,16 +355,7 @@ class ComfinoApi
      */
     private static function getNotifyUrl($context)
     {
-        $notifyUrl = $context->link->getModuleLink($context->controller->module->name, 'notify', [], true);
-
-        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') &&
-            getenv('COMFINO_DEV_NOTIFY_HOST') &&
-            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
-        ) {
-            $notifyUrl = str_replace(getenv('PS_DOMAIN'), getenv('COMFINO_DEV_NOTIFY_HOST'), $notifyUrl);
-        }
-
-        return $notifyUrl;
+        return $context->link->getModuleLink($context->controller->module->name, 'notify', [], true);
     }
 
     /**
