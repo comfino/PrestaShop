@@ -447,6 +447,46 @@
     window.Comfino = {
         offerList: { data: null, elements: null },
         selectedOffer: 0,
+        debugMode: false,
+
+        consoleMsg(message, level)
+        {
+            let callArgs = [];
+
+            if (level !== 'error' && level !== 'warn') {
+                callArgs.push('%cComfino plugin:%c ' + message);
+                callArgs.push('color: white; background-color: #227b34; font-weight: bold; line-height: 18px');
+                callArgs.push('color: black; background-color: #cae8c9; font-weight: normal; line-height: 18px');
+            } else {
+                callArgs.push('Comfino plugin: ' + message);
+            }
+
+            if (arguments.length > 2) {
+                callArgs.push(...Array.from(arguments).slice(2, arguments.length));
+            }
+
+            switch (level) {
+                case 'error':
+                    console.error(...callArgs);
+                    break;
+
+                case 'warn':
+                    console.warn(...callArgs);
+                    break;
+
+                case 'info':
+                    console.info(...callArgs);
+                    break;
+
+                case 'debug':
+                    console.debug(...callArgs);
+                    break;
+
+                case 'log':
+                default:
+                    console.log(...callArgs);
+            }
+        },
 
         selectTerm(loanTermBox, termElement)
         {
@@ -651,9 +691,19 @@
          */
         initPayments()
         {
+            if (window.location.hash && window.location.hash.substring(1) === 'comfino_debug') {
+                Comfino.debugMode = true;
+
+                Comfino.consoleMsg('Debug mode activated.', 'info');
+            }
+
             let comfinoPaywallItem = document.querySelector('input[data-module-name="comfino"]');
 
             if (comfinoPaywallItem) {
+                if (Comfino.debugMode) {
+                    Comfino.consoleMsg('Paywall item found.', 'debug', comfinoPaywallItem);
+                }
+
                 if (comfinoPaywallItem.parentNode.parentNode.querySelector('label span')) {
                     comfinoPaywallItem.parentNode.parentNode.querySelector('label').style.display = 'inline-flex';
                     comfinoPaywallItem.parentNode.parentNode.querySelector('label').style.flexDirection = 'row-reverse';
@@ -667,10 +717,18 @@
 
                     offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>';
 
+                    if (Comfino.debugMode) {
+                        Comfino.consoleMsg('comfinoPaywallItem[mousedown]', 'debug', offerWrapper);
+                    }
+
                     fetch(Comfino.getModuleApiUrl({ldelim}type: 'data'{rdelim}))
                         .then((response) => response.json())
                         .then((data) => {
                             sessionStorage.setItem('Comfino.offers', JSON.stringify(data));
+
+                            if (Comfino.debugMode) {
+                                Comfino.consoleMsg('Offer fetched.', 'debug', data);
+                            }
 
                             if (!data.length) {
                                 offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='No offers available.' mod='comfino'}</p>`;
@@ -682,6 +740,10 @@
 
                             offerWrapper.innerHTML = '';
                             Comfino.offerList = Comfino.putDataIntoSection(data);
+
+                            if (Comfino.debugMode) {
+                                Comfino.consoleMsg('Comfino.offerList', 'debug', Comfino.offerList);
+                            }
 
                             Comfino.selectTerm(loanTermBox, loanTermBox.querySelector('div > div[data-term="' + Comfino.offerList.data[Comfino.selectedOffer].loanTerm + '"]'));
 
@@ -713,11 +775,11 @@
                                 document.getElementById('modal-repr-example').classList.remove('open');
                             });
                         }).catch((error) => {
-                            offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
-                        });
+                        offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
+                    });
                 });
             } else {
-                console.warn('Comfino paywall section not found. Plugin not initialized.');
+                Comfino.consoleMsg('Comfino paywall section not found. Plugin not initialized.', 'warn');
             }
         }
     };

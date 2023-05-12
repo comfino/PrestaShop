@@ -1,5 +1,6 @@
 2.4.2
- - FN-10540
+ - FN-10540 Fix bug with mouse click event assigned to the Comfino radio button on paywall.
+ - FN-10540 Add debug mode for plugin frontend JavaScript logic.
 
 2.4.1
  - FN-10500 Fix bug in total amount calculation - float to int conversion caused loose of precision in some cases.
