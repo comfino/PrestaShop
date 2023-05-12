@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.4.2](https://github.com/comfino/PrestaShop/tree/2.4.2) (2023-05-12)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.4.1...2.4.2)
+
+**Merged pull requests:**
+
+- FN-10540 Fix bug with mouse click event assigned to the Comfino radio button on paywall. Add debug mode for plugin frontend JavaScript logic. [\#68](https://github.com/comfino/PrestaShop/pull/68) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.4.1](https://github.com/comfino/PrestaShop/tree/2.4.1) (2023-04-26)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.4.0...2.4.1)
