@@ -1,5 +1,6 @@
 2.4.3
  - FN-10568 Remove amount field from loanParameters structure (create order JSON request).
+ - FN-10568 Add autoinitialization of widget debug mode from URL hash string.
 
 2.4.2
  - FN-10540 Fix bug with mouse click event assigned to the Comfino radio button on paywall.

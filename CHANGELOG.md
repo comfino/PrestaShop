@@ -6,7 +6,7 @@
 
 **Merged pull requests:**
 
-- FN-10568 Remove amount field from loanParameters structure (create order JSON request). [\#69](https://github.com/comfino/PrestaShop/pull/69) ([akozubskicr](https://github.com/akozubskicr))
+- FN-10568 Remove amount field from loanParameters structure (create order JSON request). Add autoinitialization of widget debug mode from URL hash string. [\#69](https://github.com/comfino/PrestaShop/pull/69) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.4.2](https://github.com/comfino/PrestaShop/tree/2.4.2) (2023-05-12)
 
