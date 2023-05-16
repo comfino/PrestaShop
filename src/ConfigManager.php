@@ -139,14 +139,16 @@ class ConfigManager
     }
 
     /**
+     * @param string $last_widget_code_hash
+     *
      * @return void
      */
-    public function updateWidgetCode()
+    public function updateWidgetCode($last_widget_code_hash)
     {
         $initial_widget_code = $this->getInitialWidgetCode();
         $current_widget_code = trim(Configuration::get('COMFINO_WIDGET_CODE'));
 
-        if (md5($current_widget_code) === $this->last_widget_code_hash) {
+        if (md5($current_widget_code) === $last_widget_code_hash) {
             // Widget code not changed since last installed version - safely replace with new one.
             Configuration::updateValue('COMFINO_WIDGET_CODE', $initial_widget_code);
         }
@@ -174,7 +176,8 @@ script.onload = function () {
         callbackBefore: function () {},
         callbackAfter: function () {},
         onOfferRendered: function (jsonResponse, widgetTarget, widgetNode) { },
-        onGetPriceElement: function (priceSelector, priceObserverSelector) { return null; }
+        onGetPriceElement: function (priceSelector, priceObserverSelector) { return null; },
+        debug: window.location.hash && window.location.hash.substring(1) === 'comfino_debug'
     });
 };
 script.src = '{WIDGET_SCRIPT_URL}';

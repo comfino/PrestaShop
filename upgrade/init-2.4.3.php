@@ -35,14 +35,12 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
  *
  * @return bool
  */
-function upgrade_module_2_4_0($module)
+function upgrade_module_2_4_3($module)
 {
     $config_manager = new ConfigManager();
 
     // Update code of widget initialization script.
-    $config_manager->updateWidgetCode('bde49851ffc0fd8239eb5d086c8165d4');
-    // Update custom order statuses.
-    $config_manager->updateOrderStatuses();
+    $config_manager->updateWidgetCode('f4107dede201847d84a372002e748767');
 
     return true;
 }
