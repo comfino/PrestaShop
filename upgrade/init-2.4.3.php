@@ -40,7 +40,7 @@ function upgrade_module_2_4_3($module)
     $config_manager = new ConfigManager();
 
     // Update code of widget initialization script.
-    $config_manager->updateWidgetCode('3f7f8a8bd129f698bb733df6fda3ebd6');
+    $config_manager->updateWidgetCode('f4107dede201847d84a372002e748767');
 
     return true;
 }
