@@ -95,7 +95,6 @@ class ComfinoApi
             'orderId' => (string) $order_id,
             'draft' => false,
             'loanParameters' => [
-                'amount' => $total,
                 'term' => (int) $context->cookie->loan_term,
                 'type' => $context->cookie->loan_type,
             ],

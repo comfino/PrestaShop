@@ -1,3 +1,6 @@
+2.4.3
+ - FN-10568 Remove amount field from loanParameters structure (create order JSON request).
+
 2.4.2
  - FN-10540 Fix bug with mouse click event assigned to the Comfino radio button on paywall.
  - FN-10540 Add debug mode for plugin frontend JavaScript logic.
