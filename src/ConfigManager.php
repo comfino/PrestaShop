@@ -26,7 +26,22 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/PresentationType.php';
 
 class ConfigManager
 {
-    private $last_widget_code_hash = 'bde49851ffc0fd8239eb5d086c8165d4';
+    const ACCESSIBLE_CONFIG_OPTIONS = [
+        'COMFINO_PAYMENT_PRESENTATION',
+        'COMFINO_PAYMENT_TEXT',
+        'COMFINO_MINIMAL_CART_AMOUNT',
+        'COMFINO_IS_SANDBOX',
+        'COMFINO_WIDGET_ENABLED',
+        'COMFINO_WIDGET_KEY',
+        'COMFINO_WIDGET_PRICE_SELECTOR',
+        'COMFINO_WIDGET_TARGET_SELECTOR',
+        'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
+        'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+        'COMFINO_WIDGET_TYPE',
+        'COMFINO_WIDGET_OFFER_TYPE',
+        'COMFINO_WIDGET_EMBED_METHOD',
+        'COMFINO_WIDGET_CODE',
+    ];
 
     /**
      * @return void
@@ -46,6 +61,8 @@ class ConfigManager
             'COMFINO_WIDGET_KEY' => '',
             'COMFINO_WIDGET_PRICE_SELECTOR' => COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]',
             'COMFINO_WIDGET_TARGET_SELECTOR' => 'div.product-actions',
+            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR' => '',
+            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 0,
             'COMFINO_WIDGET_TYPE' => 'with-modal',
             'COMFINO_WIDGET_OFFER_TYPE' => 'CONVENIENT_INSTALLMENTS',
             'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
@@ -53,6 +70,37 @@ class ConfigManager
         ];
 
         foreach ($initial_config_values as $opt_name => $opt_value) {
+            Configuration::updateValue($opt_name, $opt_value);
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function returnConfigurationOptions()
+    {
+        $configuration_options = [];
+
+        foreach (self::ACCESSIBLE_CONFIG_OPTIONS as $opt_name) {
+            $configuration_options[$opt_name] = Configuration::get($opt_name);
+        }
+
+        return $configuration_options;
+    }
+
+    /**
+     * @param array $configurationOptions
+     * @param bool $only_accessible_options
+     *
+     * @return void
+     */
+    public function updateConfiguration($configurationOptions, $only_accessible_options = true)
+    {
+        foreach ($configurationOptions as $opt_name => $opt_value) {
+            if ($only_accessible_options && !in_array($opt_name, self::ACCESSIBLE_CONFIG_OPTIONS, true)) {
+                continue;
+            }
+
             Configuration::updateValue($opt_name, $opt_value);
         }
     }
@@ -166,18 +214,18 @@ script.onload = function () {
         widgetKey: '{WIDGET_KEY}',
         priceSelector: '{WIDGET_PRICE_SELECTOR}',
         widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',
-        priceObserverSelector: null,        
+        priceObserverSelector: '{WIDGET_PRICE_OBSERVER_SELECTOR}',
+        priceObserverLevel: {WIDGET_PRICE_OBSERVER_LEVEL},
         type: '{WIDGET_TYPE}',
         offerType: '{OFFER_TYPE}',
         embedMethod: '{EMBED_METHOD}',
-        numOfInstallments: 0,
-        priceObserverLevel: 0,
+        numOfInstallments: 0,        
         price: null,
         callbackBefore: function () {},
         callbackAfter: function () {},
         onOfferRendered: function (jsonResponse, widgetTarget, widgetNode) { },
         onGetPriceElement: function (priceSelector, priceObserverSelector) { return null; },
-        debug: window.location.hash && window.location.hash.substring(1) === 'comfino_debug'
+        debugMode: window.location.hash && window.location.hash.substring(1) === 'comfino_debug'
     });
 };
 script.src = '{WIDGET_SCRIPT_URL}';

@@ -1,3 +1,6 @@
+2.5.0
+ - Improve and extend configuration management, add remote configuration management for technical support.
+
 2.4.3
  - FN-10568 Remove amount field from loanParameters structure (create order JSON request).
  - FN-10568 Add autoinitialization of widget debug mode from URL hash string.
