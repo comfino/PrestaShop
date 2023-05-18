@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.0](https://github.com/comfino/PrestaShop/tree/2.5.0) (2023-05-17)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.4.3...2.5.0)
+
+**Merged pull requests:**
+
+- FN-9971 Improve and extend configuration management, add remote configuration management for technical support. [\#70](https://github.com/comfino/PrestaShop/pull/70) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.4.3](https://github.com/comfino/PrestaShop/tree/2.4.3) (2023-05-16)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.4.2...2.4.3)
