@@ -29,7 +29,7 @@ if (!defined('_PS_VERSION_')) {
 
 require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 
-class ComfinoNotifyModuleFrontController extends ModuleFrontController
+class ComfinoConfigurationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
@@ -90,7 +90,7 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
 
                 $configuration_options = json_decode($jsonData, true);
 
-                if (!is_array($configuration_options)) {
+                if (is_array($configuration_options)) {
                     $config_manager->updateConfiguration($configuration_options);
 
                     exit($this->setResponse(204, ''));
@@ -124,6 +124,12 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
         http_response_code($code);
         header('Content-Type: application/json');
 
-        return json_encode(['status' => $status_message]);
+        $response = ['status' => $status_message];
+
+        if ($data !== null) {
+            $response = array_merge($response, $data);
+        }
+
+        return json_encode($response);
     }
 }

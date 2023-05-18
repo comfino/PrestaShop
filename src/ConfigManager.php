@@ -43,6 +43,13 @@ class ConfigManager
         'COMFINO_WIDGET_CODE',
     ];
 
+    const CONFIG_OPTIONS_TYPES = [
+        'COMFINO_MINIMAL_CART_AMOUNT' => 'float',
+        'COMFINO_IS_SANDBOX' => 'bool',
+        'COMFINO_WIDGET_ENABLED' => 'bool',
+        'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 'int',
+    ];
+
     /**
      * @return void
      */
@@ -83,6 +90,22 @@ class ConfigManager
 
         foreach (self::ACCESSIBLE_CONFIG_OPTIONS as $opt_name) {
             $configuration_options[$opt_name] = Configuration::get($opt_name);
+
+            if (isset(self::CONFIG_OPTIONS_TYPES[$opt_name])) {
+                switch (self::CONFIG_OPTIONS_TYPES[$opt_name]) {
+                    case 'bool':
+                        $configuration_options[$opt_name] = (bool)$configuration_options[$opt_name];
+                        break;
+
+                    case 'int':
+                        $configuration_options[$opt_name] = (int)$configuration_options[$opt_name];
+                        break;
+
+                    case 'float':
+                        $configuration_options[$opt_name] = (float)$configuration_options[$opt_name];
+                        break;
+                }
+            }
         }
 
         return $configuration_options;
