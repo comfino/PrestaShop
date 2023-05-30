@@ -792,8 +792,8 @@
                                 document.getElementById('modal-repr-example').classList.remove('open');
                             });
                         }).catch((error) => {
-                        offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
-                    });
+                            offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
+                        });
                 });
             } else {
                 Comfino.consoleMsg('Comfino paywall section not found. Plugin not initialized.', 'warn');
