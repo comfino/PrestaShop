@@ -779,7 +779,7 @@
                     Comfino.consoleMsg('Paywall item found.', 'debug', comfinoPaywallItem);
                 }
 
-                comfinoPaywallItem.addEventListener('mousedown', () => {
+                comfinoPaywallItem.addEventListener('click', () => {
                     let offerWrapper = document.getElementById('comfino-offer-items');
 
                     document.getElementById('comfino-box').style.display = 'block';
@@ -787,7 +787,7 @@
                     offerWrapper.innerHTML = '<p>{l s='Loading...' mod='comfino'}</p>';
 
                     if (Comfino.debugMode) {
-                        Comfino.consoleMsg('comfinoPaywallItem[mousedown]', 'debug', offerWrapper);
+                        Comfino.consoleMsg('comfinoPaywallItem[click]', 'debug', offerWrapper);
                     }
 
                     fetch(Comfino.getModuleApiUrl({ldelim}type: 'data'{rdelim}))
