@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.1](https://github.com/comfino/PrestaShop/tree/2.5.1) (2023-05-29)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.5.0...2.5.1)
+
+**Merged pull requests:**
+
+- FN-10590 Remove unnecessary elements from paywall for BLIK payment option. [\#71](https://github.com/comfino/PrestaShop/pull/71) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.5.0](https://github.com/comfino/PrestaShop/tree/2.5.0) (2023-05-17)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.4.3...2.5.0)

@@ -686,7 +686,24 @@
                 });
 
                 document.getElementById('comfino-payment-delay').style.display = 'none';
-                document.getElementById('comfino-installments').style.display = 'block';
+
+                let installmentsElement = document.getElementById('comfino-installments');
+
+                installmentsElement.style.display = 'block';
+
+                if (offerData.type === 'BLIK') {
+                    installmentsElement.querySelector('section.comfino-installments-box').style.display = 'none';
+                    installmentsElement.querySelector('section.comfino-monthly-box').style.display = 'none';
+                    installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-summary-total').style.display = 'none';
+                    installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-rrso').style.display = 'none';
+                    installmentsElement.querySelector('footer').style.display = 'none';
+                } else {
+                    installmentsElement.querySelector('section.comfino-installments-box').style.display = 'flex';
+                    installmentsElement.querySelector('section.comfino-monthly-box').style.display = 'flex';
+                    installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-summary-total').style.display = 'block';
+                    installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-rrso').style.display = 'block';
+                    installmentsElement.querySelector('footer').style.display = 'block';
+                }
             }
         },
 
@@ -830,8 +847,8 @@
                                 document.getElementById('modal-repr-example').classList.remove('open');
                             });
                         }).catch((error) => {
-                        offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
-                    });
+                            offerWrapper.innerHTML = `<p class="alert alert-danger">{l s='There was an error while performing this operation' mod='comfino'}: ` + error + `</p>`;
+                        });
                 });
             } else {
                 Comfino.consoleMsg('Comfino paywall section not found. Plugin not initialized.', 'warn');

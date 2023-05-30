@@ -1,5 +1,8 @@
+2.5.1
+ - FN-10590 Remove unnecessary elements from paywall for BLIK payment option.
+
 2.5.0
- - Improve and extend configuration management, add remote configuration management for technical support.
+ - FN-9971 Improve and extend configuration management, add remote configuration management for technical support.
 
 2.4.3
  - FN-10568 Remove amount field from loanParameters structure (create order JSON request).
