@@ -91,7 +91,7 @@ class ConfigManager
         foreach (self::ACCESSIBLE_CONFIG_OPTIONS as $opt_name) {
             $configuration_options[$opt_name] = Configuration::get($opt_name);
 
-            if (isset(self::CONFIG_OPTIONS_TYPES[$opt_name])) {
+            if (array_key_exists($opt_name, self::CONFIG_OPTIONS_TYPES)) {
                 switch (self::CONFIG_OPTIONS_TYPES[$opt_name]) {
                     case 'bool':
                         $configuration_options[$opt_name] = (bool)$configuration_options[$opt_name];
