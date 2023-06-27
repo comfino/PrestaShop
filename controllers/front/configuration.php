@@ -45,11 +45,11 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
 
                 $verification_key = Tools::getValue('vkey');
 
-                $hashAlgorithm = $this->getHashAlgorithm();
-                $hashAlgos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
+                $hash_algorithm = $this->getHashAlgorithm();
+                $hash_algos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
 
-                if (in_array($hashAlgorithm, $hashAlgos, true)) {
-                    if ($this->getSignature() !== hash($hashAlgorithm, ComfinoApi::getApiKey() . $verification_key)) {
+                if (in_array($hash_algorithm, $hash_algos, true)) {
+                    if ($this->getSignature() !== hash($hash_algorithm, ComfinoApi::getApiKey() . $verification_key)) {
                         exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
                     }
                 } else {
@@ -76,19 +76,19 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
 
             case 'POST':
             case 'PUT':
-                $jsonData = Tools::file_get_contents('php://input');
-                $hashAlgorithm = $this->getHashAlgorithm();
-                $hashAlgos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
+                $json_data = Tools::file_get_contents('php://input');
+                $hash_algorithm = $this->getHashAlgorithm();
+                $hash_algos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
 
-                if (in_array($hashAlgorithm, $hashAlgos, true)) {
-                    if ($this->getSignature() !== hash($hashAlgorithm, ComfinoApi::getApiKey() . $jsonData)) {
+                if (in_array($hash_algorithm, $hash_algos, true)) {
+                    if ($this->getSignature() !== hash($hash_algorithm, ComfinoApi::getApiKey() . $json_data)) {
                         exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
                     }
                 } else {
                     exit($this->setResponse(403, 'Unsupported hash algorithm.'));
                 }
 
-                $configuration_options = json_decode($jsonData, true);
+                $configuration_options = json_decode($json_data, true);
 
                 if (is_array($configuration_options)) {
                     $config_manager->updateConfiguration($configuration_options);

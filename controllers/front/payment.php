@@ -117,7 +117,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $customer->secure_key
         );
 
-        $orderConfirmation = ComfinoApi::createOrder(
+        $order_confirmation = ComfinoApi::createOrder(
             $this->context->cart,
             $this->module->currentOrder,
             'index.php?controller=order-confirmation&id_cart=' . (int) $cart->id . '&id_module=' . (int) $this->module->id .
@@ -126,7 +126,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $order = new Order($this->module->currentOrder);
 
-        if (!is_array($orderConfirmation) || !isset($orderConfirmation['applicationUrl'])) {
+        if (!is_array($order_confirmation) || !isset($order_confirmation['applicationUrl'])) {
             $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
             $order->save();
 
@@ -134,15 +134,15 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 'Order creation error', 0, 'Wrong Comfino API response.',
                 $_SERVER['REQUEST_URI'],
                 ComfinoApi::getLastRequestBody(),
-                is_array($orderConfirmation) ? json_encode($orderConfirmation) : ComfinoApi::getLastResponseBody()
+                is_array($order_confirmation) ? json_encode($order_confirmation) : ComfinoApi::getLastResponseBody()
             );
 
             Tools::redirect($this->context->link->getModuleLink(
                 $this->module->name,
                 'error',
                 [
-                    'error' => is_array($orderConfirmation) && isset($orderConfirmation['errors'])
-                        ? implode(',', $orderConfirmation['errors'])
+                    'error' => is_array($order_confirmation) && isset($order_confirmation['errors'])
+                        ? implode(',', $order_confirmation['errors'])
                         : 'Order creation error.',
                 ],
                 true
@@ -151,18 +151,18 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         OrdersList::createOrder(
             [
-                'id_comfino' => $orderConfirmation['externalId'],
+                'id_comfino' => $order_confirmation['externalId'],
                 'id_customer' => $cart->id_customer,
-                'order_status' => $orderConfirmation['status'],
-                'legalize_link' => isset($orderConfirmation['_links']['legalize'])
-                    ? $orderConfirmation['_links']['legalize']['href']
+                'order_status' => $order_confirmation['status'],
+                'legalize_link' => isset($order_confirmation['_links']['legalize'])
+                    ? $order_confirmation['_links']['legalize']['href']
                     : '',
-                'self_link' => $orderConfirmation['_links']['self']['href'],
-                'cancel_link' => $orderConfirmation['_links']['cancel']['href'],
+                'self_link' => $order_confirmation['_links']['self']['href'],
+                'cancel_link' => $order_confirmation['_links']['cancel']['href'],
             ]
         );
 
-        Tools::redirect($orderConfirmation['applicationUrl']);
+        Tools::redirect($order_confirmation['applicationUrl']);
     }
 
     // FIXME Implement proper logic for PrestaShop 1.6.

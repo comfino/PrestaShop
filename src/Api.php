@@ -61,15 +61,34 @@ class ComfinoApi
         $customer = new Customer($cart->id_customer);
         $products = [];
 
+        $cart_total = 0;
+
         foreach ($cart->getProducts() as $product) {
+            $price = (int) ($product['total_wt'] / $product['cart_quantity'] * 100);
+
             $products[] = [
                 'name' => $product['name'],
                 'quantity' => (int) $product['cart_quantity'],
-                'price' => (int) ($product['total_wt'] / $product['cart_quantity'] * 100),
+                'price' => $price,
                 'photoUrl' => self::getProductsImageUrl($product),
                 'ean' => $product['ean13'],
                 'externalId' => (string) $product['id_product'],
                 'category' => $product['category'],
+            ];
+
+            $cart_total += $price;
+        }
+
+        if ($cart_total > $total) {
+            // Add discount item to the list - avoid problems with cart items value and order total value inconsistency.
+            $products[] = [
+                'name' => 'Rabat',
+                'quantity' => 1,
+                'price' => $total - $cart_total,
+                'photoUrl' => '',
+                'ean' => '',
+                'externalId' => '',
+                'category' => 'DISCOUNT',
             ];
         }
 

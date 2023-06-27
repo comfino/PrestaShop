@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.5.1', false);
+    define('COMFINO_VERSION', '2.5.2', false);
 }
 
 class Comfino extends PaymentModule
@@ -51,7 +51,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.5.1';
+        $this->version = '2.5.2';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -144,7 +144,7 @@ class Comfino extends PaymentModule
         ErrorLogger::init();
 
         $output = [];
-        $outputType = 'success';
+        $output_type = 'success';
 
         if (Tools::isSubmit('submit_configuration')) {
             if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
@@ -164,42 +164,42 @@ class Comfino extends PaymentModule
                 );
             }
 
-            $widgetKeyError = false;
-            $widgetKey = '';
+            $widget_key_error = false;
+            $widget_key = '';
 
             if (!count($output)) {
-                $apiHost = Tools::getValue('COMFINO_IS_SANDBOX')
+                $api_host = Tools::getValue('COMFINO_IS_SANDBOX')
                     ? ComfinoApi::COMFINO_SANDBOX_HOST
                     : ComfinoApi::COMFINO_PRODUCTION_HOST;
 
-                $apiKey = Tools::getValue('COMFINO_IS_SANDBOX')
+                $api_key = Tools::getValue('COMFINO_IS_SANDBOX')
                     ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
                     : Tools::getValue('COMFINO_API_KEY');
 
-                if (!empty($apiKey)) {
-                    ComfinoApi::setApiHost($apiHost);
-                    ComfinoApi::setApiKey($apiKey);
+                if (!empty($api_key)) {
+                    ComfinoApi::setApiHost($api_host);
+                    ComfinoApi::setApiKey($api_key);
 
                     if (!ComfinoApi::isApiKeyValid()) {
-                        $output[] = sprintf($this->l('API key %s is not valid.'), $apiKey);
+                        $output[] = sprintf($this->l('API key %s is not valid.'), $api_key);
                     } else {
-                        $widgetKey = ComfinoApi::getWidgetKey();
+                        $widget_key = ComfinoApi::getWidgetKey();
 
-                        if (is_array($widgetKey)) {
-                            if (isset($widgetKey['errors'])) {
-                                $output = array_merge($output, $widgetKey['errors']);
-                                $outputType = 'warning';
-                                $widgetKeyError = true;
+                        if (is_array($widget_key)) {
+                            if (isset($widget_key['errors'])) {
+                                $output = array_merge($output, $widget_key['errors']);
+                                $output_type = 'warning';
+                                $widget_key_error = true;
                             }
 
-                            $widgetKey = '';
+                            $widget_key = '';
                         }
                     }
                 }
             }
 
-            if (!$widgetKeyError && count($output)) {
-                $outputType = 'warning';
+            if (!$widget_key_error && count($output)) {
+                $output_type = 'warning';
                 $output[] = $this->l('Settings not updated.');
             } else {
                 // Payment settings
@@ -216,7 +216,7 @@ class Comfino extends PaymentModule
 
                 // Widget
                 Configuration::updateValue('COMFINO_WIDGET_ENABLED', Tools::getValue('COMFINO_WIDGET_ENABLED'));
-                Configuration::updateValue('COMFINO_WIDGET_KEY', $widgetKey);
+                Configuration::updateValue('COMFINO_WIDGET_KEY', $widget_key);
                 Configuration::updateValue(
                     'COMFINO_WIDGET_PRICE_SELECTOR',
                     Tools::getValue('COMFINO_WIDGET_PRICE_SELECTOR')
@@ -243,7 +243,7 @@ class Comfino extends PaymentModule
 
         $this->context->smarty->assign([
             'output' => $output,
-            'outputType' => $outputType,
+            'outputType' => $output_type,
             'logoUrl' => ComfinoApi::getLogoUrl(),
             'supportEmailAddress' => self::COMFINO_SUPPORT_EMAIL,
             'supportEmailSubject' => sprintf(
@@ -462,7 +462,7 @@ class Comfino extends PaymentModule
     public function hookHeader()
     {
         if (Configuration::get('COMFINO_WIDGET_ENABLED')) {
-            $configCrc = crc32(
+            $config_crc = crc32(
                 Configuration::get('COMFINO_WIDGET_KEY') . Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR') .
                 Configuration::get('COMFINO_WIDGET_TARGET_SELECTOR') . Configuration::get('COMFINO_WIDGET_TYPE') .
                 Configuration::get('COMFINO_WIDGET_OFFER_TYPE') . Configuration::get('COMFINO_WIDGET_EMBED_METHOD') .
@@ -472,12 +472,12 @@ class Comfino extends PaymentModule
             if (COMFINO_PS_17) {
                 $this->context->controller->registerJavascript(
                     'comfino',
-                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $configCrc], true),
+                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
                     ['server' => 'remote', 'position' => 'head']
                 );
             } else {
                 $this->context->controller->addJS(
-                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $configCrc], true),
+                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
                     false
                 );
             }
