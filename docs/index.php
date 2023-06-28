@@ -1,7 +1,6 @@
-#!/usr/bin/env php
 <?php
 /**
- * 2007-2022 PrestaShop
+ * 2007-2023 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -20,28 +19,16 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2022 PrestaShop SA
+ *  @copyright 2007-2023 PrestaShop SA
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-/* -*- coding: utf-8; indent-tabs-mode: t; tab-width: 4 -*-
-vim: ts=4 noet ai */
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 
-use desktopd\SHA3\Sponge as SHA3;
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
 
-require __DIR__ . '/namespaced/desktopd/SHA3/Sponge.php';
-
-$length = 1024 * 1024; // 1MiB
-$data = str_repeat("\0", $length);
-
-$start = microtime();
-$sponge = SHA3::init(SHA3::SHAKE128);
-$sponge->absorb('');
-for ($i = 0; $i < 1024; ++$i) {
-    $sponge->squeeze(1024);
-}
-$end = microtime();
-
-$start = explode(' ', $start);
-$end = explode(' ', $end);
-printf("Squeezed %d Bytes in %.6f seconds\n", $length, ($end[1] - $start[1]) + ($end[0] - $start[0]));
+header('Location: ../');
+exit;

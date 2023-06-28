@@ -1,23 +1,28 @@
 <?php
 /**
- * Copyright since 2007 PrestaShop SA and Contributors
- * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
+ * 2007-2023 PrestaShop
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the Academic Free License version 3.0
- * that is bundled with this package in the file LICENSE.md.
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
  * It is also available through the world-wide-web at this URL:
- * https://opensource.org/licenses/AFL-3.0
+ * http://opensource.org/licenses/afl-3.0.php
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@prestashop.com so we can send you a copy immediately.
  *
- * @author    PrestaShop SA and Contributors <contact@prestashop.com>
- * @copyright Since 2007 PrestaShop SA and Contributors
- * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ *  @author    PrestaShop SA <contact@prestashop.com>
+ *  @copyright 2007-2023 PrestaShop SA
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  International Registered Trademark & Property of PrestaShop SA
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -25,19 +30,19 @@ if (!defined('_PS_VERSION_')) {
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/PresentationType.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 
 if (!defined('COMFINO_PS_17')) {
     define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='), false);
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.3.0', false);
+    define('COMFINO_VERSION', '2.5.1', false);
 }
 
 class Comfino extends PaymentModule
 {
-    const WIDGET_SCRIPT_PRODUCTION_URL = '//widget.comfino.pl/comfino.min.js';
-    const WIDGET_SCRIPT_SANDBOX_URL = '//widget.craty.pl/comfino.min.js';
     const ERROR_LOG_NUM_LINES = 40;
     const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     const COMFINO_SUPPORT_PHONE = '887-106-027';
@@ -69,7 +74,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.3.0';
+        $this->version = '2.5.1';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -107,21 +112,23 @@ class Comfino extends PaymentModule
 
         include 'sql/install.php';
 
-        $ps16hooks = true;
+        $config_manager = new ConfigManager();
+        $config_manager->initConfigurationValues();
+        $config_manager->addCustomOrderStatuses();
 
         if (!COMFINO_PS_17) {
-            $ps16hooks = $this->registerHook('payment') && $this->registerHook('displayPaymentEU');
+            $this->registerHook('payment');
+            $this->registerHook('displayPaymentEU');
         }
 
-        return $this->initConfigurationValues() &&
-            $this->addOrderStates() &&
-            $this->registerHook('paymentOptions') &&
-            $this->registerHook('paymentReturn') &&
-            $ps16hooks &&
-            $this->registerHook('displayBackofficeComfinoForm') &&
-            $this->registerHook('actionOrderStatusPostUpdate') &&
-            $this->registerHook('actionValidateCustomerAddressForm') &&
-            $this->registerHook('header');
+        $this->registerHook('paymentOptions');
+        $this->registerHook('paymentReturn');
+        $this->registerHook('displayBackofficeComfinoForm');
+        $this->registerHook('actionOrderStatusPostUpdate');
+        $this->registerHook('actionValidateCustomerAddressForm');
+        $this->registerHook('header');
+
+        return true;
     }
 
     /**
@@ -131,21 +138,25 @@ class Comfino extends PaymentModule
     {
         include 'sql/uninstall.php';
 
-        $ps16hooks = true;
+        if (parent::uninstall()) {
+            $this->deleteConfigurationValues();
 
-        if (!COMFINO_PS_17) {
-            $ps16hooks = $this->unregisterHook('payment') && $this->unregisterHook('displayPaymentEU');
+            if (!COMFINO_PS_17) {
+                $this->unregisterHook('payment');
+                $this->unregisterHook('displayPaymentEU');
+            }
+
+            $this->unregisterHook('paymentOptions');
+            $this->unregisterHook('paymentReturn');
+            $this->unregisterHook('displayBackofficeComfinoForm');
+            $this->unregisterHook('actionOrderStatusPostUpdate');
+            $this->unregisterHook('actionValidateCustomerAddressForm');
+            $this->unregisterHook('header');
+
+            return true;
         }
 
-        return parent::uninstall() &&
-            $this->deleteConfigurationValues() &&
-            $this->unregisterHook('paymentOptions') &&
-            $this->unregisterHook('paymentReturn') &&
-            $ps16hooks &&
-            $this->unregisterHook('displayBackofficeComfinoForm') &&
-            $this->unregisterHook('actionOrderStatusPostUpdate') &&
-            $this->unregisterHook('actionValidateCustomerAddressForm') &&
-            $this->unregisterHook('header');
+        return false;
     }
 
     /**
@@ -1228,44 +1239,6 @@ class Comfino extends PaymentModule
     /**
      * @return bool
      */
-    private function addOrderStates()
-    {
-        $languages = Language::getLanguages(false);
-
-        foreach (OrdersList::ADD_ORDER_STATUSES as $state => $name) {
-            $new_state = Configuration::get($state);
-
-            if (empty($new_state) || !Validate::isInt($new_state) ||
-                !Validate::isLoadedObject(new OrderState($new_state))
-            ) {
-                $order_state_object = new OrderState();
-                $order_state_object->send_email = 0;
-                $order_state_object->invoice = 0;
-                $order_state_object->color = '#ffffff';
-                $order_state_object->unremovable = false;
-                $order_state_object->logable = 0;
-                $order_state_object->module_name = $this->name;
-
-                foreach ($languages as $language) {
-                    if ($language['iso_code'] === 'pl') {
-                        $order_state_object->name[$language['id_lang']] = OrdersList::ADD_ORDER_STATUSES_PL[$state];
-                    } else {
-                        $order_state_object->name[$language['id_lang']] = $name;
-                    }
-                }
-
-                if ($order_state_object->add()) {
-                    Configuration::updateValue($state, $order_state_object->id);
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @return bool
-     */
     private function checkConfiguration()
     {
         return Configuration::get('COMFINO_API_KEY') !== null;
@@ -1288,56 +1261,22 @@ class Comfino extends PaymentModule
     /**
      * @return bool
      */
-    private function initConfigurationValues()
-    {
-        $widget_code = "
-var script = document.createElement('script');
-script.onload = function () {
-    ComfinoProductWidget.init({
-        widgetKey: '{WIDGET_KEY}',
-        priceSelector: '{WIDGET_PRICE_SELECTOR}',
-        widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',        
-        type: '{WIDGET_TYPE}',
-        offerType: '{OFFER_TYPE}',
-        embedMethod: '{EMBED_METHOD}',
-        priceObserverLevel: {PRICE_OBSERVER_LEVEL},
-        price: null,
-        callbackBefore: function () {},
-        callbackAfter: function () {}
-    });
-};
-script.src = '{WIDGET_SCRIPT_URL}';
-script.async = true;
-document.getElementsByTagName('head')[0].appendChild(script);
-";
-
-        return Configuration::updateValue('COMFINO_PAYMENT_PRESENTATION', ComfinoPresentationType::ICON_AND_TEXT) &&
-            Configuration::updateValue(
-                'COMFINO_PAYMENT_TEXT',
-                '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)'
-            ) &&
-            Configuration::updateValue('COMFINO_MINIMAL_CART_AMOUNT', 30) &&
-            Configuration::updateValue('COMFINO_WIDGET_ENABLED', false) &&
-            Configuration::updateValue('COMFINO_WIDGET_KEY', '') &&
-            Configuration::updateValue(
-                'COMFINO_WIDGET_PRICE_SELECTOR',
-                COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]'
-            ) &&
-            Configuration::updateValue('COMFINO_WIDGET_TARGET_SELECTOR', 'div.product-actions') &&
-            Configuration::updateValue('COMFINO_WIDGET_TYPE', 'with-modal') &&
-            Configuration::updateValue('COMFINO_WIDGET_OFFER_TYPE', 'CONVENIENT_INSTALLMENTS') &&
-            Configuration::updateValue('COMFINO_WIDGET_EMBED_METHOD', 'INSERT_INTO_LAST') &&
-            Configuration::updateValue('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL', '0') &&
-            Configuration::updateValue('COMFINO_WIDGET_CODE', trim($widget_code)) &&
-            Configuration::updateValue('COMFINO_REGISTERED_AT', '') &&
-            Configuration::updateValue('COMFINO_SANDBOX_REGISTERED_AT');
-    }
-
-    /**
-     * @return bool
-     */
     private function deleteConfigurationValues()
     {
+        Configuration::deleteByName('COMFINO_PAYMENT_TEXT');
+        Configuration::deleteByName('COMFINO_API_KEY');
+        Configuration::deleteByName('COMFINO_MINIMAL_CART_AMOUNT');
+        Configuration::deleteByName('COMFINO_WIDGET_ENABLED');
+        Configuration::deleteByName('COMFINO_IS_SANDBOX');
+        Configuration::deleteByName('COMFINO_SANDBOX_API_KEY');
+        Configuration::deleteByName('COMFINO_WIDGET_ENABLED');
+        Configuration::deleteByName('COMFINO_WIDGET_KEY');
+        Configuration::deleteByName('COMFINO_WIDGET_PRICE_SELECTOR');
+        Configuration::deleteByName('COMFINO_WIDGET_TARGET_SELECTOR');
+        Configuration::deleteByName('COMFINO_WIDGET_TYPE');
+        Configuration::deleteByName('COMFINO_WIDGET_OFFER_TYPE');
+        Configuration::deleteByName('COMFINO_WIDGET_EMBED_METHOD');
+        Configuration::deleteByName('COMFINO_WIDGET_CODE');
         $result = true;
 
         foreach (self::COMFINO_SETTINGS_OPTIONS as $options) {

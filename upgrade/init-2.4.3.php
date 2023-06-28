@@ -1,7 +1,6 @@
-#!/usr/bin/env php
 <?php
 /**
- * 2007-2022 PrestaShop
+ * 2007-2023 PrestaShop
  *
  * NOTICE OF LICENSE
  *
@@ -20,26 +19,28 @@
  * needs please refer to http://www.prestashop.com for more information.
  *
  *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2022 PrestaShop SA
+ *  @copyright 2007-2023 PrestaShop SA
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-/* -*- coding: utf-8; indent-tabs-mode: t; tab-width: 4 -*-
-vim: ts=4 noet ai */
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
-use desktopd\SHA3\Sponge as SHA3;
+require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 
-require __DIR__ . '/namespaced/desktopd/SHA3/Sponge.php';
+/**
+ * @param Comfino $module
+ *
+ * @return bool
+ */
+function upgrade_module_2_4_3($module)
+{
+    $config_manager = new ConfigManager();
 
-$length = 1024 * 1024; // 1MiB
-$data = str_repeat("\0", $length);
+    // Update code of widget initialization script.
+    $config_manager->updateWidgetCode('f4107dede201847d84a372002e748767');
 
-$start = microtime();
-$sponge = SHA3::init(SHA3::SHA3_384);
-$sponge->absorb($data);
-$hash = $sponge->squeeze();
-$end = microtime();
-
-$start = explode(' ', $start);
-$end = explode(' ', $end);
-printf("%d Bytes in %.6f seconds\n%s\n", $length, ($end[1] - $start[1]) + ($end[0] - $start[0]), bin2hex($hash));
+    return true;
+}

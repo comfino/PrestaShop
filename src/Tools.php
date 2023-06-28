@@ -55,7 +55,7 @@ class Tools
      */
     public function formatPrice($price, $id_currency)
     {
-        return COMFINO_PS_17
+        return COMFINO_PS_17 && $this->locale !== null
             ? $this->locale->formatPrice($price, $this->getCurrencyIsoCode($id_currency))
             : \Tools::displayPrice($price);
     }

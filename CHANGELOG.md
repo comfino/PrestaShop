@@ -1,5 +1,85 @@
 # Changelog
 
+## [2.5.1](https://github.com/comfino/PrestaShop/tree/2.5.1) (2023-05-29)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.5.0...2.5.1)
+
+**Merged pull requests:**
+
+- FN-10590 Remove unnecessary elements from paywall for BLIK payment option. [\#71](https://github.com/comfino/PrestaShop/pull/71) ([akozubskicr](https://github.com/akozubskicr))
+
+## [2.5.0](https://github.com/comfino/PrestaShop/tree/2.5.0) (2023-05-17)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.4.3...2.5.0)
+
+**Merged pull requests:**
+
+- FN-9971 Improve and extend configuration management, add remote configuration management for technical support. [\#70](https://github.com/comfino/PrestaShop/pull/70) ([akozubskicr](https://github.com/akozubskicr))
+
+## [2.4.3](https://github.com/comfino/PrestaShop/tree/2.4.3) (2023-05-16)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.4.2...2.4.3)
+
+**Merged pull requests:**
+
+- FN-10568 Remove amount field from loanParameters structure (create order JSON request). Add autoinitialization of widget debug mode from URL hash string. [\#69](https://github.com/comfino/PrestaShop/pull/69) ([akozubskicr](https://github.com/akozubskicr))
+
+## [2.4.2](https://github.com/comfino/PrestaShop/tree/2.4.2) (2023-05-12)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.4.1...2.4.2)
+
+**Merged pull requests:**
+
+- FN-10540 Fix bug with mouse click event assigned to the Comfino radio button on paywall. Add debug mode for plugin frontend JavaScript logic. [\#68](https://github.com/comfino/PrestaShop/pull/68) ([akozubskicr](https://github.com/akozubskicr))
+
+## [2.4.1](https://github.com/comfino/PrestaShop/tree/2.4.1) (2023-04-26)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.4.0...2.4.1)
+
+**Merged pull requests:**
+
+- FN-10500 Fix bug in total amount calculation - float to int conversion caused loose of precision in some cases. [\#67](https://github.com/comfino/PrestaShop/pull/67) ([akozubskicr](https://github.com/akozubskicr))
+
+## [2.4.0](https://github.com/comfino/PrestaShop/tree/2.4.0) (2023-04-25)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.3.2...2.4.0)
+
+**Merged pull requests:**
+
+- FN-10331 Complete rewrite of plugin configuration management and install/uninstall logic. Complete rewrite of custom Comfino payment statuses management. Update notifications endpoint - improve processing input message signature (accepted hash algorithm restrictions based on hosted PHP version). Simplify Comfino states to internal PS states mapping to avoid sending of redundant e-mails. Add some logic for development mode. Remove config directory and add .htaccess file in the docs directory. Add missing index file in the docs directory. [\#66](https://github.com/comfino/PrestaShop/pull/66) ([akozubskicr](https://github.com/akozubskicr))
+
+## [2.3.2](https://github.com/comfino/PrestaShop/tree/2.3.2) (2023-04-17)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.3.1...2.3.2)
+
+**Merged pull requests:**
+
+- FN-10421 Improve errors handling in order creation process. Improve phone number extraction from order details. Fix bug in LoggerError. Improve errors logging. Filter all E_USER_ and NOTICE errors - ignore them in logger. [\#65](https://github.com/comfino/PrestaShop/pull/65) ([akozubskicr](https://github.com/akozubskicr))
+
+## [2.3.1](https://github.com/comfino/PrestaShop/tree/2.3.1) (2023-04-05)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.3.0...2.3.1)
+
+**Merged pull requests:**
+
+- FN-10401 Fixed bug in frontend initialization in case of using untypical PS templates. Prevent losing of application state (loaded offers list) in case of some dynamically loaded PS templates. [\#64](https://github.com/comfino/PrestaShop/pull/64) ([akozubskicr](https://github.com/akozubskicr))
+
+## [2.3.0](https://github.com/comfino/PrestaShop/tree/2.3.0) (2023-04-03)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.4...2.3.0)
+
+**Merged pull requests:**
+
+- FN-10362 Remove SHA3 library (PHP implementation), update notifications endpoint (new headers for hashing algorithms management - better compatibility with PHP older than 7.1), modifications for improving local development, update frontend logic for paywall rendering (better detection of Comfino control container in untypical PS frontend templates). [\#63](https://github.com/comfino/PrestaShop/pull/63) ([akozubskicr](https://github.com/akozubskicr))
+
+## [2.2.4](https://github.com/comfino/PrestaShop/tree/2.2.4) (2023-01-09)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.3...2.2.4)
+
+**Merged pull requests:**
+
+- FN-10290 Add a new helper class Tools, remove incompatibilities with PrestaShop 1.6, fix bugs with Tools::displayPrice() usage [\#62](https://github.com/comfino/PrestaShop/pull/62) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.2.3](https://github.com/comfino/PrestaShop/tree/2.2.3) (2023-01-09)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.2.2...2.2.3)
