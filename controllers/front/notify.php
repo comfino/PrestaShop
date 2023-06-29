@@ -38,19 +38,19 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
 
         parent::postProcess();
 
-        $jsonData = Tools::file_get_contents('php://input');
-        $hashAlgorithm = $this->getHashAlgorithm();
-        $hashAlgos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
+        $json_data = Tools::file_get_contents('php://input');
+        $hash_algorithm = $this->getHashAlgorithm();
+        $hash_algos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
 
-        if (in_array($hashAlgorithm, $hashAlgos, true)) {
-            if ($this->getSignature() !== hash($hashAlgorithm, ComfinoApi::getApiKey() . $jsonData)) {
+        if (in_array($hash_algorithm, $hash_algos, true)) {
+            if ($this->getSignature() !== hash($hash_algorithm, ComfinoApi::getApiKey() . $json_data)) {
                 exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
             }
         } else {
             exit($this->setResponse(403, 'Unsupported hash algorithm.'));
         }
 
-        $data = json_decode($jsonData, true);
+        $data = json_decode($json_data, true);
 
         if (!isset($data['externalId'])) {
             exit($this->setResponse(400, 'External ID must be set.'));
