@@ -38,7 +38,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.5.1', false);
+    define('COMFINO_VERSION', '2.5.2', false);
 }
 
 class Comfino extends PaymentModule
@@ -74,7 +74,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.5.1';
+        $this->version = '2.5.2';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -618,7 +618,7 @@ class Comfino extends PaymentModule
     public function hookHeader()
     {
         if (Configuration::get('COMFINO_WIDGET_ENABLED')) {
-            $configCrc = crc32(
+            $config_crc = crc32(
                 Configuration::get('COMFINO_WIDGET_KEY') . Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR') .
                 Configuration::get('COMFINO_WIDGET_TARGET_SELECTOR') . Configuration::get('COMFINO_WIDGET_TYPE') .
                 Configuration::get('COMFINO_WIDGET_OFFER_TYPE') . Configuration::get('COMFINO_WIDGET_EMBED_METHOD') .
@@ -628,12 +628,12 @@ class Comfino extends PaymentModule
             if (COMFINO_PS_17) {
                 $this->context->controller->registerJavascript(
                     'comfino',
-                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $configCrc], true),
+                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
                     ['server' => 'remote', 'position' => 'head']
                 );
             } else {
                 $this->context->controller->addJS(
-                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $configCrc], true),
+                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
                     false
                 );
             }

@@ -69,21 +69,54 @@ class ComfinoApi
      */
     public static function createOrder($cart, $order_id, $return_url)
     {
-        $total = (int) round(((float) $cart->getOrderTotal(true)) * 100);
-        $delivery = (int) round(((float) $cart->getOrderTotal(true, Cart::ONLY_SHIPPING)) * 100);
+        $total = (int) ($cart->getOrderTotal(true) * 100);
+        $delivery = (int) ($cart->getOrderTotal(true, Cart::ONLY_SHIPPING) * 100);
 
         $customer = new Customer($cart->id_customer);
         $products = [];
 
+        $cart_total = 0;
+
         foreach ($cart->getProducts() as $product) {
+            $quantity = (int) $product['cart_quantity'];
+            $price = (int) ($product['total_wt'] / $quantity * 100);
+
             $products[] = [
                 'name' => $product['name'],
-                'quantity' => (int) $product['cart_quantity'],
-                'price' => (int) ($product['total_wt'] / $product['cart_quantity'] * 100),
+                'quantity' => $quantity,
+                'price' => $price,
                 'photoUrl' => self::getProductsImageUrl($product),
                 'ean' => $product['ean13'],
                 'externalId' => (string) $product['id_product'],
                 'category' => $product['category'],
+            ];
+
+            $cart_total += ($price * $quantity);
+        }
+
+        $cart_total_with_delivery = $cart_total + $delivery;
+
+        if ($cart_total_with_delivery > $total) {
+            // Add discount item to the list - problems with cart items value and order total value inconsistency.
+            $products[] = [
+                'name' => 'Rabat',
+                'quantity' => 1,
+                'price' => (int) ($total - $cart_total_with_delivery),
+                'photoUrl' => '',
+                'ean' => '',
+                'externalId' => '',
+                'category' => 'DISCOUNT',
+            ];
+        } elseif ($cart_total_with_delivery < $total) {
+            // Add correction item to the list - problems with cart items value and order total value inconsistency.
+            $products[] = [
+                'name' => 'Korekta',
+                'quantity' => 1,
+                'price' => (int) ($total - $cart_total_with_delivery),
+                'photoUrl' => '',
+                'ean' => '',
+                'externalId' => '',
+                'category' => 'CORRECTION',
             ];
         }
 

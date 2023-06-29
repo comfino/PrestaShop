@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.2](https://github.com/comfino/PrestaShop/tree/2.5.2) (2023-06-27)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.5.1...2.5.2)
+
+**Merged pull requests:**
+
+- FN-10550 Fix bug in cart total value calculation if discount is present. [\#72](https://github.com/comfino/PrestaShop/pull/72) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.5.1](https://github.com/comfino/PrestaShop/tree/2.5.1) (2023-05-29)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.5.0...2.5.1)
