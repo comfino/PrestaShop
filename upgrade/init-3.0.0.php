@@ -34,12 +34,8 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
  *
  * @return bool
  */
-function upgrade_module_2_4_3($module)
+function upgrade_module_3_0_0($module)
 {
-    $config_manager = new \Comfino\ConfigManager();
-
-    // Update code of widget initialization script.
-    $config_manager->updateWidgetCode('f4107dede201847d84a372002e748767');
-
+    // TODO Remove admin controller override from older versions.
     return true;
 }

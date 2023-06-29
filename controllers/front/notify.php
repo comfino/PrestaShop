@@ -34,7 +34,7 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        ErrorLogger::init();
+        \Comfino\ErrorLogger::init();
 
         parent::postProcess();
 
@@ -60,7 +60,7 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
             exit($this->setResponse(400, 'Status must be set.'));
         }
 
-        if (!OrdersList::processState($data['externalId'], $data['status'])) {
+        if (!\Comfino\OrdersList::processState($data['externalId'], $data['status'])) {
             exit($this->setResponse(400, sprintf('Invalid status %s.', $data['status'])));
         }
 

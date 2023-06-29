@@ -23,11 +23,14 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
+
+namespace Comfino;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-final class ComfinoPresentationType
+final class PresentationType
 {
     const ONLY_ICON = 'only_icon';
     const ONLY_TEXT = 'only_text';

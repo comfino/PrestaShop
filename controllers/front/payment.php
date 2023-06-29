@@ -34,7 +34,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        ErrorLogger::init();
+        \Comfino\ErrorLogger::init();
 
         parent::postProcess();
 
@@ -117,52 +117,52 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $customer->secure_key
         );
 
-        $order_confirmation = ComfinoApi::createOrder(
+        $order_response = \Comfino\Api::createOrder(
             $this->context->cart,
             $this->module->currentOrder,
-            'index.php?controller=order-confirmation&id_cart=' . (int) $cart->id . '&id_module=' . (int) $this->module->id .
+            'index.php?controller=order-confirmation&id_cart=' . $cart->id . '&id_module=' . $this->module->id .
             '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key
         );
 
         $order = new Order($this->module->currentOrder);
 
-        if (!is_array($order_confirmation) || !isset($order_confirmation['applicationUrl'])) {
+        if (!is_array($order_response) || !isset($order_response['applicationUrl'])) {
             $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
             $order->save();
 
-            ErrorLogger::sendError(
+            \Comfino\ErrorLogger::sendError(
                 'Order creation error', 0, 'Wrong Comfino API response.',
                 $_SERVER['REQUEST_URI'],
-                ComfinoApi::getLastRequestBody(),
-                is_array($order_confirmation) ? json_encode($order_confirmation) : ComfinoApi::getLastResponseBody()
+                \Comfino\Api::getLastRequestBody(),
+                is_array($order_response) ? json_encode($order_response) : \Comfino\Api::getLastResponseBody()
             );
 
             Tools::redirect($this->context->link->getModuleLink(
                 $this->module->name,
                 'error',
                 [
-                    'error' => is_array($order_confirmation) && isset($order_confirmation['errors'])
-                        ? implode(',', $order_confirmation['errors'])
+                    'error' => is_array($order_response) && isset($order_response['errors'])
+                        ? implode(',', $order_response['errors'])
                         : 'Order creation error.',
                 ],
                 true
             ));
         }
 
-        OrdersList::createOrder(
+        \Comfino\OrdersList::createOrder(
             [
-                'id_comfino' => $order_confirmation['externalId'],
+                'id_comfino' => $order_response['externalId'],
                 'id_customer' => $cart->id_customer,
-                'order_status' => $order_confirmation['status'],
-                'legalize_link' => isset($order_confirmation['_links']['legalize'])
-                    ? $order_confirmation['_links']['legalize']['href']
+                'order_status' => $order_response['status'],
+                'legalize_link' => isset($order_response['_links']['legalize'])
+                    ? $order_response['_links']['legalize']['href']
                     : '',
-                'self_link' => $order_confirmation['_links']['self']['href'],
-                'cancel_link' => $order_confirmation['_links']['cancel']['href'],
+                'self_link' => $order_response['_links']['self']['href'],
+                'cancel_link' => $order_response['_links']['cancel']['href'],
             ]
         );
 
-        Tools::redirect($order_confirmation['applicationUrl']);
+        Tools::redirect($order_response['applicationUrl']);
     }
 
     // FIXME Implement proper logic for PrestaShop 1.6.
@@ -170,7 +170,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
     {
         $notifications = json_encode(['error' => $this->errors]);
 
-        if (session_status() == PHP_SESSION_ACTIVE) {
+        if (session_status() === PHP_SESSION_ACTIVE) {
             $_SESSION['notifications'] = $notifications;
         } else {
             setcookie('notifications', $notifications);

@@ -60,11 +60,11 @@
             <div class="panel-body">
                 <div class="panel">
                     <ul class="nav nav-tabs" id="comfino_settings_tabs" role="tablist">
-                        <li class="nav-item{if $active_tab == "registration"} active{/if}">
+                        {*<li class="nav-item{if $active_tab == "registration"} active{/if}">
                             <a class="nav-link" id="comfino_registration" data-toggle="tab" href="#registration" role="tab" aria-controls="comfino_registration" aria-selected="true">
                                 {l s="Registration in Comfino" mod="comfino"}
                             </a>
-                        </li>
+                        </li>*}
                         <li class="nav-item{if $active_tab == "payment_settings"} active{/if}">
                             <a class="nav-link" id="comfino_payment_settings" data-toggle="tab" href="#payment_settings" role="tab" aria-controls="comfino_payment_settings" aria-selected="true">
                                 {l s="Payment settings" mod="comfino"}
@@ -87,9 +87,9 @@
                         </li>
                     </ul>
                     <div class="tab-content">
-                        <div class="tab-pane {if $active_tab == "registration"}active{else}fade{/if}" id="registration" role="tabpanel" aria-labelledby="registration-tab">
+                        {*<div class="tab-pane {if $active_tab == "registration"}active{else}fade{/if}" id="registration" role="tabpanel" aria-labelledby="registration-tab">
                             {include file="./registration.tpl"}
-                        </div>
+                        </div>*}
                         <div class="tab-pane {if $active_tab == "payment_settings"}active{else}fade{/if}" id="payment_settings" role="tabpanel" aria-labelledby="payment_settings-tab">
                             {hook h="displayBackofficeComfinoForm" config_tab="payment_settings" form_name="submit_configuration"}
                         </div>

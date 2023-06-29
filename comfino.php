@@ -23,6 +23,12 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
+
+use Comfino\Api;
+use Comfino\ConfigManager;
+use Comfino\ErrorLogger;
+use Comfino\PresentationType;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -38,7 +44,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '2.5.2', false);
+    define('COMFINO_VERSION', '3.0.0', false);
 }
 
 class Comfino extends PaymentModule
@@ -46,35 +52,12 @@ class Comfino extends PaymentModule
     const ERROR_LOG_NUM_LINES = 40;
     const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     const COMFINO_SUPPORT_PHONE = '887-106-027';
-    const COMFINO_SETTINGS_OPTIONS = [
-        'payment_settings' => [
-            'COMFINO_API_KEY',
-            'COMFINO_PAYMENT_TEXT',
-            'COMFINO_PAYMENT_PRESENTATION',
-            'COMFINO_MINIMAL_CART_AMOUNT',
-        ],
-        'widget_settings' => [
-            'COMFINO_WIDGET_ENABLED',
-            'COMFINO_WIDGET_KEY',
-            'COMFINO_WIDGET_PRICE_SELECTOR',
-            'COMFINO_WIDGET_TARGET_SELECTOR',
-            'COMFINO_WIDGET_TYPE',
-            'COMFINO_WIDGET_OFFER_TYPE',
-            'COMFINO_WIDGET_EMBED_METHOD',
-            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-            'COMFINO_WIDGET_CODE',
-        ],
-        'developer_settings' => [
-            'COMFINO_IS_SANDBOX',
-            'COMFINO_SANDBOX_API_KEY',
-        ],
-    ];
 
     public function __construct()
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '2.5.2';
+        $this->version = '3.0.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -85,7 +68,7 @@ class Comfino extends PaymentModule
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
 
-        $this->controllers = ['payment', 'offer'];
+        $this->controllers = ['payment', 'offer', 'notify', 'error', 'script', 'configuration'];
 
         parent::__construct();
 
@@ -166,6 +149,8 @@ class Comfino extends PaymentModule
     {
         ErrorLogger::init();
 
+        $config_manager = new ConfigManager();
+
         $active_tab = 'registration';
         $output = [];
         $output_type = 'success';
@@ -182,12 +167,12 @@ class Comfino extends PaymentModule
                 case 'payment_settings':
                 case 'developer_settings':
                     if ($active_tab === 'payment_settings') {
-                        $api_host = Configuration::get('COMFINO_IS_SANDBOX')
-                            ? ComfinoApi::COMFINO_SANDBOX_HOST
-                            : ComfinoApi::COMFINO_PRODUCTION_HOST;
+                        $api_host = $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')
+                            ? Api::COMFINO_SANDBOX_HOST
+                            : Api::COMFINO_PRODUCTION_HOST;
 
-                        $api_key = Configuration::get('COMFINO_IS_SANDBOX')
-                            ? Configuration::get('COMFINO_SANDBOX_API_KEY')
+                        $api_key = $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')
+                            ? $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY')
                             : Tools::getValue('COMFINO_API_KEY');
 
                         if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
@@ -206,26 +191,26 @@ class Comfino extends PaymentModule
                         }
                     } else {
                         $api_host = Tools::getValue('COMFINO_IS_SANDBOX')
-                            ? ComfinoApi::COMFINO_SANDBOX_HOST
-                            : ComfinoApi::COMFINO_PRODUCTION_HOST;
+                            ? Api::COMFINO_SANDBOX_HOST
+                            : Api::COMFINO_PRODUCTION_HOST;
 
                         $api_key = Tools::getValue('COMFINO_IS_SANDBOX')
                             ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
-                            : Configuration::get('COMFINO_API_KEY');
+                            : $config_manager->getConfigurationValue('COMFINO_API_KEY');
                     }
 
                     if (!empty($api_key) && !count($output)) {
                         // Update widget key.
-                        ComfinoApi::setApiHost($api_host);
-                        ComfinoApi::setApiKey($api_key);
+                        Api::setApiHost($api_host);
+                        Api::setApiKey($api_key);
 
-                        if (!ComfinoApi::isApiKeyValid()) {
+                        if (!Api::isApiKeyValid()) {
                             $output[] = sprintf($this->l('API key %s is not valid.'), $api_key);
                         } else {
-                            $widget_key = ComfinoApi::getWidgetKey();
+                            $widget_key = Api::getWidgetKey();
 
                             if ($widget_key === false) {
-                                $output = array_merge($output, ComfinoApi::getLastErrors());
+                                $output = array_merge($output, Api::getLastErrors());
                                 $output_type = 'warning';
                                 $widget_key_error = true;
                                 $widget_key = '';
@@ -242,25 +227,25 @@ class Comfino extends PaymentModule
 
                     if (!count($output)) {
                         $api_host = Tools::getValue('COMFINO_IS_SANDBOX')
-                            ? ComfinoApi::COMFINO_SANDBOX_HOST
-                            : ComfinoApi::COMFINO_PRODUCTION_HOST;
+                            ? Api::COMFINO_SANDBOX_HOST
+                            : Api::COMFINO_PRODUCTION_HOST;
 
                         $api_key = Tools::getValue('COMFINO_IS_SANDBOX')
                             ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
-                            : Configuration::get('COMFINO_API_KEY');
+                            : $config_manager->getConfigurationValue('COMFINO_API_KEY');
 
                         if (!empty($api_key)) {
                             // Update widget key.
-                            ComfinoApi::setApiHost($api_host);
-                            ComfinoApi::setApiKey($api_key);
+                            Api::setApiHost($api_host);
+                            Api::setApiKey($api_key);
 
-                            if (!ComfinoApi::isApiKeyValid()) {
+                            if (!Api::isApiKeyValid()) {
                                 $output[] = sprintf($this->l('API key %s is not valid.'), $api_key);
                             } else {
-                                $widget_key = ComfinoApi::getWidgetKey();
+                                $widget_key = Api::getWidgetKey();
 
                                 if ($widget_key === false) {
-                                    $output = array_merge($output, ComfinoApi::getLastErrors());
+                                    $output = array_merge($output, Api::getLastErrors());
                                     $output_type = 'warning';
                                     $widget_key_error = true;
                                     $widget_key = '';
@@ -276,14 +261,14 @@ class Comfino extends PaymentModule
                 $output_type = 'warning';
                 $output[] = $this->l('Settings not updated.');
             } else {
-                // Update plugin configuration
-                foreach (self::COMFINO_SETTINGS_OPTIONS[$active_tab] as $option_name) {
+                // Update plugin configuration.
+                foreach (ConfigManager::COMFINO_SETTINGS_OPTIONS[$active_tab] as $option_name) {
                     if ($option_name !== 'COMFINO_WIDGET_KEY') {
-                        Configuration::updateValue($option_name, Tools::getValue($option_name));
+                        $config_manager->setConfigurationValue($option_name, Tools::getValue($option_name));
                     }
                 }
 
-                Configuration::updateValue('COMFINO_WIDGET_KEY', $widget_key);
+                $config_manager->setConfigurationValue('COMFINO_WIDGET_KEY', $widget_key);
 
                 $output[] = $this->l('Settings updated.');
             }
@@ -311,7 +296,7 @@ class Comfino extends PaymentModule
             }
 
             $selected_agreements = [];
-            $agreements = ComfinoApi::getShopAccountAgreements();
+            $agreements = Api::getShopAccountAgreements();
 
             if ($agreements !== false && count($agreements)) {
                 if (Tools::isEmpty($shop_data['agreements'])) {
@@ -337,7 +322,7 @@ class Comfino extends PaymentModule
                 }
             }
 
-            // Update form fields with submitted values
+            // Update form fields with submitted values.
             $this->context->smarty->assign([
                 'register_form' => [
                     'name' => $shop_data['name'],
@@ -352,9 +337,9 @@ class Comfino extends PaymentModule
             if (count($output)) {
                 $output_type = 'warning';
             } else {
-                // Send request to the registration API endpoint
-                $result = ComfinoApi::registerShopAccount(
-                    Configuration::get('PS_SHOP_NAME'),
+                // Send request to the registration API endpoint.
+                $result = Api::registerShopAccount(
+                    $config_manager->getConfigurationValue('PS_SHOP_NAME'),
                     $shop_data['url'],
                     $shop_data['name'] . ' ' . $shop_data['surname'],
                     $shop_data['email'],
@@ -370,37 +355,37 @@ class Comfino extends PaymentModule
                             $output[] = $this->l('Comfino registration error.');
                         }
                     } else {
-                        $output = array_merge($output, ComfinoApi::getLastErrors());
+                        $output = array_merge($output, Api::getLastErrors());
                     }
 
                     $output_type = 'danger';
                 } else {
-                    if (Configuration::get('COMFINO_IS_SANDBOX')) {
-                        Configuration::updateValue('COMFINO_SANDBOX_API_KEY', $result['apiKey']);
-                        Configuration::updateValue('COMFINO_SANDBOX_REGISTERED_AT', date('Y-m-d H:i:s'));
+                    if ($config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')) {
+                        $config_manager->setConfigurationValue('COMFINO_SANDBOX_API_KEY', $result['apiKey']);
+                        $config_manager->setConfigurationValue('COMFINO_SANDBOX_REGISTERED_AT', date('Y-m-d H:i:s'));
                     } else {
-                        Configuration::updateValue('COMFINO_API_KEY', $result['apiKey']);
-                        Configuration::updateValue('COMFINO_REGISTERED_AT', date('Y-m-d H:i:s'));
+                        $config_manager->setConfigurationValue('COMFINO_API_KEY', $result['apiKey']);
+                        $config_manager->setConfigurationValue('COMFINO_REGISTERED_AT', date('Y-m-d H:i:s'));
                     }
 
-                    Configuration::updateValue('COMFINO_WIDGET_KEY', $result['widgetKey']);
+                    $config_manager->setConfigurationValue('COMFINO_WIDGET_KEY', $result['widgetKey']);
                 }
             }
         }
 
-        if (Configuration::get('COMFINO_IS_SANDBOX')) {
-            $registered_at = Configuration::get('COMFINO_SANDBOX_REGISTERED_AT');
-            $api_key = Configuration::get('COMFINO_SANDBOX_API_KEY');
+        if ($config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')) {
+            $registered_at = $config_manager->getConfigurationValue('COMFINO_SANDBOX_REGISTERED_AT');
+            $api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
         } else {
-            $registered_at = Configuration::get('COMFINO_REGISTERED_AT');
-            $api_key = Configuration::get('COMFINO_API_KEY');
+            $registered_at = $config_manager->getConfigurationValue('COMFINO_REGISTERED_AT');
+            $api_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
         }
 
         $this->context->smarty->assign([
             'active_tab' => $active_tab,
             'output' => $output,
             'output_type' => $output_type,
-            'logo_url' => ComfinoApi::getLogoUrl(),
+            'logo_url' => Api::getLogoUrl(),
             'support_email_address' => self::COMFINO_SUPPORT_EMAIL,
             'support_email_subject' => sprintf(
                 $this->l('PrestaShop %s Comfino %s - question'),
@@ -441,8 +426,9 @@ class Comfino extends PaymentModule
 
         $this->smarty->assign($this->getTemplateVars());
 
-        $minimal_cart_amount = (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT');
-        if ($this->context->cart->getOrderTotal() < $minimal_cart_amount) {
+        $min_cart_value = (float) (new ConfigManager())->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT');
+
+        if ($this->context->cart->getOrderTotal() < $min_cart_value) {
             return;
         }
 
@@ -485,7 +471,11 @@ class Comfino extends PaymentModule
 
         ErrorLogger::init();
 
-        if ($this->context->cart->getOrderTotal() < (float) Configuration::get('COMFINO_MINIMAL_CART_AMOUNT')) {
+        $config_manager = new ConfigManager();
+
+        $min_cart_value = (float) $config_manager->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT');
+
+        if ($this->context->cart->getOrderTotal() < $min_cart_value) {
             return;
         }
 
@@ -496,20 +486,20 @@ class Comfino extends PaymentModule
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
             ->setAdditionalInformation($this->fetch('module:comfino/views/templates/front/payment.tpl'));
 
-        switch (Configuration::get('COMFINO_PAYMENT_PRESENTATION')) {
+        switch ($config_manager->getConfigurationValue('COMFINO_PAYMENT_PRESENTATION')) {
             default:
-            case ComfinoPresentationType::ICON_AND_TEXT:
-                $new_option->setCallToActionText(Configuration::get('COMFINO_PAYMENT_TEXT'));
+            case PresentationType::ICON_AND_TEXT:
+                $new_option->setCallToActionText($config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'));
                 $new_option->setLogo('//widget.comfino.pl/image/comfino/ecommerce/prestashop/logo.svg');
                 break;
 
-            case ComfinoPresentationType::ONLY_ICON:
+            case PresentationType::ONLY_ICON:
                 $new_option->setCallToActionText('');
                 $new_option->setLogo('//widget.comfino.pl/image/comfino/ecommerce/prestashop/logo.svg');
                 break;
 
-            case ComfinoPresentationType::ONLY_TEXT:
-                $new_option->setCallToActionText(Configuration::get('COMFINO_PAYMENT_TEXT'));
+            case PresentationType::ONLY_TEXT:
+                $new_option->setCallToActionText($config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'));
                 break;
         }
 
@@ -531,14 +521,16 @@ class Comfino extends PaymentModule
 
         ErrorLogger::init();
 
+        $config_manager = new ConfigManager();
+
         if (COMFINO_PS_17) {
             $state = $params['order']->getCurrentState();
             $rest_to_paid = $params['order']->getOrdersTotalPaid() - $params['order']->getTotalPaid();
 
             if (in_array($state, [
-                Configuration::get('COMFINO_CREATED'),
-                Configuration::get('PS_OS_OUTOFSTOCK'),
-                Configuration::get('PS_OS_OUTOFSTOCK_UNPAID'),
+                $config_manager->getConfigurationValue('COMFINO_CREATED'),
+                $config_manager->getConfigurationValue('PS_OS_OUTOFSTOCK'),
+                $config_manager->getConfigurationValue('PS_OS_OUTOFSTOCK_UNPAID'),
             ], true)) {
                 $this->smarty->assign(
                     [
@@ -587,8 +579,8 @@ class Comfino extends PaymentModule
         /** @var OrderState $order_state */
         $order_state = $params['newOrderStatus'];
 
-        if ($order_state->id == Configuration::get('PS_OS_CANCELED')) {
-            ComfinoApi::cancelOrder($params['id_order']);
+        if ($order_state->id == (new ConfigManager())->getConfigurationValue('PS_OS_CANCELED')) {
+            Api::cancelOrder($params['id_order']);
         }
     }
 
@@ -617,13 +609,10 @@ class Comfino extends PaymentModule
      */
     public function hookHeader()
     {
-        if (Configuration::get('COMFINO_WIDGET_ENABLED')) {
-            $config_crc = crc32(
-                Configuration::get('COMFINO_WIDGET_KEY') . Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR') .
-                Configuration::get('COMFINO_WIDGET_TARGET_SELECTOR') . Configuration::get('COMFINO_WIDGET_TYPE') .
-                Configuration::get('COMFINO_WIDGET_OFFER_TYPE') . Configuration::get('COMFINO_WIDGET_EMBED_METHOD') .
-                Configuration::get('COMFINO_WIDGET_CODE')
-            );
+        $config_manager = new ConfigManager();
+
+        if ($config_manager->getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
+            $config_crc = crc32(implode($config_manager->getConfigurationValues('widget_settings')));
 
             if (COMFINO_PS_17) {
                 $this->context->controller->registerJavascript(
@@ -661,9 +650,11 @@ class Comfino extends PaymentModule
         $helper = $this->getHelperForm($form_name, $form_template_dir, $form_template);
         $helper->fields_value['active_tab'] = $config_tab;
 
-        foreach (self::COMFINO_SETTINGS_OPTIONS as $options) {
+        $config_manager = new ConfigManager();
+
+        foreach (ConfigManager::COMFINO_SETTINGS_OPTIONS as $options) {
             foreach ($options as $option_name) {
-                $helper->fields_value[$option_name] = Configuration::get($option_name);
+                $helper->fields_value[$option_name] = $config_manager->getConfigurationValue($option_name);
             }
         }
 
@@ -678,12 +669,12 @@ class Comfino extends PaymentModule
                 $api_error = false;
                 $agreements = [];
 
-                if (Configuration::get('COMFINO_IS_SANDBOX')) {
-                    $registered_at = Configuration::get('COMFINO_SANDBOX_REGISTERED_AT');
-                    $api_key = Configuration::get('COMFINO_SANDBOX_API_KEY');
+                if ($config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')) {
+                    $registered_at = $config_manager->getConfigurationValue('COMFINO_SANDBOX_REGISTERED_AT');
+                    $api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
                 } else {
-                    $registered_at = Configuration::get('COMFINO_REGISTERED_AT');
-                    $api_key = Configuration::get('COMFINO_API_KEY');
+                    $registered_at = $config_manager->getConfigurationValue('COMFINO_REGISTERED_AT');
+                    $api_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
                 }
 
                 if (!empty($registered_at) || !empty($api_key)) {
@@ -691,21 +682,21 @@ class Comfino extends PaymentModule
                 }
 
                 if (!empty($api_key)) {
-                    $user_active = ComfinoApi::isShopAccountActive();
+                    $user_active = Api::isShopAccountActive();
 
                     if (!$user_active) {
-                        if (count(ComfinoApi::getLastErrors())) {
+                        if (count(Api::getLastErrors())) {
                             $api_error = true;
-                            $messages['error'] = implode('<br />', ComfinoApi::getLastErrors());
+                            $messages['error'] = implode('<br />', Api::getLastErrors());
                         }
                     }
                 }
 
                 if ($registration_available) {
-                    $agreements = ComfinoApi::getShopAccountAgreements();
+                    $agreements = Api::getShopAccountAgreements();
 
                     if ($agreements === false) {
-                        $messages['error'] = implode('<br />', ComfinoApi::getLastErrors());
+                        $messages['error'] = implode('<br />', Api::getLastErrors());
                         $registration_available = false;
                     } else {
                         foreach ($agreements as &$agreement) {
@@ -740,7 +731,7 @@ class Comfino extends PaymentModule
                 break;
 
             case 'payment_settings':
-                if (Configuration::get('COMFINO_IS_SANDBOX')) {
+                if ($config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')) {
                     $messages['warning'] = $this->l('Developer mode is active. You are using test environment.');
                 }
 
@@ -773,17 +764,17 @@ class Comfino extends PaymentModule
                     );
                 }
 
-                if (Configuration::get('COMFINO_IS_SANDBOX')) {
+                if ($config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')) {
                     $warning_messages[] = $this->l('Developer mode is active. You are using test environment.');
 
-                    if (!empty(ComfinoApi::getApiKey())) {
-                        if (ComfinoApi::isShopAccountActive()) {
+                    if (!empty(Api::getApiKey())) {
+                        if (Api::isShopAccountActive()) {
                             $success_messages[] = $this->l('Test account is active.');
                         } else {
-                            if (count(ComfinoApi::getLastErrors())) {
-                                $error_messages = array_merge($error_messages, ComfinoApi::getLastErrors());
+                            if (count(Api::getLastErrors())) {
+                                $error_messages = array_merge($error_messages, Api::getLastErrors());
 
-                                if (ComfinoApi::getLastResponseCode() === 401) {
+                                if (Api::getLastResponseCode() === 401) {
                                     $error_messages[] = $this->l('Invalid test API key.');
                                 }
                             } else {
@@ -793,16 +784,16 @@ class Comfino extends PaymentModule
                     } else {
                         $error_messages[] = $this->l('Test API key not present.');
                     }
-                } elseif (!empty(ComfinoApi::getApiKey())) {
+                } elseif (!empty(Api::getApiKey())) {
                     $success_messages[] = $this->l('Production mode is active.');
 
-                    if (ComfinoApi::isShopAccountActive()) {
+                    if (Api::isShopAccountActive()) {
                         $success_messages[] = $this->l('Production account is active.');
                     } else {
-                        if (count(ComfinoApi::getLastErrors())) {
-                            $error_messages = array_merge($error_messages, ComfinoApi::getLastErrors());
+                        if (count(Api::getLastErrors())) {
+                            $error_messages = array_merge($error_messages, Api::getLastErrors());
 
-                            if (ComfinoApi::getLastResponseCode() === 401) {
+                            if (Api::getLastResponseCode() === 401) {
                                 $error_messages[] = $this->l('Invalid production API key.');
                             }
                         } else {
@@ -846,7 +837,7 @@ class Comfino extends PaymentModule
     private function getHelperForm($submit_action, $form_template_dir = null, $form_template = null)
     {
         $helper = new HelperForm();
-        $language = (int) Configuration::get('PS_LANG_DEFAULT');
+        $language = (int) (new ConfigManager())->getConfigurationValue('PS_LANG_DEFAULT');
 
         $helper->module = $this;
         $helper->name_controller = $this->name;
@@ -866,7 +857,7 @@ class Comfino extends PaymentModule
             'save' => [
                 'desc' => $this->l('Save'),
                 'href' => AdminController::$currentIndex . '&configure=' . $this->name . '&save' . $this->name .
-                    '&token=' . Tools::getAdminTokenLite('AdminModules'),
+                          '&token=' . Tools::getAdminTokenLite('AdminModules'),
             ],
             'back' => [
                 'href' => AdminController::$currentIndex . '&token=' . Tools::getAdminTokenLite('AdminModules'),
@@ -949,10 +940,10 @@ class Comfino extends PaymentModule
                                 'required' => true,
                                 'options' => [
                                     'query' => [
-                                        ['key' => ComfinoPresentationType::ONLY_ICON, 'name' => $this->l('Only icon')],
-                                        ['key' => ComfinoPresentationType::ONLY_TEXT, 'name' => $this->l('Only text')],
+                                        ['key' => PresentationType::ONLY_ICON, 'name' => $this->l('Only icon')],
+                                        ['key' => PresentationType::ONLY_TEXT, 'name' => $this->l('Only text')],
                                         [
-                                            'key' => ComfinoPresentationType::ICON_AND_TEXT,
+                                            'key' => PresentationType::ICON_AND_TEXT,
                                             'name' => $this->l('Icon and text'),
                                         ],
                                     ],
@@ -1052,14 +1043,14 @@ class Comfino extends PaymentModule
                                 'options' => [
                                     'query' => [
                                         [
-                                            'key' => ComfinoApi::INSTALLMENTS_ZERO_PERCENT,
+                                            'key' => Api::INSTALLMENTS_ZERO_PERCENT,
                                             'name' => $this->l('Zero percent installments'),
                                         ],
                                         [
-                                            'key' => ComfinoApi::CONVENIENT_INSTALLMENTS,
+                                            'key' => Api::CONVENIENT_INSTALLMENTS,
                                             'name' => $this->l('Convenient installments'),
                                         ],
-                                        ['key' => ComfinoApi::PAY_LATER, 'name' => $this->l('Pay later')],
+                                        ['key' => Api::PAY_LATER, 'name' => $this->l('Pay later')],
                                     ],
                                     'id' => 'key',
                                     'name' => 'name',
@@ -1094,6 +1085,24 @@ class Comfino extends PaymentModule
                             'required' => false,
                         ],
                         [
+                            'type' => 'text',
+                            'label' => $this->l('Price change detection - observed container selector'),
+                            'name' => 'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
+                            'required' => false,
+                            'desc' => $this->l(
+                                'Selector of observed parent element which contains price element.'
+                            ),
+                        ],
+                        [
+                            'type' => 'text',
+                            'label' => $this->l('Price change detection - observed container hierarchy level'),
+                            'name' => 'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+                            'required' => false,
+                            'desc' => $this->l(
+                                'Hierarchy level of observed parent element relative to the price element.'
+                            ),
+                        ],
+                        [
                             'type' => 'select',
                             'label' => $this->l('Embedding method'),
                             'name' => 'COMFINO_WIDGET_EMBED_METHOD',
@@ -1108,15 +1117,6 @@ class Comfino extends PaymentModule
                                 'id' => 'key',
                                 'name' => 'name',
                             ],
-                        ],
-                        [
-                            'type' => 'text',
-                            'label' => $this->l('Price change detection level'),
-                            'name' => 'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-                            'required' => false,
-                            'desc' => $this->l(
-                                'Hierarchy level of observed parent element relative to the price element.'
-                            ),
                         ],
                         [
                             'type' => 'textarea',
@@ -1241,7 +1241,7 @@ class Comfino extends PaymentModule
      */
     private function checkConfiguration()
     {
-        return Configuration::get('COMFINO_API_KEY') !== null;
+        return (new ConfigManager())->getConfigurationValue('COMFINO_API_KEY') !== null;
     }
 
     /**
@@ -1249,11 +1249,13 @@ class Comfino extends PaymentModule
      */
     private function getTemplateVars()
     {
+        $config_manager = new ConfigManager();
+
         return [
             'set_info_url' => $this->context->link->getModuleLink($this->name, 'offer', [], true),
-            'pay_with_comfino_text' => Configuration::get('COMFINO_PAYMENT_TEXT'),
+            'pay_with_comfino_text' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'),
             'logo_url' => '//widget.comfino.pl/image/comfino/ecommerce/prestashop/comfino_logo_icon.svg',
-            'presentation_type' => Configuration::get('COMFINO_PAYMENT_PRESENTATION'),
+            'presentation_type' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_PRESENTATION'),
             'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
         ];
     }
@@ -1263,23 +1265,9 @@ class Comfino extends PaymentModule
      */
     private function deleteConfigurationValues()
     {
-        Configuration::deleteByName('COMFINO_PAYMENT_TEXT');
-        Configuration::deleteByName('COMFINO_API_KEY');
-        Configuration::deleteByName('COMFINO_MINIMAL_CART_AMOUNT');
-        Configuration::deleteByName('COMFINO_WIDGET_ENABLED');
-        Configuration::deleteByName('COMFINO_IS_SANDBOX');
-        Configuration::deleteByName('COMFINO_SANDBOX_API_KEY');
-        Configuration::deleteByName('COMFINO_WIDGET_ENABLED');
-        Configuration::deleteByName('COMFINO_WIDGET_KEY');
-        Configuration::deleteByName('COMFINO_WIDGET_PRICE_SELECTOR');
-        Configuration::deleteByName('COMFINO_WIDGET_TARGET_SELECTOR');
-        Configuration::deleteByName('COMFINO_WIDGET_TYPE');
-        Configuration::deleteByName('COMFINO_WIDGET_OFFER_TYPE');
-        Configuration::deleteByName('COMFINO_WIDGET_EMBED_METHOD');
-        Configuration::deleteByName('COMFINO_WIDGET_CODE');
         $result = true;
 
-        foreach (self::COMFINO_SETTINGS_OPTIONS as $options) {
+        foreach (ConfigManager::COMFINO_SETTINGS_OPTIONS as $options) {
             foreach ($options as $option_name) {
                 $result &= Configuration::deleteByName($option_name);
             }

@@ -23,6 +23,9 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
+
+namespace Comfino;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -30,7 +33,7 @@ if (!defined('_PS_VERSION_')) {
 require_once 'ShopPluginErrorRequest.php';
 require_once 'ErrorLogger.php';
 
-class ComfinoApi
+class Api
 {
     const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
     const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
@@ -49,7 +52,6 @@ class ComfinoApi
 
     /** @var string|null */
     private static $last_request_body;
-    private static $last_response_body;
 
     /** @var string|null */
     private static $last_response_body;
@@ -61,7 +63,7 @@ class ComfinoApi
     private static $last_errors = [];
 
     /**
-     * @param Cart $cart
+     * @param \Cart $cart
      * @param string $order_id
      * @param string $return_url
      *
@@ -70,9 +72,9 @@ class ComfinoApi
     public static function createOrder($cart, $order_id, $return_url)
     {
         $total = (int) ($cart->getOrderTotal(true) * 100);
-        $delivery = (int) ($cart->getOrderTotal(true, Cart::ONLY_SHIPPING) * 100);
+        $delivery = (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100);
 
-        $customer = new Customer($cart->id_customer);
+        $customer = new \Customer($cart->id_customer);
         $products = [];
 
         $cart_total = 0;
@@ -128,7 +130,7 @@ class ComfinoApi
             $building_number = $address_explode[1];
         }
 
-        $context = Context::getContext();
+        $context = \Context::getContext();
         $customer_tax_id = trim(str_replace('-', '', $address[$cart->id_address_delivery]->vat_number));
         $phone_number = trim($address[$cart->id_address_delivery]->phone);
 
@@ -156,7 +158,7 @@ class ComfinoApi
                 'lastName' => $address[$cart->id_address_delivery]->lastname,
                 'email' => $customer->email,
                 'phoneNumber' => $phone_number,
-                'ip' => Tools::getRemoteAddr(),
+                'ip' => \Tools::getRemoteAddr(),
                 'regular' => !$customer->is_guest,
                 'logged' => $customer->isLogged(),
                 'address' => [
@@ -180,8 +182,8 @@ class ComfinoApi
             [CURLOPT_FOLLOWLOCATION => true],
             $data
         );
-//return $response !== false ? json_decode($response, true) : false;
-        return !count(self::$last_errors) ? json_decode($response, true) : false;
+
+        return $response !== false ? json_decode($response, true) : false;
     }
 
     /**
@@ -370,14 +372,6 @@ class ComfinoApi
     }
 
     /**
-     * @return string|null
-     */
-    public static function getLastResponseBody()
-    {
-        return self::$last_response_body;
-    }
-
-    /**
      * @return int|null
      */
     public static function getLastResponseCode()
@@ -398,11 +392,16 @@ class ComfinoApi
      */
     public static function getApiKey()
     {
-        return empty(self::$api_key)
-            ? Configuration::get('COMFINO_IS_SANDBOX')
-                ? Configuration::get('COMFINO_SANDBOX_API_KEY')
-                : Configuration::get('COMFINO_API_KEY')
-            : self::$api_key;
+        if (!empty(self::$api_key)) {
+            return self::$api_key;
+        }
+
+        $config_manager = new ConfigManager();
+
+        return
+            $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')
+                ? $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY')
+                : $config_manager->getConfigurationValue('COMFINO_API_KEY');
     }
 
     /**
@@ -411,13 +410,13 @@ class ComfinoApi
     public static function getWidgetScriptUrl()
     {
         if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') &&
-            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN') &&
-            getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')
+            getenv('COMFINO_DEV_WIDGET_SCRIPT_URL') &&
+            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
         ) {
             return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
         }
 
-        return Configuration::get('COMFINO_IS_SANDBOX')
+        return (new ConfigManager())->getConfigurationValue('COMFINO_IS_SANDBOX')
             ? self::WIDGET_SCRIPT_SANDBOX_URL
             : self::WIDGET_SCRIPT_PRODUCTION_URL;
     }
@@ -443,9 +442,13 @@ class ComfinoApi
             }
         }
 
-        return empty(self::$api_host)
-            ? Configuration::get('COMFINO_IS_SANDBOX') ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST
-            : self::$api_host;
+        if (!empty(self::$api_host)) {
+            return self::$api_host;
+        }
+
+        return (new ConfigManager())->getConfigurationValue('COMFINO_IS_SANDBOX')
+            ? self::COMFINO_SANDBOX_HOST
+            : self::COMFINO_PRODUCTION_HOST;
     }
 
     /**
@@ -465,13 +468,13 @@ class ComfinoApi
             $link_rewrite = $product['link_rewrite'];
         }
 
-        $image = Image::getCover($product['id_product']);
+        $image = \Image::getCover($product['id_product']);
 
         if (!is_array($image) && !isset($image['id_image'])) {
             return '';
         }
 
-        $imageUrl = (new Link())->getImageLink($link_rewrite, $image['id_image']);
+        $imageUrl = (new \Link())->getImageLink($link_rewrite, $image['id_image']);
 
         if (strpos($imageUrl, 'http') === false) {
             $imageUrl = 'https://' . $imageUrl;
@@ -481,7 +484,7 @@ class ComfinoApi
     }
 
     /**
-     * @param Context $context
+     * @param \Context $context
      *
      * @return string
      */
@@ -497,7 +500,7 @@ class ComfinoApi
      */
     private static function getReturnUrl($return_url)
     {
-        return Tools::getHttpHost(true) . __PS_BASE_URI__ . $return_url;
+        return \Tools::getHttpHost(true) . __PS_BASE_URI__ . $return_url;
     }
 
     /**
@@ -513,13 +516,12 @@ class ComfinoApi
     {
         self::$last_request_body = null;
         self::$last_response_body = null;
-        self::$last_response_body = null;
         self::$last_response_code = null;
         self::$last_errors = [];
 
         $options = [
             CURLOPT_URL => $url,
-            CURLOPT_CUSTOMREQUEST => Tools::strtoupper($request_type),
+            CURLOPT_CUSTOMREQUEST => \Tools::strtoupper($request_type),
             CURLOPT_HTTPHEADER => [
                 'API-KEY: ' . self::getApiKey(),
                 'User-Agent: ' . self::getUserAgentHeader(),
@@ -573,25 +575,11 @@ class ComfinoApi
                 "Communication error: $error_id. Please contact with support and note this error id.",
             ];
 
-            if ($response !== false) {
-                $decoded = json_decode($response, true);
-
-                if ($decoded !== false) {
-                    if (isset($decoded['errors'])) {
-                        self::$last_errors = array_merge(self::$last_errors, $decoded['errors']);
-                    } elseif (isset($decoded['message'])) {
-                        self::$last_errors[] = $decoded['message'];
-                    }
-                }
-            } else {
-                $response = '';
-            }
-
             if ($log_errors) {
                 ErrorLogger::sendError(
                     "Communication error [$error_id]", curl_errno($curl), curl_error($curl),
                     $url, $data !== null ? json_encode($data) : null,
-                    $response !== false ? $response : curl_getinfo($curl, CURLINFO_RESPONSE_CODE)
+                    $response !== false ? $response : self::$last_response_code
                 );
             }
 
@@ -603,7 +591,11 @@ class ComfinoApi
                 $errors = [];
 
                 if (isset($decoded['errors'])) {
-                    $errors = $decoded['errors'];
+                    $errors = array_map(
+                        static function ($k, $v) { return "$k: $v"; },
+                        array_keys($decoded['errors']),
+                        array_values($decoded['errors'])
+                    );
                 } elseif (isset($decoded['message'])) {
                     $errors[] = $decoded['message'];
                 }
@@ -615,16 +607,6 @@ class ComfinoApi
                     );
                 }
 
-                $response = json_encode(
-                    [
-                        'errors' => array_map(
-                            static function ($k, $v) { return "$k: $v"; },
-                            array_keys($decoded['errors']),
-                            array_values($decoded['errors'])
-                        ),
-                    ]
-                );
-            } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
                 self::$last_errors = $errors;
 
                 $response = json_encode(['errors' => self::$last_errors]);
@@ -633,7 +615,7 @@ class ComfinoApi
 
                 if ($log_errors) {
                     ErrorLogger::sendError(
-                        "Payment error [$error_id]", curl_getinfo($curl, CURLINFO_RESPONSE_CODE),
+                        "Payment error [$error_id]", self::$last_response_code,
                         'API error.', $url, $data !== null ? json_encode($data) : null, $response
                     );
                 }

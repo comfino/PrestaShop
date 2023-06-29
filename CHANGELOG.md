@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.0](https://github.com/comfino/PrestaShop/tree/3.0.0) (2023-06-29)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/2.5.2...3.0.0)
+
+**Merged pull requests:**
+
+- FN-10645 Complete plugin refactoring: new admin GUI design, improved errors handling and configuration management, code clean up. [\#73](https://github.com/comfino/PrestaShop/pull/73) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [2.5.2](https://github.com/comfino/PrestaShop/tree/2.5.2) (2023-06-27)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.5.1...2.5.2)

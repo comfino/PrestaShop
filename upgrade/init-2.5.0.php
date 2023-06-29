@@ -27,7 +27,6 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 
 /**
@@ -37,7 +36,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
  */
 function upgrade_module_2_5_0($module)
 {
-    $config_manager = new ConfigManager();
+    $config_manager = new \Comfino\ConfigManager();
 
     // Initialize new configuration options
     $config_manager->updateConfiguration([

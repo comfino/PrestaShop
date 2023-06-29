@@ -34,7 +34,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        ErrorLogger::init();
+        \Comfino\ErrorLogger::init();
 
         parent::postProcess();
 
@@ -65,7 +65,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
         $tools = new \Comfino\Tools($this->context);
 
         $total = $cart->getOrderTotal() * 100;
-        $offers = ComfinoApi::getOffers($total);
+        $offers = \Comfino\Api::getOffers($total);
         $payment_offers = [];
         $set = false;
 

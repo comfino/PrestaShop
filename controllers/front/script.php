@@ -23,6 +23,10 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
+
+use Comfino\Api;
+use Comfino\ConfigManager;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -37,7 +41,9 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
 
         header('Content-Type: application/javascript');
 
-        if (Configuration::get('COMFINO_WIDGET_ENABLED')) {
+        $config_manager = new ConfigManager();
+
+        if ($config_manager->getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
             echo str_replace(
                 [
                     '{WIDGET_KEY}',
@@ -50,18 +56,23 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     '{EMBED_METHOD}',
                     '{WIDGET_SCRIPT_URL}',
                 ],
-                [
-                    Configuration::get('COMFINO_WIDGET_KEY'),
-                    Configuration::get('COMFINO_WIDGET_PRICE_SELECTOR'),
-                    Configuration::get('COMFINO_WIDGET_TARGET_SELECTOR'),
-                    Configuration::get('COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR'),
-                    Configuration::get('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL'),
-                    Configuration::get('COMFINO_WIDGET_TYPE'),
-                    Configuration::get('COMFINO_WIDGET_OFFER_TYPE'),
-                    Configuration::get('COMFINO_WIDGET_EMBED_METHOD'),
-                    ComfinoApi::getWidgetScriptUrl(),
-                ],
-                Configuration::get('COMFINO_WIDGET_CODE')
+                array_merge(
+                    $config_manager->getConfigurationValues(
+                        'widget_settings',
+                        [
+                            'COMFINO_WIDGET_KEY',
+                            'COMFINO_WIDGET_PRICE_SELECTOR',
+                            'COMFINO_WIDGET_TARGET_SELECTOR',
+                            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
+                            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+                            'COMFINO_WIDGET_TYPE',
+                            'COMFINO_WIDGET_OFFER_TYPE',
+                            'COMFINO_WIDGET_EMBED_METHOD',
+                        ]
+                    ),
+                    [Api::getWidgetScriptUrl()]
+                ),
+                $config_manager->getConfigurationValue('COMFINO_WIDGET_CODE')
             );
         }
 
