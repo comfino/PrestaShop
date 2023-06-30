@@ -100,7 +100,7 @@ class ErrorLogger
                 'server_software' => $_SERVER['SERVER_SOFTWARE'],
                 'server_name' => $_SERVER['SERVER_NAME'],
                 'server_addr' => $_SERVER['SERVER_ADDR'],
-                'database_version' => Db::getInstance()->getVersion(),
+                'database_version' => \Db::getInstance()->getVersion(),
             ],
             $error_code,
             "$error_prefix: $error_message",
