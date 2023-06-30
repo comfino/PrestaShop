@@ -23,19 +23,29 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
+
+use Comfino\Api;
+use Comfino\ConfigManager;
+use Comfino\ErrorLogger;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 
 class ComfinoConfigurationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
+        Api::init();
+        ErrorLogger::init();
+
         parent::postProcess();
 
-        $config_manager = new \Comfino\ConfigManager();
+        $config_manager = new ConfigManager();
 
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'GET':
@@ -49,7 +59,7 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
                 $hash_algos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
 
                 if (in_array($hash_algorithm, $hash_algos, true)) {
-                    if ($this->getSignature() !== hash($hash_algorithm, \Comfino\Api::getApiKey() . $verification_key)) {
+                    if ($this->getSignature() !== hash($hash_algorithm, Api::getApiKey() . $verification_key)) {
                         exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
                     }
                 } else {
@@ -81,7 +91,7 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
                 $hash_algos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
 
                 if (in_array($hash_algorithm, $hash_algos, true)) {
-                    if ($this->getSignature() !== hash($hash_algorithm, \Comfino\Api::getApiKey() . $json_data)) {
+                    if ($this->getSignature() !== hash($hash_algorithm, Api::getApiKey() . $json_data)) {
                         exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
                     }
                 } else {

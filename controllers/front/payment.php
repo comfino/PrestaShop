@@ -23,18 +23,24 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
+
+use Comfino\Api;
+use Comfino\ErrorLogger;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
 class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        \Comfino\ErrorLogger::init();
+        Api::init();
+        ErrorLogger::init();
 
         parent::postProcess();
 
@@ -117,7 +123,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $customer->secure_key
         );
 
-        $order_response = \Comfino\Api::createOrder(
+        $order_response = Api::createOrder(
             $this->context->cart,
             $this->module->currentOrder,
             'index.php?controller=order-confirmation&id_cart=' . $cart->id . '&id_module=' . $this->module->id .
@@ -130,11 +136,11 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
             $order->save();
 
-            \Comfino\ErrorLogger::sendError(
+            ErrorLogger::sendError(
                 'Order creation error', 0, 'Wrong Comfino API response.',
                 $_SERVER['REQUEST_URI'],
-                \Comfino\Api::getLastRequestBody(),
-                is_array($order_response) ? json_encode($order_response) : \Comfino\Api::getLastResponseBody()
+                Api::getLastRequestBody(),
+                is_array($order_response) ? json_encode($order_response) : Api::getLastResponseBody()
             );
 
             Tools::redirect($this->context->link->getModuleLink(

@@ -44,11 +44,17 @@ class Api
     const CONVENIENT_INSTALLMENTS = 'CONVENIENT_INSTALLMENTS';
     const PAY_LATER = 'PAY_LATER';
 
+    /** @var bool */
+    private static $is_sandbox_mode;
+
     /** @var string */
     private static $api_host;
 
     /** @var string */
     private static $api_key;
+
+    /** @var string */
+    private static $widget_script_url;
 
     /** @var string|null */
     private static $last_request_body;
@@ -61,6 +67,21 @@ class Api
 
     /** @var array */
     private static $last_errors = [];
+
+    public static function init()
+    {
+        $config_manager = new ConfigManager();
+
+        $sandbox_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
+        $production_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
+
+        self::$is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
+        self::$api_host = self::$is_sandbox_mode ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST;
+        self::$api_key = self::$is_sandbox_mode ? $sandbox_key : $production_key;
+        self::$widget_script_url = self::$is_sandbox_mode
+            ? self::WIDGET_SCRIPT_SANDBOX_URL
+            : self::WIDGET_SCRIPT_PRODUCTION_URL;
+    }
 
     /**
      * @param \Cart $cart
@@ -336,6 +357,16 @@ class Api
     }
 
     /**
+     * @param bool $is_sandbox_mode
+     *
+     * @return void
+     */
+    public static function setSandboxMode($is_sandbox_mode)
+    {
+        self::$is_sandbox_mode = $is_sandbox_mode;
+    }
+
+    /**
      * @param string $api_host
      *
      * @return void
@@ -392,16 +423,7 @@ class Api
      */
     public static function getApiKey()
     {
-        if (!empty(self::$api_key)) {
-            return self::$api_key;
-        }
-
-        $config_manager = new ConfigManager();
-
-        return
-            $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')
-                ? $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY')
-                : $config_manager->getConfigurationValue('COMFINO_API_KEY');
+        return self::$api_key;
     }
 
     /**
@@ -416,9 +438,7 @@ class Api
             return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
         }
 
-        return (new ConfigManager())->getConfigurationValue('COMFINO_IS_SANDBOX')
-            ? self::WIDGET_SCRIPT_SANDBOX_URL
-            : self::WIDGET_SCRIPT_PRODUCTION_URL;
+        return self::$widget_script_url;
     }
 
     /**
@@ -442,13 +462,7 @@ class Api
             }
         }
 
-        if (!empty(self::$api_host)) {
-            return self::$api_host;
-        }
-
-        return (new ConfigManager())->getConfigurationValue('COMFINO_IS_SANDBOX')
-            ? self::COMFINO_SANDBOX_HOST
-            : self::COMFINO_PRODUCTION_HOST;
+        return self::$api_host;
     }
 
     /**

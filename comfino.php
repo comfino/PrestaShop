@@ -33,11 +33,12 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/PresentationType.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 
 if (!defined('COMFINO_PS_17')) {
     define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='), false);
@@ -49,7 +50,7 @@ if (!defined('COMFINO_VERSION')) {
 
 class Comfino extends PaymentModule
 {
-    const ERROR_LOG_NUM_LINES = 40;
+    const ERROR_LOG_NUM_LINES = 100;
     const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     const COMFINO_SUPPORT_PHONE = '887-106-027';
 
@@ -147,11 +148,12 @@ class Comfino extends PaymentModule
      */
     public function getContent()
     {
+        Api::init();
         ErrorLogger::init();
 
         $config_manager = new ConfigManager();
 
-        $active_tab = 'registration';
+        $active_tab = 'payment_settings';
         $output = [];
         $output_type = 'success';
 
@@ -167,11 +169,11 @@ class Comfino extends PaymentModule
                 case 'payment_settings':
                 case 'developer_settings':
                     if ($active_tab === 'payment_settings') {
-                        $api_host = $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')
-                            ? Api::COMFINO_SANDBOX_HOST
-                            : Api::COMFINO_PRODUCTION_HOST;
+                        $is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
 
-                        $api_key = $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')
+                        $api_host = $is_sandbox_mode ? Api::COMFINO_SANDBOX_HOST : Api::COMFINO_PRODUCTION_HOST;
+
+                        $api_key = $is_sandbox_mode
                             ? $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY')
                             : Tools::getValue('COMFINO_API_KEY');
 
@@ -190,17 +192,18 @@ class Comfino extends PaymentModule
                             $output[] = sprintf($error_numeric_format_msg, $this->l('Minimal amount in cart'));
                         }
                     } else {
-                        $api_host = Tools::getValue('COMFINO_IS_SANDBOX')
-                            ? Api::COMFINO_SANDBOX_HOST
-                            : Api::COMFINO_PRODUCTION_HOST;
+                        $is_sandbox_mode = (bool) Tools::getValue('COMFINO_IS_SANDBOX');
 
-                        $api_key = Tools::getValue('COMFINO_IS_SANDBOX')
+                        $api_host = $is_sandbox_mode ? Api::COMFINO_SANDBOX_HOST : Api::COMFINO_PRODUCTION_HOST;
+
+                        $api_key = $is_sandbox_mode
                             ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
                             : $config_manager->getConfigurationValue('COMFINO_API_KEY');
                     }
 
                     if (!empty($api_key) && !count($output)) {
                         // Update widget key.
+                        Api::setSandboxMode($is_sandbox_mode);
                         Api::setApiHost($api_host);
                         Api::setApiKey($api_key);
 
@@ -226,16 +229,17 @@ class Comfino extends PaymentModule
                     }
 
                     if (!count($output)) {
-                        $api_host = Tools::getValue('COMFINO_IS_SANDBOX')
-                            ? Api::COMFINO_SANDBOX_HOST
-                            : Api::COMFINO_PRODUCTION_HOST;
+                        $is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
 
-                        $api_key = Tools::getValue('COMFINO_IS_SANDBOX')
+                        $api_host = $is_sandbox_mode ? Api::COMFINO_SANDBOX_HOST : Api::COMFINO_PRODUCTION_HOST;
+
+                        $api_key = $is_sandbox_mode
                             ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
                             : $config_manager->getConfigurationValue('COMFINO_API_KEY');
 
                         if (!empty($api_key)) {
                             // Update widget key.
+                            Api::setSandboxMode($is_sandbox_mode);
                             Api::setApiHost($api_host);
                             Api::setApiKey($api_key);
 
@@ -1086,7 +1090,7 @@ class Comfino extends PaymentModule
                         ],
                         [
                             'type' => 'text',
-                            'label' => $this->l('Price change detection - observed container selector'),
+                            'label' => $this->l('Price change detection - container selector'),
                             'name' => 'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
                             'required' => false,
                             'desc' => $this->l(
@@ -1095,7 +1099,7 @@ class Comfino extends PaymentModule
                         ],
                         [
                             'type' => 'text',
-                            'label' => $this->l('Price change detection - observed container hierarchy level'),
+                            'label' => $this->l('Price change detection - container hierarchy level'),
                             'name' => 'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
                             'required' => false,
                             'desc' => $this->l(

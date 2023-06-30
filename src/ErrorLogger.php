@@ -110,7 +110,7 @@ class ErrorLogger
             $stack_trace
         );
 
-        if (!\Comfino\Api::sendLoggedError($error)) {
+        if (!Api::sendLoggedError($error)) {
             $request_info = [];
 
             if ($api_request_url !== null) {

@@ -23,10 +23,15 @@
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
+
+use Comfino\Api;
+use Comfino\ErrorLogger;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
 
@@ -34,7 +39,8 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        \Comfino\ErrorLogger::init();
+        Api::init();
+        ErrorLogger::init();
 
         parent::postProcess();
 
@@ -65,7 +71,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
         $tools = new \Comfino\Tools($this->context);
 
         $total = $cart->getOrderTotal() * 100;
-        $offers = \Comfino\Api::getOffers($total);
+        $offers = Api::getOffers($total);
         $payment_offers = [];
         $set = false;
 
