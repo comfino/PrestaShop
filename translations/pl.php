@@ -23,7 +23,6 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
-
 global $_MODULE;
 $_MODULE = [];
 $_MODULE['<{comfino}prestashop>comfino_fb0ddcd75b912899916741320e7f8537'] = 'Zamówienia Comfino';

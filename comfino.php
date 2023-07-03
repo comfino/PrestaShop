@@ -23,7 +23,6 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -334,7 +333,7 @@ class Comfino extends PaymentModule
                     'surname' => $shop_data['surname'],
                     'email' => $shop_data['email'],
                     'phone' => $shop_data['phone'],
-                    'url' => $shop_data['url']
+                    'url' => $shop_data['url'],
                 ],
                 'agreements' => $agreements !== false ? $agreements : [],
             ]);
