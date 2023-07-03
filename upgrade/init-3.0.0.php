@@ -36,6 +36,24 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
  */
 function upgrade_module_3_0_0($module)
 {
-    // TODO Remove admin controller override from older versions.
+    if (file_exists(_PS_MODULE_DIR_ . 'comfino/override')) {
+        // Remove admin controller override from older versions.
+        unlink(_PS_MODULE_DIR_ . 'comfino/override/index.php');
+        unlink(_PS_MODULE_DIR_ . 'comfino/override/controllers/index.php');
+        unlink(_PS_MODULE_DIR_ . 'comfino/override/controllers/admin/index.php');
+        unlink(_PS_MODULE_DIR_ . 'comfino/override/controllers/admin/AdminOrdersController.php');
+
+        rmdir(_PS_MODULE_DIR_ . 'comfino/override/controllers/admin');
+        rmdir(_PS_MODULE_DIR_ . 'comfino/override/controllers');
+        rmdir(_PS_MODULE_DIR_ . 'comfino/override');
+
+        $comfinoOverriddenControllerPath = _PS_OVERRIDE_DIR_ . 'controllers/admin/AdminOrdersController.php';
+
+        if (file_exists($comfinoOverriddenControllerPath) && strpos(file_get_contents($comfinoOverriddenControllerPath), 'comfino') !== false) {
+            unlink($comfinoOverriddenControllerPath);
+            unlink(_PS_CACHE_DIR_ . 'class_index.php');
+        }
+    }
+
     return true;
 }
