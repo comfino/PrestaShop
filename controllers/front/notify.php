@@ -49,7 +49,7 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
         $hash_algos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
 
         if (in_array($hash_algorithm, $hash_algos, true)) {
-            if ($this->getSignature() !== hash($hash_algorithm, Api::getApiKey() . $json_data)) {
+            if (!hash_equals(hash($hash_algorithm, Api::getApiKey() . $json_data), $this->getSignature())) {
                 exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
             }
         } else {
