@@ -418,9 +418,9 @@
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
-                                <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/twisto.svg" alt="" class="single-instruction-img" />
+                                <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/comfino.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">{l s="Choose Twisto payment" mod="comfino"}</div>
+                            <div class="comfin-single-instruction__text">{l s="Choose Comfino payment" mod="comfino"}</div>
                         </div>
                     </div>
                     <div class="comfino-helper-box">
