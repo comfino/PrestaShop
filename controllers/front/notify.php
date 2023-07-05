@@ -26,6 +26,7 @@
 
 use Comfino\Api;
 use Comfino\ErrorLogger;
+use Comfino\OrdersList;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -66,7 +67,7 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
             exit($this->setResponse(400, 'Status must be set.'));
         }
 
-        if (!\Comfino\OrdersList::processState($data['externalId'], $data['status'])) {
+        if (!OrdersList::processState($data['externalId'], $data['status'])) {
             exit($this->setResponse(400, sprintf('Invalid status %s.', $data['status'])));
         }
 
