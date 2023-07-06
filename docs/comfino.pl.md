@@ -4,6 +4,8 @@ Pobierz najnowszą wersję wtyczki ze strony: https://github.com/comfino/PrestaS
 
 ## INSTALACJA
 
+Wersja on-line dokumentacji: https://comfino.pl/plugins/PrestaShop/pl
+
 PrestaShop 1.6
 -------
 
@@ -43,15 +45,34 @@ Pola parametrów konfiguracyjnych:
 
 **Ustawienia podstawowe**
 
+* Widget włączony? — przełącznik aktywacji/deaktywacji widgetu promocyjnego na stronie produktu
+* Typ widgetu — sposób prezentacji widgetu [`Widget tekstowy`, `Widget graficzny z banerem`, `Widget graficzny z kalkulatorem rat`]
+* Typ oferty — typ promowanej oferty finansowania [`Raty zero procent`, `Niskie raty`, `Zapłać później`]
+
 **Ustawienia zaawansowane**
+
+* Selektor elementu ceny widgetu — element dokumentu HTML zawierający cenę produktu
+* Selektor elementu zakotwiczenia widgetu — element kontenera widgetu (w nim jest osadzany widget)
+* Wykrywanie zmian ceny - selektor kontenera — element dokumentu HTML zawierający w sobie element ceny bezpośrednio lub pośrednio używany do śledzenia zmian cen i przeliczania ofert
+* Wykrywanie zmian ceny - poziom hierarchii kontenera — poziom hierarchii DOM używany do śledzenia zmian cen i przeliczania ofert
+* Metoda osadzania — sposób orientacji widgetu względem elementu kontenera [`INSERT_INTO_FIRST`, `INSERT_INTO_LAST`, `INSERT_BEFORE`, `INSERT_AFTER`]
+* Kod inicjalizacji widgetu — skrypt JavaScript inicjalizujący widget na stronie produktu (wprowadzanie zmian niezalecane dla niezaawansowanych użytkowników bez znajomości JavaScript)
+
+Szczegółowe informacje o działaniu widgetu i jego opcjach konfiguracyjnych znajdziesz w osobnej [dokumentacji widgetu Comfino](https://comfino.pl/widgets/comfino-prestashop/pl).
 
 ![Konfiguracja](images/pl/configuration2.png "Konfiguracja")
 
 **USTAWIENIA DEWELOPERSKIE**
 
+* Użyj środowiska testowego — przełącznik aktywacji/deaktywacji trybu deweloperskiego
+* Klucz API środowiska testowego — unikalny klucz dostępowy umożliwiający komunikację modułu z testowym API Comfino
+
 ![Konfiguracja](images/pl/configuration3.png "Konfiguracja")
 
 **DIAGNOSTYKA WTYCZKI**
+
+Zakładka zawiera informacje techniczne o wtyczce i środowisku (wersja wtyczki, wersja sklepu, wersja PHP i serwera www, itp.).\
+Zawiera też listę ostatnich błędów wraz z podglądem lokalnego dziennika błędów (log błędów).
 
 ![Konfiguracja](images/pl/configuration4.png "Konfiguracja")
 
@@ -62,7 +83,7 @@ W trybie tym wtyczka używa klucza z zakładki `"USTAWIENIA DEWELOPERSKIE"` do k
 
 ## UWAGI
 
-* Moduł płatności Comfino wymaga ustawienia numeru telefonu klienta jako wymaganego w procesie wprowadzania danych kontaktowych klienta. Numer telefonu jest używany do przesyłania kodów i informowania klienta o statusie transakcji, na dalszym etapie procesowania płatności Comfino. 
+* Moduł płatności Comfino wymaga ustawienia numeru telefonu klienta jako wymaganego w procesie wprowadzania danych kontaktowych klienta. Numer telefonu jest używany do przesyłania kodów i informowania klienta o statusie transakcji, na dalszym etapie procesowania płatności Comfino. W przypadku braku numeru telefonu transakcja płatnicza Comfino zakończy się błędem wyświetlonym na stronie sklepu. 
 * System notyfikacji modułu wymaga dostępności metody HTTP "PUT". Moduł otrzymuje informacje o zmianach statusu transakcji Comfino i stosownie zmienia wewnętrzny status zamówienia w PrestaShop. W przypadku problemów z notyfikacjami należy sprawdzić ustawienia serwera www w Twoim panelu hostingu.
 * Dane klienta i zamówienia wymagane przez moduł Comfino:
     * Klient:
