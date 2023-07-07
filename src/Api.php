@@ -87,7 +87,6 @@ class Api
      * @param \Cart $cart
      * @param string $order_id
      * @param string $return_url
-     *
      * @return array|bool
      */
     public static function createOrder($cart, $order_id, $return_url)
@@ -209,7 +208,6 @@ class Api
 
     /**
      * @param $loan_amount
-     *
      * @return array|bool
      */
     public static function getOffers($loan_amount)
@@ -222,7 +220,6 @@ class Api
 
     /**
      * @param $self_link
-     *
      * @return array|bool
      */
     public static function getOrder($self_link)
@@ -234,7 +231,6 @@ class Api
 
     /**
      * @param string $order_id
-     *
      * @return void
      */
     public static function cancelOrder($order_id)
@@ -269,7 +265,6 @@ class Api
      * @param string $email
      * @param string $phone
      * @param array $agreements
-     *
      * @return array|bool
      */
     public static function registerShopAccount($name, $url, $contactName, $email, $phone, $agreements)
@@ -319,7 +314,6 @@ class Api
 
     /**
      * @param ShopPluginError $error
-     *
      * @return bool
      */
     public static function sendLoggedError(ShopPluginError $error)
@@ -358,7 +352,6 @@ class Api
 
     /**
      * @param bool $is_sandbox_mode
-     *
      * @return void
      */
     public static function setSandboxMode($is_sandbox_mode)
@@ -368,7 +361,6 @@ class Api
 
     /**
      * @param string $api_host
-     *
      * @return void
      */
     public static function setApiHost($api_host)
@@ -378,7 +370,6 @@ class Api
 
     /**
      * @param string $api_key
-     *
      * @return void
      */
     public static function setApiKey($api_key)
@@ -443,7 +434,6 @@ class Api
 
     /**
      * @param bool $frontendHost
-     *
      * @return string
      */
     private static function getApiHost($frontendHost = false)
@@ -467,7 +457,6 @@ class Api
 
     /**
      * @param array $product
-     *
      * @return string
      */
     private static function getProductsImageUrl($product)
@@ -499,7 +488,6 @@ class Api
 
     /**
      * @param \Context $context
-     *
      * @return string
      */
     private static function getNotifyUrl($context)
@@ -509,7 +497,6 @@ class Api
 
     /**
      * @param string $return_url
-     *
      * @return string
      */
     private static function getReturnUrl($return_url)
@@ -523,7 +510,6 @@ class Api
      * @param array $extra_options
      * @param string $data
      * @param bool $log_errors
-     *
      * @return string|bool
      */
     private static function sendRequest($url, $request_type, $extra_options = [], $data = null, $log_errors = true)
@@ -573,7 +559,6 @@ class Api
      * @param string $url
      * @param mixed $data
      * @param bool $log_errors
-     *
      * @return string|bool
      */
     private static function processResponse($curl, $url, $data, $log_errors)

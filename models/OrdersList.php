@@ -188,7 +188,6 @@ class OrdersList extends \ObjectModel
      * @param null $id
      * @param null $id_lang
      * @param null $id_shop
-     *
      * @throws \PrestaShopDatabaseException
      * @throws \PrestaShopException
      */
@@ -199,9 +198,7 @@ class OrdersList extends \ObjectModel
 
     /**
      * @param array $data
-     *
      * @return bool
-     *
      * @throws \PrestaShopException
      */
     public static function createOrder($data)
@@ -261,7 +258,6 @@ class OrdersList extends \ObjectModel
      * @param $order_id
      * @param $key
      * @param $value
-     *
      * @return bool
      */
     public static function updateOrder($order_id, $key, $value)
@@ -291,7 +287,6 @@ class OrdersList extends \ObjectModel
     /**
      * @param string $orderId
      * @param string $status
-     *
      * @return bool
      * @throws \Exception
      */

@@ -417,7 +417,6 @@ class Comfino extends PaymentModule
      * Prestashop 1.6.* compatibility.
      *
      * @param $params
-     *
      * @return false|string|void
      */
     public function hookPayment($params)
@@ -441,7 +440,6 @@ class Comfino extends PaymentModule
 
     /**
      * @param Cart $cart
-     *
      * @return bool
      */
     public function checkCurrency($cart)
@@ -464,7 +462,6 @@ class Comfino extends PaymentModule
      * Prestashop 1.7.* compatibility.
      *
      * @param array $params
-     *
      * @return PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
      */
     public function hookPaymentOptions($params)
@@ -512,9 +509,7 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
-     *
      * @return string
-     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookPaymentReturn($params)
@@ -563,7 +558,6 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
-     *
      * @return string
      */
     public function hookDisplayBackofficeComfinoForm($params)
@@ -573,7 +567,6 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
-     *
      * @return void
      */
     public function hookActionOrderStatusPostUpdate($params)
@@ -590,7 +583,6 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
-     *
      * @return string
      */
     public function hookActionValidateCustomerAddressForm($params)
@@ -635,7 +627,6 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
-     *
      * @return string
      */
     private function displayForm($params)
@@ -835,7 +826,6 @@ class Comfino extends PaymentModule
      * @param string $submit_action
      * @param string $form_template_dir
      * @param string $form_template
-     *
      * @return HelperForm
      */
     private function getHelperForm($submit_action, $form_template_dir = null, $form_template = null)
@@ -879,7 +869,6 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
-     *
      * @return array
      */
     private function getFormFields($params)
@@ -1285,7 +1274,6 @@ class Comfino extends PaymentModule
 
     /**
      * @param string $tax_id
-     *
      * @return bool
      */
     private function isValidTaxId($tax_id)

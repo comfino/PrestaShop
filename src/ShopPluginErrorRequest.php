@@ -45,7 +45,6 @@ final class ShopPluginErrorRequest
     /**
      * @param ShopPluginError $shop_plugin_error
      * @param string $hash_key
-     *
      * @return bool
      */
     public function prepareRequest(ShopPluginError $shop_plugin_error, $hash_key)

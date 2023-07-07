@@ -54,9 +54,7 @@ class Tools
     /**
      * @param float $price
      * @param int $id_currency
-     *
      * @return float|string
-     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function formatPrice($price, $id_currency)
@@ -68,7 +66,6 @@ class Tools
 
     /**
      * @param int $id_currency
-     *
      * @return string
      */
     public function getCurrencyIsoCode($id_currency)
