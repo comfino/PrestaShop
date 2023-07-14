@@ -155,7 +155,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             ));
         }
 
-        \Comfino\OrdersList::createOrder(
+        OrdersList::createOrder(
             [
                 'id_comfino' => $order_response['externalId'],
                 'id_customer' => $cart->id_customer,

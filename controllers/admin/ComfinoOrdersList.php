@@ -41,7 +41,7 @@ class ComfinoOrdersListController extends ModuleAdminController
 
     public function initContent()
     {
-        $this->context->smarty->assign(['orders' => \Comfino\OrdersList::getAllOrders()]);
+        $this->context->smarty->assign(['orders' => OrdersList::getAllOrders()]);
 
         if (COMFINO_PS_17) {
             $this->setTemplate('module:comfino/views/templates/admin/comfino_order_list.tpl');
@@ -59,7 +59,7 @@ class ComfinoOrdersListController extends ModuleAdminController
                 return false;
             }
 
-            \Comfino\OrdersList::processState($order['orderId'], $order['status']);
+            OrdersList::processState($order['orderId'], $order['status']);
 
             return true;
         }

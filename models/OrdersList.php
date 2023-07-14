@@ -24,8 +24,6 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-namespace Comfino;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -40,7 +38,7 @@ if (!defined('_PS_VERSION_')) {
  * @property string $self_link
  * @property string $cancel_link
  */
-class OrdersList extends \ObjectModel
+class OrdersList extends ObjectModel
 {
     const CREATED = 'CREATED';
     const WAITING_FOR_FILLING = 'WAITING_FOR_FILLING';
@@ -188,8 +186,8 @@ class OrdersList extends \ObjectModel
      * @param null $id
      * @param null $id_lang
      * @param null $id_shop
-     * @throws \PrestaShopDatabaseException
-     * @throws \PrestaShopException
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
      */
     public function __construct($id = null, $id_lang = null, $id_shop = null)
     {
@@ -199,7 +197,7 @@ class OrdersList extends \ObjectModel
     /**
      * @param array $data
      * @return bool
-     * @throws \PrestaShopException
+     * @throws PrestaShopException
      */
     public static function createOrder($data)
     {
@@ -212,7 +210,7 @@ class OrdersList extends \ObjectModel
         $order->cancel_link = $data['cancel_link'];
 
         if ($saveStatus = $order->save()) {
-            $orderCore = new \OrderCore($order->id_comfino);
+            $orderCore = new OrderCore($order->id_comfino);
             self::setSecondState($data['order_status'], $orderCore);
         }
 
@@ -223,20 +221,20 @@ class OrdersList extends \ObjectModel
     {
         $sql = sprintf('SELECT * FROM %scomfino_orders', _DB_PREFIX_);
 
-        if ($row = \Db::getInstance()->executeS($sql)) {
+        if ($row = Db::getInstance()->executeS($sql)) {
             $result = [];
 
             foreach ($row as $item) {
-                $customer = new \Customer($item['id_customer']);
+                $customer = new Customer($item['id_customer']);
                 $customer_email = '';
 
-                if (\Validate::isLoadedObject($customer)) {
+                if (Validate::isLoadedObject($customer)) {
                     $customer_email = $customer->email;
                 }
 
-                $order = new \Order($item['id_comfino']);
+                $order = new Order($item['id_comfino']);
                 $status = $order->getCurrentOrderState();
-                $context = \Context::getContext();
+                $context = Context::getContext();
 
                 $result[] = [
                     'id_comfino' => $item['id_comfino'],
@@ -270,12 +268,12 @@ class OrdersList extends \ObjectModel
             pSQL($order_id)
         );
 
-        return \Db::getInstance()->execute($sql);
+        return Db::getInstance()->execute($sql);
     }
 
     public static function getState($state)
     {
-        $state = \Tools::strtoupper($state);
+        $state = Tools::strtoupper($state);
 
         if (array_key_exists($state, self::STATUSES)) {
             return self::STATUSES[$state];
@@ -288,7 +286,7 @@ class OrdersList extends \ObjectModel
      * @param string $orderId
      * @param string $status
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public static function processState($orderId, $status)
     {
@@ -296,10 +294,10 @@ class OrdersList extends \ObjectModel
             return true;
         }
 
-        $order = new \OrderCore($orderId);
+        $order = new OrderCore($orderId);
 
-        if (!\ValidateCore::isLoadedObject($order)) {
-            throw new \Exception(sprintf('Order not found by id: %s', $orderId));
+        if (!ValidateCore::isLoadedObject($order)) {
+            throw new Exception(sprintf('Order not found by id: %s', $orderId));
         }
 
         $internalStatus = self::getState($status);
@@ -308,14 +306,14 @@ class OrdersList extends \ObjectModel
             return false;
         }
 
-        $order->setCurrentState(\Configuration::get($internalStatus));
+        $order->setCurrentState(Configuration::get($internalStatus));
 
         self::setSecondState($status, $order);
 
         return true;
     }
 
-    private static function setSecondState($status, \OrderCore $order)
+    private static function setSecondState($status, OrderCore $order)
     {
         if (!array_key_exists($status, self::CHANGE_STATUS_MAP)) {
             return;
@@ -325,12 +323,12 @@ class OrdersList extends \ObjectModel
             return;
         }
 
-        $order->setCurrentState(\Configuration::get(self::CHANGE_STATUS_MAP[$status]));
+        $order->setCurrentState(Configuration::get(self::CHANGE_STATUS_MAP[$status]));
     }
 
-    private static function wasSecondStatusSetInHistory($status, \OrderCore $order)
+    private static function wasSecondStatusSetInHistory($status, OrderCore $order)
     {
-        $idOrderState = \Configuration::get($status);
+        $idOrderState = Configuration::get($status);
 
         foreach ($order->getHistory(0) as $historyElement) {
             if ($historyElement['id_order_state'] === $idOrderState) {

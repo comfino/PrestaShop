@@ -26,7 +26,6 @@
 
 use Comfino\Api;
 use Comfino\ErrorLogger;
-use Comfino\OrdersList;
 
 if (!defined('_PS_VERSION_')) {
     exit;

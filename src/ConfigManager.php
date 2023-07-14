@@ -218,7 +218,7 @@ class ConfigManager
     {
         $languages = \Language::getLanguages(false);
 
-        foreach (OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
+        foreach (\OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
             $comfino_status_id = \Configuration::get($status_code);
 
             if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
@@ -269,7 +269,7 @@ class ConfigManager
     {
         $languages = \Language::getLanguages(false);
 
-        foreach (OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
+        foreach (\OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
             $comfino_status_id = \Configuration::get($status_code);
 
             if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
