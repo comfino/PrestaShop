@@ -234,7 +234,7 @@ class Comfino extends PaymentModule
                             : \Comfino\Api::COMFINO_PRODUCTION_HOST;
 
                         $api_key = $is_sandbox_mode
-                            ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
+                            ? $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY')
                             : $config_manager->getConfigurationValue('COMFINO_API_KEY');
 
                         if (!empty($api_key)) {
