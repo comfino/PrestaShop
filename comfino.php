@@ -223,7 +223,7 @@ class Comfino extends PaymentModule
 
                 case 'widget_settings':
                     if (!is_numeric(Tools::getValue('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL'))) {
-                        $output[] = sprintf($error_numeric_format_msg, $this->l('Price change detection level'));
+                        $output[] = sprintf($error_numeric_format_msg, $this->l('Price change detection - container hierarchy level'));
                     }
 
                     if (!count($output)) {
