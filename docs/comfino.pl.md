@@ -69,6 +69,10 @@ Szczegółowe informacje o działaniu widgetu i jego opcjach konfiguracyjnych zn
 
 ![Konfiguracja](images/pl/configuration3.png "Konfiguracja")
 
+**Uwaga**
+
+Przed uruchomieniem płatności na sklepie produkcyjnym, wyłącz tryb deweloperski, aby zablokować użycie środowiska testowego płatności Comfino.
+
 **DIAGNOSTYKA WTYCZKI**
 
 Zakładka zawiera informacje techniczne o wtyczce i środowisku (wersja wtyczki, wersja sklepu, wersja PHP i serwera www, itp.).\
