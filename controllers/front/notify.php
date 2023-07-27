@@ -75,12 +75,20 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
 
     private function getSignature()
     {
-        return isset($_SERVER['HTTP_CR_SIGNATURE']) ? $_SERVER['HTTP_CR_SIGNATURE'] : '';
+        if (isset($_SERVER['HTTP_CR_SIGNATURE'])) {
+            return $_SERVER['HTTP_CR_SIGNATURE'];
+        }
+
+        return isset($_SERVER['HTTP_X_CR_SIGNATURE']) ? $_SERVER['HTTP_X_CR_SIGNATURE'] : '';
     }
 
     private function getHashAlgorithm()
     {
-        return isset($_SERVER['HTTP_CR_SIGNATURE_ALGO']) ? $_SERVER['HTTP_CR_SIGNATURE_ALGO'] : 'sha3-256';
+        if (isset($_SERVER['HTTP_CR_SIGNATURE_ALGO'])) {
+            return $_SERVER['HTTP_CR_SIGNATURE_ALGO'];
+        }
+
+        return isset($_SERVER['HTTP_X_CR_SIGNATURE_ALGO']) ? $_SERVER['HTTP_X_CR_SIGNATURE_ALGO'] : 'sha3-256';
     }
 
     private function setResponse($code, $content)
