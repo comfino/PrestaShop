@@ -638,13 +638,14 @@ class Api
     private static function getUserAgentHeader()
     {
         return sprintf(
-            'PS Comfino [%s], PS [%s], SF [%s], PHP [%s]',
+            'PS Comfino [%s], PS [%s], SF [%s], PHP [%s], %s',
             COMFINO_VERSION,
             _PS_VERSION_,
             COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
                 ? \Symfony\Component\HttpKernel\Kernel::VERSION
                 : 'n/a',
-            PHP_VERSION
+            PHP_VERSION,
+            \Tools::getShopDomain()
         );
     }
 }

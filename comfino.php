@@ -571,8 +571,6 @@ class Comfino extends PaymentModule
      */
     public function hookActionOrderStatusPostUpdate($params)
     {
-        \Comfino\ErrorLogger::init();
-
         $order = new Order($params['id_order']);
 
         if (stripos($order->payment, 'comfino') !== false) {
@@ -582,6 +580,8 @@ class Comfino extends PaymentModule
             $order_state = $params['newOrderStatus'];
 
             if ($order_state->id == (new \Comfino\ConfigManager())->getConfigurationValue('PS_OS_CANCELED')) {
+                \Comfino\ErrorLogger::init();
+                \Comfino\Api::init();
                 \Comfino\Api::cancelOrder($params['id_order']);
             }
         }
