@@ -271,6 +271,10 @@ class OrdersList extends ObjectModel
         return Db::getInstance()->execute($sql);
     }
 
+    /**
+     * @param string $state
+     * @return string
+     */
     public static function getState($state)
     {
         $state = Tools::strtoupper($state);
@@ -283,32 +287,37 @@ class OrdersList extends ObjectModel
     }
 
     /**
-     * @param string $orderId
+     * @param string $order_id
      * @param string $status
      * @return bool
      * @throws Exception
      */
-    public static function processState($orderId, $status)
+    public static function processState($order_id, $status)
     {
         if (in_array($status, self::IGNORED_STATUSES, true)) {
             return true;
         }
 
-        $order = new OrderCore($orderId);
+        $order = new OrderCore($order_id);
 
         if (!ValidateCore::isLoadedObject($order)) {
-            throw new Exception(sprintf('Order not found by id: %s', $orderId));
+            throw new Exception(sprintf('Order not found by id: %s', $order_id));
         }
 
-        $internalStatus = self::getState($status);
+        $internal_status_new = self::getState($status);
 
-        if ($internalStatus === 'PS_OS_ERROR') {
+        if ($internal_status_new === 'PS_OS_ERROR') {
             return false;
         }
 
-        $order->setCurrentState(Configuration::get($internalStatus));
+        $internal_status_current_id = (int) $order->getCurrentState();
+        $internal_status_new_id = (int) Configuration::get($internal_status_new);
 
-        self::setSecondState($status, $order);
+        if ($internal_status_new_id !== $internal_status_current_id) {
+            $order->setCurrentState($internal_status_new_id);
+
+            self::setSecondState($status, $order);
+        }
 
         return true;
     }
@@ -328,10 +337,10 @@ class OrdersList extends ObjectModel
 
     private static function wasSecondStatusSetInHistory($status, OrderCore $order)
     {
-        $idOrderState = Configuration::get($status);
+        $id_order_state = Configuration::get($status);
 
         foreach ($order->getHistory(0) as $historyElement) {
-            if ($historyElement['id_order_state'] === $idOrderState) {
+            if ($historyElement['id_order_state'] === $id_order_state) {
                 return true;
             }
         }
