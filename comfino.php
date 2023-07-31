@@ -580,8 +580,8 @@ class Comfino extends PaymentModule
             $order_state = $params['newOrderStatus'];
 
             if ($order_state->id == (new \Comfino\ConfigManager())->getConfigurationValue('PS_OS_CANCELED')) {
-                \Comfino\ErrorLogger::init();
                 \Comfino\Api::init();
+                \Comfino\ErrorLogger::init();
                 \Comfino\Api::cancelOrder($params['id_order']);
             }
         }
