@@ -9,13 +9,15 @@ Wersja on-line dokumentacji: https://comfino.pl/plugins/PrestaShop/pl
 PrestaShop 1.6
 -------
 
-Przejdź do zakładki `"Moduły -> Moduły i usługi"`, następnie kliknij przycisk `"Dodaj nowy moduł"`. Wysunie się panel z polem `"Plik modułu"`. W tym polu należy wybrać plik z modułem, a następnie kliknąć `"Prześlij moduł"`. Kiedy moduł zostanie przesłany, wystarczy wybrać go z listy modułów, a następnie kliknąć `"Instaluj"`.
+Przejdź do zakładki `"Moduły -> Moduły i usługi"`, następnie kliknij przycisk `"Dodaj nowy moduł"`. Wysunie się panel z polem `"Plik modułu"`.
+W tym polu należy wybrać plik z modułem, a następnie kliknąć `"Prześlij moduł"`. Kiedy moduł zostanie przesłany, wystarczy wybrać go z listy modułów, a następnie kliknąć `"Instaluj"`.
 
 ![Konfiguracja](images/pl/modules_ps_16.png "Konfiguracja")
 ![Konfiguracja](images/pl/modules_ps_16_panel.png "Konfiguracja")
 
 PrestaShop 1.7, PrestaShop 8
 -------
+
 Przejdź do zakładki `"Moduły -> Manager modułów"`, następnie kliknij przycisk `"Załaduj moduł"`. Z wyświetlonego pola do przesyłania modułów, należy wybrać odpowiedni plik z modułem. Wtyczka zainstaluje się automatycznie.
 
 ![Konfiguracja](images/pl/modules_ps_17.png "Konfiguracja")
@@ -34,10 +36,10 @@ Pola parametrów konfiguracyjnych:
 
 **USTAWIENIA PŁATNOŚCI**
 
-* Klucz API środowiska produkcyjnego — unikalny klucz dostępowy umożliwiający komunikację modułu z API Comfino (otrzymasz go od przedstawiciela Comfino)
-* Prezentacja płatności — sposób prezentacji Comfino na liście metod płatności [`Tylko ikona`, `Tylko tekst`, `Ikona i tekst`]
-* Tekst płatności — tekst wyświetlany na liście metod płatności (domyślnie `"(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)"`)
-* Minimalna kwota w koszyku — wartość koszyka, od której dostępna jest płatność Comfino (domyślnie: 30 zł)
+* **Klucz API środowiska produkcyjnego** — unikalny klucz dostępowy umożliwiający komunikację modułu z API Comfino (otrzymasz go od przedstawiciela Comfino)
+* **Prezentacja płatności** — sposób prezentacji Comfino na liście metod płatności [`Tylko ikona`, `Tylko tekst`, `Ikona i tekst`]
+* **Tekst płatności** — tekst wyświetlany na liście metod płatności (domyślnie `"(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)"`)
+* **Minimalna kwota w koszyku** — wartość koszyka, od której dostępna jest płatność Comfino (domyślnie: 30 zł)
 
 ![Konfiguracja](images/pl/configuration1.png "Konfiguracja")
 
@@ -45,18 +47,18 @@ Pola parametrów konfiguracyjnych:
 
 **Ustawienia podstawowe**
 
-* Widget włączony? — przełącznik aktywacji/deaktywacji widgetu promocyjnego na stronie produktu
-* Typ widgetu — sposób prezentacji widgetu [`Widget tekstowy`, `Widget graficzny z banerem`, `Widget graficzny z kalkulatorem rat`]
-* Typ oferty — typ promowanej oferty finansowania [`Raty zero procent`, `Niskie raty`, `Zapłać później`]
+* **Widget włączony?** — przełącznik aktywacji/deaktywacji widgetu promocyjnego na stronie produktu
+* **Typ widgetu** — sposób prezentacji widgetu [`Widget tekstowy`, `Widget graficzny z banerem`, `Widget graficzny z kalkulatorem rat`]
+* **Typ oferty** — typ promowanej oferty finansowania [`Raty zero procent`, `Niskie raty`, `Zapłać później`]
 
 **Ustawienia zaawansowane**
 
-* Selektor elementu ceny widgetu — element dokumentu HTML zawierający cenę produktu
-* Selektor elementu zakotwiczenia widgetu — element kontenera widgetu (w nim jest osadzany widget)
-* Wykrywanie zmian ceny - selektor kontenera — element dokumentu HTML zawierający w sobie element ceny bezpośrednio lub pośrednio używany do śledzenia zmian cen i przeliczania ofert
-* Wykrywanie zmian ceny - poziom hierarchii kontenera — poziom hierarchii DOM używany do śledzenia zmian cen i przeliczania ofert
-* Metoda osadzania — sposób orientacji widgetu względem elementu kontenera [`INSERT_INTO_FIRST`, `INSERT_INTO_LAST`, `INSERT_BEFORE`, `INSERT_AFTER`]
-* Kod inicjalizacji widgetu — skrypt JavaScript inicjalizujący widget na stronie produktu (wprowadzanie zmian niezalecane dla niezaawansowanych użytkowników bez znajomości JavaScript)
+* **Selektor elementu ceny widgetu** — element dokumentu HTML zawierający cenę produktu
+* **Selektor elementu zakotwiczenia widgetu** — element kontenera widgetu (w nim jest osadzany widget)
+* **Wykrywanie zmian ceny - selektor kontenera** — element dokumentu HTML zawierający w sobie element ceny bezpośrednio lub pośrednio używany do śledzenia zmian cen i przeliczania ofert
+* **Wykrywanie zmian ceny - poziom hierarchii kontenera** — poziom hierarchii DOM używany do śledzenia zmian cen i przeliczania ofert
+* **Metoda osadzania** — sposób orientacji widgetu względem elementu kontenera [`INSERT_INTO_FIRST`, `INSERT_INTO_LAST`, `INSERT_BEFORE`, `INSERT_AFTER`]
+* **Kod inicjalizacji widgetu** — skrypt JavaScript inicjalizujący widget na stronie produktu (wprowadzanie zmian niezalecane dla niezaawansowanych użytkowników bez znajomości JavaScript)
 
 Szczegółowe informacje o działaniu widgetu i jego opcjach konfiguracyjnych znajdziesz w osobnej [dokumentacji widgetu Comfino](https://comfino.pl/widgets/comfino-prestashop/pl).
 
@@ -64,8 +66,8 @@ Szczegółowe informacje o działaniu widgetu i jego opcjach konfiguracyjnych zn
 
 **USTAWIENIA DEWELOPERSKIE**
 
-* Użyj środowiska testowego — przełącznik aktywacji/deaktywacji trybu deweloperskiego
-* Klucz API środowiska testowego — unikalny klucz dostępowy umożliwiający komunikację modułu z testowym API Comfino
+* **Użyj środowiska testowego** — przełącznik aktywacji/deaktywacji trybu deweloperskiego
+* **Klucz API środowiska testowego** — unikalny klucz dostępowy umożliwiający komunikację modułu z testowym API Comfino
 
 ![Konfiguracja](images/pl/configuration3.png "Konfiguracja")
 
@@ -108,6 +110,12 @@ W trybie tym wtyczka używa klucza z zakładki `"USTAWIENIA DEWELOPERSKIE"` do k
         * kod pocztowy
         * miasto
         * kod kraju
+
+## PRZYKŁADOWY WYGLĄD KOSZYKA Z LISTĄ METOD PŁATNOŚCI
+
+![Koszyk](images/pl/cart_payment_view_folded.png "Koszyk")
+
+![Koszyk](images/pl/cart_payment_view_unfolded.png "Koszyk")
 
 ## PRZEBIEG PROCESU COMFINO
 
