@@ -1,13 +1,14 @@
 <?php
 /**
- * 2007-2023 PrestaShop
+ * Copyright since 2007 PrestaShop SA and Contributors
+ * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.md.
  * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
+ * https://opensource.org/licenses/OSL-3.0
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@prestashop.com so we can send you a copy immediately.
@@ -16,13 +17,15 @@
  *
  * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
  * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
+ * needs please refer to https://devdocs.prestashop.com/ for more information.
  *
- *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2023 PrestaShop SA
- *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- *  International Registered Trademark & Property of PrestaShop SA
+ * @author    PrestaShop SA and Contributors <contact@prestashop.com>
+ * @copyright Since 2007 PrestaShop SA and Contributors
+ * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -50,42 +53,42 @@ class ErrorLogger
     ];
 
     /**
-     * @param string $errorPrefix
-     * @param string $errorMessage
+     * @param string $error_prefix
+     * @param string $error_message
      *
      * @return void
      */
-    public static function logError($errorPrefix, $errorMessage)
+    public static function logError($error_prefix, $error_message)
     {
         @file_put_contents(
             _PS_MODULE_DIR_ . 'comfino/payment_log.log',
-            '[' . date('Y-m-d H:i:s') . "] $errorPrefix: $errorMessage\n",
+            '[' . date('Y-m-d H:i:s') . "] $error_prefix: $error_message\n",
             FILE_APPEND
         );
     }
 
     /**
-     * @param string $errorPrefix
-     * @param string $errorCode
-     * @param string $errorMessage
-     * @param string|null $apiRequestUrl
-     * @param string|null $apiRequest
-     * @param string|null $apiResponse
-     * @param string|null $stackTrace
+     * @param string $error_prefix
+     * @param string $error_code
+     * @param string $error_message
+     * @param string|null $api_request_url
+     * @param string|null $api_request
+     * @param string|null $api_response
+     * @param string|null $stack_trace
      *
      * @return void
      */
     public static function sendError(
-        $errorPrefix,
-        $errorCode,
-        $errorMessage,
-        $apiRequestUrl = null,
-        $apiRequest = null,
-        $apiResponse = null,
-        $stackTrace = null
+        $error_prefix,
+        $error_code,
+        $error_message,
+        $api_request_url = null,
+        $api_request = null,
+        $api_response = null,
+        $stack_trace = null
     ) {
         $error = new ShopPluginError(
-            Tools::getShopDomain(),
+            \Tools::getShopDomain(),
             'PrestaShop',
             [
                 'plugin_version' => COMFINO_VERSION,
@@ -97,89 +100,92 @@ class ErrorLogger
                 'server_software' => $_SERVER['SERVER_SOFTWARE'],
                 'server_name' => $_SERVER['SERVER_NAME'],
                 'server_addr' => $_SERVER['SERVER_ADDR'],
-                'database_version' => Db::getInstance()->getVersion(),
+                'database_version' => \Db::getInstance()->getVersion(),
             ],
-            $errorCode,
-            "$errorPrefix: $errorMessage",
-            $apiRequestUrl,
-            $apiRequest,
-            $apiResponse,
-            $stackTrace
+            $error_code,
+            "$error_prefix: $error_message",
+            $api_request_url,
+            $api_request,
+            $api_response,
+            $stack_trace
         );
 
-        if (!ComfinoApi::sendLoggedError($error)) {
-            $requestInfo = [];
+        if (!Api::sendLoggedError($error)) {
+            $request_info = [];
 
-            if ($apiRequestUrl !== null) {
-                $requestInfo[] = "API URL: $apiRequestUrl";
+            if ($api_request_url !== null) {
+                $request_info[] = "API URL: $api_request_url";
             }
 
-            if ($apiRequest !== null) {
-                $requestInfo[] = "API request: $apiRequest";
+            if ($api_request !== null) {
+                $request_info[] = "API request: $api_request";
             }
 
-            if ($apiResponse !== null) {
-                $requestInfo[] = "API response: $apiResponse";
+            if ($api_response !== null) {
+                $request_info[] = "API response: $api_response";
             }
 
-            if (count($requestInfo)) {
-                $errorMessage .= "\n" . implode("\n", $requestInfo);
+            if (count($request_info)) {
+                $error_message .= "\n" . implode("\n", $request_info);
             }
 
-            if ($stackTrace !== null) {
-                $errorMessage .= "\nStack trace: $stackTrace";
+            if ($stack_trace !== null) {
+                $error_message .= "\nStack trace: $stack_trace";
             }
 
-            self::logError($errorPrefix, $errorMessage);
+            self::logError($error_prefix, $error_message);
         }
     }
 
     /**
-     * @param int $numLines
+     * @param int $num_lines
      *
      * @return string
      */
-    public static function getErrorLog($numLines)
+    public static function getErrorLog($num_lines)
     {
-        $errorsLog = '';
-        $logFilePath = _PS_MODULE_DIR_ . 'comfino/payment_log.log';
+        $errors_log = '';
+        $log_file_path = _PS_MODULE_DIR_ . 'comfino/payment_log.log';
 
-        if (file_exists($logFilePath)) {
-            $file = new SplFileObject($logFilePath, 'r');
+        if (file_exists($log_file_path)) {
+            $file = new \SplFileObject($log_file_path, 'r');
             $file->seek(PHP_INT_MAX);
-            $lastLine = $file->key();
-            $lines = new LimitIterator(
+
+            $last_line = $file->key();
+
+            $lines = new \LimitIterator(
                 $file,
-                $lastLine > $numLines ? $lastLine - $numLines : 0,
-                $lastLine ?: 1
+                $last_line > $num_lines ? $last_line - $num_lines : 0,
+                $last_line ?: 1
             );
-            $errorsLog = implode('', iterator_to_array($lines));
+
+            $errors_log = implode('', iterator_to_array($lines));
         }
 
-        return $errorsLog;
+        return $errors_log;
     }
 
     /**
-     * @param int $errNo
-     * @param string $errMsg
+     * @param int $err_no
+     * @param string $err_msg
      * @param string $file
      * @param int $line
      *
      * @return bool
      */
-    public static function errorHandler($errNo, $errMsg, $file, $line)
+    public static function errorHandler($err_no, $err_msg, $file, $line)
     {
-        $errorType = self::getErrorTypeName($errNo);
+        $error_type = self::getErrorTypeName($err_no);
 
-        if (strpos($errorType, 'E_USER_') === false && strpos($errorType, 'NOTICE') === false) {
-            self::sendError("Error $errorType in $file:$line", $errNo, $errMsg);
+        if (strpos($error_type, 'E_USER_') === false && strpos($error_type, 'NOTICE') === false) {
+            self::sendError("Error $error_type in $file:$line", $err_no, $err_msg);
         }
 
         return false;
     }
 
     /**
-     * @param Throwable $exception
+     * @param \Throwable $exception
      *
      * @return void
      */
@@ -197,9 +203,9 @@ class ErrorLogger
         static $initialized = false;
 
         if (!$initialized) {
-            set_error_handler(['ErrorLogger', 'errorHandler'], E_ERROR | E_RECOVERABLE_ERROR | E_PARSE);
-            set_exception_handler(['ErrorLogger', 'exceptionHandler']);
-            register_shutdown_function(['ErrorLogger', 'shutdown']);
+            set_error_handler([__CLASS__, 'errorHandler'], E_ERROR | E_RECOVERABLE_ERROR | E_PARSE);
+            set_exception_handler([__CLASS__, 'exceptionHandler']);
+            register_shutdown_function([__CLASS__, 'shutdown']);
 
             $initialized = true;
         }
@@ -208,8 +214,8 @@ class ErrorLogger
     public static function shutdown()
     {
         if (($error = error_get_last()) !== null && ($error['type'] & (E_ERROR | E_RECOVERABLE_ERROR | E_PARSE))) {
-            $errorType = self::getErrorTypeName($error['type']);
-            self::sendError("Error $errorType in $error[file]:$error[line]", $error['type'], $error['message']);
+            $error_type = self::getErrorTypeName($error['type']);
+            self::sendError("Error $error_type in $error[file]:$error[line]", $error['type'], $error['message']);
         }
 
         restore_error_handler();
@@ -217,12 +223,12 @@ class ErrorLogger
     }
 
     /**
-     * @param int $errorType
+     * @param int $error_type
      *
      * @return string
      */
-    private static function getErrorTypeName($errorType)
+    private static function getErrorTypeName($error_type)
     {
-        return array_key_exists($errorType, self::ERROR_TYPES) ? self::ERROR_TYPES[$errorType] : 'UNKNOWN';
+        return array_key_exists($error_type, self::ERROR_TYPES) ? self::ERROR_TYPES[$error_type] : 'UNKNOWN';
     }
 }

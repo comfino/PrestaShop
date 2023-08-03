@@ -1,13 +1,14 @@
 <?php
 /**
- * 2007-2021 PrestaShop
+ * Copyright since 2007 PrestaShop SA and Contributors
+ * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.md.
  * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
+ * https://opensource.org/licenses/OSL-3.0
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@prestashop.com so we can send you a copy immediately.
@@ -16,15 +17,13 @@
  *
  * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
  * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
+ * needs please refer to https://devdocs.prestashop.com/ for more information.
  *
- * @author PrestaShop SA <contact@prestashop.com>
- * @copyright  2007-2021 PrestaShop SA
- * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- *
- * @version  Release: $Revision$
- *  International Registered Trademark & Property of PrestaShop SA
+ * @author    PrestaShop SA and Contributors <contact@prestashop.com>
+ * @copyright Since 2007 PrestaShop SA and Contributors
+ * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -187,7 +186,6 @@ class OrdersList extends ObjectModel
      * @param null $id
      * @param null $id_lang
      * @param null $id_shop
-     *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
@@ -198,9 +196,7 @@ class OrdersList extends ObjectModel
 
     /**
      * @param array $data
-     *
      * @return bool
-     *
      * @throws PrestaShopException
      */
     public static function createOrder($data)
@@ -260,7 +256,6 @@ class OrdersList extends ObjectModel
      * @param $order_id
      * @param $key
      * @param $value
-     *
      * @return bool
      */
     public static function updateOrder($order_id, $key, $value)
@@ -276,6 +271,10 @@ class OrdersList extends ObjectModel
         return Db::getInstance()->execute($sql);
     }
 
+    /**
+     * @param string $state
+     * @return string
+     */
     public static function getState($state)
     {
         $state = Tools::strtoupper($state);
@@ -288,33 +287,37 @@ class OrdersList extends ObjectModel
     }
 
     /**
-     * @param string $orderId
+     * @param string $order_id
      * @param string $status
-     *
      * @return bool
      * @throws Exception
      */
-    public static function processState($orderId, $status)
+    public static function processState($order_id, $status)
     {
         if (in_array($status, self::IGNORED_STATUSES, true)) {
             return true;
         }
 
-        $order = new OrderCore($orderId);
+        $order = new OrderCore($order_id);
 
         if (!ValidateCore::isLoadedObject($order)) {
-            throw new \Exception(sprintf('Order not found by id: %s', $orderId));
+            throw new Exception(sprintf('Order not found by id: %s', $order_id));
         }
 
-        $internalStatus = self::getState($status);
+        $internal_status_new = self::getState($status);
 
-        if ($internalStatus === 'PS_OS_ERROR') {
+        if ($internal_status_new === 'PS_OS_ERROR') {
             return false;
         }
 
-        $order->setCurrentState(Configuration::get($internalStatus));
+        $internal_status_current_id = (int) $order->getCurrentState();
+        $internal_status_new_id = (int) Configuration::get($internal_status_new);
 
-        self::setSecondState($status, $order);
+        if ($internal_status_new_id !== $internal_status_current_id) {
+            $order->setCurrentState($internal_status_new_id);
+
+            self::setSecondState($status, $order);
+        }
 
         return true;
     }
@@ -329,15 +332,15 @@ class OrdersList extends ObjectModel
             return;
         }
 
-        $order->setCurrentState(ConfigurationCore::get(self::CHANGE_STATUS_MAP[$status]));
+        $order->setCurrentState(Configuration::get(self::CHANGE_STATUS_MAP[$status]));
     }
 
     private static function wasSecondStatusSetInHistory($status, OrderCore $order)
     {
-        $idOrderState = ConfigurationCore::get($status);
+        $id_order_state = Configuration::get($status);
 
         foreach ($order->getHistory(0) as $historyElement) {
-            if ($historyElement['id_order_state'] === $idOrderState) {
+            if ($historyElement['id_order_state'] === $id_order_state) {
                 return true;
             }
         }

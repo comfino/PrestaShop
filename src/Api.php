@@ -1,13 +1,14 @@
 <?php
 /**
- * 2007-2023 PrestaShop
+ * Copyright since 2007 PrestaShop SA and Contributors
+ * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.md.
  * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
+ * https://opensource.org/licenses/OSL-3.0
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@prestashop.com so we can send you a copy immediately.
@@ -16,13 +17,15 @@
  *
  * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
  * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
+ * needs please refer to https://devdocs.prestashop.com/ for more information.
  *
- *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2023 PrestaShop SA
- *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- *  International Registered Trademark & Property of PrestaShop SA
+ * @author    PrestaShop SA and Contributors <contact@prestashop.com>
+ * @copyright Since 2007 PrestaShop SA and Contributors
+ * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -30,7 +33,7 @@ if (!defined('_PS_VERSION_')) {
 require_once 'ShopPluginErrorRequest.php';
 require_once 'ErrorLogger.php';
 
-class ComfinoApi
+class Api
 {
     const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
     const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
@@ -41,24 +44,57 @@ class ComfinoApi
     const CONVENIENT_INSTALLMENTS = 'CONVENIENT_INSTALLMENTS';
     const PAY_LATER = 'PAY_LATER';
 
+    /** @var bool */
+    private static $is_sandbox_mode;
+
+    /** @var string */
     private static $api_host;
+
+    /** @var string */
     private static $api_key;
+
+    /** @var string */
+    private static $widget_script_url;
+
+    /** @var string|null */
     private static $last_request_body;
+
+    /** @var string|null */
     private static $last_response_body;
 
+    /** @var int|null */
+    private static $last_response_code;
+
+    /** @var array */
+    private static $last_errors = [];
+
+    public static function init()
+    {
+        $config_manager = new ConfigManager();
+
+        $sandbox_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
+        $production_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
+
+        self::$is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
+        self::$api_host = self::$is_sandbox_mode ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST;
+        self::$api_key = self::$is_sandbox_mode ? $sandbox_key : $production_key;
+        self::$widget_script_url = self::$is_sandbox_mode
+            ? self::WIDGET_SCRIPT_SANDBOX_URL
+            : self::WIDGET_SCRIPT_PRODUCTION_URL;
+    }
+
     /**
-     * @param Cart $cart
+     * @param \Cart $cart
      * @param string $order_id
      * @param string $return_url
-     *
      * @return array|bool
      */
     public static function createOrder($cart, $order_id, $return_url)
     {
         $total = (int) ($cart->getOrderTotal(true) * 100);
-        $delivery = (int) ($cart->getOrderTotal(true, Cart::ONLY_SHIPPING) * 100);
+        $delivery = (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100);
 
-        $customer = new Customer($cart->id_customer);
+        $customer = new \Customer($cart->id_customer);
         $products = [];
 
         $cart_total = 0;
@@ -114,7 +150,7 @@ class ComfinoApi
             $building_number = $address_explode[1];
         }
 
-        $context = Context::getContext();
+        $context = \Context::getContext();
         $customer_tax_id = trim(str_replace('-', '', $address[$cart->id_address_delivery]->vat_number));
         $phone_number = trim($address[$cart->id_address_delivery]->phone);
 
@@ -142,7 +178,7 @@ class ComfinoApi
                 'lastName' => $address[$cart->id_address_delivery]->lastname,
                 'email' => $customer->email,
                 'phoneNumber' => $phone_number,
-                'ip' => Tools::getRemoteAddr(),
+                'ip' => \Tools::getRemoteAddr(),
                 'regular' => !$customer->is_guest,
                 'logged' => $customer->isLogged(),
                 'address' => [
@@ -160,14 +196,18 @@ class ComfinoApi
             $data['customer']['taxId'] = $customer_tax_id;
         }
 
-        $response = self::sendRequest(self::getApiHost() . '/v1/orders', 'POST', [CURLOPT_FOLLOWLOCATION => true], $data);
+        $response = self::sendRequest(
+            self::getApiHost() . '/v1/orders',
+            'POST',
+            [CURLOPT_FOLLOWLOCATION => true],
+            $data
+        );
 
         return $response !== false ? json_decode($response, true) : false;
     }
 
     /**
      * @param $loan_amount
-     *
      * @return array|bool
      */
     public static function getOffers($loan_amount)
@@ -180,7 +220,6 @@ class ComfinoApi
 
     /**
      * @param $self_link
-     *
      * @return array|bool
      */
     public static function getOrder($self_link)
@@ -192,7 +231,6 @@ class ComfinoApi
 
     /**
      * @param string $order_id
-     *
      * @return void
      */
     public static function cancelOrder($order_id)
@@ -205,22 +243,77 @@ class ComfinoApi
      */
     public static function getWidgetKey()
     {
-        $widgetKey = '';
+        $widget_key = '';
 
         if (!empty(self::getApiKey())) {
-            $widgetKey = self::sendRequest(self::getApiHost() . '/v1/widget-key', 'GET');
+            $widget_key = self::sendRequest(self::getApiHost() . '/v1/widget-key', 'GET');
 
-            if (!is_array($widgetKey)) {
-                $widgetKey = json_decode($widgetKey, true);
+            if (!count(self::$last_errors)) {
+                $widget_key = json_decode($widget_key, true);
+            } else {
+                $widget_key = false;
             }
         }
 
-        return $widgetKey;
+        return $widget_key;
+    }
+
+    /**
+     * @param string $name
+     * @param string $url
+     * @param string $contactName
+     * @param string $email
+     * @param string $phone
+     * @param array $agreements
+     * @return array|bool
+     */
+    public static function registerShopAccount($name, $url, $contactName, $email, $phone, $agreements)
+    {
+        $data = [
+            'name' => $name,
+            'webSiteUrl' => $url,
+            'contactName' => $contactName,
+            'contactEmail' => $email,
+            'contactPhone' => $phone,
+            'platformId' => 11,
+            'agreements' => $agreements,
+        ];
+
+        $response = self::sendRequest(self::getApiHost() . '/v1/user', 'POST', $data);
+
+        return !count(self::$last_errors) ? json_decode($response, true) : false;
+    }
+
+    /**
+     * @return array|bool
+     */
+    public static function getShopAccountAgreements()
+    {
+        $response = self::sendRequest(self::getApiHost() . '/v1/fetch-agreements', 'GET');
+
+        return !count(self::$last_errors) ? json_decode($response, true) : false;
+    }
+
+    /**
+     * @return bool
+     */
+    public static function isShopAccountActive()
+    {
+        $account_active = false;
+
+        if (!empty(self::getApiKey())) {
+            $response = self::sendRequest(self::getApiHost() . '/v1/user/is-active', 'GET', [], null, false);
+
+            if (!count(self::$last_errors)) {
+                $account_active = json_decode($response, true);
+            }
+        }
+
+        return $account_active;
     }
 
     /**
      * @param ShopPluginError $error
-     *
      * @return bool
      */
     public static function sendLoggedError(ShopPluginError $error)
@@ -236,7 +329,7 @@ class ComfinoApi
         $data = ['error_details' => $request->errorDetails, 'hash' => $request->hash];
         $response = self::sendRequest(self::getApiHost() . '/v1/log-plugin-error', 'POST', [], $data, false);
 
-        return strpos($response, '"errors":') === false;
+        return strpos($response, 'errors') === false;
     }
 
     /**
@@ -258,8 +351,16 @@ class ComfinoApi
     }
 
     /**
+     * @param bool $is_sandbox_mode
+     * @return void
+     */
+    public static function setSandboxMode($is_sandbox_mode)
+    {
+        self::$is_sandbox_mode = $is_sandbox_mode;
+    }
+
+    /**
      * @param string $api_host
-     *
      * @return void
      */
     public static function setApiHost($api_host)
@@ -269,7 +370,6 @@ class ComfinoApi
 
     /**
      * @param string $api_key
-     *
      * @return void
      */
     public static function setApiKey($api_key)
@@ -294,15 +394,27 @@ class ComfinoApi
     }
 
     /**
+     * @return int|null
+     */
+    public static function getLastResponseCode()
+    {
+        return self::$last_response_code;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getLastErrors()
+    {
+        return self::$last_errors;
+    }
+
+    /**
      * @return string
      */
     public static function getApiKey()
     {
-        return empty(self::$api_key)
-            ? Configuration::get('COMFINO_IS_SANDBOX')
-                ? Configuration::get('COMFINO_SANDBOX_API_KEY')
-                : Configuration::get('COMFINO_API_KEY')
-            : self::$api_key;
+        return self::$api_key;
     }
 
     /**
@@ -311,20 +423,17 @@ class ComfinoApi
     public static function getWidgetScriptUrl()
     {
         if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') &&
-            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN') &&
-            getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')
+            getenv('COMFINO_DEV_WIDGET_SCRIPT_URL') &&
+            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
         ) {
             return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
         }
 
-        return Configuration::get('COMFINO_IS_SANDBOX')
-            ? self::WIDGET_SCRIPT_SANDBOX_URL
-            : self::WIDGET_SCRIPT_PRODUCTION_URL;
+        return self::$widget_script_url;
     }
 
     /**
      * @param bool $frontendHost
-     *
      * @return string
      */
     private static function getApiHost($frontendHost = false)
@@ -343,14 +452,11 @@ class ComfinoApi
             }
         }
 
-        return empty(self::$api_host)
-            ? Configuration::get('COMFINO_IS_SANDBOX') ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST
-            : self::$api_host;
+        return self::$api_host;
     }
 
     /**
      * @param array $product
-     *
      * @return string
      */
     private static function getProductsImageUrl($product)
@@ -365,13 +471,13 @@ class ComfinoApi
             $link_rewrite = $product['link_rewrite'];
         }
 
-        $image = Image::getCover($product['id_product']);
+        $image = \Image::getCover($product['id_product']);
 
         if (!is_array($image) && !isset($image['id_image'])) {
             return '';
         }
 
-        $imageUrl = (new Link())->getImageLink($link_rewrite, $image['id_image']);
+        $imageUrl = (new \Link())->getImageLink($link_rewrite, $image['id_image']);
 
         if (strpos($imageUrl, 'http') === false) {
             $imageUrl = 'https://' . $imageUrl;
@@ -381,8 +487,7 @@ class ComfinoApi
     }
 
     /**
-     * @param Context $context
-     *
+     * @param \Context $context
      * @return string
      */
     private static function getNotifyUrl($context)
@@ -392,12 +497,11 @@ class ComfinoApi
 
     /**
      * @param string $return_url
-     *
      * @return string
      */
     private static function getReturnUrl($return_url)
     {
-        return Tools::getHttpHost(true) . __PS_BASE_URI__ . $return_url;
+        return \Tools::getHttpHost(true) . __PS_BASE_URI__ . $return_url;
     }
 
     /**
@@ -406,17 +510,18 @@ class ComfinoApi
      * @param array $extra_options
      * @param string $data
      * @param bool $log_errors
-     *
      * @return string|bool
      */
     private static function sendRequest($url, $request_type, $extra_options = [], $data = null, $log_errors = true)
     {
         self::$last_request_body = null;
         self::$last_response_body = null;
+        self::$last_response_code = null;
+        self::$last_errors = [];
 
         $options = [
             CURLOPT_URL => $url,
-            CURLOPT_CUSTOMREQUEST => Tools::strtoupper($request_type),
+            CURLOPT_CUSTOMREQUEST => \Tools::strtoupper($request_type),
             CURLOPT_HTTPHEADER => [
                 'API-KEY: ' . self::getApiKey(),
                 'User-Agent: ' . self::getUserAgentHeader(),
@@ -444,6 +549,8 @@ class ComfinoApi
 
         curl_close($curl);
 
+        self::$last_response_body = $response;
+
         return $response;
     }
 
@@ -452,60 +559,69 @@ class ComfinoApi
      * @param string $url
      * @param mixed $data
      * @param bool $log_errors
-     *
      * @return string|bool
      */
     private static function processResponse($curl, $url, $data, $log_errors)
     {
         $response = curl_exec($curl);
 
-        if ($response === false || (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE) > 400) {
+        self::$last_response_code = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+
+        if ($response === false || self::$last_response_code > 400) {
             $error_id = time();
+
+            self::$last_errors = [
+                "Communication error: $error_id. Please contact with support and note this error id.",
+            ];
 
             if ($log_errors) {
                 ErrorLogger::sendError(
                     "Communication error [$error_id]", curl_errno($curl), curl_error($curl),
                     $url, $data !== null ? json_encode($data) : null,
-                    $response !== false ? $response : curl_getinfo($curl, CURLINFO_RESPONSE_CODE)
+                    $response !== false ? $response : self::$last_response_code
                 );
             }
 
-            $response = json_encode([
-                'errors' => ["Communication error: $error_id. Please contact with support and note this error id."],
-            ]);
+            $response = json_encode(['errors' => self::$last_errors]);
         } else {
             $decoded = json_decode($response, true);
 
-            if ($decoded !== false && isset($decoded['errors'])) {
+            if ($decoded !== false && (isset($decoded['errors']) || isset($decoded['message']))) {
+                $errors = [];
+
+                if (isset($decoded['errors'])) {
+                    $errors = array_map(
+                        static function ($k, $v) { return "$k: $v"; },
+                        array_keys($decoded['errors']),
+                        array_values($decoded['errors'])
+                    );
+                } elseif (isset($decoded['message'])) {
+                    $errors[] = $decoded['message'];
+                }
+
                 if ($log_errors) {
                     ErrorLogger::sendError(
-                        'Payment error', 0, implode(', ', $decoded['errors']),
+                        'Payment error', 0, implode(', ', $errors),
                         $url, $data !== null ? json_encode($data) : null, $response
                     );
                 }
 
-                $response = json_encode(
-                    [
-                        'errors' => array_map(
-                            static function ($k, $v) { return "$k: $v"; },
-                            array_keys($decoded['errors']),
-                            array_values($decoded['errors'])
-                        ),
-                    ]
-                );
-            } elseif (curl_getinfo($curl, CURLINFO_RESPONSE_CODE) >= 400) {
+                self::$last_errors = $errors;
+
+                $response = json_encode(['errors' => self::$last_errors]);
+            } elseif (self::$last_response_code >= 400) {
                 $error_id = time();
 
                 if ($log_errors) {
                     ErrorLogger::sendError(
-                        "Payment error [$error_id]", curl_getinfo($curl, CURLINFO_RESPONSE_CODE),
+                        "Payment error [$error_id]", self::$last_response_code,
                         'API error.', $url, $data !== null ? json_encode($data) : null, $response
                     );
                 }
 
-                $response = json_encode([
-                    'errors' => ["Payment error: $error_id. Please contact with support and note this error id."],
-                ]);
+                self::$last_errors = ["Payment error: $error_id. Please contact with support and note this error id."];
+
+                $response = json_encode(['errors' => self::$last_errors]);
             }
         }
 
@@ -522,13 +638,14 @@ class ComfinoApi
     private static function getUserAgentHeader()
     {
         return sprintf(
-            'PS Comfino [%s], PS [%s], SF [%s], PHP [%s]',
+            'PS Comfino [%s], PS [%s], SF [%s], PHP [%s], %s',
             COMFINO_VERSION,
             _PS_VERSION_,
             COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
                 ? \Symfony\Component\HttpKernel\Kernel::VERSION
                 : 'n/a',
-            PHP_VERSION
+            PHP_VERSION,
+            \Tools::getShopDomain()
         );
     }
 }

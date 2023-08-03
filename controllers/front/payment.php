@@ -1,13 +1,14 @@
 <?php
 /**
- * 2007-2023 PrestaShop
+ * Copyright since 2007 PrestaShop SA and Contributors
+ * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
  * NOTICE OF LICENSE
  *
- * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
+ * This source file is subject to the Open Software License (OSL 3.0)
+ * that is bundled with this package in the file LICENSE.md.
  * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
+ * https://opensource.org/licenses/OSL-3.0
  * If you did not receive a copy of the license and are unable to
  * obtain it through the world-wide-web, please send an email
  * to license@prestashop.com so we can send you a copy immediately.
@@ -16,24 +17,29 @@
  *
  * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
  * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
+ * needs please refer to https://devdocs.prestashop.com/ for more information.
  *
- *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2023 PrestaShop SA
- *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- *  International Registered Trademark & Property of PrestaShop SA
+ * @author    PrestaShop SA and Contributors <contact@prestashop.com>
+ * @copyright Since 2007 PrestaShop SA and Contributors
+ * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+use Comfino\Api;
+use Comfino\ErrorLogger;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
 class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
+        Api::init();
         ErrorLogger::init();
 
         parent::postProcess();
@@ -117,32 +123,32 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $customer->secure_key
         );
 
-        $order_confirmation = ComfinoApi::createOrder(
+        $order_response = Api::createOrder(
             $this->context->cart,
             $this->module->currentOrder,
-            'index.php?controller=order-confirmation&id_cart=' . (int) $cart->id . '&id_module=' . (int) $this->module->id .
+            'index.php?controller=order-confirmation&id_cart=' . $cart->id . '&id_module=' . $this->module->id .
             '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key
         );
 
         $order = new Order($this->module->currentOrder);
 
-        if (!is_array($order_confirmation) || !isset($order_confirmation['applicationUrl'])) {
+        if (!is_array($order_response) || !isset($order_response['applicationUrl'])) {
             $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
             $order->save();
 
             ErrorLogger::sendError(
                 'Order creation error', 0, 'Wrong Comfino API response.',
                 $_SERVER['REQUEST_URI'],
-                ComfinoApi::getLastRequestBody(),
-                is_array($order_confirmation) ? json_encode($order_confirmation) : ComfinoApi::getLastResponseBody()
+                Api::getLastRequestBody(),
+                is_array($order_response) ? json_encode($order_response) : Api::getLastResponseBody()
             );
 
             Tools::redirect($this->context->link->getModuleLink(
                 $this->module->name,
                 'error',
                 [
-                    'error' => is_array($order_confirmation) && isset($order_confirmation['errors'])
-                        ? implode(',', $order_confirmation['errors'])
+                    'error' => is_array($order_response) && isset($order_response['errors'])
+                        ? implode(',', $order_response['errors'])
                         : 'Order creation error.',
                 ],
                 true
@@ -151,18 +157,18 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         OrdersList::createOrder(
             [
-                'id_comfino' => $order_confirmation['externalId'],
+                'id_comfino' => $order_response['externalId'],
                 'id_customer' => $cart->id_customer,
-                'order_status' => $order_confirmation['status'],
-                'legalize_link' => isset($order_confirmation['_links']['legalize'])
-                    ? $order_confirmation['_links']['legalize']['href']
+                'order_status' => $order_response['status'],
+                'legalize_link' => isset($order_response['_links']['legalize'])
+                    ? $order_response['_links']['legalize']['href']
                     : '',
-                'self_link' => $order_confirmation['_links']['self']['href'],
-                'cancel_link' => $order_confirmation['_links']['cancel']['href'],
+                'self_link' => $order_response['_links']['self']['href'],
+                'cancel_link' => $order_response['_links']['cancel']['href'],
             ]
         );
 
-        Tools::redirect($order_confirmation['applicationUrl']);
+        Tools::redirect($order_response['applicationUrl']);
     }
 
     // FIXME Implement proper logic for PrestaShop 1.6.
@@ -170,7 +176,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
     {
         $notifications = json_encode(['error' => $this->errors]);
 
-        if (session_status() == PHP_SESSION_ACTIVE) {
+        if (session_status() === PHP_SESSION_ACTIVE) {
             $_SESSION['notifications'] = $notifications;
         } else {
             setcookie('notifications', $notifications);

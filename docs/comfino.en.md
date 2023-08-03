@@ -1,49 +1,104 @@
-## DOWNLOAD PLUGIN
+## PLUGIN DOWNLOAD
 
-Open page https://github.com/comfino/PrestaShop/releases and download latest plugin.
+Download the latest version of the plugin from the website: https://github.com/comfino/PrestaShop/releases
 
 ## INSTALLATION
 
-Prestashop 1.6.*
-----------------
+On-line version of the documentation: https://comfino.pl/plugins/PrestaShop/en
 
-To install the module, please go to `"Modules -> Modules and services"` tab and then click `"Add new module"` button, then panel with `"Module file"` input should appear. In this input choose module's file and click `"Send module button"`. If the module was uploaded, then it should be visible on modules list. Then you should just choose the module and click `"Install"` button.
+PrestaShop 1.6
+-------
+
+To install the module, please go to `"Modules -> Modules and services"` tab and then click `"Add new module"` button, then panel with `"Module file"` input should appear.
+In this input choose module's file and click `"Send module button"`. If the module was uploaded, then it should be visible on modules list. Then you should just choose the module and click `"Install"` button.
 
 ![Configuration](images/en/modules_ps_16.png "Configuration")
 ![Configuration](images/en/modules_ps_16_panel.png "Configuration")
 
-Prestashop 1.7.*
-----------------
+PrestaShop 1.7, PrestaShop 8
+-------
 
 To install the module, please go to `"Modules -> Modules Manager"` tab, and then click `"Upload module"` button.
-To the field that appears, put module's file. Module will be installed automaticly.
+To the field that appears, put module's file. Module will be installed automatically.
 
 ![Configuration](images/en/modules_ps_17.png "Configuration")
 
 ## CONFIGURATION
 
-For the module correct work, configuration is required. You can do this by click `"Configure"` in module information panel.
-There are a couple of important field that should be filled: `"API key"`.
-The second important field is `"Tax ID"`. In the "For developers" section there is a second key field - `"Test environment API key"`.
+The configuration parameters of the module are grouped by categories corresponding to the tabs of the configuration panel: `"PAYMENT SETTINGS"`, `"WIDGET SETTINGS"`, `"DEVELOPER SETTINGS"`.
+The last tab `"PLUGIN DIAGNOSTICS"` does not contain any parameters to be set and has an information-diagnostic function. Among other things, it contains a local error log.
 
-Other fields worth attention are:
+Before using Comfino payments, the module must be configured. You can do this by clicking `"Configure"` in the module info panel.
 
-* Payment text - this is text that will be showing nearby payment option. Default value is `"Pay with Comperia"`
-* Minimal amount in cart - default value is 30 zł. Value should be number
+The most important field that must be filled in is the "Production Environment API Key" field from the `"PAYMENT SETTINGS"` tab.
+In the `"DEVELOPER SETTINGS"` tab, there is a second key field - `"Test environment API key"`.
 
-![Configuration](images/en/configuration.png "Configuration")
+Configuration parameter fields:
 
-## ATTENTION
+**PAYMENT SETTINGS**
 
-* For the module correct work, phone number field in checkout must be set required.
-* HTTP's PUT Method should be enabled on the server.
-* Required data in the Comfino plugin:
+* **Production environment API key** — a unique access key that allows the module to communicate with the Comfino API (you will receive it from a Comfino representative)
+* **Payment presentation** — the way Comfino is presented on the list of payment methods [`Only icon`, `Only text`, `Icon and text`]
+* **Payment text** — text displayed in the list of payment methods (default `"(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)"`)
+* **Minimal amount in cart** — the value of the cart from which Comfino payment is available (default: 30 PLN)
+
+![Configuration](images/en/configuration1.png "Configuration")
+
+**WIDGET SETTINGS**
+
+**Basic Settings**
+
+* **Widget is active?** — promotional widget activation/deactivation switch on the product page
+* **Widget type** — way of presenting the widget [`Textual widget`, `Graphical widget with banner`, `Graphical widget with installments calculator`]
+* **Offer type** — type of financing offer promoted [`Zero percent installments`, `Convenient installments`, `Pay later`]
+
+**Advanced settings**
+
+* **Widget price element selector** — HTML document element containing the price of the product
+* **Widget anchor element selector** — widget container element (widget is embedded in it)
+* **Price change detection - container selector** — HTML document element containing a price element directly or indirectly used to track price changes and recalculate offers
+* **Price change detection - container hierarchy level** — DOM hierarchy level used to track price changes and recalculate offers
+* **Embedding method** — how the widget is oriented relative to the container element [`INSERT_INTO_FIRST`, `INSERT_INTO_LAST`, `INSERT_BEFORE`, `INSERT_AFTER`]
+* **Widget initialization code** — JavaScript script to initialize the widget on the product page (making changes not recommended for non-advanced users without JavaScript knowledge)
+
+Detailed information on the operation of the widget and its configuration options can be found in a separate [Comfino widget documentation](https://comfino.pl/widgets/comfino-prestashop/en).
+
+![Configuration](images/en/configuration2.png "Configuration")
+
+**DEVELOPER SETTINGS**
+
+* **Use test environment** — developer mode activation/deactivation switch
+* **Test environment API key** — a unique access key enabling the module to communicate with the Comfino test API
+
+![Configuration](images/en/configuration3.png "Configuration")
+
+**Note**
+
+Before launching payments on the production store, disable developer mode to block the use of the Comfino payment test environment.
+
+**PLUGIN DIAGNOSTICS**
+
+The tab contains technical information about the plugin and the environment (plugin version, store version, PHP and web server version, etc.).\
+It also contains a list of recent errors with a preview of the local error log.
+
+![Configuration](images/en/configuration4.png "Configuration")
+
+Information about developer mode activity is displayed in the tabs `"PAYMENT SETTINGS"` and `"PLUGIN DIAGNOSTICS"`.
+In this mode, the plugin uses the key from the `"DEVELOPER SETTINGS"` tab to communicate with the Comfino test API. You will also receive a test environment key from a Comfino representative.
+
+![Configuration](images/en/configuration5.png "Configuration")
+
+## REMARKS
+
+* The Comfino payment module requires you to set the customer's phone number as required in the process of entering the customer's contact details. The phone number is used to send codes and inform the customer about the status of the transaction, at a later stage of Comfino payment processing. In case of absence of a telephone number, the Comfino payment transaction will end with an error displayed on the store's website.
+* The module notification system requires the availability of the HTTP "PUT" method. The module receives information about changes in the status of Comfino transactions and changes the internal order status in PrestaShop accordingly. In case of problems with notifications, check the web server settings in your hosting panel.
+* Customer and order data required by the Comfino module:
     * Customer:
         * first name - 2-63 characters
         * last name - 2-63 characters
-        * email address - valid email address
-        * valid polish mobile phone number (expected format: xxxxxxxxx, xxx xxx xxx, +48 xxxxxxxxx).
-    * Card:
+        * email address - valid e-mail address
+        * valid Polish mobile phone number (expected format: xxxxxxxxx, xxx xxx xxx, +48 xxxxxxxxx).
+    * Cart:
         * total amount
         * list of products
             * name
@@ -57,14 +112,12 @@ Other fields worth attention are:
         * city
         * country code
 
-## STATUS NOTIFICATIONS:
+## SAMPLE CART VIEW WITH A LIST OF PAYMENT METHODS
 
-Change order status to complete. The result is invoice and shipment products.
+![Cart](images/en/cart_payment_view_folded.png "Cart")
 
-* ACCEPTED
-* WAITING_FOR_PAYMENT
-* PAID
+![Cart](images/en/cart_payment_view_unfolded.png "Cart")
 
-## FLOW
+## COMFINO PROCESS FLOW
 
 ![Flow](images/comfino-flow.png "Flow")

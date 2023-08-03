@@ -4,9 +4,15 @@
         "prepend-autoloader": false
     },
     "autoload": {
-        "psr-4": {"Comfino\\": "src/"},
-        "classmap": ["comfino.php"],
-        "config": {"prepend-autoloader": false},
+        "psr-4": {
+            "Comfino\\": "src/"
+        },
+        "classmap": [
+            "comfino.php"
+        ],
+        "config": {
+            "prepend-autoloader": false
+        },
         "type": "prestashop-module"
     },
     "require": {
@@ -17,5 +23,7 @@
     },
     "require-dev": {
         "prestashop/php-dev-tools": "^4.3"
-    }
+    },
+    "author": "PrestaShop",
+    "license": "OSL-3.0"
 }

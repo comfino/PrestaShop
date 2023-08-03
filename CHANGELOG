@@ -1,3 +1,6 @@
+3.0.0
+ - FN-10645 Complete plugin refactoring: new admin GUI design, improved errors handling and configuration management, code clean up.
+
 2.5.2
  - FN-10550 Fix bug in cart total value calculation if discount is present.
 
