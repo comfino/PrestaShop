@@ -273,7 +273,7 @@
         align-items: center;
     }
 
-    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-payment-delay .comfino-payment-delay__box .comfino-helper-box .comfino-payment-delay__single-instruction .comfin-single-instruction__text {
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-payment-delay .comfino-payment-delay__box .comfino-helper-box .comfino-payment-delay__single-instruction .comfino-single-instruction__text {
         text-align: center;
         font-size: .9em;
         padding-top: 1em;
@@ -405,6 +405,10 @@
         margin-top: -11px;
         top: 50%;
     }
+
+    div#comfino-box.comfino div.comfino-box main.comfino-subbox .comfino-summary-box .comfino-operator-commission {
+        margin-top: 20px;
+    }
 </style>
 
 <div class="row">
@@ -446,6 +450,7 @@
                 <section class="comfino-summary-box">
                     <div class="comfino-summary-total">{l s='Total amount to pay' mod='comfino'}: <span id="comfino-summary-total"></span></div>
                     <div class="comfino-rrso">RRSO <span id="comfino-rrso"></span></div>
+                    <div id="comfino-operator-commission-container" class="comfino-operator-commission" style="display: none">{l s="Operator commission" mod="comfino"}: <span id="comfino-operator-commission"></span></div>
                     <div id="comfino-description-box" class="comfino-description-box"></div>
                 </section>
                 <footer>
@@ -467,13 +472,13 @@
                             <div class="single-instruction-img__background">
                                 <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/cart.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">{l s='Put the product in the basket' mod='comfino'}</div>
+                            <div class="comfino-single-instruction__text">{l s='Put the product in the basket' mod='comfino'}</div>
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
                                 <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/comfino.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">{l s='Choose Comfino payment' mod='comfino'}</div>
+                            <div class="comfino-single-instruction__text">{l s='Choose Comfino payment' mod='comfino'}</div>
                         </div>
                     </div>
                     <div class="comfino-helper-box">
@@ -481,13 +486,13 @@
                             <div class="single-instruction-img__background">
                                 <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/check.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">{l s='Check the products at home' mod='comfino'}</div>
+                            <div class="comfino-single-instruction__text">{l s='Check the products at home' mod='comfino'}</div>
                         </div>
                         <div class="comfino-payment-delay__single-instruction">
                             <div class="single-instruction-img__background">
                                 <img src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/icons/wallet.svg" alt="" class="single-instruction-img" />
                             </div>
-                            <div class="comfin-single-instruction__text">{l s='Pay in 30 days' mod='comfino'}</div>
+                            <div class="comfino-single-instruction__text">{l s='Pay in 30 days' mod='comfino'}</div>
                         </div>
                     </div>
                 </div>
@@ -577,6 +582,7 @@
                         document.getElementById('comfino-rrso').innerHTML = loanParams.rrso + '%';
                         document.getElementById('comfino-description-box').innerHTML = Comfino.offerList.data[Comfino.selectedOffer].description;
                         document.getElementById('comfino-repr-example').innerHTML = Comfino.offerList.data[Comfino.selectedOffer].representativeExample;
+                        document.getElementById('comfino-operator-commission').innerHTML = loanParams.commissionFormatted;
 
                         Comfino.offerList.elements[Comfino.selectedOffer].dataset.sumamount = loanParams.sumAmount;
                         Comfino.offerList.elements[Comfino.selectedOffer].dataset.term = loanParams.loanTerm;
@@ -626,6 +632,7 @@
                         document.getElementById('comfino-rrso').innerHTML = loanParams.rrso + '%';
                         document.getElementById('comfino-description-box').innerHTML = Comfino.offerList.data[Comfino.selectedOffer].description;
                         document.getElementById('comfino-repr-example').innerHTML = Comfino.offerList.data[Comfino.selectedOffer].representativeExample;
+                        document.getElementById('comfino-operator-commission').innerHTML = loanParams.commissionFormatted;
 
                         fetch(
                             Comfino.getModuleApiUrl({
@@ -691,18 +698,39 @@
 
                 installmentsElement.style.display = 'block';
 
-                if (offerData.type === 'BLIK') {
-                    installmentsElement.querySelector('section.comfino-installments-box').style.display = 'none';
-                    installmentsElement.querySelector('section.comfino-monthly-box').style.display = 'none';
-                    installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-summary-total').style.display = 'none';
-                    installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-rrso').style.display = 'none';
-                    installmentsElement.querySelector('footer').style.display = 'none';
-                } else {
-                    installmentsElement.querySelector('section.comfino-installments-box').style.display = 'flex';
-                    installmentsElement.querySelector('section.comfino-monthly-box').style.display = 'flex';
-                    installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-summary-total').style.display = 'block';
-                    installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-rrso').style.display = 'block';
-                    installmentsElement.querySelector('footer').style.display = 'block';
+                switch (offerData.type) {
+                    case 'BLIK':
+                        installmentsElement.querySelector('section.comfino-installments-box').style.display = 'none';
+                        installmentsElement.querySelector('section.comfino-monthly-box').style.display = 'none';
+                        installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-summary-total').style.display = 'none';
+                        installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-summary-total-bnpl').style.display = 'none';
+                        installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-rrso').style.display = 'none';
+                        installmentsElement.querySelector('footer').style.display = 'none';
+                        installmentsElement.querySelector('#comfino-operator-commission-container').style.display = 'none';
+                        break;
+
+                    case 'COMPANY_BNPL':
+                        installmentsElement.querySelector('section.comfino-installments-box').style.display = 'flex';
+                        installmentsElement.querySelector('section.comfino-monthly-box').style.display = 'none';
+                        installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-summary-total').style.display = 'none';
+                        installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-summary-total-bnpl').style.display = 'block';
+                        installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-rrso').style.display = 'none';
+                        installmentsElement.querySelector('footer').style.display = 'none';
+                        installmentsElement.querySelector('#comfino-installments-num').style.display = 'none';
+                        installmentsElement.querySelector('#comfino-delay-days-num').style.display = 'inline';
+                        installmentsElement.querySelector('#comfino-operator-commission-container').style.display = 'block';
+                        break;
+
+                    default:
+                        installmentsElement.querySelector('section.comfino-installments-box').style.display = 'flex';
+                        installmentsElement.querySelector('section.comfino-monthly-box').style.display = 'flex';
+                        installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-summary-total').style.display = 'block';
+                        installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-summary-total-bnpl').style.display = 'none';
+                        installmentsElement.querySelector('section.comfino-summary-box').querySelector('div.comfino-rrso').style.display = 'block';
+                        installmentsElement.querySelector('footer').style.display = 'block';
+                        installmentsElement.querySelector('#comfino-installments-num').style.display = 'inline';
+                        installmentsElement.querySelector('#comfino-delay-days-num').style.display = 'none';
+                        installmentsElement.querySelector('#comfino-operator-commission-container').style.display = 'none';
                 }
             }
         },
