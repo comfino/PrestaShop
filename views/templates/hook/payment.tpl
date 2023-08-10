@@ -473,7 +473,7 @@
                         <div class="comfino-modal-bg comfino-modal-exit"></div>
                         <div class="comfino-modal-container">
                             <span id="comfino-repr-example"></span>
-                            <button class="comfino-modal-close comfino-modal-exit">&times;times;</button>
+                            <button class="comfino-modal-close comfino-modal-exit">&times;</button>
                         </div>
                     </div>
                 </footer>
