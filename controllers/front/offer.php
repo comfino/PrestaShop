@@ -97,18 +97,20 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                     'description' => $offer['description'],
                     'icon' => str_ireplace('<?xml version="1.0" encoding="UTF-8"?>', '', $offer['icon']),
                     'type' => $offer['type'],
-                    'sumAmount' => $total / 100,
-                    'sumAmountFormatted' => $tools->formatPrice($total / 100, $cart->id_currency),
                     'representativeExample' => $offer['representativeExample'],
-                    'rrso' => round((float) $offer['rrso'] * 100, 2),
                     'loanTerm' => $offer['loanTerm'],
                     'instalmentAmount' => ((float) $offer['instalmentAmount']) / 100,
                     'instalmentAmountFormatted' => $tools->formatPrice(
                         ((float) $offer['instalmentAmount']) / 100,
                         $cart->id_currency
                     ),
+                    'sumAmount' => $total / 100,
+                    'sumAmountFormatted' => $tools->formatPrice($total / 100, $cart->id_currency),
                     'toPay' => ((float) $offer['toPay']) / 100,
                     'toPayFormatted' => $tools->formatPrice(((float) $offer['toPay']) / 100, $cart->id_currency),
+                    'commission' => ((int) $offer['toPay'] - $total) / 100,
+                    'commissionFormatted' => $tools->formatPrice(((int) $offer['toPay'] - $total) / 100, $cart->id_currency),
+                    'rrso' => round((float) $offer['rrso'] * 100, 2),
                     'loanParameters' => array_map(static function ($loan_params) use ($total, $tools, $cart) {
                         return [
                             'loanTerm' => $loan_params['loanTerm'],
@@ -117,13 +119,15 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
                                 ((float) $loan_params['instalmentAmount']) / 100,
                                 $cart->id_currency
                             ),
+                            'sumAmount' => $total / 100,
+                            'sumAmountFormatted' => $tools->formatPrice($total / 100, $cart->id_currency),
                             'toPay' => ((float) $loan_params['toPay']) / 100,
                             'toPayFormatted' => $tools->formatPrice(
                                 ((float) $loan_params['toPay']) / 100,
                                 $cart->id_currency
                             ),
-                            'sumAmount' => $total / 100,
-                            'sumAmountFormatted' => $tools->formatPrice($total / 100, $cart->id_currency),
+                            'commission' => ((int) $loan_params['toPay'] - $total) / 100,
+                            'commissionFormatted' => $tools->formatPrice(((int) $loan_params['toPay'] - $total) / 100, $cart->id_currency),
                             'rrso' => round((float) $loan_params['rrso'] * 100, 2),
                         ];
                     }, $offer['loanParameters']),

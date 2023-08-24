@@ -1,6 +1,14 @@
 # Changelog
 
-## [3.0.0](https://github.com/comfino/PrestaShop/tree/3.0.0) (2023-06-29)
+## [3.1.0](https://github.com/comfino/PrestaShop/tree/3.1.0) (2023-08-03)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.0.0...3.1.0)
+
+**Merged pull requests:**
+
+- FN-10714 Add support for a new payment method - pay later for companies (COMPANY_BNPL). [\#74](https://github.com/comfino/PrestaShop/pull/74) ([akozubskicr](https://github.com/akozubskicr))
+
+## [3.0.0](https://github.com/comfino/PrestaShop/tree/3.0.0) (2023-08-03)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/2.5.2...3.0.0)
 

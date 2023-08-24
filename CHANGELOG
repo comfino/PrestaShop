@@ -1,5 +1,29 @@
+3.1.0
+ - FN-10714 Add support for a new payment method - pay later for companies (COMPANY_BNPL).
+
 3.0.0
  - FN-10645 Complete plugin refactoring: new admin GUI design, improved errors handling and configuration management, code clean up.
+ - FN-9914 Update configuration form (divide settings into set of tabs, new template for registration in Comfino API), update translations, add a new configuration option "priceObserverLevel" for widget in settings form.
+ - FN-9914 Fix bug in new configuration saving logic.
+ - FN-9914 Improve configuration form - new GUI.
+ - FN-9914 Update API client, improve errors handling.
+ - FN-9914 Update API client - methods for shop registration, update configuration templates.
+ - FN-9914 Update .htaccess file.
+ - FN-9914 Add a new helper class Tools.
+ - FN-9914 Remove incompatibilities with PrestaShop 1.6.
+ - FN-9914 Fix bug in processing widget key after saving widget configuration.
+ - FN-10645 Fix bugs after plugin refactoring - remove incompatibility with PS 1.6 installation logic.
+ - FN-10645 Fix bug in upgrade process - remove AdminOrdersController override from older plugin versions (plugin override directory and PS override directory).
+ - FN-10645 Coding standards, update headers.
+ - FN-10645 Update templates, icons and translations for Paywerk (remove Twisto).
+ - FN-10645 Fix bug - remove OrdersList from Comfino namespace (incompatibility with hooks mechanism in PS 1.6).
+ - FN-10645 Fix bug in configuration update (unexpected widget key reset).
+ - FN-10645 Add support for HTTP CR headers with "X-" prefix in notification and configuration endpoints.
+ - FN-10802 Process orders paid by Comfino only.
+ - FN-10801 Add shop domain to the User-Agent header used in all API calls, add API-KEY header in the cancel order request (initialize API client).
+ - FN-10818 Ignore notifications with CANCELLED_BY_SHOP status - not process and return 400 code.
+ - FN-10818 Fix bugs in notifications processing for cancelled orders.
+ - FN-10627 Update documentation.
 
 2.5.2
  - FN-10550 Fix bug in cart total value calculation if discount is present.
