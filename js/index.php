@@ -1,4 +1,5 @@
-{**
+<?php
+/**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
@@ -21,12 +22,13 @@
  * @author    PrestaShop SA and Contributors <contact@prestashop.com>
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
- *}
+ */
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 
-<div id="comfino-container"></div>
-<script>
-    Comfino.options = '{$frontend_renderer_options|@json_encode nofilter}';
-    Comfino.options.frontendInitElement = document.getElementById('payment_method_comfino');
-    Comfino.options.frontendTargetElement = document.getElementById('comfino-container');
-    Comfino.init('{$frontend_script_url|escape:"javascript":"UTF-8"}');
-</script>
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
+
+header('Location: ../');
+exit;

@@ -70,7 +70,16 @@ class Tools
      */
     public function getCurrencyIsoCode($id_currency)
     {
-        return (new \Currency($id_currency))->iso_code;
+        return Currency::getIsoCodeById($id_currency);
+    }
+
+    /**
+     * @param int $id_lang
+     * @return string
+     */
+    public function getLanguageIsoCode($id_lang)
+    {
+        return Language::getgetIsoById($id_lang);
     }
 
     /**

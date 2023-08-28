@@ -1,3 +1,6 @@
+3.2.0
+ - FN-10894 Completely rewrite frontend logic.
+
 3.1.0
  - FN-10714 Add support for a new payment method - pay later for companies (COMPANY_BNPL).
 

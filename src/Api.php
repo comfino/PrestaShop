@@ -37,8 +37,12 @@ class Api
 {
     const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
     const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
-    const WIDGET_SCRIPT_PRODUCTION_URL = '//widget.comfino.pl/comfino.min.js';
-    const WIDGET_SCRIPT_SANDBOX_URL = '//widget.craty.pl/comfino.min.js';
+
+    const COMFINO_FRONTEND_JS_SANDBOX = 'https://widget.craty.pl/comfino-frontend.min.js';
+    const COMFINO_FRONTEND_JS_PRODUCTION = 'https://widget.comfino.pl/comfino-frontend.min.js';
+
+    const COMFINO_WIDGET_JS_SANDBOX = 'https://widget.craty.pl/comfino.min.js';
+    const COMFINO_WIDGET_JS_PRODUCTION = 'https://widget.comfino.pl/comfino.min.js';
 
     const INSTALLMENTS_ZERO_PERCENT = 'INSTALLMENTS_ZERO_PERCENT';
     const CONVENIENT_INSTALLMENTS = 'CONVENIENT_INSTALLMENTS';
@@ -52,6 +56,9 @@ class Api
 
     /** @var string */
     private static $api_key;
+
+    /** @var string */
+    public static $frontend_script_url;
 
     /** @var string */
     private static $widget_script_url;
@@ -72,15 +79,19 @@ class Api
     {
         $config_manager = new ConfigManager();
 
-        $sandbox_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
-        $production_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
-
         self::$is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
-        self::$api_host = self::$is_sandbox_mode ? self::COMFINO_SANDBOX_HOST : self::COMFINO_PRODUCTION_HOST;
-        self::$api_key = self::$is_sandbox_mode ? $sandbox_key : $production_key;
-        self::$widget_script_url = self::$is_sandbox_mode
-            ? self::WIDGET_SCRIPT_SANDBOX_URL
-            : self::WIDGET_SCRIPT_PRODUCTION_URL;
+
+        if (self::$is_sandbox_mode ) {
+            self::$api_host = self::COMFINO_SANDBOX_HOST;
+            self::$api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
+            self::$frontend_script_url = self::COMFINO_FRONTEND_JS_SANDBOX;
+            self::$widget_script_url = self::COMFINO_WIDGET_JS_SANDBOX;
+        } else {
+            self::$api_host = self::COMFINO_PRODUCTION_HOST;
+            self::$api_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
+            self::$frontend_script_url = self::COMFINO_FRONTEND_JS_PRODUCTION;
+            self::$widget_script_url = self::COMFINO_WIDGET_JS_PRODUCTION;
+        }
     }
 
     /**
@@ -415,6 +426,20 @@ class Api
     public static function getApiKey()
     {
         return self::$api_key;
+    }
+
+    /**
+     * @return string
+     */
+    public static function getFrontendScriptUrl()
+    {
+        if (getenv('COMFINO_DEV') && getenv('COMFINO_DEV_FRONTEND_SCRIPT_URL') &&
+            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        ) {
+            return getenv('COMFINO_DEV_FRONTEND_SCRIPT_URL');
+        }
+
+        return self::$frontend_script_url;
     }
 
     /**
