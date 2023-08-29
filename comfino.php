@@ -617,23 +617,32 @@ class Comfino extends PaymentModule
     {
         $config_manager = new \Comfino\ConfigManager();
 
+        // Frontend initialization script
+        if (COMFINO_PS_17) {
+            $this->context->controller->registerJavascript(
+                'comfino',
+                'modules/' . $this->name . '/js/comfino.js',
+                ['server' => 'local', 'position' => 'head']
+            );
+        } else {
+            $this->context->controller->addJS('/modules/' . $this->name . '/js/comfino.js', false);
+        }
+
+        // Widget initialization script
         if ($config_manager->getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
             $config_crc = crc32(implode($config_manager->getConfigurationValues('widget_settings')));
 
             if (COMFINO_PS_17) {
-                $this->context->controller->registerJavascript(
-                    'comfino',
-                    'modules/' . $this->module->name . '/js/comfino.js',
-                    ['server' => 'local', 'position' => 'head']
-                );
-
                 $this->context->controller->registerJavascript(
                     'comfino-widget',
                     $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
                     ['server' => 'remote', 'position' => 'head']
                 );
             } else {
-                $this->context->controller->addJS('modules/' . $this->module->name . '/js/comfino.js', false);
+                $this->context->controller->addJS(
+                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
+                    false
+                );
             }
         }
     }

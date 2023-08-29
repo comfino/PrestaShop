@@ -39,7 +39,7 @@
 </div>
 <div id="comfino-container"></div>
 <script>
-    Comfino.options = '{$frontend_renderer_options|@json_encode nofilter}';
+    Comfino.options = {$frontend_renderer_options|@json_encode nofilter};
     Comfino.options.frontendInitElement = document.getElementById('pay-with-comperia');
     Comfino.options.frontendTargetElement = document.getElementById('comfino-box');
     Comfino.init('{$frontend_script_url|escape:"javascript":"UTF-8"}');
