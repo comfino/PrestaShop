@@ -26,7 +26,7 @@
 <div id="comfino-container"></div>
 <script>
     Comfino.options = '{$frontend_renderer_options|@json_encode nofilter}';
-    Comfino.options.frontendInitElement = document.getElementById('payment_method_comfino');
+    Comfino.options.frontendInitElement = document.querySelector('input[data-module-name="comfino"]');
     Comfino.options.frontendTargetElement = document.getElementById('comfino-container');
     Comfino.init('{$frontend_script_url|escape:"javascript":"UTF-8"}');
 </script>
