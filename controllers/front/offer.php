@@ -70,7 +70,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
         $cart = $this->context->cart;
         $tools = new \Comfino\Tools($this->context);
 
-        $total = (!Tools::isEmpty(Tools::getValue('total') ? (float) Tools::getValue('total') : 0) * 100);
+        $total = (!Tools::isEmpty(Tools::getValue('total')) ? (float) Tools::getValue('total') : 0) * 100;
         $offers = Api::getOffers($total);
         $payment_offers = [];
         $set = false;
