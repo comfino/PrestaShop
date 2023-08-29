@@ -70,7 +70,7 @@ class Tools
      */
     public function getCurrencyIsoCode($id_currency)
     {
-        return Currency::getIsoCodeById($id_currency);
+        return \Currency::getIsoCodeById($id_currency);
     }
 
     /**
@@ -79,7 +79,7 @@ class Tools
      */
     public function getLanguageIsoCode($id_lang)
     {
-        return Language::getgetIsoById($id_lang);
+        return \Language::getIsoById($id_lang);
     }
 
     /**

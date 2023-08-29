@@ -633,10 +633,7 @@ class Comfino extends PaymentModule
                     ['server' => 'remote', 'position' => 'head']
                 );
             } else {
-                $this->context->controller->addJS(
-                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
-                    false
-                );
+                $this->context->controller->addJS('modules/' . $this->module->name . '/js/comfino.js', false);
             }
         }
     }
@@ -1321,12 +1318,15 @@ class Comfino extends PaymentModule
 
         $tools = new \Comfino\Tools($this->context);
 
+        $offersURL = $this->context->link->getModuleLink($this->name, 'offer', [], true);
+        $offersURL .= ((strpos($offersURL, '?') !== false ? '&' : '?') . 'total=' . $total);
+
         return [
             'platform' => 'prestashop',
             'platformVersion' => _PS_VERSION_,
             'platformDomain' => \Tools::getShopDomain(),
             'pluginVersion' => COMFINO_VERSION,
-            'offersURL' => $this->context->link->getModuleLink($this->name, 'offer', ['total' => $total], true),
+            'offersURL' => $offersURL,
             'language' => $tools->getLanguageIsoCode($cart->id_lang),
             'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
             'cartTotal' => (float)$total,
