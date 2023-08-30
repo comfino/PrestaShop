@@ -446,6 +446,7 @@ class Comfino extends PaymentModule
         }
 
         \Comfino\ErrorLogger::init();
+        \Comfino\Api::init();
 
         $this->smarty->assign($this->getTemplateVars());
 
@@ -471,6 +472,7 @@ class Comfino extends PaymentModule
         }
 
         \Comfino\ErrorLogger::init();
+        \Comfino\Api::init();
 
         $config_manager = new \Comfino\ConfigManager();
 
