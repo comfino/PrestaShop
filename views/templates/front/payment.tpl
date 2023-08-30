@@ -23,7 +23,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
-<div id="comfino-container"></div>
+<div id="comfino-container" style="display: none"></div>
 <script>
     Comfino.options = {$frontend_renderer_options|@json_encode nofilter};
     Comfino.options.frontendInitElement = document.querySelector('input[data-module-name="comfino"]');

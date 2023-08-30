@@ -37,7 +37,13 @@
         </p>
     </div>
 </div>
-<div id="comfino-container"></div>
+<div id="comfino-container" style="display: none">
+    <div class="comfino-bottom-bar">
+        <a id="go-to-payment" href="{$go_to_payment_url|escape:"htmlall":"UTF-8"}" class="comfino-payment-btn">
+            {l s="Go to payment" mod="comfino"}
+        </a>
+    </div>
+</div>
 <script>
     Comfino.options = {$frontend_renderer_options|@json_encode nofilter};
     Comfino.options.frontendInitElement = document.getElementById('pay-with-comperia');
