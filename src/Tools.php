@@ -70,7 +70,9 @@ class Tools
      */
     public function getCurrencyIsoCode($id_currency)
     {
-        return \Currency::getIsoCodeById($id_currency);
+        return COMFINO_PS_17
+            ? \Currency::getIsoCodeById($id_currency)
+            : \Currency::getCurrencyInstance($id_currency)->iso_code;
     }
 
     /**
