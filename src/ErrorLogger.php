@@ -200,6 +200,11 @@ class ErrorLogger
 
     public static function init()
     {
+        if (getenv('COMFINO_DEBUG') === 'TRUE') {
+            // Disable custom errors handling if plugin is in debug mode.
+            return;
+        }
+
         static $initialized = false;
 
         if (!$initialized) {

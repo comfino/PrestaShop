@@ -39,7 +39,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.1.0', false);
+    define('COMFINO_VERSION', '3.2.0', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.1.0';
+        $this->version = '3.2.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -132,6 +132,26 @@ class Comfino extends PaymentModule
             $this->unregisterHook('header');
 
             return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param Cart $cart
+     * @return bool
+     */
+    public function checkCurrency($cart)
+    {
+        $currency_order = new Currency($cart->id_currency);
+        $currencies_module = $this->getCurrency($cart->id_currency);
+
+        if (is_array($currencies_module)) {
+            foreach ($currencies_module as $currency_module) {
+                if ($currency_order->id == $currency_module['id_currency']) {
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -426,6 +446,7 @@ class Comfino extends PaymentModule
         }
 
         \Comfino\ErrorLogger::init();
+        \Comfino\Api::init();
 
         $this->smarty->assign($this->getTemplateVars());
 
@@ -436,26 +457,6 @@ class Comfino extends PaymentModule
         }
 
         return $this->display(__FILE__, 'payment.tpl');
-    }
-
-    /**
-     * @param Cart $cart
-     * @return bool
-     */
-    public function checkCurrency($cart)
-    {
-        $currency_order = new Currency($cart->id_currency);
-        $currencies_module = $this->getCurrency($cart->id_currency);
-
-        if (is_array($currencies_module)) {
-            foreach ($currencies_module as $currency_module) {
-                if ($currency_order->id == $currency_module['id_currency']) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -471,6 +472,7 @@ class Comfino extends PaymentModule
         }
 
         \Comfino\ErrorLogger::init();
+        \Comfino\Api::init();
 
         $config_manager = new \Comfino\ConfigManager();
 
@@ -617,12 +619,24 @@ class Comfino extends PaymentModule
     {
         $config_manager = new \Comfino\ConfigManager();
 
+        // Frontend initialization script
+        if (COMFINO_PS_17) {
+            $this->context->controller->registerJavascript(
+                'comfino',
+                'modules/' . $this->name . '/js/comfino.js',
+                ['server' => 'local', 'position' => 'head']
+            );
+        } else {
+            $this->context->controller->addJS('/modules/' . $this->name . '/js/comfino.js', false);
+        }
+
+        // Widget initialization script
         if ($config_manager->getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
             $config_crc = crc32(implode($config_manager->getConfigurationValues('widget_settings')));
 
             if (COMFINO_PS_17) {
                 $this->context->controller->registerJavascript(
-                    'comfino',
+                    'comfino-widget',
                     $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
                     ['server' => 'remote', 'position' => 'head']
                 );
@@ -1255,11 +1269,12 @@ class Comfino extends PaymentModule
         $config_manager = new \Comfino\ConfigManager();
 
         return [
-            'set_info_url' => $this->context->link->getModuleLink($this->name, 'offer', [], true),
             'pay_with_comfino_text' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'),
             'logo_url' => '//widget.comfino.pl/image/comfino/ecommerce/prestashop/comfino_logo_icon.svg',
             'presentation_type' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_PRESENTATION'),
             'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
+            'frontend_renderer_options' => $this->getOptionsForFrontendRenderer(),
+            'frontend_script_url' => \Comfino\Api::getFrontendScriptUrl(),
         ];
     }
 
@@ -1302,5 +1317,31 @@ class Comfino extends PaymentModule
         $int = $int_sum % 11;
 
         return ($int === 10 ? 0 : $int) === (int) $tax_id[9];
+    }
+
+    /**
+     * @return array
+     */
+    private function getOptionsForFrontendRenderer()
+    {
+        $cart = $this->context->cart;
+        $total = $cart->getOrderTotal();
+
+        $tools = new \Comfino\Tools($this->context);
+
+        $offersURL = $this->context->link->getModuleLink($this->name, 'offer', [], true);
+        $offersURL .= ((strpos($offersURL, '?') !== false ? '&' : '?') . 'total=' . $total);
+
+        return [
+            'platform' => 'prestashop',
+            'platformVersion' => _PS_VERSION_,
+            'platformDomain' => \Tools::getShopDomain(),
+            'pluginVersion' => COMFINO_VERSION,
+            'offersURL' => $offersURL,
+            'language' => $tools->getLanguageIsoCode($cart->id_lang),
+            'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
+            'cartTotal' => (float)$total,
+            'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
+        ];
     }
 }
