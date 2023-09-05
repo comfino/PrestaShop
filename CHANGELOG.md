@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.3.0](https://github.com/comfino/PrestaShop/tree/3.3.0) (2023-09-06)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.2.0...3.3.0)
+
+**Merged pull requests:**
+
+- FN-10948 Add dynamically loaded list of offer types from Comfino API in configuration form (widget settings). [\#76](https://github.com/comfino/PrestaShop/pull/76) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.2.0](https://github.com/comfino/PrestaShop/tree/3.2.0) (2023-08-31)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.1.0...3.2.0)
