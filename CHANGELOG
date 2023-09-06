@@ -1,3 +1,6 @@
+3.3.1
+ - FN-10966 Update htaccess file.
+
 3.3.0
  - FN-10948 Add dynamically loaded list of offer types from Comfino API in configuration form (widget settings).
 
