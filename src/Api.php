@@ -270,6 +270,22 @@ class Api
     }
 
     /**
+     * @return string[]|bool
+     */
+    public static function getProductTypes()
+    {
+        $productTypes = self::sendRequest(self::getApiHost() . '/v1/product-types', 'GET');
+
+        if ($productTypes !== false && !count(self::$last_errors) && strpos($productTypes, 'errors') === false) {
+            $productTypes = json_decode($productTypes, true);
+        } else {
+            $productTypes = false;
+        }
+
+        return $productTypes;
+    }
+
+    /**
      * @param string $name
      * @param string $url
      * @param string $contactName
@@ -549,6 +565,7 @@ class Api
             CURLOPT_CUSTOMREQUEST => \Tools::strtoupper($request_type),
             CURLOPT_HTTPHEADER => [
                 'API-KEY: ' . self::getApiKey(),
+                'API-LANGUAGE: ' . \Context::getContext()->language->iso_code,
                 'User-Agent: ' . self::getUserAgentHeader(),
             ],
             CURLOPT_RETURNTRANSFER => true,

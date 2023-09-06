@@ -39,7 +39,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.2.0', false);
+    define('COMFINO_VERSION', '3.3.0', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.2.0';
+        $this->version = '3.3.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -1002,6 +1002,28 @@ class Comfino extends PaymentModule
                     );
                 }
 
+                $productTypes = \Comfino\Api::getProductTypes();
+
+                if ($productTypes !== false) {
+                    $offerTypes = [];
+
+                    foreach ($productTypes as $productTypeCode => $productTypeName) {
+                        $offerTypes[] = ['key' => $productTypeCode, 'name' => $productTypeName];
+                    }
+                } else {
+                    $offerTypes = [
+                        [
+                            'key' => \Comfino\Api::INSTALLMENTS_ZERO_PERCENT,
+                            'name' => $this->l('Zero percent installments'),
+                        ],
+                        [
+                            'key' => \Comfino\Api::CONVENIENT_INSTALLMENTS,
+                            'name' => $this->l('Convenient installments'),
+                        ],
+                        ['key' => \Comfino\Api::PAY_LATER, 'name' => $this->l('Pay later')],
+                    ];
+                }
+
                 $fields['widget_settings_basic']['form'] = array_merge(
                     $fields['widget_settings_basic']['form'],
                     [
@@ -1058,17 +1080,7 @@ class Comfino extends PaymentModule
                                 'name' => 'COMFINO_WIDGET_OFFER_TYPE',
                                 'required' => false,
                                 'options' => [
-                                    'query' => [
-                                        [
-                                            'key' => \Comfino\Api::INSTALLMENTS_ZERO_PERCENT,
-                                            'name' => $this->l('Zero percent installments'),
-                                        ],
-                                        [
-                                            'key' => \Comfino\Api::CONVENIENT_INSTALLMENTS,
-                                            'name' => $this->l('Convenient installments'),
-                                        ],
-                                        ['key' => \Comfino\Api::PAY_LATER, 'name' => $this->l('Pay later')],
-                                    ],
+                                    'query' => $offerTypes,
                                     'id' => 'key',
                                     'name' => 'name',
                                 ],
