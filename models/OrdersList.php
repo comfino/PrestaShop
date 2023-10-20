@@ -272,21 +272,6 @@ class OrdersList extends ObjectModel
     }
 
     /**
-     * @param string $state
-     * @return string
-     */
-    public static function getState($state)
-    {
-        $state = Tools::strtoupper($state);
-
-        if (array_key_exists($state, self::STATUSES)) {
-            return self::STATUSES[$state];
-        }
-
-        return 'PS_OS_ERROR';
-    }
-
-    /**
      * @param string $order_id
      * @param string $status
      * @return bool
@@ -320,6 +305,21 @@ class OrdersList extends ObjectModel
         }
 
         return true;
+    }
+
+    /**
+     * @param string $state
+     * @return string
+     */
+    private static function getState($state)
+    {
+        $state = Tools::strtoupper($state);
+
+        if (array_key_exists($state, self::STATUSES)) {
+            return self::STATUSES[$state];
+        }
+
+        return 'PS_OS_ERROR';
     }
 
     private static function setSecondState($status, OrderCore $order)

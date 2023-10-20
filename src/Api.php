@@ -620,7 +620,7 @@ class Api
                 ErrorLogger::sendError(
                     "Communication error [$error_id]", curl_errno($curl), curl_error($curl),
                     $url, $data !== null ? json_encode($data) : null,
-                    $response !== false ? $response : self::$last_response_code
+                    !empty($response) ? $response : self::$last_response_code
                 );
             }
 

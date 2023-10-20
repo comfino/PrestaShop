@@ -145,7 +145,7 @@ class ConfigManager
 
         $initial_config_values = [
             'COMFINO_PAYMENT_PRESENTATION' => PresentationType::ICON_AND_TEXT,
-            'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)',
+            'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_WIDGET_ENABLED' => false,
             'COMFINO_WIDGET_KEY' => '',
