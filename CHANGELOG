@@ -1,3 +1,9 @@
+3.3.2
+ - FN-10976 Remove incompatibility with PrestaShop 1.7.5.0 - 1.7.6.4: getCurrencyIsoCode bug.
+ - FN-10976 Update documentation, change CR hashes comparison method.
+ - FN-10976 Ignore all errors outside the plugin code.
+ - FN-10976 Extend error information - add HTTP request headers in API request body field.
+
 3.3.1
  - FN-10966 Update htaccess file.
 
