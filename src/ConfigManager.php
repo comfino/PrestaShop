@@ -300,12 +300,17 @@ class ConfigManager
     public function updateWidgetCode($last_widget_code_hash)
     {
         $initial_widget_code = $this->getInitialWidgetCode();
-        $current_widget_code = trim(\Configuration::get('COMFINO_WIDGET_CODE'));
+        $current_widget_code = $this->getCurrentWidgetCode();
 
         if (md5($current_widget_code) === $last_widget_code_hash) {
             // Widget code not changed since last installed version - safely replace with new one.
             \Configuration::updateValue('COMFINO_WIDGET_CODE', $initial_widget_code);
         }
+    }
+
+    public function getCurrentWidgetCode()
+    {
+        return trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
     }
 
     /**
@@ -327,6 +332,7 @@ script.onload = function () {
         embedMethod: '{EMBED_METHOD}',
         numOfInstallments: 0,        
         price: null,
+        pluginVersion: '{PLUGIN_VERSION}',
         callbackBefore: function () {},
         callbackAfter: function () {},
         onOfferRendered: function (jsonResponse, widgetTarget, widgetNode) { },
