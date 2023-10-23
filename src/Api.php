@@ -560,14 +560,12 @@ class Api
         self::$last_response_code = null;
         self::$last_errors = [];
 
+        $method = \Tools::strtoupper($request_type);
+
         $options = [
             CURLOPT_URL => $url,
-            CURLOPT_CUSTOMREQUEST => \Tools::strtoupper($request_type),
-            CURLOPT_HTTPHEADER => [
-                'API-KEY: ' . self::getApiKey(),
-                'API-LANGUAGE: ' . \Context::getContext()->language->iso_code,
-                'User-Agent: ' . self::getUserAgentHeader(),
-            ],
+            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_HTTPHEADER => self::getRequestHeaders($method, $data),
             CURLOPT_RETURNTRANSFER => true,
         ];
 
@@ -576,8 +574,6 @@ class Api
             case 'PUT':
                 if ($data !== null) {
                     self::$last_request_body = json_encode($data);
-
-                    $options[CURLOPT_HTTPHEADER][] = 'Content-Type: application/json';
                     $options[CURLOPT_POSTFIELDS] = self::$last_request_body;
                 }
 
@@ -587,7 +583,7 @@ class Api
         $curl = curl_init();
         curl_setopt_array($curl, $options + $extra_options);
 
-        $response = self::processResponse($curl, $url, $data, $log_errors);
+        $response = self::processResponse($curl, $url, $data, $log_errors, $options[CURLOPT_HTTPHEADER]);
 
         curl_close($curl);
 
@@ -601,9 +597,10 @@ class Api
      * @param string $url
      * @param mixed $data
      * @param bool $log_errors
+     * @param array $headers
      * @return string|bool
      */
-    private static function processResponse($curl, $url, $data, $log_errors)
+    private static function processResponse($curl, $url, $data, $log_errors, $headers)
     {
         $response = curl_exec($curl);
 
@@ -643,8 +640,9 @@ class Api
 
                 if ($log_errors) {
                     ErrorLogger::sendError(
-                        'Payment error', 0, implode(', ', $errors),
-                        $url, $data !== null ? json_encode($data) : null, $response
+                        'Payment error', 0, implode(', ', $errors), $url,
+                        self::getApiRequestForLog($headers, $data !== null ? json_encode($data) : null),
+                        $response
                     );
                 }
 
@@ -656,8 +654,9 @@ class Api
 
                 if ($log_errors) {
                     ErrorLogger::sendError(
-                        "Payment error [$error_id]", self::$last_response_code,
-                        'API error.', $url, $data !== null ? json_encode($data) : null, $response
+                        "Payment error [$error_id]", self::$last_response_code, 'API error.', $url,
+                        self::getApiRequestForLog($headers, $data !== null ? json_encode($data) : null),
+                        $response
                     );
                 }
 
@@ -672,6 +671,43 @@ class Api
         }
 
         return $response;
+    }
+
+    /**
+     * @param array $headers
+     * @param string $body
+     * @return string
+     */
+    private static function getApiRequestForLog(array $headers, $body)
+    {
+        return "Headers: " . self::getHeadersForLog($headers) . "\nBody: " . ($body !== null ? $body : 'n/a');
+    }
+
+    /**
+     * @return string
+     */
+    private static function getHeadersForLog(array $headers)
+    {
+        return implode(', ', $headers);
+    }
+
+    /**
+     * @param string $method
+     * @return array
+     */
+    private static function getRequestHeaders($method = 'GET', $data = null)
+    {
+        $headers = [];
+
+        if (($method === 'POST' || $method === 'PUT') && $data !== null) {
+            $headers[] = 'Content-Type: application/json';
+        }
+
+        return array_merge($headers, [
+            'Api-Key: ' . self::getApiKey(),
+            'Api-Language: ' . \Context::getContext()->language->iso_code,
+            'User-Agent: ' . self::getUserAgentHeader(),
+        ]);
     }
 
     /**
