@@ -186,7 +186,7 @@ class Comfino extends PaymentModule
                         $is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
 
                         $api_host = $is_sandbox_mode
-                            ? \Comfino\Api::COMFINO_SANDBOX_HOST
+                            ? \Comfino\Api::getApiHost(false, \Comfino\Api::COMFINO_SANDBOX_HOST)
                             : \Comfino\Api::COMFINO_PRODUCTION_HOST;
 
                         $api_key = $is_sandbox_mode
@@ -211,7 +211,7 @@ class Comfino extends PaymentModule
                         $is_sandbox_mode = (bool) Tools::getValue('COMFINO_IS_SANDBOX');
 
                         $api_host = $is_sandbox_mode
-                            ? \Comfino\Api::COMFINO_SANDBOX_HOST
+                            ? \Comfino\Api::getApiHost(false, \Comfino\Api::COMFINO_SANDBOX_HOST)
                             : \Comfino\Api::COMFINO_PRODUCTION_HOST;
 
                         $api_key = $is_sandbox_mode
@@ -250,7 +250,7 @@ class Comfino extends PaymentModule
                         $is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
 
                         $api_host = $is_sandbox_mode
-                            ? \Comfino\Api::COMFINO_SANDBOX_HOST
+                            ? \Comfino\Api::getApiHost(false, \Comfino\Api::COMFINO_SANDBOX_HOST)
                             : \Comfino\Api::COMFINO_PRODUCTION_HOST;
 
                         $api_key = $is_sandbox_mode
