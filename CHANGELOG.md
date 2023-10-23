@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.3.2](https://github.com/comfino/PrestaShop/tree/3.3.2) (2023-10-23)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.3.1...3.3.2)
+
+**Merged pull requests:**
+
+- FN-10976 Remove incompatibility with PrestaShop 1.7.5.0 - 1.7.6.4: getCurrencyIsoCode bug, update documentation, change CR hashes comparison method, ignore all errors outside the plugin code, extend error information - add HTTP request headers in API request body field. [\#78](https://github.com/comfino/PrestaShop/pull/78) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.3.1](https://github.com/comfino/PrestaShop/tree/3.3.1) (2023-09-06)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.3.0...3.3.1)
