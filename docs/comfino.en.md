@@ -39,7 +39,7 @@ Configuration parameter fields:
 
 * **Production environment API key** — a unique access key that allows the module to communicate with the Comfino API (you will receive it from a Comfino representative)
 * **Payment presentation** — the way Comfino is presented on the list of payment methods [`Only icon`, `Only text`, `Icon and text`]
-* **Payment text** — text displayed in the list of payment methods (default `"(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)"`)
+* **Payment text** — text displayed on the list of payment methods (default `"(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)"`)
 * **Minimal amount in cart** — the value of the cart from which Comfino payment is available (default: 30 PLN)
 
 ![Configuration](images/en/configuration1.png "Configuration")
@@ -50,14 +50,16 @@ Configuration parameter fields:
 
 * **Widget is active?** — promotional widget activation/deactivation switch on the product page
 * **Widget type** — way of presenting the widget [`Textual widget`, `Graphical widget with banner`, `Graphical widget with installments calculator`]
-* **Offer type** — type of financing offer promoted [`Zero percent installments`, `Convenient installments`, `Pay later`]
+* **Offer type** — type of financing offer promoted [`Zero percent installments`, `Convenient installments`, `Pay later`, `Deferred payments for companies`]
+
+The availability of offer types on the list depends on the individual contract and may differ from that described in the documentation.
 
 **Advanced settings**
 
 * **Widget price element selector** — HTML document element containing the price of the product
 * **Widget anchor element selector** — widget container element (widget is embedded in it)
-* **Price change detection - container selector** — HTML document element containing a price element directly or indirectly used to track price changes and recalculate offers
-* **Price change detection - container hierarchy level** — DOM hierarchy level used to track price changes and recalculate offers
+* **Price change detection — container selector** — HTML document element containing a price element directly or indirectly used to track price changes and recalculate offers
+* **Price change detection — container hierarchy level** — DOM hierarchy level used to track price changes and recalculate offers
 * **Embedding method** — how the widget is oriented relative to the container element [`INSERT_INTO_FIRST`, `INSERT_INTO_LAST`, `INSERT_BEFORE`, `INSERT_AFTER`]
 * **Widget initialization code** — JavaScript script to initialize the widget on the product page (making changes not recommended for non-advanced users without JavaScript knowledge)
 

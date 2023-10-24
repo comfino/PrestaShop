@@ -58,6 +58,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     '{OFFER_TYPE}',
                     '{EMBED_METHOD}',
                     '{WIDGET_SCRIPT_URL}',
+                    '{PLUGIN_VERSION}',
                 ],
                 array_merge(
                     $config_manager->getConfigurationValues(
@@ -73,9 +74,9 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                             'COMFINO_WIDGET_EMBED_METHOD',
                         ]
                     ),
-                    [Api::getWidgetScriptUrl()]
+                    [Api::getWidgetScriptUrl(), COMFINO_VERSION]
                 ),
-                $config_manager->getConfigurationValue('COMFINO_WIDGET_CODE')
+                $config_manager->getCurrentWidgetCode()
             );
         }
 

@@ -87,6 +87,11 @@ class ErrorLogger
         $api_response = null,
         $stack_trace = null
     ) {
+        if (preg_match('/Error .*in \//', $error_message) && strpos($error_message, 'modules/comfino') === false) {
+            // Ignore all errors outside the plugin code.
+            return;
+        }
+
         $error = new ShopPluginError(
             \Tools::getShopDomain(),
             'PrestaShop',

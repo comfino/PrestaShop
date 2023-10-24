@@ -39,7 +39,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.3.1', false);
+    define('COMFINO_VERSION', '3.3.2', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.3.1';
+        $this->version = '3.3.2';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -186,7 +186,7 @@ class Comfino extends PaymentModule
                         $is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
 
                         $api_host = $is_sandbox_mode
-                            ? \Comfino\Api::COMFINO_SANDBOX_HOST
+                            ? \Comfino\Api::getApiHost(false, \Comfino\Api::COMFINO_SANDBOX_HOST)
                             : \Comfino\Api::COMFINO_PRODUCTION_HOST;
 
                         $api_key = $is_sandbox_mode
@@ -211,7 +211,7 @@ class Comfino extends PaymentModule
                         $is_sandbox_mode = (bool) Tools::getValue('COMFINO_IS_SANDBOX');
 
                         $api_host = $is_sandbox_mode
-                            ? \Comfino\Api::COMFINO_SANDBOX_HOST
+                            ? \Comfino\Api::getApiHost(false, \Comfino\Api::COMFINO_SANDBOX_HOST)
                             : \Comfino\Api::COMFINO_PRODUCTION_HOST;
 
                         $api_key = $is_sandbox_mode
@@ -250,7 +250,7 @@ class Comfino extends PaymentModule
                         $is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
 
                         $api_host = $is_sandbox_mode
-                            ? \Comfino\Api::COMFINO_SANDBOX_HOST
+                            ? \Comfino\Api::getApiHost(false, \Comfino\Api::COMFINO_SANDBOX_HOST)
                             : \Comfino\Api::COMFINO_PRODUCTION_HOST;
 
                         $api_key = $is_sandbox_mode
