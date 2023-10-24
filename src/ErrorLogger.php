@@ -87,7 +87,7 @@ class ErrorLogger
         $api_response = null,
         $stack_trace = null
     ) {
-        if (strpos($error_message, 'Error in /') !== false && strpos($error_message, 'modules/comfino') === false) {
+        if (preg_match('/Error .*in \//', $error_message) && strpos($error_message, 'modules/comfino') === false) {
             // Ignore all errors outside the plugin code.
             return;
         }
