@@ -1542,6 +1542,12 @@ class Comfino extends PaymentModule
             'product_type' => $product_type,
         ]);
 
-        return $this->fetch('module:comfino/views/templates/admin/_configure/product_category_filter.tpl');
+        if (method_exists($this, 'fetch')) {
+            $cat_tree = $this->fetch('module:comfino/views/templates/admin/_configure/product_category_filter.tpl');
+        } else {
+            $cat_tree = $this->display(__FILE__, 'views/templates/admin/_configure/product_category_filter.tpl');
+        }
+
+        return $cat_tree;
     }
 }
