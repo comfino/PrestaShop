@@ -798,7 +798,7 @@ class Comfino extends PaymentModule
             case 'sale_settings':
             case 'widget_settings':
                 if (!isset($params['offer_types'])) {
-                    $params['offer_types'] = $this->getOfferTypes();
+                    $params['offer_types'] = $config_manager->getOfferTypes();
                 }
 
                 break;
@@ -1436,36 +1436,6 @@ class Comfino extends PaymentModule
             'cartTotal' => (float)$total,
             'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
         ];
-    }
-
-    /**
-     * @return array
-     */
-    private function getOfferTypes()
-    {
-        $product_types = \Comfino\Api::getProductTypes();
-
-        if ($product_types !== false) {
-            $offer_types = [];
-
-            foreach ($product_types as $product_type_code => $product_type_name) {
-                $offer_types[] = ['key' => $product_type_code, 'name' => $product_type_name];
-            }
-        } else {
-            $offer_types = [
-                [
-                    'key' => \Comfino\Api::INSTALLMENTS_ZERO_PERCENT,
-                    'name' => $this->l('Zero percent installments'),
-                ],
-                [
-                    'key' => \Comfino\Api::CONVENIENT_INSTALLMENTS,
-                    'name' => $this->l('Convenient installments'),
-                ],
-                ['key' => \Comfino\Api::PAY_LATER, 'name' => $this->l('Pay later')],
-            ];
-        }
-
-        return $offer_types;
     }
 
     /**

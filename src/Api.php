@@ -105,8 +105,28 @@ class Api
         $total = (int) ($cart->getOrderTotal(true) * 100);
         $delivery = (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100);
 
+        $config_manager = new \Comfino\ConfigManager();
         $customer = new \Customer($cart->id_customer);
         $products = [];
+        $allowed_product_types = null;
+        $disabled_product_types = [];
+        $available_product_types = array_map(
+            static function (array $offer_type) { return $offer_type['key']; },
+            $config_manager->getOfferTypes()
+        );
+
+        // Check product category filters.
+        foreach ($available_product_types as $product_type) {
+            if (!$config_manager->isFinancialProductAvailable($product_type, $cart->getProducts())) {
+                $disabled_product_types[] = $product_type;
+            }
+        }
+
+        if (count($disabled_product_types)) {
+            $allowed_product_types = array_values(array_diff($available_product_types, $disabled_product_types));
+        }
+
+        $context = \Context::getContext();
 
         $cart_total = 0;
 
@@ -161,7 +181,6 @@ class Api
             $building_number = $address_explode[1];
         }
 
-        $context = \Context::getContext();
         $customer_tax_id = trim(str_replace('-', '', $address[$cart->id_address_delivery]->vat_number));
         $phone_number = trim($address[$cart->id_address_delivery]->phone);
 
@@ -202,6 +221,10 @@ class Api
                 ],
             ],
         ];
+
+        if ($allowed_product_types !== null) {
+            $data['loanParameters']['allowedProductTypes'] = $allowed_product_types;
+        }
 
         if (preg_match('/^[A-Z]{0,3}\d{7,}$/', $customer_tax_id)) {
             $data['customer']['taxId'] = $customer_tax_id;

@@ -354,6 +354,36 @@ document.getElementsByTagName('head')[0].appendChild(script);
     /**
      * @return array
      */
+    public function getOfferTypes()
+    {
+        $product_types = \Comfino\Api::getProductTypes();
+
+        if ($product_types !== false) {
+            $offer_types = [];
+
+            foreach ($product_types as $product_type_code => $product_type_name) {
+                $offer_types[] = ['key' => $product_type_code, 'name' => $product_type_name];
+            }
+        } else {
+            $offer_types = [
+                [
+                    'key' => \Comfino\Api::INSTALLMENTS_ZERO_PERCENT,
+                    'name' => $this->l('Zero percent installments'),
+                ],
+                [
+                    'key' => \Comfino\Api::CONVENIENT_INSTALLMENTS,
+                    'name' => $this->l('Convenient installments'),
+                ],
+                ['key' => \Comfino\Api::PAY_LATER, 'name' => $this->l('Pay later')],
+            ];
+        }
+
+        return $offer_types;
+    }
+
+    /**
+     * @return array
+     */
     public function getProductCategoryFilters()
     {
         $categories = [];
