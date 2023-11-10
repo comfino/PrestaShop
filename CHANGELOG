@@ -1,3 +1,6 @@
+3.4.0
+ - FN-11161 New functionality: filtering of financial products (offers) by cart item category.
+
 3.3.2
  - FN-10976 Remove incompatibility with PrestaShop 1.7.5.0 - 1.7.6.4: getCurrencyIsoCode bug.
  - FN-10976 Update documentation, change CR hashes comparison method.

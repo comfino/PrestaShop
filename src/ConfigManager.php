@@ -42,6 +42,9 @@ class ConfigManager
             'COMFINO_PAYMENT_PRESENTATION',
             'COMFINO_MINIMAL_CART_AMOUNT',
         ],
+        'sale_settings' => [
+            'COMFINO_PRODUCT_CATEGORY_FILTERS',
+        ],
         'widget_settings' => [
             'COMFINO_WIDGET_ENABLED',
             'COMFINO_WIDGET_KEY',
@@ -65,6 +68,7 @@ class ConfigManager
         'COMFINO_PAYMENT_TEXT',
         'COMFINO_MINIMAL_CART_AMOUNT',
         'COMFINO_IS_SANDBOX',
+        'COMFINO_PRODUCT_CATEGORY_FILTERS',
         'COMFINO_WIDGET_ENABLED',
         'COMFINO_WIDGET_KEY',
         'COMFINO_WIDGET_PRICE_SELECTOR',
@@ -147,6 +151,7 @@ class ConfigManager
             'COMFINO_PAYMENT_PRESENTATION' => PresentationType::ICON_AND_TEXT,
             'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
+            'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
             'COMFINO_WIDGET_ENABLED' => false,
             'COMFINO_WIDGET_KEY' => '',
             'COMFINO_WIDGET_PRICE_SELECTOR' => COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]',
@@ -195,14 +200,14 @@ class ConfigManager
     }
 
     /**
-     * @param array $configurationOptions
+     * @param array $configuration_options
      * @param bool $only_accessible_options
      *
      * @return void
      */
-    public function updateConfiguration($configurationOptions, $only_accessible_options = true)
+    public function updateConfiguration($configuration_options, $only_accessible_options = true)
     {
-        foreach ($configurationOptions as $opt_name => $opt_value) {
+        foreach ($configuration_options as $opt_name => $opt_value) {
             if ($only_accessible_options && !in_array($opt_name, self::ACCESSIBLE_CONFIG_OPTIONS, true)) {
                 continue;
             }
@@ -344,5 +349,54 @@ script.src = '{WIDGET_SCRIPT_URL}';
 script.async = true;
 document.getElementsByTagName('head')[0].appendChild(script);
 ");
+    }
+
+    /**
+     * @return array
+     */
+    public function getProductCategoryFilters()
+    {
+        $categories = [];
+        $categoriesStr = $this->getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS');
+
+        if (!empty($categoriesStr)) {
+            $categories = json_decode($categoriesStr, true);
+        }
+
+        return $categories;
+    }
+
+    /**
+     * @param string $product_type Financial product type (offer type)
+     * @param array $products Products in the cart
+     *
+     * @return bool
+     */
+    public function isFinancialProductAvailable($product_type, array $products)
+    {
+        static $product_category_filters = null;
+
+        if ($product_category_filters === null) {
+            $product_category_filters = $this->getProductCategoryFilters();
+        }
+
+        if (isset($product_category_filters[$product_type]) && count($product_category_filters[$product_type])) {
+            $excluded_cat_ids = $product_category_filters[$product_type];
+
+            foreach ($products as $product) {
+                $category_id = (int)$product['id_category_default'];
+
+                if (in_array($category_id, $excluded_cat_ids, true) ||
+                    count(array_intersect($excluded_cat_ids, array_map(
+                        static function (\Category $category) { return $category->id; },
+                        (new \Category($category_id))->getAllChildren()->getResults()
+                    )))
+                ) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }

@@ -70,6 +70,11 @@
                                 {l s="Payment settings" mod="comfino"}
                             </a>
                         </li>
+                        <li class="nav-item{if $active_tab == "sale_settings"} active{/if}">
+                            <a class="nav-link" id="comfino_sale_settings" data-toggle="tab" href="#sale_settings" role="tab" aria-controls="comfino_sale_settings" aria-selected="true">
+                                {l s="Sale settings" mod="comfino"}
+                            </a>
+                        </li>
                         <li class="nav-item{if $active_tab == "widget_settings"} active{/if}">
                             <a class="nav-link" id="comfino_widget_settings" data-toggle="tab" href="#widget_settings" role="tab" aria-controls="comfino_widget_settings" aria-selected="true">
                                 {l s="Widget settings" mod="comfino"}
@@ -92,6 +97,9 @@
                         </div>*}
                         <div class="tab-pane {if $active_tab == "payment_settings"}active{else}fade{/if}" id="payment_settings" role="tabpanel" aria-labelledby="payment_settings-tab">
                             {hook h="displayBackofficeComfinoForm" config_tab="payment_settings" form_name="submit_configuration"}
+                        </div>
+                        <div class="tab-pane {if $active_tab == "sale_settings"}active{else}fade{/if}" id="sale_settings" role="tabpanel" aria-labelledby="sale_settings-tab">
+                            {hook h="displayBackofficeComfinoForm" config_tab="sale_settings" form_name="submit_configuration"}
                         </div>
                         <div class="tab-pane {if $active_tab == "widget_settings"}active{else}fade{/if}" id="widget_settings" role="tabpanel" aria-labelledby="widget_settings-tab">
                             {hook h="displayBackofficeComfinoForm" config_tab="widget_settings" form_name="submit_configuration"}

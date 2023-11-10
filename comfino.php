@@ -39,7 +39,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.3.2', false);
+    define('COMFINO_VERSION', '3.4.0', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.3.2';
+        $this->version = '3.4.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -105,6 +105,7 @@ class Comfino extends PaymentModule
         $this->registerHook('actionOrderStatusPostUpdate');
         $this->registerHook('actionValidateCustomerAddressForm');
         $this->registerHook('header');
+        $this->registerHook('actionAdminControllerSetMedia');
 
         return true;
     }
@@ -130,6 +131,7 @@ class Comfino extends PaymentModule
             $this->unregisterHook('actionOrderStatusPostUpdate');
             $this->unregisterHook('actionValidateCustomerAddressForm');
             $this->unregisterHook('header');
+            $this->unregisterHook('actionAdminControllerSetMedia');
 
             return true;
         }
@@ -178,6 +180,14 @@ class Comfino extends PaymentModule
 
             $error_empty_msg = $this->l("Field '%s' can not be empty.");
             $error_numeric_format_msg = $this->l("Field '%s' has wrong numeric format.");
+
+            $configuration_options = [];
+
+            foreach (\Comfino\ConfigManager::COMFINO_SETTINGS_OPTIONS[$active_tab] as $option_name) {
+                if ($option_name !== 'COMFINO_WIDGET_KEY') {
+                    $configuration_options[$option_name] = Tools::getValue($option_name);
+                }
+            }
 
             switch ($active_tab) {
                 case 'payment_settings':
@@ -241,9 +251,29 @@ class Comfino extends PaymentModule
 
                     break;
 
+                case 'sale_settings':
+                    $product_categories = array_map(
+                        static function (array $category) { return (int) $category['id_category']; },
+                        $this->getNestedCategories(true)
+                    );
+                    $product_category_filters = $config_manager->getProductCategoryFilters();
+
+                    foreach (Tools::getValue('product_categories') as $product_type => $category_ids) {
+                        $product_category_filters[$product_type] = array_values(array_diff(
+                            $product_categories,
+                            explode(',', $category_ids)
+                        ));
+                    }
+
+                    $configuration_options['COMFINO_PRODUCT_CATEGORY_FILTERS'] = json_encode($product_category_filters);
+                    break;
+
                 case 'widget_settings':
                     if (!is_numeric(Tools::getValue('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL'))) {
-                        $output[] = sprintf($error_numeric_format_msg, $this->l('Price change detection - container hierarchy level'));
+                        $output[] = sprintf(
+                            $error_numeric_format_msg,
+                            $this->l('Price change detection - container hierarchy level')
+                        );
                     }
 
                     if (!count($output)) {
@@ -278,6 +308,7 @@ class Comfino extends PaymentModule
                         }
                     }
 
+                    $configuration_options['COMFINO_WIDGET_KEY'] = $widget_key;
                     break;
             }
 
@@ -286,13 +317,7 @@ class Comfino extends PaymentModule
                 $output[] = $this->l('Settings not updated.');
             } else {
                 // Update plugin configuration.
-                foreach (\Comfino\ConfigManager::COMFINO_SETTINGS_OPTIONS[$active_tab] as $option_name) {
-                    if ($option_name !== 'COMFINO_WIDGET_KEY') {
-                        $config_manager->setConfigurationValue($option_name, Tools::getValue($option_name));
-                    }
-                }
-
-                $config_manager->setConfigurationValue('COMFINO_WIDGET_KEY', $widget_key);
+                $config_manager->updateConfiguration($configuration_options, false);
 
                 $output[] = $this->l('Settings updated.');
             }
@@ -619,34 +644,49 @@ class Comfino extends PaymentModule
     {
         $config_manager = new \Comfino\ConfigManager();
 
-        // Frontend initialization script
-        if (COMFINO_PS_17) {
-            $this->context->controller->registerJavascript(
-                'comfino',
-                'modules/' . $this->name . '/js/comfino.js',
-                ['server' => 'local', 'position' => 'head']
-            );
-        } else {
-            $this->context->controller->addJS('/modules/' . $this->name . '/js/comfino.js', false);
-        }
-
-        // Widget initialization script
-        if ($config_manager->getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
-            $config_crc = crc32(implode($config_manager->getConfigurationValues('widget_settings')));
-
+        if ($this->context->controller->php_self === 'cart' || $this->context->controller->php_self === 'order') {
+            // Frontend initialization script
             if (COMFINO_PS_17) {
                 $this->context->controller->registerJavascript(
-                    'comfino-widget',
-                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
-                    ['server' => 'remote', 'position' => 'head']
+                    'comfino',
+                    'modules/' . $this->name . '/js/comfino.js',
+                    ['server' => 'local', 'position' => 'head']
                 );
             } else {
-                $this->context->controller->addJS(
-                    $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
-                    false
-                );
+                $this->context->controller->addJS('/modules/' . $this->name . '/js/comfino.js', false);
+            }
+        } elseif ($this->context->controller->php_self === 'product') {
+            // Widget initialization script
+            if ($config_manager->getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
+                $widget_settings = $config_manager->getConfigurationValues('widget_settings');
+
+                // Check product category filters.
+                $product_type = $widget_settings['COMFINO_WIDGET_OFFER_TYPE'];
+                $products = [$this->context->controller->getProduct()->getFields()];
+
+                if ($config_manager->isFinancialProductAvailable($product_type, $products)) {
+                    $config_crc = crc32(implode($widget_settings));
+
+                    if (COMFINO_PS_17) {
+                        $this->context->controller->registerJavascript(
+                            'comfino-widget',
+                            $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
+                            ['server' => 'remote', 'position' => 'head']
+                        );
+                    } else {
+                        $this->context->controller->addJS(
+                            $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
+                            false
+                        );
+                    }
+                }
             }
         }
+    }
+
+    public function hookActionAdminControllerSetMedia($params)
+    {
+        $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/js/tree.min.js');
     }
 
     /**
@@ -746,12 +786,19 @@ class Comfino extends PaymentModule
                     'user_active' => $user_active,
                     'api_error' => $api_error,
                 ];
-
                 break;
 
             case 'payment_settings':
                 if ($config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')) {
                     $messages['warning'] = $this->l('Developer mode is active. You are using test environment.');
+                }
+
+                break;
+
+            case 'sale_settings':
+            case 'widget_settings':
+                if (!isset($params['offer_types'])) {
+                    $params['offer_types'] = $this->getOfferTypes();
                 }
 
                 break;
@@ -957,8 +1004,14 @@ class Comfino extends PaymentModule
                                 'required' => true,
                                 'options' => [
                                     'query' => [
-                                        ['key' => \Comfino\PresentationType::ONLY_ICON, 'name' => $this->l('Only icon')],
-                                        ['key' => \Comfino\PresentationType::ONLY_TEXT, 'name' => $this->l('Only text')],
+                                        [
+                                            'key' => \Comfino\PresentationType::ONLY_ICON,
+                                            'name' => $this->l('Only icon')
+                                        ],
+                                        [
+                                            'key' => \Comfino\PresentationType::ONLY_TEXT,
+                                            'name' => $this->l('Only text')
+                                        ],
                                         [
                                             'key' => \Comfino\PresentationType::ICON_AND_TEXT,
                                             'name' => $this->l('Icon and text'),
@@ -988,7 +1041,58 @@ class Comfino extends PaymentModule
                         ],
                     ]
                 );
+                break;
 
+            case 'sale_settings':
+                $product_categories = $this->getAllProductCategories();
+                $product_category_filters = (new \Comfino\ConfigManager())->getProductCategoryFilters();
+
+                $product_category_filter_inputs = [
+                    [
+                        'type' => 'hidden',
+                        'name' => 'active_tab',
+                        'required' => false,
+                    ],
+                ];
+
+                foreach ($params['offer_types'] as $offer_type) {
+                    $product_category_filter_inputs[] = [
+                        'type' => 'html',
+                        'name' => $offer_type['key'] . '_label',
+                        'required' => false,
+                        'html_content' => '<h3>' . $offer_type['name'] . '</h3>',
+                    ];
+
+                    if (isset($product_category_filters[$offer_type['key']])) {
+                        $selected_categories = array_diff(
+                            array_keys($product_categories),
+                            $product_category_filters[$offer_type['key']]
+                        );
+                    } else {
+                        $selected_categories = array_keys($product_categories);
+                    }
+
+                    $product_category_filter_inputs[] = [
+                        'type' => 'html',
+                        'name' => 'product_category_filter[' . $offer_type['key'] . ']',
+                        'required' => false,
+                        'html_content' => $this->renderCategoryTree(
+                            'product_categories',
+                            $offer_type['key'],
+                            $selected_categories
+                        ),
+                    ];
+                }
+
+                $fields['sale_settings_category_filter']['form'] = [
+                    'legend' => ['title' => $this->l('Rules for the availability of financial products')],
+                    'input' => $product_category_filter_inputs,
+                    'submit' => [
+                        'title' => $this->l('Save'),
+                        'class' => 'btn btn-default pull-right',
+                        'name' => $form_name,
+                    ]
+                ];
                 break;
 
             case 'widget_settings':
@@ -1000,28 +1104,6 @@ class Comfino extends PaymentModule
                         $fields['widget_settings_basic']['form'],
                         $params['messages']
                     );
-                }
-
-                $productTypes = \Comfino\Api::getProductTypes();
-
-                if ($productTypes !== false) {
-                    $offerTypes = [];
-
-                    foreach ($productTypes as $productTypeCode => $productTypeName) {
-                        $offerTypes[] = ['key' => $productTypeCode, 'name' => $productTypeName];
-                    }
-                } else {
-                    $offerTypes = [
-                        [
-                            'key' => \Comfino\Api::INSTALLMENTS_ZERO_PERCENT,
-                            'name' => $this->l('Zero percent installments'),
-                        ],
-                        [
-                            'key' => \Comfino\Api::CONVENIENT_INSTALLMENTS,
-                            'name' => $this->l('Convenient installments'),
-                        ],
-                        ['key' => \Comfino\Api::PAY_LATER, 'name' => $this->l('Pay later')],
-                    ];
                 }
 
                 $fields['widget_settings_basic']['form'] = array_merge(
@@ -1080,7 +1162,7 @@ class Comfino extends PaymentModule
                                 'name' => 'COMFINO_WIDGET_OFFER_TYPE',
                                 'required' => false,
                                 'options' => [
-                                    'query' => $offerTypes,
+                                    'query' => $params['offer_types'],
                                     'id' => 'key',
                                     'name' => 'name',
                                 ],
@@ -1162,7 +1244,6 @@ class Comfino extends PaymentModule
                         'name' => $form_name,
                     ],
                 ];
-
                 break;
 
             case 'developer_settings':
@@ -1226,7 +1307,6 @@ class Comfino extends PaymentModule
                         ],
                     ]
                 );
-
                 break;
 
             case 'plugin_diagnostics':
@@ -1256,7 +1336,6 @@ class Comfino extends PaymentModule
                         ],
                     ]
                 );
-
                 break;
 
             default:
@@ -1333,6 +1412,8 @@ class Comfino extends PaymentModule
 
     /**
      * @return array
+     *
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     private function getOptionsForFrontendRenderer()
     {
@@ -1355,5 +1436,142 @@ class Comfino extends PaymentModule
             'cartTotal' => (float)$total,
             'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
         ];
+    }
+
+    /**
+     * @return array
+     */
+    private function getOfferTypes()
+    {
+        $product_types = \Comfino\Api::getProductTypes();
+
+        if ($product_types !== false) {
+            $offer_types = [];
+
+            foreach ($product_types as $product_type_code => $product_type_name) {
+                $offer_types[] = ['key' => $product_type_code, 'name' => $product_type_name];
+            }
+        } else {
+            $offer_types = [
+                [
+                    'key' => \Comfino\Api::INSTALLMENTS_ZERO_PERCENT,
+                    'name' => $this->l('Zero percent installments'),
+                ],
+                [
+                    'key' => \Comfino\Api::CONVENIENT_INSTALLMENTS,
+                    'name' => $this->l('Convenient installments'),
+                ],
+                ['key' => \Comfino\Api::PAY_LATER, 'name' => $this->l('Pay later')],
+            ];
+        }
+
+        return $offer_types;
+    }
+
+    /**
+     * @return array
+     */
+    private function getAllProductCategories()
+    {
+        static $categories = null;
+
+        if ($categories === null) {
+            $categories = [];
+
+            foreach (Category::getSimpleCategories($this->context->language->id) as $category) {
+                $categories[$category['id_category']] = $category['name'];
+            }
+
+        }
+
+        return $categories;
+    }
+
+    /**
+     * @param bool $leafs_only
+     * @param array $sub_categories
+     * @param int $position
+     *
+     * @return array
+     */
+    private function getNestedCategories($leafs_only = false, $sub_categories = [], $position = 0)
+    {
+        static $categories = null;
+
+        if ($categories === null) {
+            $categories = Category::getNestedCategories();
+        }
+
+        if ($leafs_only) {
+            $filtered_categories = [];
+            $child_categories = [];
+
+            foreach (count($sub_categories) ? $sub_categories : $categories as $category) {
+                if (isset($category['children'])) {
+                    $child_categories[] = $this->getNestedCategories(
+                        true, $category['children'], count($filtered_categories) + $position
+                    );
+                    $position += count($child_categories[count($child_categories) - 1]);
+                } else {
+                    $category['position'] += $position;
+                    $filtered_categories[] = $category;
+                }
+            }
+
+            $filtered_categories = array_merge($filtered_categories, ...$child_categories);
+
+            usort(
+                $filtered_categories,
+                static function ($val1, $val2) { return $val1['position'] - $val2['position']; }
+            );
+
+            return $filtered_categories;
+        }
+
+        return $categories;
+    }
+
+    /**
+     * @param array $categories
+     * @param int[] $selected_categories
+     *
+     * @return array
+     */
+    private function buildCategoriesTree($categories, $selected_categories)
+    {
+        $cat_tree = [];
+
+        foreach ($categories as $category) {
+            $tree_node = ['id' => (int) $category['id_category'], 'text' => $category['name']];
+
+            if (isset($category['children'])) {
+                $tree_node['children'] = $this->buildCategoriesTree($category['children'], $selected_categories);
+            } elseif (in_array($tree_node['id'], $selected_categories, true)) {
+                $tree_node['checked'] = true;
+            }
+
+            $cat_tree[] = $tree_node;
+        }
+
+        return $cat_tree;
+    }
+
+    /**
+     * @param string $tree_id
+     * @param string $product_type
+     * @param int[] $selected_categories
+     *
+     * @return string
+     */
+    private function renderCategoryTree($tree_id, $product_type, $selected_categories)
+    {
+        $this->smarty->assign([
+            'tree_id' => $tree_id,
+            'tree_nodes' => json_encode($this->buildCategoriesTree($this->getNestedCategories(), $selected_categories)),
+            'close_depth' => 3,
+            'product_type' => $product_type,
+        ]);
+
+        return $this->fetch('module:comfino/views/templates/admin/_configure/product_category_filter.tpl');
     }
 }

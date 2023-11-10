@@ -274,32 +274,38 @@ class Api
      */
     public static function getProductTypes()
     {
-        $productTypes = self::sendRequest(self::getApiHost() . '/v1/product-types', 'GET');
+        static $product_types = null;
 
-        if ($productTypes !== false && !count(self::$last_errors) && strpos($productTypes, 'errors') === false) {
-            $productTypes = json_decode($productTypes, true);
-        } else {
-            $productTypes = false;
+        if ($product_types === null) {
+            $product_types = self::sendRequest(self::getApiHost() . '/v1/product-types', 'GET');
+
+            if ($product_types !== false && !count(self::$last_errors) && strpos($product_types, 'errors') === false) {
+                $product_types = json_decode($product_types, true);
+            } else {
+                $product_types = null;
+
+                return false;
+            }
         }
 
-        return $productTypes;
+        return $product_types;
     }
 
     /**
      * @param string $name
      * @param string $url
-     * @param string $contactName
+     * @param string $contact_name
      * @param string $email
      * @param string $phone
      * @param array $agreements
      * @return array|bool
      */
-    public static function registerShopAccount($name, $url, $contactName, $email, $phone, $agreements)
+    public static function registerShopAccount($name, $url, $contact_name, $email, $phone, $agreements)
     {
         $data = [
             'name' => $name,
             'webSiteUrl' => $url,
-            'contactName' => $contactName,
+            'contactName' => $contact_name,
             'contactEmail' => $email,
             'contactPhone' => $phone,
             'platformId' => 11,
