@@ -414,7 +414,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
             $excluded_cat_ids = $product_category_filters[$product_type];
 
             foreach ($products as $product) {
-                $category_id = (int)$product['id_category_default'];
+                $category_id = (int) $product['id_category_default'];
 
                 if (in_array($category_id, $excluded_cat_ids, true) ||
                     count(array_intersect($excluded_cat_ids, array_map(
