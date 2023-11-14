@@ -81,7 +81,7 @@ class Api
 
         self::$is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
 
-        if (self::$is_sandbox_mode ) {
+        if (self::$is_sandbox_mode) {
             self::$api_host = self::COMFINO_SANDBOX_HOST;
             self::$api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
             self::$frontend_script_url = self::COMFINO_FRONTEND_JS_SANDBOX;
@@ -105,8 +105,28 @@ class Api
         $total = (int) ($cart->getOrderTotal(true) * 100);
         $delivery = (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100);
 
+        $config_manager = new \Comfino\ConfigManager();
         $customer = new \Customer($cart->id_customer);
         $products = [];
+        $allowed_product_types = null;
+        $disabled_product_types = [];
+        $available_product_types = array_map(
+            static function (array $offer_type) { return $offer_type['key']; },
+            $config_manager->getOfferTypes()
+        );
+
+        // Check product category filters.
+        foreach ($available_product_types as $product_type) {
+            if (!$config_manager->isFinancialProductAvailable($product_type, $cart->getProducts())) {
+                $disabled_product_types[] = $product_type;
+            }
+        }
+
+        if (count($disabled_product_types)) {
+            $allowed_product_types = array_values(array_diff($available_product_types, $disabled_product_types));
+        }
+
+        $context = \Context::getContext();
 
         $cart_total = 0;
 
@@ -161,7 +181,6 @@ class Api
             $building_number = $address_explode[1];
         }
 
-        $context = \Context::getContext();
         $customer_tax_id = trim(str_replace('-', '', $address[$cart->id_address_delivery]->vat_number));
         $phone_number = trim($address[$cart->id_address_delivery]->phone);
 
@@ -202,6 +221,10 @@ class Api
                 ],
             ],
         ];
+
+        if ($allowed_product_types !== null) {
+            $data['loanParameters']['allowedProductTypes'] = $allowed_product_types;
+        }
 
         if (preg_match('/^[A-Z]{0,3}\d{7,}$/', $customer_tax_id)) {
             $data['customer']['taxId'] = $customer_tax_id;
@@ -274,32 +297,38 @@ class Api
      */
     public static function getProductTypes()
     {
-        $productTypes = self::sendRequest(self::getApiHost() . '/v1/product-types', 'GET');
+        static $product_types = null;
 
-        if ($productTypes !== false && !count(self::$last_errors) && strpos($productTypes, 'errors') === false) {
-            $productTypes = json_decode($productTypes, true);
-        } else {
-            $productTypes = false;
+        if ($product_types === null) {
+            $product_types = self::sendRequest(self::getApiHost() . '/v1/product-types', 'GET');
+
+            if ($product_types !== false && !count(self::$last_errors) && strpos($product_types, 'errors') === false) {
+                $product_types = json_decode($product_types, true);
+            } else {
+                $product_types = null;
+
+                return false;
+            }
         }
 
-        return $productTypes;
+        return $product_types;
     }
 
     /**
      * @param string $name
      * @param string $url
-     * @param string $contactName
+     * @param string $contact_name
      * @param string $email
      * @param string $phone
      * @param array $agreements
      * @return array|bool
      */
-    public static function registerShopAccount($name, $url, $contactName, $email, $phone, $agreements)
+    public static function registerShopAccount($name, $url, $contact_name, $email, $phone, $agreements)
     {
         $data = [
             'name' => $name,
             'webSiteUrl' => $url,
-            'contactName' => $contactName,
+            'contactName' => $contact_name,
             'contactEmail' => $email,
             'contactPhone' => $phone,
             'platformId' => 11,
@@ -449,8 +478,8 @@ class Api
      */
     public static function getFrontendScriptUrl()
     {
-        if (getenv('COMFINO_DEV') && getenv('COMFINO_DEV_FRONTEND_SCRIPT_URL') &&
-            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        if (getenv('COMFINO_DEV') && getenv('COMFINO_DEV_FRONTEND_SCRIPT_URL')
+            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
         ) {
             return getenv('COMFINO_DEV_FRONTEND_SCRIPT_URL');
         }
@@ -463,9 +492,8 @@ class Api
      */
     public static function getWidgetScriptUrl()
     {
-        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') &&
-            getenv('COMFINO_DEV_WIDGET_SCRIPT_URL') &&
-            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') && getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')
+            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
         ) {
             return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
         }
@@ -480,14 +508,14 @@ class Api
      */
     public static function getApiHost($frontendHost = false, $apiHost = null)
     {
-        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') &&
-            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN')
+            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
         ) {
             if ($frontendHost) {
                 if (getenv('COMFINO_DEV_API_HOST_FRONTEND')) {
                     return getenv('COMFINO_DEV_API_HOST_FRONTEND');
                 }
-            } else if (getenv('COMFINO_DEV_API_HOST_BACKEND')) {
+            } elseif (getenv('COMFINO_DEV_API_HOST_BACKEND')) {
                 return getenv('COMFINO_DEV_API_HOST_BACKEND');
             }
         }
@@ -679,7 +707,7 @@ class Api
      */
     private static function getApiRequestForLog(array $headers, $body)
     {
-        return "Headers: " . self::getHeadersForLog($headers) . "\nBody: " . ($body !== null ? $body : 'n/a');
+        return 'Headers: ' . self::getHeadersForLog($headers) . "\nBody: " . ($body !== null ? $body : 'n/a');
     }
 
     /**

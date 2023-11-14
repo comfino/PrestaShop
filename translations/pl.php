@@ -158,3 +158,5 @@ $_MODULE['<{comfino}prestashop>comfino_d4aad807f5cb785b565800d6dd1d1221'] = 'Bł
 $_MODULE['<{comfino}prestashop>payment_d8a4cff35b23d669be2e30f7248feac0'] = 'O ile dni chcesz odroczyć płatność?';
 $_MODULE['<{comfino}prestashop>payment_5d121eca7f83ea19196e05f70f393d47'] = 'Prowizja operatora';
 $_MODULE['<{comfino}prestashop>payment_3ab26cb61868b4325b4b142b3d39a25a'] = 'Łączna kwota do spłaty';
+$_MODULE['<{comfino}prestashop>payment_ad5d1a1c9746f7d0f75ae8727ee1ec12'] = 'Ustawienia sprzedaży';
+$_MODULE['<{comfino}prestashop>payment_15a7c6d8cbf11b107bd73c7acea1cae8'] = 'Reguły dostępności produktów finansowych';
