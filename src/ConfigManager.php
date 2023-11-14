@@ -416,8 +416,8 @@ document.getElementsByTagName('head')[0].appendChild(script);
             foreach ($products as $product) {
                 $category_id = (int) $product['id_category_default'];
 
-                if (in_array($category_id, $excluded_cat_ids, true) ||
-                    count(array_intersect($excluded_cat_ids, array_map(
+                if (in_array($category_id, $excluded_cat_ids, true)
+                    || count(array_intersect($excluded_cat_ids, array_map(
                         static function (\Category $category) { return $category->id; },
                         (new \Category($category_id))->getAllChildren()->getResults()
                     )))

@@ -649,11 +649,11 @@ class Comfino extends PaymentModule
             if (COMFINO_PS_17) {
                 $this->context->controller->registerJavascript(
                     'comfino',
-                    'modules/' . $this->name . '/js/comfino.js',
+                    'modules/' . $this->name . '/views/js/comfino.js',
                     ['server' => 'local', 'position' => 'head']
                 );
             } else {
-                $this->context->controller->addJS('/modules/' . $this->name . '/js/comfino.js', false);
+                $this->context->controller->addJS('/modules/' . $this->name . '/views/js/comfino.js', false);
             }
         } elseif ($this->context->controller->php_self === 'product') {
             // Widget initialization script
@@ -686,7 +686,7 @@ class Comfino extends PaymentModule
 
     public function hookActionAdminControllerSetMedia($params)
     {
-        $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/js/tree.min.js');
+        $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/tree.min.js');
     }
 
     /**
@@ -1006,11 +1006,11 @@ class Comfino extends PaymentModule
                                     'query' => [
                                         [
                                             'key' => \Comfino\PresentationType::ONLY_ICON,
-                                            'name' => $this->l('Only icon')
+                                            'name' => $this->l('Only icon'),
                                         ],
                                         [
                                             'key' => \Comfino\PresentationType::ONLY_TEXT,
-                                            'name' => $this->l('Only text')
+                                            'name' => $this->l('Only text'),
                                         ],
                                         [
                                             'key' => \Comfino\PresentationType::ICON_AND_TEXT,
@@ -1091,7 +1091,7 @@ class Comfino extends PaymentModule
                         'title' => $this->l('Save'),
                         'class' => 'btn btn-default pull-right',
                         'name' => $form_name,
-                    ]
+                    ],
                 ];
                 break;
 
@@ -1433,7 +1433,7 @@ class Comfino extends PaymentModule
             'offersURL' => $offersURL,
             'language' => $tools->getLanguageIsoCode($cart->id_lang),
             'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
-            'cartTotal' => (float)$total,
+            'cartTotal' => (float) $total,
             'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
         ];
     }
@@ -1451,7 +1451,6 @@ class Comfino extends PaymentModule
             foreach (Category::getSimpleCategories($this->context->language->id) as $category) {
                 $categories[$category['id_category']] = $category['name'];
             }
-
         }
 
         return $categories;

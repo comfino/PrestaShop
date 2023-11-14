@@ -81,7 +81,7 @@ class Api
 
         self::$is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
 
-        if (self::$is_sandbox_mode ) {
+        if (self::$is_sandbox_mode) {
             self::$api_host = self::COMFINO_SANDBOX_HOST;
             self::$api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
             self::$frontend_script_url = self::COMFINO_FRONTEND_JS_SANDBOX;
@@ -478,8 +478,8 @@ class Api
      */
     public static function getFrontendScriptUrl()
     {
-        if (getenv('COMFINO_DEV') && getenv('COMFINO_DEV_FRONTEND_SCRIPT_URL') &&
-            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        if (getenv('COMFINO_DEV') && getenv('COMFINO_DEV_FRONTEND_SCRIPT_URL')
+            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
         ) {
             return getenv('COMFINO_DEV_FRONTEND_SCRIPT_URL');
         }
@@ -492,9 +492,8 @@ class Api
      */
     public static function getWidgetScriptUrl()
     {
-        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') &&
-            getenv('COMFINO_DEV_WIDGET_SCRIPT_URL') &&
-            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') && getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')
+            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
         ) {
             return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
         }
@@ -509,14 +508,14 @@ class Api
      */
     public static function getApiHost($frontendHost = false, $apiHost = null)
     {
-        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') &&
-            getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN')
+            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
         ) {
             if ($frontendHost) {
                 if (getenv('COMFINO_DEV_API_HOST_FRONTEND')) {
                     return getenv('COMFINO_DEV_API_HOST_FRONTEND');
                 }
-            } else if (getenv('COMFINO_DEV_API_HOST_BACKEND')) {
+            } elseif (getenv('COMFINO_DEV_API_HOST_BACKEND')) {
                 return getenv('COMFINO_DEV_API_HOST_BACKEND');
             }
         }
@@ -708,7 +707,7 @@ class Api
      */
     private static function getApiRequestForLog(array $headers, $body)
     {
-        return "Headers: " . self::getHeadersForLog($headers) . "\nBody: " . ($body !== null ? $body : 'n/a');
+        return 'Headers: ' . self::getHeadersForLog($headers) . "\nBody: " . ($body !== null ? $body : 'n/a');
     }
 
     /**

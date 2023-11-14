@@ -25,7 +25,6 @@
  */
 
 use Comfino\Api;
-use Comfino\ConfigManager;
 use Comfino\ErrorLogger;
 
 if (!defined('_PS_VERSION_')) {

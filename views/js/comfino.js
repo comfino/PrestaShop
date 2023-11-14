@@ -1,4 +1,4 @@
-{**
+/**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
@@ -21,18 +21,28 @@
  * @author    PrestaShop SA and Contributors <contact@prestashop.com>
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
- *}
-<div id="{$tree_id}_{$product_type}"></div>
-<input id="{$tree_id}_{$product_type}_input" name="{$tree_id}[{$product_type}]" type="hidden" />
-<script>
-    new Tree(
-        '#{$tree_id}_{$product_type}',
-        {ldelim}
-            data: {$tree_nodes},
-            closeDepth: {$close_depth},
-            onChange: function () {ldelim}
-                document.getElementById('{$tree_id}_{$product_type}_input').value = this.values.join();
-            {rdelim}
-        {rdelim}
-    );
-</script>
+ */
+'use strict';
+
+window.Comfino = {
+    options: null,
+    initialized: false,
+
+    init(frontendScriptURL) {
+        if (Comfino.initialized && typeof ComfinoFrontendRenderer !== 'undefined') {
+            ComfinoFrontendRenderer.init(Comfino.options);
+
+            return;
+        }
+
+        let script = document.createElement('script');
+
+        script.onload = () => ComfinoFrontendRenderer.init(Comfino.options);
+        script.src = frontendScriptURL;
+        script.async = true;
+
+        document.getElementsByTagName('head')[0].appendChild(script);
+
+        Comfino.initialized = true;
+    }
+}
