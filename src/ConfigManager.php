@@ -69,6 +69,7 @@ class ConfigManager
         'COMFINO_MINIMAL_CART_AMOUNT',
         'COMFINO_IS_SANDBOX',
         'COMFINO_PRODUCT_CATEGORY_FILTERS',
+        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES',
         'COMFINO_WIDGET_ENABLED',
         'COMFINO_WIDGET_KEY',
         'COMFINO_WIDGET_PRICE_SELECTOR',
@@ -152,6 +153,7 @@ class ConfigManager
             'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
+            'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
             'COMFINO_WIDGET_ENABLED' => false,
             'COMFINO_WIDGET_KEY' => '',
             'COMFINO_WIDGET_PRICE_SELECTOR' => COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]',
@@ -387,13 +389,32 @@ document.getElementsByTagName('head')[0].appendChild(script);
     public function getProductCategoryFilters()
     {
         $categories = [];
-        $categoriesStr = $this->getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS');
+        $categories_str = $this->getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS');
 
-        if (!empty($categoriesStr)) {
-            $categories = json_decode($categoriesStr, true);
+        if (!empty($categories_str)) {
+            $categories = json_decode($categories_str, true);
         }
 
         return $categories;
+    }
+
+    /**
+     * @return array
+     */
+    public function getCatFilterAvailProdTypes(array $prod_types)
+    {
+        $prod_types_assoc = [];
+        $cat_filter_avail_prod_types = [];
+
+        foreach ($prod_types as $prod_type) {
+            $prod_types_assoc[$prod_type['key']] = $prod_type['name'];
+        }
+
+        foreach (explode(',', $this->getConfigurationValue('COMFINO_CAT_FILTER_AVAIL_PROD_TYPES')) as $prod_type) {
+            $cat_filter_avail_prod_types[strtoupper(trim($prod_type))] = null;
+        }
+
+        return array_intersect_key($prod_types_assoc, $cat_filter_avail_prod_types);
     }
 
     /**
@@ -405,6 +426,13 @@ document.getElementsByTagName('head')[0].appendChild(script);
     public function isFinancialProductAvailable($product_type, array $products)
     {
         static $product_category_filters = null;
+
+        if (!in_array($product_type, array_map(
+            static function ($prod_type) { return strtoupper(trim($prod_type)); },
+            explode(',', $this->getConfigurationValue('COMFINO_CAT_FILTER_AVAIL_PROD_TYPES'))
+        ), true)) {
+            return true;
+        }
 
         if ($product_category_filters === null) {
             $product_category_filters = $this->getProductCategoryFilters();

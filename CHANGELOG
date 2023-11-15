@@ -1,3 +1,6 @@
+3.4.1
+ - FN-11222 Updated logic of financial products filtering by cart item category.
+
 3.4.0
  - FN-11161 New functionality: filtering of financial products (offers) by cart item category.
 
