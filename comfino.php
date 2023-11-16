@@ -39,7 +39,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.4.0', false);
+    define('COMFINO_VERSION', '3.4.1', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.4.0';
+        $this->version = '3.4.1';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -256,7 +256,7 @@ class Comfino extends PaymentModule
                         static function (array $category) { return (int) $category['id_category']; },
                         $this->getNestedCategories(true)
                     );
-                    $product_category_filters = $config_manager->getProductCategoryFilters();
+                    $product_category_filters = [];
 
                     foreach (Tools::getValue('product_categories') as $product_type => $category_ids) {
                         $product_category_filters[$product_type] = array_values(array_diff(
@@ -626,12 +626,10 @@ class Comfino extends PaymentModule
     {
         $vat_number = $params['form']->getField('vat_number');
 
-        if (!empty($vat_number->getValue())) {
-            if (!$this->isValidTaxId($vat_number->getValue())) {
-                $vat_number->addError($this->l('Invalid VAT number.'));
+        if (!empty($vat_number->getValue()) && !$this->isValidTaxId($vat_number->getValue())) {
+            $vat_number->addError($this->l('Invalid VAT number.'));
 
-                return '0';
-            }
+            return '0';
         }
 
         return '1';
@@ -1044,8 +1042,9 @@ class Comfino extends PaymentModule
                 break;
 
             case 'sale_settings':
+                $config_manager = new \Comfino\ConfigManager();
                 $product_categories = $this->getAllProductCategories();
-                $product_category_filters = (new \Comfino\ConfigManager())->getProductCategoryFilters();
+                $product_category_filters = $config_manager->getProductCategoryFilters();
 
                 $product_category_filter_inputs = [
                     [
@@ -1055,18 +1054,20 @@ class Comfino extends PaymentModule
                     ],
                 ];
 
-                foreach ($params['offer_types'] as $offer_type) {
+                $cat_filter_avail_prod_types = $config_manager->getCatFilterAvailProdTypes($params['offer_types']);
+
+                foreach ($cat_filter_avail_prod_types as $prod_type_code => $prod_type_name) {
                     $product_category_filter_inputs[] = [
                         'type' => 'html',
-                        'name' => $offer_type['key'] . '_label',
+                        'name' => $prod_type_code . '_label',
                         'required' => false,
-                        'html_content' => '<h3>' . $offer_type['name'] . '</h3>',
+                        'html_content' => '<h3>' . $prod_type_name . '</h3>',
                     ];
 
-                    if (isset($product_category_filters[$offer_type['key']])) {
+                    if (isset($product_category_filters[$prod_type_code])) {
                         $selected_categories = array_diff(
                             array_keys($product_categories),
-                            $product_category_filters[$offer_type['key']]
+                            $product_category_filters[$prod_type_code]
                         );
                     } else {
                         $selected_categories = array_keys($product_categories);
@@ -1074,11 +1075,11 @@ class Comfino extends PaymentModule
 
                     $product_category_filter_inputs[] = [
                         'type' => 'html',
-                        'name' => 'product_category_filter[' . $offer_type['key'] . ']',
+                        'name' => 'product_category_filter[' . $prod_type_code . ']',
                         'required' => false,
                         'html_content' => $this->renderCategoryTree(
                             'product_categories',
-                            $offer_type['key'],
+                            $prod_type_code,
                             $selected_categories
                         ),
                     ];

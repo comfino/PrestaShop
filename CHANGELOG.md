@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.4.1](https://github.com/comfino/PrestaShop/tree/3.4.1) (2023-11-15)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.0...3.4.1)
+
+**Merged pull requests:**
+
+- FN-11222 Updated logic of financial products filtering by cart item category. [\#80](https://github.com/comfino/PrestaShop/pull/80) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.4.0](https://github.com/comfino/PrestaShop/tree/3.4.0) (2023-11-06)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.3.2...3.4.0)

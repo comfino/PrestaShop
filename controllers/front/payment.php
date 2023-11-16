@@ -163,8 +163,12 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 'legalize_link' => isset($order_response['_links']['legalize'])
                     ? $order_response['_links']['legalize']['href']
                     : '',
-                'self_link' => $order_response['_links']['self']['href'],
-                'cancel_link' => $order_response['_links']['cancel']['href'],
+                'self_link' => isset($order_response['_links']['self']['href'])
+                    ? $order_response['_links']['self']['href']
+                    : '',
+                'cancel_link' => isset($order_response['_links']['cancel']['href'])
+                    ? $order_response['_links']['cancel']['href']
+                    : '',
             ]
         );
 
