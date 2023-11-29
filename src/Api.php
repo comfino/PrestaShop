@@ -75,9 +75,16 @@ class Api
     /** @var array */
     private static $last_errors = [];
 
-    public static function init()
+    /**
+     * @var \PaymentModule
+     */
+    private static $module;
+
+    public static function init($module)
     {
-        $config_manager = new ConfigManager();
+        self::$module = $module;
+
+        $config_manager = new ConfigManager($module);
 
         self::$is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
 
@@ -105,7 +112,7 @@ class Api
         $total = (int) ($cart->getOrderTotal(true) * 100);
         $delivery = (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100);
 
-        $config_manager = new \Comfino\ConfigManager();
+        $config_manager = new \Comfino\ConfigManager(self::$module);
         $customer = new \Customer($cart->id_customer);
         $products = [];
         $allowed_product_types = null;

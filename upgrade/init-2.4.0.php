@@ -36,7 +36,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
  */
 function upgrade_module_2_4_0($module)
 {
-    $config_manager = new \Comfino\ConfigManager();
+    $config_manager = new \Comfino\ConfigManager($module);
 
     // Update code of widget initialization script.
     $config_manager->updateWidgetCode('bde49851ffc0fd8239eb5d086c8165d4');

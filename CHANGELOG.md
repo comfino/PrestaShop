@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.4.2](https://github.com/comfino/PrestaShop/tree/3.4.2) (2023-11-28)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.1...3.4.2)
+
+**Merged pull requests:**
+
+- FN-11289 Fix bug in setup logic (custom order statuses), fix bug in configuration panel. [\#81](https://github.com/comfino/PrestaShop/pull/81) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.4.1](https://github.com/comfino/PrestaShop/tree/3.4.1) (2023-11-15)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.0...3.4.1)

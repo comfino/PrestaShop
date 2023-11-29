@@ -1,3 +1,6 @@
+3.4.2
+ - FN-11289 Fix bug in setup logic (custom order statuses), fix bug in configuration panel.
+
 3.4.1
  - FN-11222 Updated logic of financial products filtering by cart item category.
 
