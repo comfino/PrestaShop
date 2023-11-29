@@ -36,7 +36,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
  */
 function upgrade_module_2_5_0($module)
 {
-    $config_manager = new \Comfino\ConfigManager();
+    $config_manager = new \Comfino\ConfigManager($module);
 
     // Initialize new configuration options
     $config_manager->updateConfiguration([

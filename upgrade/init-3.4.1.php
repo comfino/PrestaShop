@@ -37,7 +37,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 function upgrade_module_3_4_1($module)
 {
     // Initialize new configuration options
-    (new \Comfino\ConfigManager())->updateConfiguration([
+    (new \Comfino\ConfigManager($module))->updateConfiguration([
         'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
     ]);
 

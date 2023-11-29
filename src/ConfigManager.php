@@ -90,6 +90,19 @@ class ConfigManager
     ];
 
     /**
+     * @var \PaymentModule
+     */
+    private $module;
+
+    /**
+     * @param \PaymentModule $module
+     */
+    public function __construct($module)
+    {
+        $this->module = $module;
+    }
+
+    /**
      * @param string $opt_name
      *
      * @return string
@@ -253,7 +266,7 @@ class ConfigManager
             $order_status->color = $status_details['color'];
             $order_status->unremovable = false;
             $order_status->logable = false;
-            $order_status->module_name = $this->name;
+            $order_status->module_name = 'comfino';
             $order_status->paid = $status_details['paid'];
 
             foreach ($languages as $language) {
@@ -370,13 +383,13 @@ document.getElementsByTagName('head')[0].appendChild(script);
             $offer_types = [
                 [
                     'key' => \Comfino\Api::INSTALLMENTS_ZERO_PERCENT,
-                    'name' => $this->l('Zero percent installments'),
+                    'name' => $this->module->l('Zero percent installments'),
                 ],
                 [
                     'key' => \Comfino\Api::CONVENIENT_INSTALLMENTS,
-                    'name' => $this->l('Convenient installments'),
+                    'name' => $this->module->l('Convenient installments'),
                 ],
-                ['key' => \Comfino\Api::PAY_LATER, 'name' => $this->l('Pay later')],
+                ['key' => \Comfino\Api::PAY_LATER, 'name' => $this->module->l('Pay later')],
             ];
         }
 

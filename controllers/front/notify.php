@@ -39,7 +39,7 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        Api::init();
+        Api::init($this->module);
         ErrorLogger::init();
 
         parent::postProcess();

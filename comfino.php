@@ -39,7 +39,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.4.1', false);
+    define('COMFINO_VERSION', '3.4.2', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.4.1';
+        $this->version = '3.4.2';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -90,7 +90,7 @@ class Comfino extends PaymentModule
 
         include 'sql/install.php';
 
-        $config_manager = new \Comfino\ConfigManager();
+        $config_manager = new \Comfino\ConfigManager($this);
         $config_manager->initConfigurationValues();
         $config_manager->addCustomOrderStatuses();
 
@@ -164,10 +164,10 @@ class Comfino extends PaymentModule
      */
     public function getContent()
     {
-        \Comfino\Api::init();
+        \Comfino\Api::init($this);
         \Comfino\ErrorLogger::init();
 
-        $config_manager = new \Comfino\ConfigManager();
+        $config_manager = new \Comfino\ConfigManager($this);
 
         $active_tab = 'payment_settings';
         $output = [];
@@ -471,11 +471,11 @@ class Comfino extends PaymentModule
         }
 
         \Comfino\ErrorLogger::init();
-        \Comfino\Api::init();
+        \Comfino\Api::init($this);
 
         $this->smarty->assign($this->getTemplateVars());
 
-        $min_cart_value = (float) (new \Comfino\ConfigManager())->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT');
+        $min_cart_value = (float) (new \Comfino\ConfigManager($this))->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT');
 
         if ($this->context->cart->getOrderTotal() < $min_cart_value) {
             return;
@@ -497,9 +497,9 @@ class Comfino extends PaymentModule
         }
 
         \Comfino\ErrorLogger::init();
-        \Comfino\Api::init();
+        \Comfino\Api::init($this);
 
-        $config_manager = new \Comfino\ConfigManager();
+        $config_manager = new \Comfino\ConfigManager($this);
 
         $min_cart_value = (float) $config_manager->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT');
 
@@ -547,7 +547,7 @@ class Comfino extends PaymentModule
 
         \Comfino\ErrorLogger::init();
 
-        $config_manager = new \Comfino\ConfigManager();
+        $config_manager = new \Comfino\ConfigManager($this);
 
         if (COMFINO_PS_17) {
             $state = $params['order']->getCurrentState();
@@ -608,10 +608,10 @@ class Comfino extends PaymentModule
 
             $new_order_state_id = (int) $new_order_state->id;
             $current_order_state_id = (int) $order->getCurrentState();
-            $canceled_order_state_id = (int) (new \Comfino\ConfigManager())->getConfigurationValue('PS_OS_CANCELED');
+            $canceled_order_state_id = (int) (new \Comfino\ConfigManager($this))->getConfigurationValue('PS_OS_CANCELED');
 
             if ($new_order_state_id !== $current_order_state_id && $new_order_state_id === $canceled_order_state_id) {
-                \Comfino\Api::init();
+                \Comfino\Api::init($this);
                 \Comfino\ErrorLogger::init();
                 \Comfino\Api::cancelOrder($params['id_order']);
             }
@@ -640,7 +640,7 @@ class Comfino extends PaymentModule
      */
     public function hookHeader()
     {
-        $config_manager = new \Comfino\ConfigManager();
+        $config_manager = new \Comfino\ConfigManager($this);
 
         if ($this->context->controller->php_self === 'cart' || $this->context->controller->php_self === 'order') {
             // Frontend initialization script
@@ -707,7 +707,7 @@ class Comfino extends PaymentModule
         $helper = $this->getHelperForm($form_name, $form_template_dir, $form_template);
         $helper->fields_value['active_tab'] = $config_tab;
 
-        $config_manager = new \Comfino\ConfigManager();
+        $config_manager = new \Comfino\ConfigManager($this);
 
         foreach (\Comfino\ConfigManager::COMFINO_SETTINGS_OPTIONS as $options) {
             foreach ($options as $option_name) {
@@ -900,7 +900,7 @@ class Comfino extends PaymentModule
     private function getHelperForm($submit_action, $form_template_dir = null, $form_template = null)
     {
         $helper = new HelperForm();
-        $language = (int) (new \Comfino\ConfigManager())->getConfigurationValue('PS_LANG_DEFAULT');
+        $language = (int) (new \Comfino\ConfigManager($this))->getConfigurationValue('PS_LANG_DEFAULT');
 
         $helper->module = $this;
         $helper->name_controller = $this->name;
@@ -1042,7 +1042,7 @@ class Comfino extends PaymentModule
                 break;
 
             case 'sale_settings':
-                $config_manager = new \Comfino\ConfigManager();
+                $config_manager = new \Comfino\ConfigManager($this);
                 $product_categories = $this->getAllProductCategories();
                 $product_category_filters = $config_manager->getProductCategoryFilters();
 
@@ -1350,7 +1350,7 @@ class Comfino extends PaymentModule
      */
     private function checkConfiguration()
     {
-        return (new \Comfino\ConfigManager())->getConfigurationValue('COMFINO_API_KEY') !== null;
+        return (new \Comfino\ConfigManager($this))->getConfigurationValue('COMFINO_API_KEY') !== null;
     }
 
     /**
@@ -1358,7 +1358,7 @@ class Comfino extends PaymentModule
      */
     private function getTemplateVars()
     {
-        $config_manager = new \Comfino\ConfigManager();
+        $config_manager = new \Comfino\ConfigManager($this);
 
         return [
             'pay_with_comfino_text' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'),

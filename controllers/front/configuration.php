@@ -40,12 +40,12 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        Api::init();
+        Api::init($this->module);
         ErrorLogger::init();
 
         parent::postProcess();
 
-        $config_manager = new ConfigManager();
+        $config_manager = new ConfigManager($this->module);
 
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'GET':

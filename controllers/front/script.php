@@ -38,13 +38,13 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        Api::init();
+        Api::init($this->module);
 
         parent::postProcess();
 
         header('Content-Type: application/javascript');
 
-        $config_manager = new ConfigManager();
+        $config_manager = new ConfigManager($this->module);
 
         if ($config_manager->getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
             echo str_replace(

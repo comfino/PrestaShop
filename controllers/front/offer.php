@@ -39,7 +39,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        Api::init();
+        Api::init($this->module);
         ErrorLogger::init();
 
         parent::postProcess();
@@ -76,7 +76,7 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
         $set = false;
 
         if (is_array($offers) && !isset($offers['errors'])) {
-            $config_manager = new \Comfino\ConfigManager();
+            $config_manager = new \Comfino\ConfigManager($this->module);
 
             foreach ($offers as $offer) {
                 // Check product category filters.
