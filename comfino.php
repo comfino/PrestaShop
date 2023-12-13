@@ -39,7 +39,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.4.2', false);
+    define('COMFINO_VERSION', '3.4.3', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.4.2';
+        $this->version = '3.4.3';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -798,6 +798,9 @@ class Comfino extends PaymentModule
                 if (!isset($params['offer_types'])) {
                     $params['offer_types'] = $config_manager->getOfferTypes();
                 }
+                if (!isset($params['widget_types'])) {
+                    $params['widget_types'] = $config_manager->getWidgetTypes();
+                }
 
                 break;
 
@@ -1145,14 +1148,7 @@ class Comfino extends PaymentModule
                                 'name' => 'COMFINO_WIDGET_TYPE',
                                 'required' => false,
                                 'options' => [
-                                    'query' => [
-                                        ['key' => 'simple', 'name' => $this->l('Textual widget')],
-                                        ['key' => 'mixed', 'name' => $this->l('Graphical widget with banner')],
-                                        [
-                                            'key' => 'with-modal',
-                                            'name' => $this->l('Graphical widget with installments calculator'),
-                                        ],
-                                    ],
+                                    'query' => $params['widget_types'],
                                     'id' => 'key',
                                     'name' => 'name',
                                 ],
