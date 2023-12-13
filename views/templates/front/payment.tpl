@@ -25,6 +25,31 @@
 
 <div id="comfino-container" style="display: none"></div>
 <script>
+    if (!window.Comfino) {
+        window.Comfino = {
+            options: null,
+            initialized: false,
+
+            init(frontendScriptURL) {
+                if (Comfino.initialized && typeof ComfinoFrontendRenderer !== 'undefined') {
+                    ComfinoFrontendRenderer.init(Comfino.options);
+
+                    return;
+                }
+
+                let script = document.createElement('script');
+
+                script.onload = () => ComfinoFrontendRenderer.init(Comfino.options);
+                script.src = frontendScriptURL;
+                script.async = true;
+
+                document.getElementsByTagName('head')[0].appendChild(script);
+
+                Comfino.initialized = true;
+            }
+        }
+    }
+
     Comfino.options = {$frontend_renderer_options|@json_encode nofilter};
     Comfino.options.frontendInitElement = document.querySelector('input[data-module-name="comfino"]');
     Comfino.options.frontendTargetElement = document.getElementById('comfino-container');

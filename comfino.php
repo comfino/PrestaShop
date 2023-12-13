@@ -640,20 +640,9 @@ class Comfino extends PaymentModule
      */
     public function hookHeader()
     {
-        $config_manager = new \Comfino\ConfigManager($this);
+        if ($this->context->controller->php_self === 'product') {
+            $config_manager = new \Comfino\ConfigManager($this);
 
-        if ($this->context->controller->php_self === 'cart' || $this->context->controller->php_self === 'order') {
-            // Frontend initialization script
-            if (COMFINO_PS_17) {
-                $this->context->controller->registerJavascript(
-                    'comfino',
-                    'modules/' . $this->name . '/views/js/comfino.js',
-                    ['server' => 'local', 'position' => 'head']
-                );
-            } else {
-                $this->context->controller->addJS('/modules/' . $this->name . '/views/js/comfino.js', false);
-            }
-        } elseif ($this->context->controller->php_self === 'product') {
             // Widget initialization script
             if ($config_manager->getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
                 $widget_settings = $config_manager->getConfigurationValues('widget_settings');
