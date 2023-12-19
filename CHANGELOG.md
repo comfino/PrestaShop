@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.4.3](https://github.com/comfino/PrestaShop/tree/3.4.3) (2023-12-13)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.2...3.4.3)
+
+**Merged pull requests:**
+
+- FN-11349 Add dynamically loaded list of widget types from Comfino API in configuration form (widget settings). [\#82](https://github.com/comfino/PrestaShop/pull/82) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.4.2](https://github.com/comfino/PrestaShop/tree/3.4.2) (2023-11-28)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.1...3.4.2)

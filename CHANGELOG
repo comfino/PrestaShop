@@ -1,3 +1,6 @@
+3.4.3
+ - FN-11349 Add dynamically loaded list of widget types from Comfino API in configuration form (widget settings).
+
 3.4.2
  - FN-11289 Fix bug in setup logic (custom order statuses), fix bug in configuration panel.
 

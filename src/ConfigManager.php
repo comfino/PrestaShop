@@ -369,6 +369,37 @@ document.getElementsByTagName('head')[0].appendChild(script);
     /**
      * @return array
      */
+    public function getWidgetTypes()
+    {
+        $widget_types = \Comfino\Api::getWidgetTypes();
+
+        if ($widget_types !== false) {
+            $widget_types_list = [];
+
+            foreach ($widget_types as $widget_type_code => $widget_type_name) {
+                $widget_types_list[] = ['key' => $widget_type_code, 'name' => $widget_type_name];
+            }
+        } else {
+            $widget_types_list = [
+                ['key' => 'simple', 'name' => $this->module->l('Textual widget')],
+                ['key' => 'mixed', 'name' => $this->module->l('Graphical widget with banner')],
+                [
+                    'key' => 'with-modal',
+                    'name' => $this->module->l('Graphical widget with installments calculator'),
+                ],
+                [
+                    'key' => 'extended-modal',
+                    'name' => $this->module->l('Graphical widget with extended installments calculator'),
+                ],
+            ];
+        }
+
+        return $widget_types_list;
+    }
+
+    /**
+     * @return array
+     */
     public function getOfferTypes()
     {
         $product_types = \Comfino\Api::getProductTypes();
