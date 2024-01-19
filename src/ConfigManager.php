@@ -330,13 +330,22 @@ class ConfigManager
 
     public function getCurrentWidgetCode($product_id = null)
     {
-        $widgetCode = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
+        $widget_code = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
+
+        $context = \Context::getContext();
+        $avail_offers_url = $context->link->getModuleLink(
+            $context->controller->module->name, 'availableoffertypes', [], true
+        );
 
         if ($product_id !== null) {
-            $widgetCode = preg_replace('/\{\n(.*widgetKey:)/', "{\n        productId: $product_id,\n\$1", $widgetCode);
+            $avail_offers_url .= "&product_id=$product_id";
+        } else {
+            $product_id = 'null';
         }
 
-        return $widgetCode;
+        $injected_init_options = "        productId: $product_id,\n        availOffersUrl: '$avail_offers_url',\n";
+
+        return preg_replace('/\{\n(.*widgetKey:)/', "{\n$injected_init_options\$1", $widget_code);
     }
 
     /**

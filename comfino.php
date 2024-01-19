@@ -63,7 +63,9 @@ class Comfino extends PaymentModule
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
 
-        $this->controllers = ['payment', 'offer', 'notify', 'error', 'script', 'configuration'];
+        $this->controllers = [
+            'payment', 'offer', 'notify', 'error', 'script', 'configuration', 'availableoffertypes'
+        ];
 
         parent::__construct();
 
