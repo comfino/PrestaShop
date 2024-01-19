@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.4.4](https://github.com/comfino/PrestaShop/tree/3.4.4) (2024-01-19)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.3...3.4.4)
+
+**Merged pull requests:**
+
+- FN-11416 Add new widget init option productId dynamically inserted into ComfinoProductWidget.init() call. [\#83](https://github.com/comfino/PrestaShop/pull/83) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.4.3](https://github.com/comfino/PrestaShop/tree/3.4.3) (2023-12-13)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.2...3.4.3)

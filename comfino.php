@@ -39,7 +39,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.4.3', false);
+    define('COMFINO_VERSION', '3.4.4', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.4.3';
+        $this->version = '3.4.4';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -649,7 +649,8 @@ class Comfino extends PaymentModule
 
                 // Check product category filters.
                 $product_type = $widget_settings['COMFINO_WIDGET_OFFER_TYPE'];
-                $products = [$this->context->controller->getProduct()->getFields()];
+                $product = $this->context->controller->getProduct();
+                $products = [$product->getFields()];
 
                 if ($config_manager->isFinancialProductAvailable($product_type, $products)) {
                     $config_crc = crc32(implode($widget_settings));
@@ -657,12 +658,16 @@ class Comfino extends PaymentModule
                     if (COMFINO_PS_17) {
                         $this->context->controller->registerJavascript(
                             'comfino-widget',
-                            $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
+                            $this->context->link->getModuleLink(
+                                $this->name, 'script', ['product_id' => $product->id, 'crc' => $config_crc], true
+                            ),
                             ['server' => 'remote', 'position' => 'head']
                         );
                     } else {
                         $this->context->controller->addJS(
-                            $this->context->link->getModuleLink($this->name, 'script', ['crc' => $config_crc], true),
+                            $this->context->link->getModuleLink(
+                                $this->name, 'script', ['product_id' => $product->id, 'crc' => $config_crc], true
+                            ),
                             false
                         );
                     }

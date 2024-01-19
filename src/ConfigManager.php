@@ -328,9 +328,15 @@ class ConfigManager
         }
     }
 
-    public function getCurrentWidgetCode()
+    public function getCurrentWidgetCode($product_id = null)
     {
-        return trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
+        $widgetCode = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
+
+        if ($product_id !== null) {
+            $widgetCode = preg_replace('/\{\n(.*widgetKey:)/', "{\n        productId: $product_id,\n\$1", $widgetCode);
+        }
+
+        return $widgetCode;
     }
 
     /**

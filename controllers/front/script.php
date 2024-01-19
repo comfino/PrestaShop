@@ -76,7 +76,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     ),
                     [Api::getWidgetScriptUrl(), COMFINO_VERSION]
                 ),
-                $config_manager->getCurrentWidgetCode()
+                $config_manager->getCurrentWidgetCode(Tools::getValue('product_id', null))
             );
         }
 
