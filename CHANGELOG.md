@@ -6,7 +6,7 @@
 
 **Merged pull requests:**
 
-- FN-11416 Add new widget init option productId dynamically inserted into ComfinoProductWidget.init() call. [\#83](https://github.com/comfino/PrestaShop/pull/83) ([akozubskicr](https://github.com/akozubskicr))
+- FN-11416 Add new widget init option productId dynamically inserted into ComfinoProductWidget.init() call. Add new endpoint availableoffertypes and new init option availOffersUrl dynamically inserted into ComfinoProductWidget.init() call. [\#83](https://github.com/comfino/PrestaShop/pull/83) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [3.4.3](https://github.com/comfino/PrestaShop/tree/3.4.3) (2023-12-13)
 
