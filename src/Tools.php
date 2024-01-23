@@ -110,7 +110,7 @@ class Tools
     public function getFormattedPrice($price)
     {
         return (float) preg_replace(
-            ['/[^\d,.]/', ','],
+            ['/[^\d,.]/', '/,/'],
             ['', '.'],
             $this->formatPrice($price, $this->getCurrentCurrencyId())
         );
