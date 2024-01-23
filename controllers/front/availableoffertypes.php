@@ -54,8 +54,14 @@ class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontControl
             exit;
         }
 
-        $filtered_product_types = [];
         $product = new \Product(Tools::getValue('product_id'));
+
+        if (!\Validate::isLoadedObject($product)) {
+            echo json_encode($available_product_types);
+            exit;
+        }
+
+        $filtered_product_types = [];
 
         foreach ($available_product_types as $product_type) {
             if ($config_manager->isFinancialProductAvailable($product_type, [$product->getFields()])) {

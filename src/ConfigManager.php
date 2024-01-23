@@ -30,8 +30,9 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/PresentationType.php';
+require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
 class ConfigManager
 {
@@ -313,6 +314,25 @@ class ConfigManager
     }
 
     /**
+     * @return array
+     */
+    public function getWidgetVariables($product_id = null)
+    {
+        $product_data = $this->getProductData($product_id);
+
+        return [
+            '{WIDGET_SCRIPT_URL}' => Api::getWidgetScriptUrl(),
+            '{PRODUCT_ID}' => $product_data['product_id'],
+            '{PRODUCT_PRICE}' => $product_data['price'],
+            '{PLATFORM}' => 'prestashop',
+            '{PLATFORM_VERSION}' => _PS_VERSION_,
+            '{PLATFORM_DOMAIN}' => \Tools::getShopDomain(),
+            '{PLUGIN_VERSION}' => COMFINO_VERSION,
+            '{AVAILABLE_OFFER_TYPES}' => $product_data['avail_offers_url'],
+        ];
+    }
+
+    /**
      * @param string $last_widget_code_hash
      *
      * @return void
@@ -331,21 +351,24 @@ class ConfigManager
     public function getCurrentWidgetCode($product_id = null)
     {
         $widget_code = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
+        $product_data = $this->getProductData($product_id);
 
-        $context = \Context::getContext();
-        $avail_offers_url = $context->link->getModuleLink(
-            $context->controller->module->name, 'availableoffertypes', [], true
-        );
+        $options_to_inject = [];
 
-        if ($product_id !== null) {
-            $avail_offers_url .= "&product_id=$product_id";
-        } else {
-            $product_id = 'null';
+        if (strpos($widget_code, 'productId') === false) {
+            $options_to_inject[] = "        productId: $product_data[product_id]";
+        }
+        if (strpos($widget_code, 'availOffersUrl') === false) {
+            $options_to_inject[] = "        availOffersUrl: '$product_data[avail_offers_url]'";
         }
 
-        $injected_init_options = "        productId: $product_id,\n        availOffersUrl: '$avail_offers_url',\n";
+        if (count($options_to_inject)) {
+            $injected_init_options = implode(",\n", $options_to_inject) . ",\n";
 
-        return preg_replace('/\{\n(.*widgetKey:)/', "{\n$injected_init_options\$1", $widget_code);
+            return preg_replace('/\{\n(.*widgetKey:)/', "{\n$injected_init_options\$1", $widget_code);
+        }
+
+        return $widget_code;
     }
 
     /**
@@ -365,9 +388,15 @@ script.onload = function () {
         type: '{WIDGET_TYPE}',
         offerType: '{OFFER_TYPE}',
         embedMethod: '{EMBED_METHOD}',
-        numOfInstallments: 0,        
-        price: null,
+        numOfInstallments: 0,
+        price: null,        
+        productId: {PRODUCT_ID},
+        productPrice: {PRODUCT_PRICE},
+        platform: '{PLATFORM}',
+        platformVersion: '{PLATFORM_VERSION}',
+        platformDomain: '{PLATFORM_DOMAIN}',
         pluginVersion: '{PLUGIN_VERSION}',
+        availOffersUrl: '{AVAILABLE_OFFER_TYPES}',
         callbackBefore: function () {},
         callbackAfter: function () {},
         onOfferRendered: function (jsonResponse, widgetTarget, widgetNode) { },
@@ -515,5 +544,36 @@ document.getElementsByTagName('head')[0].appendChild(script);
         }
 
         return true;
+    }
+
+    /**
+     * @return array
+     */
+    private function getProductData($product_id)
+    {
+        $context = \Context::getContext();
+        $avail_offers_url = $context->link->getModuleLink(
+            $context->controller->module->name, 'availableoffertypes', [], true
+        );
+
+        $price = 'null';
+
+        if ($product_id !== null) {
+            $avail_offers_url .= "&product_id=$product_id";
+
+            if (($price = \Product::getPriceStatic($product_id)) === null) {
+                $price = 'null';
+            } else {
+                $price = (new \Comfino\Tools($context))->getFormattedPrice($price);
+            }
+        } else {
+            $product_id = 'null';
+        }
+
+        return [
+            'product_id' => $product_id,
+            'price' => $price,
+            'avail_offers_url' => $avail_offers_url,
+        ];
     }
 }
