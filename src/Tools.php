@@ -91,4 +91,28 @@ class Tools
     {
         return $this->context->cookie;
     }
+
+    /**
+     * @return int
+     */
+    public function getCurrentCurrencyId()
+    {
+        global $currency;
+
+        return $currency->id;
+    }
+
+    /**
+     * @param float $price
+     *
+     * @return float
+     */
+    public function getFormattedPrice($price)
+    {
+        return (float) preg_replace(
+            ['/[^\d,.]/', '/,/'],
+            ['', '.'],
+            $this->formatPrice($price, $this->getCurrentCurrencyId())
+        );
+    }
 }

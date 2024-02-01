@@ -47,19 +47,23 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
         $config_manager = new ConfigManager($this->module);
 
         if ($config_manager->getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
+            $product_id = Tools::getValue('product_id', null);
+            $widget_variables = $config_manager->getWidgetVariables($product_id);
+
             echo str_replace(
-                [
-                    '{WIDGET_KEY}',
-                    '{WIDGET_PRICE_SELECTOR}',
-                    '{WIDGET_TARGET_SELECTOR}',
-                    '{WIDGET_PRICE_OBSERVER_SELECTOR}',
-                    '{WIDGET_PRICE_OBSERVER_LEVEL}',
-                    '{WIDGET_TYPE}',
-                    '{OFFER_TYPE}',
-                    '{EMBED_METHOD}',
-                    '{WIDGET_SCRIPT_URL}',
-                    '{PLUGIN_VERSION}',
-                ],
+                array_merge(
+                    [
+                        '{WIDGET_KEY}',
+                        '{WIDGET_PRICE_SELECTOR}',
+                        '{WIDGET_TARGET_SELECTOR}',
+                        '{WIDGET_PRICE_OBSERVER_SELECTOR}',
+                        '{WIDGET_PRICE_OBSERVER_LEVEL}',
+                        '{WIDGET_TYPE}',
+                        '{OFFER_TYPE}',
+                        '{EMBED_METHOD}',
+                    ],
+                    array_keys($widget_variables)
+                ),
                 array_merge(
                     $config_manager->getConfigurationValues(
                         'widget_settings',
@@ -74,9 +78,9 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                             'COMFINO_WIDGET_EMBED_METHOD',
                         ]
                     ),
-                    [Api::getWidgetScriptUrl(), COMFINO_VERSION]
+                    array_values($widget_variables)
                 ),
-                $config_manager->getCurrentWidgetCode()
+                $config_manager->getCurrentWidgetCode($product_id)
             );
         }
 

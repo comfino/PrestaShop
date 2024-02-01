@@ -1,3 +1,8 @@
+3.4.4
+ - FN-11416 Add new widget init option productId dynamically inserted into ComfinoProductWidget.init() call.
+ - FN-11416 Add new endpoint availableoffertypes and new init option availOffersUrl dynamically inserted into ComfinoProductWidget.init() call.
+ - FN-11416 Add new widget init options: productId, productPrice, platform, platformVersion, platformDomain.
+
 3.4.3
  - FN-11349 Add dynamically loaded list of widget types from Comfino API in configuration form (widget settings).
 
