@@ -1,3 +1,6 @@
+3.4.6
+ - FN-11493 Fix critical bug in the configuration management module - incompatibility with PrestaShop 8.
+
 3.4.5
  - FN-11487 Fix critical bug in the configuration management module.
 
