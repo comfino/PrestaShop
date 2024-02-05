@@ -97,9 +97,9 @@ class Tools
      */
     public function getCurrentCurrencyId()
     {
-        global $currency;
+        global $currency, $cookie;
 
-        return $currency->id;
+        return $currency !== null ? $currency->id : $cookie->id_currency;
     }
 
     /**

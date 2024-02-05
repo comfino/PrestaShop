@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.4.6](https://github.com/comfino/PrestaShop/tree/3.4.6) (2024-02-05)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.5...3.4.6)
+
+**Merged pull requests:**
+
+- FN-11493 Fix critical bug in the configuration management module - incompatibility with PrestaShop 8. [\#85](https://github.com/comfino/PrestaShop/pull/85) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.4.5](https://github.com/comfino/PrestaShop/tree/3.4.5) (2024-02-05)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.4...3.4.5)
