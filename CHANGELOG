@@ -1,3 +1,6 @@
+3.4.5
+ - FN-11487 Fix critical bug in the configuration management module.
+
 3.4.4
  - FN-11416 Add new widget init option productId dynamically inserted into ComfinoProductWidget.init() call.
  - FN-11416 Add new endpoint availableoffertypes and new init option availOffersUrl dynamically inserted into ComfinoProductWidget.init() call.

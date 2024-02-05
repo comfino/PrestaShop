@@ -552,9 +552,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
     private function getProductData($product_id)
     {
         $context = \Context::getContext();
-        $avail_offers_url = $context->link->getModuleLink(
-            $context->controller->module->name, 'availableoffertypes', [], true
-        );
+        $avail_offers_url = $context->link->getModuleLink($this->module->name, 'availableoffertypes', [], true);
 
         $price = 'null';
 
