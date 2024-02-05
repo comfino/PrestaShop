@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.4.5](https://github.com/comfino/PrestaShop/tree/3.4.5) (2024-02-05)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.4...3.4.5)
+
+**Merged pull requests:**
+
+- FN-11487 Fix critical bug in the configuration management module. [\#84](https://github.com/comfino/PrestaShop/pull/84) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.4.4](https://github.com/comfino/PrestaShop/tree/3.4.4) (2024-01-23)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.3...3.4.4)
