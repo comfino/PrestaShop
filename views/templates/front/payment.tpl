@@ -42,7 +42,11 @@
                 });
             }
 
-            ComfinoPaywallFrontend.init(document.getElementById('comfino-paywall-container'), paywallOptions);
+            ComfinoPaywallFrontend.init(
+                document.querySelector('input[data-module-name="comfino"]'),
+                document.getElementById('comfino-paywall-container'),
+                paywallOptions
+            );
         }
     });
 </script>
