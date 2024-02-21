@@ -34,7 +34,7 @@
     </div>
 </div>
 {$pay_with_comfino_text|escape:"htmlall":"UTF-8"}
-<iframe id="comfino-paywall-container" src="{$paywall_api_url}" referrerpolicy="strict-origin" loading="lazy" class="comfino-paywall" onload="ComfinoPaywallFrontend.onload(this)"></iframe>
+<iframe id="comfino-paywall-container" src="{$paywall_api_url}" referrerpolicy="strict-origin" loading="lazy" class="comfino-paywall" scrolling="no" onload="ComfinoPaywallFrontend.onload(this)"></iframe>
 <script>
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {
