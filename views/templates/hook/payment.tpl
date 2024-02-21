@@ -39,6 +39,7 @@
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {
             let paywallOptions = {$paywall_options|@json_encode nofilter};
+
             paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
                 ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
 
