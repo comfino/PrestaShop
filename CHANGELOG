@@ -1,3 +1,6 @@
+3.5.0
+ - FN-11467 New paywall frontend architecture based on iframe.
+
 3.4.6
  - FN-11493 Fix critical bug in the configuration management module - incompatibility with PrestaShop 8.
 

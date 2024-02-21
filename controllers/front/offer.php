@@ -44,110 +44,13 @@ class ComfinoOfferModuleFrontController extends ModuleFrontController
 
         parent::postProcess();
 
-        if (Tools::getIsset('type')) {
-            echo $this->getContent();
-            exit;
-        }
-
         $cookie = (new \Comfino\Tools($this->context))->getCookie();
-        $cookie->loan_amount = Tools::getValue('loan_amount');
         $cookie->loan_type = Tools::getValue('loan_type');
         $cookie->loan_term = Tools::getValue('loan_term');
         $cookie->write();
 
-        echo json_encode([
-            'status' => 'OK',
-            'amount' => (float) $cookie->loan_amount,
-            'type' => $cookie->loan_type,
-            'term' => (int) $cookie->loan_term,
-        ]);
+        echo json_encode(['status' => 'OK', 'type' => $cookie->loan_type, 'term' => (int) $cookie->loan_term]);
 
         exit;
-    }
-
-    private function getContent()
-    {
-        $cart = $this->context->cart;
-        $tools = new \Comfino\Tools($this->context);
-
-        $total = (int) round(!Tools::isEmpty(Tools::getValue('total')) ? (float) Tools::getValue('total') * 100 : 0);
-        $offers = Api::getOffers($total);
-        $payment_offers = [];
-        $set = false;
-
-        if (is_array($offers) && !isset($offers['errors'])) {
-            $config_manager = new \Comfino\ConfigManager($this->module);
-
-            foreach ($offers as $offer) {
-                // Check product category filters.
-                if (!$config_manager->isFinancialProductAvailable($offer['type'], $cart->getProducts())) {
-                    continue;
-                }
-
-                $loan_amount = round(((float) $offer['instalmentAmount']) * ((float) $offer['loanTerm']) / 100, 2);
-
-                if ($loan_amount < ($total / 100)) {
-                    $loan_amount = round($total / 100, 2);
-                }
-
-                if (!$set) {
-                    $cookie = $tools->getCookie();
-                    $cookie->loan_amount = $loan_amount;
-                    $cookie->loan_type = $offer['type'];
-                    $cookie->write();
-
-                    $set = true;
-                }
-
-                $payment_offers[] = [
-                    'name' => $offer['name'],
-                    'description' => $offer['description'],
-                    'icon' => str_ireplace('<?xml version="1.0" encoding="UTF-8"?>', '', $offer['icon']),
-                    'type' => $offer['type'],
-                    'representativeExample' => $offer['representativeExample'],
-                    'loanTerm' => $offer['loanTerm'],
-                    'instalmentAmount' => ((float) $offer['instalmentAmount']) / 100,
-                    'instalmentAmountFormatted' => $tools->formatPrice(
-                        ((float) $offer['instalmentAmount']) / 100,
-                        $cart->id_currency
-                    ),
-                    'sumAmount' => $total / 100,
-                    'sumAmountFormatted' => $tools->formatPrice($total / 100, $cart->id_currency),
-                    'toPay' => ((float) $offer['toPay']) / 100,
-                    'toPayFormatted' => $tools->formatPrice(((float) $offer['toPay']) / 100, $cart->id_currency),
-                    'commission' => ((int) $offer['toPay'] - $total) / 100,
-                    'commissionFormatted' => $tools->formatPrice(
-                        ((int) $offer['toPay'] - $total) / 100,
-                        $cart->id_currency
-                    ),
-                    'rrso' => round((float) $offer['rrso'] * 100, 2),
-                    'loanParameters' => array_map(static function ($loan_params) use ($total, $tools, $cart) {
-                        return [
-                            'loanTerm' => $loan_params['loanTerm'],
-                            'instalmentAmount' => ((float) $loan_params['instalmentAmount']) / 100,
-                            'instalmentAmountFormatted' => $tools->formatPrice(
-                                ((float) $loan_params['instalmentAmount']) / 100,
-                                $cart->id_currency
-                            ),
-                            'sumAmount' => $total / 100,
-                            'sumAmountFormatted' => $tools->formatPrice($total / 100, $cart->id_currency),
-                            'toPay' => ((float) $loan_params['toPay']) / 100,
-                            'toPayFormatted' => $tools->formatPrice(
-                                ((float) $loan_params['toPay']) / 100,
-                                $cart->id_currency
-                            ),
-                            'commission' => ((int) $loan_params['toPay'] - $total) / 100,
-                            'commissionFormatted' => $tools->formatPrice(
-                                ((int) $loan_params['toPay'] - $total) / 100,
-                                $cart->id_currency
-                            ),
-                            'rrso' => round((float) $loan_params['rrso'] * 100, 2),
-                        ];
-                    }, $offer['loanParameters']),
-                ];
-            }
-        }
-
-        return json_encode($payment_offers);
     }
 }

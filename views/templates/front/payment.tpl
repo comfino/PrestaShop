@@ -23,35 +23,25 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
-<div id="comfino-container" style="display: none"></div>
+<iframe id="comfino-paywall-container" src="{$paywall_api_url}" referrerpolicy="strict-origin" loading="lazy" class="comfino-paywall" scrolling="no" onload="ComfinoPaywallFrontend.onload(this)"></iframe>
 <script>
-    if (!window.Comfino) {
-        window.Comfino = {
-            options: null,
-            initialized: false,
+    document.addEventListener('readystatechange', () => {
+        if (document.readyState === 'complete') {
+            let paywallOptions = {$paywall_options|@json_encode nofilter};
+            paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
+                ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
 
-            init(frontendScriptURL) {
-                if (Comfino.initialized && typeof ComfinoFrontendRenderer !== 'undefined') {
-                    ComfinoFrontendRenderer.init(Comfino.options);
+                let offersUrl = '{$offers_url}'.replace(/&amp;/g, '&');
+                let urlParams = new URLSearchParams({ loan_type: loanParams.loanType, loan_term: loanParams.loanTerm });
 
-                    return;
-                }
+                offersUrl += (offersUrl.indexOf('?') > 0 ? '&' : '?') + urlParams.toString();
 
-                let script = document.createElement('script');
-
-                script.onload = () => ComfinoFrontendRenderer.init(Comfino.options);
-                script.src = frontendScriptURL;
-                script.async = true;
-
-                document.getElementsByTagName('head')[0].appendChild(script);
-
-                Comfino.initialized = true;
+                fetch(offersUrl, { method: 'POST' }).then(response => {
+                    ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', offersUrl, response);
+                });
             }
-        }
-    }
 
-    Comfino.options = {$frontend_renderer_options|@json_encode nofilter};
-    Comfino.options.frontendInitElement = document.querySelector('input[data-module-name="comfino"]');
-    Comfino.options.frontendTargetElement = document.getElementById('comfino-container');
-    Comfino.init('{$frontend_script_url|escape:"javascript":"UTF-8"}');
+            ComfinoPaywallFrontend.init(document.getElementById('comfino-paywall-container'), paywallOptions);
+        }
+    });
 </script>

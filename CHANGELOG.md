@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.0](https://github.com/comfino/PrestaShop/tree/3.5.0) (2024-02-21)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.6...3.5.0)
+
+**Merged pull requests:**
+
+- FN-11467 New paywall frontend architecture based on iframe. [\#86](https://github.com/comfino/PrestaShop/pull/86) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.4.6](https://github.com/comfino/PrestaShop/tree/3.4.6) (2024-02-05)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.5...3.4.6)
