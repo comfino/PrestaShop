@@ -31,7 +31,6 @@ if (!defined('_PS_VERSION_')) {
 require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/PresentationType.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
