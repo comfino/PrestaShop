@@ -27,7 +27,7 @@
     <div class="col-xs-12 col-md-12">
         <p class="payment_module">
             <a id="pay-with-comperia" class="comfino-payment-method">
-                <img style="height: 49px" src="//widget.comfino.pl/image/comfino/ecommerce/prestashop/comfino_logo.svg" alt="{l s="Pay with comfino" mod="comfino"}" />
+                <img style="height: 49px" src="{$logo_url}" alt="{l s="Pay with comfino" mod="comfino"}" />
                 {$pay_with_comfino_text|escape:"htmlall":"UTF-8"}
             </a>
         </p>
@@ -53,7 +53,11 @@
                 });
             }
 
-            ComfinoPaywallFrontend.init(document.getElementById('comfino-paywall-container'), paywallOptions);
+            ComfinoPaywallFrontend.init(
+                document.querySelector('input[data-module-name="comfino"]'),
+                document.getElementById('comfino-paywall-container'),
+                paywallOptions
+            );
         }
     });
 </script>

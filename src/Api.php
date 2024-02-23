@@ -81,6 +81,9 @@ class Api
     /** @var string */
     private static $widget_script_url;
 
+    /** @var string */
+    private static $widget_key;
+
     /** @var string|null */
     private static $last_request_body;
 
@@ -105,6 +108,7 @@ class Api
         $config_manager = new ConfigManager($module);
 
         self::$is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
+        self::$widget_key = $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY');
 
         if (self::$is_sandbox_mode) {
             self::$api_host = self::COMFINO_SANDBOX_HOST;
@@ -444,7 +448,7 @@ class Api
      */
     public static function getLogoUrl()
     {
-        return self::getApiHost(true) . '/v1/get-logo-url';
+        return self::getApiHost(true) . '/v1/get-logo-url?auth=' . self::getLogoAuthHash();
     }
 
     /**
@@ -452,7 +456,7 @@ class Api
      */
     public static function getPaywallLogoUrl()
     {
-        return self::getApiHost(true) . '/v1/get-paywall-logo';
+        return self::getApiHost(true) . '/v1/get-paywall-logo?auth=' . self::getLogoAuthHash(true);
     }
 
     /**
@@ -852,5 +856,28 @@ class Api
             PHP_VERSION,
             \Tools::getShopDomain()
         );
+    }
+
+    /**
+     * @param bool $paywallLogo
+     * @return string
+     */
+    private static function getLogoAuthHash($paywallLogo = false)
+    {
+        $platformVersion = array_map('intval', explode('.', _PS_VERSION_));
+        $pluginVersion = array_map('intval', explode('.', COMFINO_VERSION));
+        $packedPlatformVersion = pack('c*', ...$platformVersion);
+        $packedPluginVersion = pack('c*', ...$pluginVersion);
+        $platformVersionLength = pack('c', strlen($packedPlatformVersion));
+        $pluginVersionLength = pack('c', strlen($packedPluginVersion));
+
+        $authHash = "PS$platformVersionLength$pluginVersionLength$packedPlatformVersion$packedPluginVersion";
+
+        if ($paywallLogo) {
+            $hashAlgorithm = current(self::getHashAlgos());
+            $authHash .= (self::$widget_key . hash_hmac($hashAlgorithm, $authHash, self::getApiKey(), true));
+        }
+
+        return urlencode(base64_encode($authHash));
     }
 }

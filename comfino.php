@@ -458,10 +458,10 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * Prestashop 1.6.* compatibility.
+     * PrestaShop 1.6.* compatibility.
      *
      * @param $params
-     * @return false|string|void
+     * @return string|void
      */
     public function hookPayment($params)
     {
@@ -472,7 +472,7 @@ class Comfino extends PaymentModule
         \Comfino\ErrorLogger::init();
         \Comfino\Api::init($this);
 
-        $this->smarty->assign($this->getTemplateVars());
+        $config_manager = new \Comfino\ConfigManager($this);
 
         $min_cart_value = (float) (new \Comfino\ConfigManager($this))->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT');
 
@@ -480,11 +480,14 @@ class Comfino extends PaymentModule
             return;
         }
 
-        return $this->display(__FILE__, 'payment.tpl');
+        return $this->preparePaywallIframe(
+            (int) ($this->context->cart->getOrderTotal() * 100),
+            $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY')
+        );
     }
 
     /**
-     * Prestashop 1.7.* compatibility.
+     * PrestaShop 1.7.* compatibility.
      *
      * @param array $params
      * @return \PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
@@ -1308,6 +1311,7 @@ class Comfino extends PaymentModule
 
     /**
      * @return array
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     private function getTemplateVars()
     {
@@ -1315,7 +1319,7 @@ class Comfino extends PaymentModule
 
         return [
             'pay_with_comfino_text' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'),
-            'logo_url' => '//widget.comfino.pl/image/comfino/ecommerce/prestashop/comfino_logo_icon.svg',
+            'logo_url' => \Comfino\Api::getPaywallLogoUrl(),
             'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
             'paywall_options' => $this->getPaywallOptions(),
             'frontend_script_url' => \Comfino\Api::getFrontendScriptUrl(),
@@ -1366,7 +1370,6 @@ class Comfino extends PaymentModule
 
     /**
      * @return array
-     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     private function getPaywallOptions()
@@ -1411,7 +1414,6 @@ class Comfino extends PaymentModule
      * @param bool $leafs_only
      * @param array $sub_categories
      * @param int $position
-     *
      * @return array
      */
     private function getNestedCategories($leafs_only = false, $sub_categories = [], $position = 0)
@@ -1454,7 +1456,6 @@ class Comfino extends PaymentModule
     /**
      * @param array $categories
      * @param int[] $selected_categories
-     *
      * @return array
      */
     private function buildCategoriesTree($categories, $selected_categories)
@@ -1480,7 +1481,6 @@ class Comfino extends PaymentModule
      * @param string $tree_id
      * @param string $product_type
      * @param int[] $selected_categories
-     *
      * @return string
      */
     private function renderCategoryTree($tree_id, $product_type, $selected_categories)
@@ -1505,7 +1505,6 @@ class Comfino extends PaymentModule
      * @param string $id
      * @param string $script_url
      * @param string $position
-     *
      * @return void
      */
     private function addScriptLink($id, $script_url, $position = 'bottom', $load_strategy = null)
@@ -1527,7 +1526,6 @@ class Comfino extends PaymentModule
     /**
      * @param string $id
      * @param string $style_url
-     *
      * @return void
      */
     private function addStyleLink($id, $style_url)
@@ -1542,14 +1540,14 @@ class Comfino extends PaymentModule
     /**
      * @param int $loan_amount
      * @param string $widget_key
-     *
      * @return string
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     private function preparePaywallIframe($loan_amount, $widget_key)
     {
         $request_data = $loan_amount . $widget_key;
         $hash = hash_hmac(current(Comfino\Api::getHashAlgos()), $request_data, \Comfino\Api::getApiKey(), true);
-        $auth = urlencode(base64_encode(pack('V', $loan_amount) . $widget_key . '|' . $hash));
+        $auth = urlencode(base64_encode(pack('V', $loan_amount) . $widget_key . $hash));
         $paywall_api_url = \Comfino\Api::getPaywallApiHost() . '/v1/paywall?auth=' . $auth;
 
         $this->smarty->assign(array_merge($this->getTemplateVars(), ['paywall_api_url' => $paywall_api_url]));
