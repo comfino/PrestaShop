@@ -296,6 +296,14 @@ class Api
     }
 
     /**
+     * @return void
+     */
+    public static function notifyPluginRemoval()
+    {
+        self::sendRequest(self::getApiHost() . '/v1/plugin-remove', 'PUT');
+    }
+
+    /**
      * @return string|bool
      */
     public static function getWidgetKey()

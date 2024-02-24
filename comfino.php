@@ -120,6 +120,8 @@ class Comfino extends PaymentModule
         include 'sql/uninstall.php';
 
         if (parent::uninstall()) {
+            \Comfino\Api::init($this);
+
             $this->deleteConfigurationValues();
 
             if (!COMFINO_PS_17) {
@@ -134,6 +136,8 @@ class Comfino extends PaymentModule
             $this->unregisterHook('actionValidateCustomerAddressForm');
             $this->unregisterHook('header');
             $this->unregisterHook('actionAdminControllerSetMedia');
+
+            \Comfino\Api::notifyPluginRemoval();
 
             return true;
         }
