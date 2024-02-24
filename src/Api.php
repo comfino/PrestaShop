@@ -883,7 +883,8 @@ class Api
 
         if ($paywallLogo) {
             $hashAlgorithm = current(self::getHashAlgos());
-            $authHash .= (self::$widget_key . hash_hmac($hashAlgorithm, $authHash, self::getApiKey(), true));
+            $authHash .= self::$widget_key;
+            $authHash .= hash_hmac($hashAlgorithm, $authHash, self::getApiKey(), true);
         }
 
         return urlencode(base64_encode($authHash));
