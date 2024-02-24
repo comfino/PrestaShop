@@ -300,7 +300,7 @@ class Api
      */
     public static function notifyPluginRemoval()
     {
-        self::sendRequest(self::getApiHost() . '/v1/plugin-remove', 'PUT');
+        self::sendRequest(self::getApiHost() . '/v1/log-plugin-remove', 'PUT');
     }
 
     /**
