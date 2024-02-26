@@ -23,7 +23,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
-<iframe id="comfino-paywall-container" src="{$paywall_api_url}" referrerpolicy="strict-origin" loading="lazy" class="comfino-paywall" scrolling="no" onload="ComfinoPaywallFrontend.onload(this)"></iframe>
+<iframe id="comfino-paywall-container" src="{$paywall_api_url}" referrerpolicy="strict-origin" loading="lazy" class="comfino-paywall" scrolling="no" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')"></iframe>
 <script>
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {

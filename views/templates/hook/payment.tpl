@@ -46,14 +46,14 @@
 <div class="row">
     <div class="col-xs-12 col-md-12">
         <p class="payment_module">
-            <a id="pay-with-comperia" class="comfino-payment-method">
-                <img style="height: 49px" src="{$logo_url}" alt="{l s="Pay with comfino" mod="comfino"}" />
+            <a id="pay-with-comfino" class="comfino-payment-method">
+                <img style="height: 49px" src="{$logo_url}" alt="{l s="Pay with comfino" mod="comfino"}" loading="lazy" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')" />
                 {$pay_with_comfino_text|escape:"htmlall":"UTF-8"}
             </a>
         </p>
     </div>
 </div>
-<iframe id="comfino-paywall-container" src="{$paywall_api_url}" referrerpolicy="strict-origin" loading="lazy" class="comfino-paywall" scrolling="no" onload="ComfinoPaywallFrontend.onload(this)"></iframe>
+<iframe id="comfino-paywall-container" src="{$paywall_api_url}" referrerpolicy="strict-origin" loading="lazy" class="comfino-paywall" scrolling="no" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')"></iframe>
 <script>
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {
@@ -73,7 +73,7 @@
             }
 
             ComfinoPaywallFrontend.init(
-                document.querySelector('input[data-module-name="comfino"]'),
+                document.getElementById('pay-with-comfino'),
                 document.getElementById('comfino-paywall-container'),
                 paywallOptions
             );
