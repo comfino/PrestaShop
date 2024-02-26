@@ -1537,7 +1537,7 @@ class Comfino extends PaymentModule
         if (COMFINO_PS_17) {
             $this->context->controller->registerStylesheet($id, $style_url, ['server' => 'remote']);
         } else {
-            $this->context->controller->addCSS($style_url, false);
+            $this->context->controller->addCSS($style_url);
         }
     }
 
