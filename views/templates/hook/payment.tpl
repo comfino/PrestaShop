@@ -23,6 +23,26 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
+<style>
+    a.comfino-payment-method {
+        padding: 25px 20px !important;
+        cursor: pointer;
+    }
+
+    a.comfino-payment-method:after {
+        width: 14px;
+        height: 22px;
+        display: block;
+        content: "\f078";
+        font-family: 'FontAwesome';
+        font-size: 25px;
+        color: #777777;
+        position: absolute;
+        right: 25px;
+        margin-top: -11px;
+        top: 50%;
+    }
+</style>
 <div class="row">
     <div class="col-xs-12 col-md-12">
         <p class="payment_module">
@@ -33,7 +53,6 @@
         </p>
     </div>
 </div>
-{$pay_with_comfino_text|escape:"htmlall":"UTF-8"}
 <iframe id="comfino-paywall-container" src="{$paywall_api_url}" referrerpolicy="strict-origin" loading="lazy" class="comfino-paywall" scrolling="no" onload="ComfinoPaywallFrontend.onload(this)"></iframe>
 <script>
     document.addEventListener('readystatechange', () => {
