@@ -466,6 +466,7 @@ class Comfino extends PaymentModule
      *
      * @param $params
      * @return string|void
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookPayment($params)
     {
@@ -477,8 +478,7 @@ class Comfino extends PaymentModule
         \Comfino\Api::init($this);
 
         $config_manager = new \Comfino\ConfigManager($this);
-
-        $min_cart_value = (float) (new \Comfino\ConfigManager($this))->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT');
+        $min_cart_value = (float) $config_manager->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT');
 
         if ($this->context->cart->getOrderTotal() < $min_cart_value) {
             return;
@@ -486,6 +486,7 @@ class Comfino extends PaymentModule
 
         return $this->preparePaywallIframe(
             (int) ($this->context->cart->getOrderTotal() * 100),
+            $this->getProductTypesFilter($this->context->cart, $config_manager),
             $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY')
         );
     }
@@ -495,6 +496,7 @@ class Comfino extends PaymentModule
      *
      * @param array $params
      * @return \PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookPaymentOptions($params)
     {
@@ -506,7 +508,6 @@ class Comfino extends PaymentModule
         \Comfino\Api::init($this);
 
         $config_manager = new \Comfino\ConfigManager($this);
-
         $min_cart_value = (float) $config_manager->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT');
 
         if ($this->context->cart->getOrderTotal() < $min_cart_value) {
@@ -521,6 +522,7 @@ class Comfino extends PaymentModule
             ->setAdditionalInformation(
                 $this->preparePaywallIframe(
                     (int) ($this->context->cart->getOrderTotal() * 100),
+                    $this->getProductTypesFilter($this->context->cart, $config_manager),
                     $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY')
                 )
             );
@@ -1506,6 +1508,35 @@ class Comfino extends PaymentModule
     }
 
     /**
+     * @param Cart $cart
+     * @param \Comfino\ConfigManager $config_manager
+     * @return array|null
+     */
+    private function getProductTypesFilter($cart, $config_manager)
+    {
+        if (empty($config_manager->getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS'))) {
+            // Product category filters not set.
+            return null;
+        }
+
+        $available_product_types = array_map(
+            static function (array $offer_type) { return $offer_type['key']; },
+            $config_manager->getOfferTypes()
+        );
+
+        $filtered_product_types = [];
+
+        // Check product category filters.
+        foreach ($available_product_types as $product_type) {
+            if ($config_manager->isFinancialProductAvailable($product_type, $cart->getProducts())) {
+                $filtered_product_types[] = $product_type;
+            }
+        }
+
+        return $filtered_product_types;
+    }
+
+    /**
      * @param string $id
      * @param string $script_url
      * @param string $position
@@ -1543,15 +1574,31 @@ class Comfino extends PaymentModule
 
     /**
      * @param int $loan_amount
+     * @param array|null $product_types_filter
      * @param string $widget_key
      * @return string
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    private function preparePaywallIframe($loan_amount, $widget_key)
+    private function preparePaywallIframe($loan_amount, $product_types_filter, $widget_key)
     {
-        $request_data = $loan_amount . $widget_key;
+        if (is_array($product_types_filter)) {
+            if (count($product_types_filter)) {
+                $product_types = implode(',', $product_types_filter);
+                $product_types_len = strlen($product_types);
+            } else {
+                $product_types = "\0";
+                $product_types_len = 1;
+            }
+        } else {
+            $product_types = '';
+            $product_types_len = 0;
+        }
+
+        $request_data = $loan_amount . $product_types . $widget_key;
+        $request_params = pack('V', $loan_amount) . pack('v', $product_types_len) . $product_types . $widget_key;
+
         $hash = hash_hmac(current(Comfino\Api::getHashAlgos()), $request_data, \Comfino\Api::getApiKey(), true);
-        $auth = urlencode(base64_encode(pack('V', $loan_amount) . $widget_key . $hash));
+        $auth = urlencode(base64_encode($request_params . $hash));
         $paywall_api_url = \Comfino\Api::getPaywallApiHost() . '/v1/paywall?auth=' . $auth;
 
         $this->smarty->assign(array_merge($this->getTemplateVars(), ['paywall_api_url' => $paywall_api_url]));
