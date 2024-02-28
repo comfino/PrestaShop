@@ -54,6 +54,11 @@
     </div>
 </div>
 <iframe id="comfino-paywall-container" src="{$paywall_api_url}" referrerpolicy="strict-origin" loading="lazy" class="comfino-paywall" scrolling="no" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')"></iframe>
+<div id="comfino-payment-bar" class="comfino-payment-bar">
+    <a id="comfino-go-to-payment" href="{$go_to_payment_url|escape:"htmlall":"UTF-8"}" class="comfino-payment-btn">
+        {l s="Go to payment" mod="comfino"}
+    </a>
+</div>
 <script>
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {
