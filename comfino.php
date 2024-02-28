@@ -1584,18 +1584,18 @@ class Comfino extends PaymentModule
         if (is_array($product_types_filter)) {
             if (count($product_types_filter)) {
                 $product_types = implode(',', $product_types_filter);
-                $product_types_len = strlen($product_types);
+                $product_types_length = strlen($product_types);
             } else {
                 $product_types = "\0";
-                $product_types_len = 1;
+                $product_types_length = 1;
             }
         } else {
             $product_types = '';
-            $product_types_len = 0;
+            $product_types_length = 0;
         }
 
         $request_data = $loan_amount . $product_types . $widget_key;
-        $request_params = pack('V', $loan_amount) . pack('v', $product_types_len) . $product_types . $widget_key;
+        $request_params = pack('V', $loan_amount) . pack('v', $product_types_length) . $product_types . $widget_key;
 
         $hash = hash_hmac(current(Comfino\Api::getHashAlgos()), $request_data, \Comfino\Api::getApiKey(), true);
         $auth = urlencode(base64_encode($request_params . $hash));
