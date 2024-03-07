@@ -591,16 +591,16 @@ class Api
     }
 
     /**
-     * @param bool $frontendHost
-     * @param string|null $apiHost
+     * @param bool $frontend_host
+     * @param string|null $api_host
      * @return string
      */
-    public static function getApiHost($frontendHost = false, $apiHost = null)
+    public static function getApiHost($frontend_host = false, $api_host = null)
     {
         if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN')
             && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
         ) {
-            if ($frontendHost) {
+            if ($frontend_host) {
                 if (getenv('COMFINO_DEV_API_HOST_FRONTEND')) {
                     return getenv('COMFINO_DEV_API_HOST_FRONTEND');
                 }
@@ -609,7 +609,7 @@ class Api
             }
         }
 
-        return $apiHost !== null ? $apiHost : self::$api_host;
+        return $api_host !== null ? $api_host : self::$api_host;
     }
 
     /**
