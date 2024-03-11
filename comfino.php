@@ -661,6 +661,8 @@ class Comfino extends PaymentModule
                 }
             }
         } elseif ($this->context->controller->php_self === 'order') {
+            \Comfino\Api::init($this);
+
             $this->addScriptLink(
                 'comfino-paywall-frontend-script',
                 \Comfino\Api::getPaywallFrontendScriptUrl(),
