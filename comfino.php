@@ -666,8 +666,7 @@ class Comfino extends PaymentModule
             $this->addScriptLink(
                 'comfino-paywall-frontend-script',
                 \Comfino\Api::getPaywallFrontendScriptUrl(),
-                'bottom',
-                'defer'
+                'head'
             );
 
             $this->addStyleLink('comfino-paywall-frontend-style', \Comfino\Api::getPaywallFrontendStyleUrl());

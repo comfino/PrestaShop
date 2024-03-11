@@ -25,6 +25,39 @@
 
 <iframe id="comfino-paywall-container" src="{$paywall_api_url}" referrerpolicy="strict-origin" loading="lazy" class="comfino-paywall" scrolling="no" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')"></iframe>
 <script>
+    if (ComfinoPaywallFrontend.isInitialized()) {
+        ComfinoPaywallFrontend.init(
+            document.querySelector('input[data-module-name="comfino"]'),
+            document.getElementById('comfino-paywall-container'),
+            Comfino.paywallOptions
+        );
+    } else {
+        window.Comfino = { paywallOptions: {$paywall_options|@json_encode nofilter} };
+
+        Comfino.paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
+            ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
+
+            let offersUrl = '{$offers_url}'.replace(/&amp;/g, '&');
+            let urlParams = new URLSearchParams({ loan_type: loanParams.loanType, loan_term: loanParams.loanTerm });
+
+            offersUrl += (offersUrl.indexOf('?') > 0 ? '&' : '?') + urlParams.toString();
+
+            fetch(offersUrl, { method: 'POST' }).then(response => {
+                ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', offersUrl, response);
+            });
+        }
+
+        document.addEventListener('readystatechange', () => {
+            if (document.readyState === 'complete') {
+                ComfinoPaywallFrontend.init(
+                    document.querySelector('input[data-module-name="comfino"]'),
+                    document.getElementById('comfino-paywall-container'),
+                    Comfino.paywallOptions
+                );
+            }
+        });
+    }
+
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {
             let paywallOptions = {$paywall_options|@json_encode nofilter};
