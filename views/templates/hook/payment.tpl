@@ -62,7 +62,7 @@
 <script>
     if (ComfinoPaywallFrontend.isInitialized()) {
         ComfinoPaywallFrontend.init(
-            document.querySelector('input[data-module-name="comfino"]'),
+            document.getElementById('pay-with-comfino'),
             document.getElementById('comfino-paywall-container'),
             Comfino.paywallOptions
         );
@@ -92,29 +92,4 @@
             }
         });
     }
-
-    document.addEventListener('readystatechange', () => {
-        if (document.readyState === 'complete') {
-            let paywallOptions = {$paywall_options|@json_encode nofilter};
-
-            paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
-                ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
-
-                let offersUrl = '{$offers_url}'.replace(/&amp;/g, '&');
-                let urlParams = new URLSearchParams({ loan_type: loanParams.loanType, loan_term: loanParams.loanTerm });
-
-                offersUrl += (offersUrl.indexOf('?') > 0 ? '&' : '?') + urlParams.toString();
-
-                fetch(offersUrl, { method: 'POST' }).then(response => {
-                    ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', offersUrl, response);
-                });
-            }
-
-            ComfinoPaywallFrontend.init(
-                document.getElementById('pay-with-comfino'),
-                document.getElementById('comfino-paywall-container'),
-                paywallOptions
-            );
-        }
-    });
 </script>
