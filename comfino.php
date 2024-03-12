@@ -660,7 +660,7 @@ class Comfino extends PaymentModule
                     );
                 }
             }
-        } elseif ($this->context->controller->php_self === 'order') {
+        } elseif (strpos($this->context->controller->php_self, 'order') === 0) {
             \Comfino\Api::init($this);
 
             $this->addScriptLink(
