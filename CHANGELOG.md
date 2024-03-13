@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.5.0](https://github.com/comfino/PrestaShop/tree/3.5.0) (2024-03-11)
+## [3.5.0](https://github.com/comfino/PrestaShop/tree/3.5.0) (2024-03-13)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.6...3.5.0)
 
