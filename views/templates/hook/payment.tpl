@@ -72,7 +72,7 @@
                     Comfino.paywallOptions
                 );
             }
-        };
+        }
 
         Comfino.paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
             ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
