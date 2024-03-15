@@ -59,7 +59,7 @@ By default, Comfino payments are available unconditionally for all product types
 **Basic Settings**
 
 * **Widget is active?** — promotional widget activation/deactivation switch on the product page
-* **Widget type** — way of presenting the widget [`Textual widget`, `Graphical widget with banner`, `Graphical widget with installments calculator`]
+* **Widget type** — way of presenting the widget [`Textual widget`, `Graphical widget with banner`, `Graphical widget with installments calculator` , `Graphical widget with extended installments calculator`]
 * **Offer type** — type of financing offer promoted [`Zero percent installments`, `Convenient installments`, `Pay later`, `Deferred payments for companies`]
 
 The availability of offer types on the list depends on the individual contract and may differ from that described in the documentation.
