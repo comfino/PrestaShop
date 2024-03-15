@@ -62,7 +62,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $cookie = Context::getContext()->cookie;
 
-        if (!$cookie->loan_amount || !$cookie->loan_type || !$cookie->loan_term) {
+        if (!$cookie->loan_type || !$cookie->loan_term) {
             Tools::redirect('index.php?controller=order&step=1');
 
             return;

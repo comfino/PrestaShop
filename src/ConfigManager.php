@@ -31,7 +31,6 @@ if (!defined('_PS_VERSION_')) {
 }
 
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/PresentationType.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
 class ConfigManager
@@ -40,7 +39,6 @@ class ConfigManager
         'payment_settings' => [
             'COMFINO_API_KEY',
             'COMFINO_PAYMENT_TEXT',
-            'COMFINO_PAYMENT_PRESENTATION',
             'COMFINO_MINIMAL_CART_AMOUNT',
         ],
         'sale_settings' => [
@@ -65,7 +63,6 @@ class ConfigManager
     ];
 
     const ACCESSIBLE_CONFIG_OPTIONS = [
-        'COMFINO_PAYMENT_PRESENTATION',
         'COMFINO_PAYMENT_TEXT',
         'COMFINO_MINIMAL_CART_AMOUNT',
         'COMFINO_IS_SANDBOX',
@@ -163,7 +160,6 @@ class ConfigManager
         }
 
         $initial_config_values = [
-            'COMFINO_PAYMENT_PRESENTATION' => PresentationType::ICON_AND_TEXT,
             'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',

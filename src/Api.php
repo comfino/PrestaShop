@@ -41,6 +41,15 @@ class Api
     const COMFINO_FRONTEND_JS_SANDBOX = 'https://widget.craty.pl/comfino-frontend.min.js';
     const COMFINO_FRONTEND_JS_PRODUCTION = 'https://widget.comfino.pl/comfino-frontend.min.js';
 
+    const COMFINO_PAYWALL_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
+    const COMFINO_PAYWALL_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
+
+    const COMFINO_PAYWALL_FRONTEND_JS_SANDBOX = 'https://widget.craty.pl/paywall-frontend.min.js';
+    const COMFINO_PAYWALL_FRONTEND_JS_PRODUCTION = 'https://widget.comfino.pl/paywall-frontend.min.js';
+
+    const COMFINO_PAYWALL_FRONTEND_CSS_SANDBOX = 'https://widget.craty.pl/css/paywall-frontend.css';
+    const COMFINO_PAYWALL_FRONTEND_CSS_PRODUCTION = 'https://widget.comfino.pl/css/paywall-frontend.css';
+
     const COMFINO_WIDGET_JS_SANDBOX = 'https://widget.craty.pl/comfino.min.js';
     const COMFINO_WIDGET_JS_PRODUCTION = 'https://widget.comfino.pl/comfino.min.js';
 
@@ -58,10 +67,22 @@ class Api
     private static $api_key;
 
     /** @var string */
+    private static $api_paywall_host;
+
+    /** @var string */
     public static $frontend_script_url;
 
     /** @var string */
+    public static $paywall_frontend_script_url;
+
+    /** @var string */
+    public static $paywall_frontend_style_url;
+
+    /** @var string */
     private static $widget_script_url;
+
+    /** @var string */
+    private static $widget_key;
 
     /** @var string|null */
     private static $last_request_body;
@@ -87,16 +108,23 @@ class Api
         $config_manager = new ConfigManager($module);
 
         self::$is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
+        self::$widget_key = $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY');
 
         if (self::$is_sandbox_mode) {
             self::$api_host = self::COMFINO_SANDBOX_HOST;
             self::$api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
             self::$frontend_script_url = self::COMFINO_FRONTEND_JS_SANDBOX;
+            self::$api_paywall_host = self::COMFINO_PAYWALL_SANDBOX_HOST;
+            self::$paywall_frontend_script_url = self::COMFINO_PAYWALL_FRONTEND_JS_SANDBOX;
+            self::$paywall_frontend_style_url = self::COMFINO_PAYWALL_FRONTEND_CSS_SANDBOX;
             self::$widget_script_url = self::COMFINO_WIDGET_JS_SANDBOX;
         } else {
             self::$api_host = self::COMFINO_PRODUCTION_HOST;
             self::$api_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
             self::$frontend_script_url = self::COMFINO_FRONTEND_JS_PRODUCTION;
+            self::$api_paywall_host = self::COMFINO_PAYWALL_PRODUCTION_HOST;
+            self::$paywall_frontend_script_url = self::COMFINO_PAYWALL_FRONTEND_JS_PRODUCTION;
+            self::$paywall_frontend_style_url = self::COMFINO_PAYWALL_FRONTEND_CSS_PRODUCTION;
             self::$widget_script_url = self::COMFINO_WIDGET_JS_PRODUCTION;
         }
     }
@@ -248,18 +276,6 @@ class Api
     }
 
     /**
-     * @param $loan_amount
-     * @return array|bool
-     */
-    public static function getOffers($loan_amount)
-    {
-        $loan_amount = (float) $loan_amount;
-        $response = self::sendRequest(self::getApiHost() . "/v1/financial-products?loanAmount=$loan_amount", 'GET');
-
-        return $response !== false ? json_decode($response, true) : false;
-    }
-
-    /**
      * @param $self_link
      * @return array|bool
      */
@@ -277,6 +293,16 @@ class Api
     public static function cancelOrder($order_id)
     {
         self::sendRequest(self::getApiHost() . "/v1/orders/$order_id/cancel", 'PUT');
+    }
+
+    /**
+     * @return void
+     */
+    public static function notifyPluginRemoval()
+    {
+        if (!empty(self::getApiKey())) {
+            self::sendRequest(self::getApiHost() . '/v1/log-plugin-remove', 'PUT');
+        }
     }
 
     /**
@@ -432,7 +458,15 @@ class Api
      */
     public static function getLogoUrl()
     {
-        return self::getApiHost(true) . '/v1/get-logo-url';
+        return self::getApiHost(true) . '/v1/get-logo-url?auth=' . self::getLogoAuthHash();
+    }
+
+    /**
+     * @return string
+     */
+    public static function getPaywallLogoUrl()
+    {
+        return self::getApiHost(true) . '/v1/get-paywall-logo?auth=' . self::getLogoAuthHash(true);
     }
 
     /**
@@ -531,16 +565,44 @@ class Api
     }
 
     /**
-     * @param bool $frontendHost
-     * @param string|null $apiHost
      * @return string
      */
-    public static function getApiHost($frontendHost = false, $apiHost = null)
+    public static function getPaywallFrontendScriptUrl()
+    {
+        if (getenv('COMFINO_DEV') && getenv('COMFINO_DEV_PAYWALL_FRONTEND_SCRIPT_URL')
+            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        ) {
+            return getenv('COMFINO_DEV_PAYWALL_FRONTEND_SCRIPT_URL');
+        }
+
+        return self::$paywall_frontend_script_url;
+    }
+
+    /**
+     * @return string
+     */
+    public static function getPaywallFrontendStyleUrl()
+    {
+        if (getenv('COMFINO_DEV') && getenv('COMFINO_DEV_PAYWALL_FRONTEND_STYLE_URL')
+            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        ) {
+            return getenv('COMFINO_DEV_PAYWALL_FRONTEND_STYLE_URL');
+        }
+
+        return self::$paywall_frontend_style_url;
+    }
+
+    /**
+     * @param bool $frontend_host
+     * @param string|null $api_host
+     * @return string
+     */
+    public static function getApiHost($frontend_host = false, $api_host = null)
     {
         if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN')
             && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
         ) {
-            if ($frontendHost) {
+            if ($frontend_host) {
                 if (getenv('COMFINO_DEV_API_HOST_FRONTEND')) {
                     return getenv('COMFINO_DEV_API_HOST_FRONTEND');
                 }
@@ -549,7 +611,30 @@ class Api
             }
         }
 
-        return $apiHost !== null ? $apiHost : self::$api_host;
+        return $api_host !== null ? $api_host : self::$api_host;
+    }
+
+    /**
+     * @return string
+     */
+    public static function getPaywallApiHost()
+    {
+        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN')
+            && getenv('COMFINO_DEV_API_PAYWALL_HOST')
+            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        ) {
+            return getenv('COMFINO_DEV_API_PAYWALL_HOST');
+        }
+
+        return self::$api_paywall_host;
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getHashAlgos()
+    {
+        return array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
     }
 
     /**
@@ -781,5 +866,29 @@ class Api
             PHP_VERSION,
             \Tools::getShopDomain()
         );
+    }
+
+    /**
+     * @param bool $paywallLogo
+     * @return string
+     */
+    private static function getLogoAuthHash($paywallLogo = false)
+    {
+        $platformVersion = array_map('intval', explode('.', _PS_VERSION_));
+        $pluginVersion = array_map('intval', explode('.', COMFINO_VERSION));
+        $packedPlatformVersion = pack('c*', ...$platformVersion);
+        $packedPluginVersion = pack('c*', ...$pluginVersion);
+        $platformVersionLength = pack('c', strlen($packedPlatformVersion));
+        $pluginVersionLength = pack('c', strlen($packedPluginVersion));
+
+        $authHash = "PS$platformVersionLength$pluginVersionLength$packedPlatformVersion$packedPluginVersion";
+
+        if ($paywallLogo) {
+            $hashAlgorithm = current(self::getHashAlgos());
+            $authHash .= self::$widget_key;
+            $authHash .= hash_hmac($hashAlgorithm, $authHash, self::getApiKey(), true);
+        }
+
+        return urlencode(base64_encode($authHash));
     }
 }

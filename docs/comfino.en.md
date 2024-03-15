@@ -25,7 +25,7 @@ To the field that appears, put module's file. Module will be installed automatic
 
 ## CONFIGURATION
 
-The configuration parameters of the module are grouped by categories corresponding to the tabs of the configuration panel: `"PAYMENT SETTINGS"`, `"WIDGET SETTINGS"`, `"DEVELOPER SETTINGS"`.
+The configuration parameters of the module are grouped by categories corresponding to the tabs of the configuration panel: `"PAYMENT SETTINGS"`, `"SALE SETTINGS"`, `"WIDGET SETTINGS"`, `"DEVELOPER SETTINGS"`.
 The last tab `"PLUGIN DIAGNOSTICS"` does not contain any parameters to be set and has an information-diagnostic function. Among other things, it contains a local error log.
 
 Before using Comfino payments, the module must be configured. You can do this by clicking `"Configure"` in the module info panel.
@@ -44,12 +44,22 @@ Configuration parameter fields:
 
 ![Configuration](images/en/configuration1.png "Configuration")
 
+**SALE SETTINGS**
+
+The tab contains settings related to sales management.
+
+Financial product availability rules (product category filters) enable Comfino payments to be assigned to specific product categories. Category filters are divided into sections corresponding to available methods of financing purchases under the contract concluded with Comfino. Moreover, managing the availability of Comfino payments is only possible for the following types of financial products: Zero percent installments, Pay later. If the concluded contract does not include one or all of these items, the tab will contain a list of trees limited to this one financing method or will be empty.
+
+By default, Comfino payments are available unconditionally for all product types. To disable Comfino for selected product types, uncheck the appropriate categories in the category tree for each type of financial offer and click "Save".
+
+![Configuration](images/en/configuration6.png "Configuration")
+
 **WIDGET SETTINGS**
 
 **Basic Settings**
 
 * **Widget is active?** — promotional widget activation/deactivation switch on the product page
-* **Widget type** — way of presenting the widget [`Textual widget`, `Graphical widget with banner`, `Graphical widget with installments calculator`]
+* **Widget type** — way of presenting the widget [`Textual widget`, `Graphical widget with banner`, `Graphical widget with installments calculator` , `Graphical widget with extended installments calculator`]
 * **Offer type** — type of financing offer promoted [`Zero percent installments`, `Convenient installments`, `Pay later`, `Deferred payments for companies`]
 
 The availability of offer types on the list depends on the individual contract and may differ from that described in the documentation.
