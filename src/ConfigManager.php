@@ -498,7 +498,11 @@ document.getElementsByTagName('head')[0].appendChild(script);
             $cat_filter_avail_prod_types[strtoupper(trim($prod_type))] = null;
         }
 
-        return array_intersect_key($prod_types_assoc, $cat_filter_avail_prod_types);
+        if (empty($avail_prod_types = array_intersect_key($prod_types_assoc, $cat_filter_avail_prod_types))) {
+            $avail_prod_types = $prod_types_assoc;
+        }
+
+        return $avail_prod_types;
     }
 
     /**

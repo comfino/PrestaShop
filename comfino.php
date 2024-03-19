@@ -39,7 +39,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.5.0', false);
+    define('COMFINO_VERSION', '3.5.1', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.5.0';
+        $this->version = '3.5.1';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -636,7 +636,9 @@ class Comfino extends PaymentModule
      */
     public function hookHeader()
     {
-        if ($this->context->controller->php_self === 'product') {
+        $controller = $this->context->controller->php_self;
+
+        if ($controller === 'product') {
             $config_manager = new \Comfino\ConfigManager($this);
 
             // Widget initialization script
@@ -660,7 +662,7 @@ class Comfino extends PaymentModule
                     );
                 }
             }
-        } elseif (strpos($this->context->controller->php_self, 'order') === 0) {
+        } elseif (preg_match('/order|cart|checkout/', $controller)) {
             \Comfino\Api::init($this);
 
             $this->addScriptLink(

@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.1](https://github.com/comfino/PrestaShop/tree/3.5.1) (2024-03-19)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.0...3.5.1)
+
+**Merged pull requests:**
+
+- SMC-21 Update product category filters availability rules, update error logger (ignore exceptions thrown outside the Comfino module), change linking JS/CSS rules in hookHeader (less strict controller name checking). [\#87](https://github.com/comfino/PrestaShop/pull/87) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.5.0](https://github.com/comfino/PrestaShop/tree/3.5.0) (2024-03-13)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.4.6...3.5.0)
