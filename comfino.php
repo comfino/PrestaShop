@@ -636,7 +636,9 @@ class Comfino extends PaymentModule
      */
     public function hookHeader()
     {
-        $controller = $this->context->controller->php_self;
+        if (empty($controller = $this->context->controller->php_self)) {
+            $controller = $this->context->controller->name;
+        }
 
         if ($controller === 'product') {
             $config_manager = new \Comfino\ConfigManager($this);
