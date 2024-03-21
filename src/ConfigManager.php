@@ -566,7 +566,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
         $price = 'null';
 
         if ($product_id !== null) {
-            $avail_offers_url .= "&product_id=$product_id";
+            $avail_offers_url .= ((strpos($avail_offers_url, '?') === false ? '?' : '&') . "product_id=$product_id");
 
             if (($price = \Product::getPriceStatic($product_id)) === null) {
                 $price = 'null';
