@@ -484,9 +484,16 @@ class Comfino extends PaymentModule
             return;
         }
 
+        $product_types_filter = $this->getProductTypesFilter($this->context->cart, $config_manager);
+
+        if ($product_types_filter === []) {
+            // Filters active - all product types disabled.
+            return;
+        }
+
         return $this->preparePaywallIframe(
             (int) ($this->context->cart->getOrderTotal() * 100),
-            $this->getProductTypesFilter($this->context->cart, $config_manager),
+            $product_types_filter,
             $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY')
         );
     }
@@ -514,6 +521,13 @@ class Comfino extends PaymentModule
             return;
         }
 
+        $product_types_filter = $this->getProductTypesFilter($this->context->cart, $config_manager);
+
+        if ($product_types_filter === []) {
+            // Filters active - all product types disabled.
+            return;
+        }
+
         $comfino_payment_option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
         $comfino_payment_option->setModuleName($this->name)
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
@@ -522,7 +536,7 @@ class Comfino extends PaymentModule
             ->setAdditionalInformation(
                 $this->preparePaywallIframe(
                     (int) ($this->context->cart->getOrderTotal() * 100),
-                    $this->getProductTypesFilter($this->context->cart, $config_manager),
+                    $product_types_filter,
                     $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY')
                 )
             );
@@ -790,8 +804,8 @@ class Comfino extends PaymentModule
 
             case 'sale_settings':
             case 'widget_settings':
-                if (!isset($params['offer_types'])) {
-                    $params['offer_types'] = $config_manager->getOfferTypes();
+                if (!isset($params['offer_types'][$config_tab])) {
+                    $params['offer_types'][$config_tab] = $config_manager->getOfferTypes($config_tab);
                 }
                 if (!isset($params['widget_types'])) {
                     $params['widget_types'] = $config_manager->getWidgetTypes();
@@ -1019,6 +1033,7 @@ class Comfino extends PaymentModule
                 $config_manager = new \Comfino\ConfigManager($this);
                 $product_categories = $this->getAllProductCategories();
                 $product_category_filters = $config_manager->getProductCategoryFilters();
+                $prod_types = $params['offer_types']['sale_settings'];
 
                 $product_category_filter_inputs = [
                     [
@@ -1028,7 +1043,7 @@ class Comfino extends PaymentModule
                     ],
                 ];
 
-                $cat_filter_avail_prod_types = $config_manager->getCatFilterAvailProdTypes($params['offer_types']);
+                $cat_filter_avail_prod_types = $config_manager->getCatFilterAvailProdTypes($prod_types);
 
                 foreach ($cat_filter_avail_prod_types as $prod_type_code => $prod_type_name) {
                     $product_category_filter_inputs[] = [
@@ -1130,7 +1145,7 @@ class Comfino extends PaymentModule
                                 'name' => 'COMFINO_WIDGET_OFFER_TYPE',
                                 'required' => false,
                                 'options' => [
-                                    'query' => $params['offer_types'],
+                                    'query' => $params['offer_types']['widget_settings'],
                                     'id' => 'key',
                                     'name' => 'name',
                                 ],
@@ -1588,13 +1603,16 @@ class Comfino extends PaymentModule
     {
         if (is_array($product_types_filter)) {
             if (count($product_types_filter)) {
+                // Filters active - product types available conditionally.
                 $product_types = implode(',', $product_types_filter);
                 $product_types_length = strlen($product_types);
             } else {
+                // Filters active - all product types disabled.
                 $product_types = "\0";
                 $product_types_length = 1;
             }
         } else {
+            // No active filters - all product types available unconditionally.
             $product_types = '';
             $product_types_length = 0;
         }

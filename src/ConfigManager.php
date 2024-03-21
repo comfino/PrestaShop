@@ -438,11 +438,18 @@ document.getElementsByTagName('head')[0].appendChild(script);
     }
 
     /**
+     * @param string $list_type
      * @return array
      */
-    public function getOfferTypes()
+    public function getOfferTypes($list_type = 'sale_settings')
     {
-        $product_types = \Comfino\Api::getProductTypes();
+        if ($list_type === 'sale_settings') {
+            $list_type = 'paywall';
+        } else {
+            $list_type = 'widget';
+        }
+
+        $product_types = \Comfino\Api::getProductTypes($list_type);
 
         if ($product_types !== false) {
             $offer_types = [];
@@ -514,11 +521,13 @@ document.getElementsByTagName('head')[0].appendChild(script);
     public function isFinancialProductAvailable($product_type, array $products)
     {
         static $product_category_filters = null;
+        static $cat_filter_avail_prod_types = null;
 
-        if (!in_array($product_type, array_map(
-            static function ($prod_type) { return strtoupper(trim($prod_type)); },
-            explode(',', $this->getConfigurationValue('COMFINO_CAT_FILTER_AVAIL_PROD_TYPES'))
-        ), true)) {
+        if ($cat_filter_avail_prod_types === null) {
+            $cat_filter_avail_prod_types = array_keys($this->getCatFilterAvailProdTypes($this->getOfferTypes()));
+        }
+
+        if (!in_array($product_type, $cat_filter_avail_prod_types, true)) {
             return true;
         }
 
