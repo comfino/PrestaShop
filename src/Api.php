@@ -326,25 +326,26 @@ class Api
     }
 
     /**
+     * @param string $list_type
      * @return string[]|bool
      */
-    public static function getProductTypes()
+    public static function getProductTypes($list_type)
     {
-        static $product_types = null;
+        static $product_types = [];
 
-        if ($product_types === null) {
-            $product_types = self::sendRequest(self::getApiHost() . '/v1/product-types', 'GET');
+        if (!isset($product_types[$list_type])) {
+            $prod_types = self::sendRequest(self::getApiHost() . '/v1/product-types?listType=' . $list_type, 'GET');
 
-            if ($product_types !== false && !count(self::$last_errors) && strpos($product_types, 'errors') === false) {
-                $product_types = json_decode($product_types, true);
+            if ($prod_types !== false && !count(self::$last_errors) && strpos($prod_types, 'errors') === false) {
+                $prod_types = json_decode($prod_types, true);
             } else {
-                $product_types = null;
-
                 return false;
             }
+
+            $product_types[$list_type] = $prod_types;
         }
 
-        return $product_types;
+        return $product_types[$list_type];
     }
 
     /**
