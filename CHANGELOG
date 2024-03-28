@@ -1,3 +1,6 @@
+3.5.2
+ - FN-11692 Update product category filters - fix bugs.
+
 3.5.1
  - SMC-21 Update product category filters availability rules, update error logger (ignore exceptions thrown outside the Comfino module), change linking JS/CSS rules in hookHeader (less strict controller name checking).
 
