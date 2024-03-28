@@ -513,6 +513,24 @@ document.getElementsByTagName('head')[0].appendChild(script);
     }
 
     /**
+     * @return array
+     */
+    public function getAllProductCategories()
+    {
+        static $categories = null;
+
+        if ($categories === null) {
+            $categories = [];
+
+            foreach (\Category::getSimpleCategories(\Context::getContext()->language->id) as $category) {
+                $categories[$category['id_category']] = $category['name'];
+            }
+        }
+
+        return $categories;
+    }
+
+    /**
      * @param string $product_type Financial product type (offer type)
      * @param array $products Products in the cart
      *
@@ -537,16 +555,32 @@ document.getElementsByTagName('head')[0].appendChild(script);
 
         if (isset($product_category_filters[$product_type]) && count($product_category_filters[$product_type])) {
             $excluded_cat_ids = $product_category_filters[$product_type];
+            $available_cat_ids = array_diff(array_keys($this->getAllProductCategories()), $excluded_cat_ids);
+
+            $parent_categories = [];
 
             foreach ($products as $product) {
                 $category_id = (int) $product['id_category_default'];
 
-                if (in_array($category_id, $excluded_cat_ids, true)
-                    || count(array_intersect($excluded_cat_ids, array_map(
-                        static function (\Category $category) { return $category->id; },
-                        (new \Category($category_id))->getAllChildren()->getResults()
-                    )))
-                ) {
+                if (in_array($category_id, $excluded_cat_ids, true)) {
+                    foreach (array_diff($available_cat_ids, [$category_id]) as $cat_id) {
+                        if (!isset($parent_categories[$cat_id])) {
+                            $parent_categories[$cat_id] = [];
+
+                            if (is_array($cat_parents = (new \Category($cat_id))->getParentsCategories())) {
+                                foreach ($cat_parents as $category) {
+                                    if ($category['id_category'] !== $cat_id) {
+                                        $parent_categories[$cat_id][] = $category['id_category'];
+                                    }
+                                }
+                            }
+                        }
+
+                        if (in_array($category_id, $parent_categories[$cat_id], true)) {
+                            continue 2;
+                        }
+                    }
+
                     return false;
                 }
             }
