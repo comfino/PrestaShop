@@ -78,6 +78,8 @@ class ConfigManager
         'COMFINO_WIDGET_OFFER_TYPE',
         'COMFINO_WIDGET_EMBED_METHOD',
         'COMFINO_WIDGET_CODE',
+        'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
+        'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
     ];
 
     const CONFIG_OPTIONS_TYPES = [
@@ -174,6 +176,8 @@ class ConfigManager
             'COMFINO_WIDGET_OFFER_TYPE' => 'CONVENIENT_INSTALLMENTS',
             'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
             'COMFINO_WIDGET_CODE' => $this->getInitialWidgetCode(),
+            'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => '',
+            'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => '',
         ];
 
         foreach ($initial_config_values as $opt_name => $opt_value) {
