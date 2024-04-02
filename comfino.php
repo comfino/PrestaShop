@@ -647,7 +647,9 @@ class Comfino extends PaymentModule
      */
     public function hookHeader()
     {
-        if (empty($controller = $this->context->controller->php_self)) {
+        if (stripos(get_class($this->context->controller), 'cart') !== false) {
+            $controller = 'cart';
+        } elseif (empty($controller = $this->context->controller->php_self)) {
             $controller = $this->context->controller->name;
         }
 
