@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.2](https://github.com/comfino/PrestaShop/tree/3.5.2) (2024-03-28)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.1...3.5.2)
+
+**Merged pull requests:**
+
+- FN-11692 Update product category filters - fix bugs. [\#88](https://github.com/comfino/PrestaShop/pull/88) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.5.1](https://github.com/comfino/PrestaShop/tree/3.5.1) (2024-03-22)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.0...3.5.1)

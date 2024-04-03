@@ -39,7 +39,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.5.1', false);
+    define('COMFINO_VERSION', '3.5.2', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.5.1';
+        $this->version = '3.5.2';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -255,10 +255,7 @@ class Comfino extends PaymentModule
                     break;
 
                 case 'sale_settings':
-                    $product_categories = array_map(
-                        static function (array $category) { return (int) $category['id_category']; },
-                        $this->getNestedCategories(true)
-                    );
+                    $product_categories = array_keys($config_manager->getAllProductCategories());
                     $product_category_filters = [];
 
                     foreach (Tools::getValue('product_categories') as $product_type => $category_ids) {
@@ -650,7 +647,9 @@ class Comfino extends PaymentModule
      */
     public function hookHeader()
     {
-        if (empty($controller = $this->context->controller->php_self)) {
+        if (stripos(get_class($this->context->controller), 'cart') !== false) {
+            $controller = 'cart';
+        } elseif (empty($controller = $this->context->controller->php_self)) {
             $controller = $this->context->controller->name;
         }
 
@@ -1031,7 +1030,7 @@ class Comfino extends PaymentModule
 
             case 'sale_settings':
                 $config_manager = new \Comfino\ConfigManager($this);
-                $product_categories = $this->getAllProductCategories();
+                $product_categories = $config_manager->getAllProductCategories();
                 $product_category_filters = $config_manager->getProductCategoryFilters();
                 $prod_types = $params['offer_types']['sale_settings'];
 
@@ -1416,24 +1415,6 @@ class Comfino extends PaymentModule
             'cartTotal' => (float) $total,
             'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
         ];
-    }
-
-    /**
-     * @return array
-     */
-    private function getAllProductCategories()
-    {
-        static $categories = null;
-
-        if ($categories === null) {
-            $categories = [];
-
-            foreach (Category::getSimpleCategories($this->context->language->id) as $category) {
-                $categories[$category['id_category']] = $category['name'];
-            }
-        }
-
-        return $categories;
     }
 
     /**
