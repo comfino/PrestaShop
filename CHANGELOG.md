@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.3](https://github.com/comfino/PrestaShop/tree/3.5.3) (2024-04-04)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.2...3.5.3)
+
+**Merged pull requests:**
+
+- FN-11716 Paywall JavaScript linking updated to be compatible with Google ConsentManager (consentmanager.net) and similar CMP tools. [\#89](https://github.com/comfino/PrestaShop/pull/89) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.5.2](https://github.com/comfino/PrestaShop/tree/3.5.2) (2024-03-28)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.1...3.5.2)
