@@ -650,7 +650,11 @@ class Comfino extends PaymentModule
         if (stripos(get_class($this->context->controller), 'cart') !== false) {
             $controller = 'cart';
         } elseif (empty($controller = $this->context->controller->php_self)) {
-            $controller = $this->context->controller->name;
+            $controller = isset($this->context->controller->name) ? $this->context->controller->name : '';
+        }
+
+        if (empty($controller)) {
+            return;
         }
 
         if ($controller === 'product') {
