@@ -145,8 +145,17 @@ class Api
      */
     public static function createOrder($cart, $order_id, $return_url)
     {
+        $context = \Context::getContext();
+
         $total = (int) ($cart->getOrderTotal(true) * 100);
         $delivery = (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100);
+
+        $loan_amount = (int) $context->cookie->loan_amount;
+
+        if ($loan_amount > $total) {
+            // Loan amount with price modifier (e.g. custom commission).
+            $total = $loan_amount;
+        }
 
         $config_manager = new \Comfino\ConfigManager(self::$module);
         $customer = new \Customer($cart->id_customer);
@@ -168,8 +177,6 @@ class Api
         if (count($disabled_product_types)) {
             $allowed_product_types = array_values(array_diff($available_product_types, $disabled_product_types));
         }
-
-        $context = \Context::getContext();
 
         $cart_total = 0;
 

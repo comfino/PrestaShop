@@ -43,10 +43,20 @@
             iframe.loading = 'lazy';
             iframe.scrolling = 'no';
 
+            let frontendInitElement = document.querySelector('input[data-module-name="comfino"]');
+
+            if ('priceModifier' in frontendInitElement.dataset) {
+                let priceModifier = parseFloat(frontendInitElement.dataset.priceModifier);
+
+                if (!Number.isNaN(priceModifier)) {
+                    iframe.src += ('&priceModifier=' + priceModifier);
+                }
+            }
+
             document.getElementById('comfino-iframe-container').appendChild(iframe);
 
             ComfinoPaywallFrontend.init(
-                document.querySelector('input[data-module-name="comfino"]'),
+                frontendInitElement,
                 document.getElementById('comfino-paywall-container'),
                 Comfino.paywallOptions
             );
@@ -62,7 +72,11 @@
                 ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
 
                 let offersUrl = '{$offers_url}'.replace(/&amp;/g, '&');
-                let urlParams = new URLSearchParams({ loan_type: loanParams.loanType, loan_term: loanParams.loanTerm });
+                let urlParams = new URLSearchParams({
+                    loan_amount: loanParams.loanAmount,
+                    loan_type: loanParams.loanType,
+                    loan_term: loanParams.loanTerm
+                });
 
                 offersUrl += (offersUrl.indexOf('?') > 0 ? '&' : '?') + urlParams.toString();
 
