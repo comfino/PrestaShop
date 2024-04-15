@@ -39,7 +39,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.5.2', false);
+    define('COMFINO_VERSION', '3.5.3', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +52,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.5.2';
+        $this->version = '3.5.3';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -650,7 +650,11 @@ class Comfino extends PaymentModule
         if (stripos(get_class($this->context->controller), 'cart') !== false) {
             $controller = 'cart';
         } elseif (empty($controller = $this->context->controller->php_self)) {
-            $controller = $this->context->controller->name;
+            $controller = isset($this->context->controller->name) ? $this->context->controller->name : '';
+        }
+
+        if (empty($controller)) {
+            return;
         }
 
         if ($controller === 'product') {
@@ -679,13 +683,6 @@ class Comfino extends PaymentModule
             }
         } elseif (preg_match('/order|cart|checkout/', $controller)) {
             \Comfino\Api::init($this);
-
-            $this->addScriptLink(
-                'comfino-paywall-frontend-script',
-                \Comfino\Api::getPaywallFrontendScriptUrl(),
-                'head'
-            );
-
             $this->addStyleLink('comfino-paywall-frontend-style', \Comfino\Api::getPaywallFrontendStyleUrl());
         }
     }
@@ -1347,7 +1344,7 @@ class Comfino extends PaymentModule
             'logo_url' => \Comfino\Api::getPaywallLogoUrl(),
             'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
             'paywall_options' => $this->getPaywallOptions(),
-            'frontend_script_url' => \Comfino\Api::getFrontendScriptUrl(),
+            'paywall_script_url' => \Comfino\Api::getPaywallFrontendScriptUrl(),
             'offers_url' => $this->context->link->getModuleLink($this->name, 'offer', [], true),
         ];
     }

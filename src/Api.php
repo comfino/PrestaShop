@@ -38,9 +38,6 @@ class Api
     const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
     const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
 
-    const COMFINO_FRONTEND_JS_SANDBOX = 'https://widget.craty.pl/comfino-frontend.min.js';
-    const COMFINO_FRONTEND_JS_PRODUCTION = 'https://widget.comfino.pl/comfino-frontend.min.js';
-
     const COMFINO_PAYWALL_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
     const COMFINO_PAYWALL_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
 
@@ -68,9 +65,6 @@ class Api
 
     /** @var string */
     private static $api_paywall_host;
-
-    /** @var string */
-    public static $frontend_script_url;
 
     /** @var string */
     public static $paywall_frontend_script_url;
@@ -113,7 +107,6 @@ class Api
         if (self::$is_sandbox_mode) {
             self::$api_host = self::COMFINO_SANDBOX_HOST;
             self::$api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
-            self::$frontend_script_url = self::COMFINO_FRONTEND_JS_SANDBOX;
             self::$api_paywall_host = self::COMFINO_PAYWALL_SANDBOX_HOST;
             self::$paywall_frontend_script_url = self::COMFINO_PAYWALL_FRONTEND_JS_SANDBOX;
             self::$paywall_frontend_style_url = self::COMFINO_PAYWALL_FRONTEND_CSS_SANDBOX;
@@ -129,7 +122,6 @@ class Api
         } else {
             self::$api_host = self::COMFINO_PRODUCTION_HOST;
             self::$api_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
-            self::$frontend_script_url = self::COMFINO_FRONTEND_JS_PRODUCTION;
             self::$api_paywall_host = self::COMFINO_PAYWALL_PRODUCTION_HOST;
             self::$paywall_frontend_script_url = self::COMFINO_PAYWALL_FRONTEND_JS_PRODUCTION;
             self::$paywall_frontend_style_url = self::COMFINO_PAYWALL_FRONTEND_CSS_PRODUCTION;
@@ -153,8 +145,17 @@ class Api
      */
     public static function createOrder($cart, $order_id, $return_url)
     {
+        $context = \Context::getContext();
+
         $total = (int) ($cart->getOrderTotal(true) * 100);
         $delivery = (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100);
+
+        $loan_amount = (int) $context->cookie->loan_amount;
+
+        if ($loan_amount > $total) {
+            // Loan amount with price modifier (e.g. custom commission).
+            $total = $loan_amount;
+        }
 
         $config_manager = new \Comfino\ConfigManager(self::$module);
         $customer = new \Customer($cart->id_customer);
@@ -176,8 +177,6 @@ class Api
         if (count($disabled_product_types)) {
             $allowed_product_types = array_values(array_diff($available_product_types, $disabled_product_types));
         }
-
-        $context = \Context::getContext();
 
         $cart_total = 0;
 
@@ -551,20 +550,6 @@ class Api
     public static function getApiKey()
     {
         return self::$api_key;
-    }
-
-    /**
-     * @return string
-     */
-    public static function getFrontendScriptUrl()
-    {
-        if (getenv('COMFINO_DEV') && getenv('COMFINO_DEV_FRONTEND_SCRIPT_URL')
-            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
-        ) {
-            return getenv('COMFINO_DEV_FRONTEND_SCRIPT_URL');
-        }
-
-        return self::$frontend_script_url;
     }
 
     /**
