@@ -1,3 +1,6 @@
+3.5.4
+ - FN-11832 Documentation updated.
+
 3.5.3
  - FN-11716 Paywall JavaScript linking updated to be compatible with Google ConsentManager (consentmanager.net) and similar CMP tools.
 
