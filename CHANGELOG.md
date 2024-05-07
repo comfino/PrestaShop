@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.4](https://github.com/comfino/PrestaShop/tree/3.5.4) (2024-05-07)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.3...3.5.4)
+
+**Merged pull requests:**
+
+- FN-11832 Documentation updated. [\#90](https://github.com/comfino/PrestaShop/pull/90) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.5.3](https://github.com/comfino/PrestaShop/tree/3.5.3) (2024-04-15)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.2...3.5.3)
