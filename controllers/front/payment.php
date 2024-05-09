@@ -25,26 +25,33 @@
  */
 
 use Comfino\Api;
+use Comfino\Api\Exception\AccessDenied;
+use Comfino\Api\Exception\AuthorizationError;
+use Comfino\Api\Exception\RequestValidationError;
+use Comfino\Api\Exception\ServiceUnavailable;
+use Comfino\Common\Backend\Factory\OrderFactory;
 use Comfino\ErrorLogger;
+use Comfino\Shop\Order\Cart\CartItem;
+use Comfino\Shop\Order\Cart\CartItemInterface;
+use Comfino\Shop\Order\Cart\Product;
+use Comfino\Shop\Order\Customer;
+use Comfino\Shop\Order\Customer\Address;
+use Psr\Http\Client\ClientExceptionInterface;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
-require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
-
 class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
-    public function postProcess()
+    public function postProcess(): void
     {
         Api::init($this->module);
-        ErrorLogger::init();
+        ErrorLogger::init($this->module);
 
         parent::postProcess();
 
-        if (!($this->module instanceof Comfino)) {
+        if (!($this->module instanceof Comfino) || !$this->module->active) {
             Tools::redirect('index.php?controller=order&step=1');
 
             return;
@@ -52,15 +59,13 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $cart = $this->context->cart;
 
-        if ($cart->id_customer === 0 || $cart->id_address_delivery === 0 || $cart->id_address_invoice === 0
-            || !$this->module->active
-        ) {
+        if ($cart->id_customer === 0 || $cart->id_address_delivery === 0 || $cart->id_address_invoice === 0) {
             Tools::redirect('index.php?controller=order&step=1');
 
             return;
         }
 
-        $cookie = Context::getContext()->cookie;
+        $cookie = $this->context->cookie;
 
         if (!$cookie->loan_type || !$cookie->loan_term) {
             Tools::redirect('index.php?controller=order&step=1');
@@ -68,9 +73,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $address = $cart->getAddressCollection();
+        $addresses = $cart->getAddressCollection();
 
-        if (!$address[$cart->id_address_delivery]->phone && !$address[$cart->id_address_delivery]->phone_mobile) {
+        if (!$addresses[$cart->id_address_delivery]->phone && !$addresses[$cart->id_address_delivery]->phone_mobile) {
             $this->errors[] = $this->module->l(
                 'No phone number in addresses found. Please fill value before choosing comfino payment option.'
             );
@@ -84,23 +89,23 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        /* Check that this payment option is still available in case the customer changed his
-           address just before the end of the checkout process. */
-        $authorized = false;
+        /* Check that this payment option is still available in case the customer changed his address just before
+           the end of the checkout process. */
+        $comfino_is_available = false;
 
         foreach (Module::getPaymentModules() as $module) {
             if ($module['name'] === 'comfino') {
-                $authorized = true;
+                $comfino_is_available = true;
 
                 break;
             }
         }
 
-        if (!$authorized) {
+        if (!$comfino_is_available) {
             exit($this->module->l('This payment method is not available.'));
         }
 
-        $customer = new Customer($cart->id_customer);
+        $customer = new \Customer($cart->id_customer);
 
         if (!Validate::isLoadedObject($customer)) {
             Tools::redirect('index.php?controller=order&step=1');
@@ -110,6 +115,12 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $currency = $this->context->currency;
         $total = (float) $cart->getOrderTotal(true, Cart::BOTH);
+        $loan_amount = ((int) $cookie->loan_amount / 100);
+
+        if ($loan_amount > $total) {
+            // Loan amount with price modifier (e.g. custom commission).
+            $total = $loan_amount;
+        }
 
         $this->module->validateOrder(
             (int) $cart->id,
@@ -123,59 +134,75 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $customer->secure_key
         );
 
-        $order_response = Api::createOrder(
-            $this->context->cart,
-            $this->module->currentOrder,
-            'index.php?controller=order-confirmation&id_cart=' . $cart->id . '&id_module=' . $this->module->id .
-            '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key
-        );
+        $order_id = (string) $this->module->currentOrder;
+        $addresses = $cart->getAddressCollection();
+        $address_parts = explode(' ', $addresses[$cart->id_address_delivery]->address1);
+        $building_number = '';
 
-        $order = new Order($this->module->currentOrder);
-
-        if (!is_array($order_response) || !isset($order_response['applicationUrl'])) {
-            $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
-            $order->save();
-
-            ErrorLogger::sendError(
-                'Order creation error', 0, 'Wrong Comfino API response.',
-                $_SERVER['REQUEST_URI'],
-                Api::getLastRequestBody(),
-                is_array($order_response) ? json_encode($order_response) : Api::getLastResponseBody()
-            );
-
-            Tools::redirect($this->context->link->getModuleLink(
-                $this->module->name,
-                'error',
-                [
-                    'error' => is_array($order_response) && isset($order_response['errors'])
-                        ? implode(',', $order_response['errors'])
-                        : 'Order creation error.',
-                ],
-                true
-            ));
+        if (count($address_parts) === 2) {
+            $building_number = $address_parts[1];
         }
 
-        OrdersList::createOrder(
-            [
-                'id_comfino' => $order_response['externalId'],
-                'id_customer' => $cart->id_customer,
-                'order_status' => $order_response['status'],
-                'legalize_link' => isset($order_response['_links']['legalize'])
-                    ? $order_response['_links']['legalize']['href']
-                    : '',
-                'self_link' => isset($order_response['_links']['self']['href'])
-                    ? $order_response['_links']['self']['href']
-                    : '',
-                'cancel_link' => isset($order_response['_links']['cancel']['href'])
-                    ? $order_response['_links']['cancel']['href']
-                    : '',
-            ]
+        $customer_tax_id = trim(str_replace('-', '', $addresses[$cart->id_address_delivery]->vat_number));
+        $phone_number = trim($addresses[$cart->id_address_delivery]->phone);
+
+        if (empty($phone_number)) {
+            $phone_number = trim($addresses[$cart->id_address_delivery]->phone_mobile);
+        }
+
+        $order = (new OrderFactory())->createOrder(
+            $order_id,
+            (int) ($cart->getOrderTotal(true) * 100),
+            (int) ($cart->getOrderTotal(true, Cart::ONLY_SHIPPING) * 100),
+            (int) $cookie->loan_term,
+            $cookie->loan_type,
+            array_map(function (array $product): CartItemInterface {
+                $quantity = (int) $product['cart_quantity'];
+
+                return new CartItem(
+                    new Product(
+                        $product['name'],
+                        (int) ($product['total_wt'] / $quantity * 100),
+                        (string) $product['id_product'],
+                        $product['category'],
+                        $product['ean13'],
+                        $this->getProductImageUrl($product)
+                    ),
+                    $quantity
+                );
+            }, $cart->getProducts()),
+            new Customer(
+                $addresses[$cart->id_address_delivery]->firstname,
+                $addresses[$cart->id_address_delivery]->lastname,
+                $customer->email,
+                $phone_number,
+                Tools::getRemoteAddr(),
+                preg_match('/^[A-Z]{0,3}\d{7,}$/', $customer_tax_id) ? $customer_tax_id : null,
+                !$customer->is_guest,
+                $customer->isLogged(),
+                new Address(
+                    $address_parts[0],
+                    $building_number,
+                    null,
+                    $addresses[$cart->id_address_delivery]->postcode,
+                    $addresses[$cart->id_address_delivery]->city,
+                    'PL'
+                )
+            ),
+            Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
+            "$cart->id&id_module={$this->module->id}&id_order=$order_id&key={$customer->secure_key}",
+            $this->context->link->getModuleLink($this->context->controller->module->name, 'notify', [], true)
         );
 
-        Tools::redirect($order_response['applicationUrl']);
+        try {
+            Tools::redirect(Api::getApiClientInstance()->createOrder($order)->applicationUrl);
+        } catch (RequestValidationError | AuthorizationError | AccessDenied | ServiceUnavailable $e) {
+            $this->processApiError($e, '', '', '');
+        } catch (ClientExceptionInterface $e) {
+            $this->processApiError($e, '', '', '');
+        }
     }
 
-    // FIXME Implement proper logic for PrestaShop 1.6.
     private function redirectWithNotificationsPs16()
     {
         $notifications = json_encode(['error' => $this->errors]);
@@ -187,5 +214,48 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         return call_user_func_array(['Tools', 'redirect'], func_get_args());
+    }
+
+    private function getProductImageUrl(array $product): string
+    {
+        $link_rewrite = is_array($product['link_rewrite']) ? end($product['link_rewrite']) : $product['link_rewrite'];
+
+        if ($link_rewrite === false) {
+            return '';
+        }
+
+        $image = Image::getCover($product['id_product']);
+
+        if (!is_array($image) && !isset($image['id_image'])) {
+            return '';
+        }
+
+        $image_url = (new Link())->getImageLink($link_rewrite, $image['id_image']);
+
+        return strpos($image_url, 'http') === false ? "https://$image_url" : $image_url;
+    }
+
+    private function processApiError(\Throwable $exception, ?string $url, ?string $request, ?string $response): void
+    {
+        $order = new Order($this->module->currentOrder);
+        $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
+        $order->save();
+
+        ErrorLogger::sendError(
+            'Order creation failed on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API error)',
+            $exception->getCode(),
+            $exception->getMessage(),
+            $url,
+            $request,
+            $response,
+            $exception->getTraceAsString()
+        );
+
+        Tools::redirect($this->context->link->getModuleLink(
+            $this->module->name,
+            'error',
+            ['error' => $exception->getMessage()],
+            true
+        ));
     }
 }

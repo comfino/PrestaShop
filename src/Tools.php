@@ -52,42 +52,29 @@ class Tools
     }
 
     /**
-     * @param float $price
-     * @param int $id_currency
      * @return float|string
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function formatPrice($price, $id_currency)
+    public function formatPrice(float $price, int $id_currency)
     {
         return COMFINO_PS_17 && $this->locale !== null
             ? $this->locale->formatPrice($price, $this->getCurrencyIsoCode($id_currency))
             : \Tools::displayPrice($price);
     }
 
-    /**
-     * @param int $id_currency
-     * @return string
-     */
-    public function getCurrencyIsoCode($id_currency)
+    public function getCurrencyIsoCode(int $id_currency): string
     {
         return COMFINO_PS_17 && method_exists(\Currency::class, 'getIsoCodeById')
             ? \Currency::getIsoCodeById($id_currency)
             : \Currency::getCurrencyInstance($id_currency)->iso_code;
     }
 
-    /**
-     * @param int $id_lang
-     * @return string
-     */
-    public function getLanguageIsoCode($id_lang)
+    public function getLanguageIsoCode(int $id_lang): string
     {
         return \Language::getIsoById($id_lang);
     }
 
-    /**
-     * @return \Cookie
-     */
-    public function getCookie()
+    public function getCookie(): \Cookie
     {
         return $this->context->cookie;
     }

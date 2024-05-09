@@ -26,6 +26,20 @@
 
 namespace Comfino;
 
+use Comfino\Api\Dto\Payment\LoanTypeEnum;
+use Comfino\Api\Exception\AccessDenied;
+use Comfino\Api\Exception\AuthorizationError;
+use Comfino\Api\Exception\RequestValidationError;
+use Comfino\Api\Exception\ServiceUnavailable;
+use Comfino\Common\Backend\Factory\ApiClientFactory;
+use Comfino\Extended\Api\Client;
+use Comfino\Shop\Order\Cart;
+use Comfino\Shop\Order\LoanParameters;
+use Comfino\Shop\Order\Order;
+use Psr\Http\Client\ClientExceptionInterface;
+use Sunrise\Http\Factory\RequestFactory;
+use Sunrise\Http\Factory\StreamFactory;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -53,6 +67,9 @@ class Api
     const INSTALLMENTS_ZERO_PERCENT = 'INSTALLMENTS_ZERO_PERCENT';
     const CONVENIENT_INSTALLMENTS = 'CONVENIENT_INSTALLMENTS';
     const PAY_LATER = 'PAY_LATER';
+
+    /** @var Client */
+    private static $api_client;
 
     /** @var bool */
     private static $is_sandbox_mode;
@@ -90,9 +107,7 @@ class Api
     /** @var array */
     private static $last_errors = [];
 
-    /**
-     * @var \PaymentModule
-     */
+    /** @var \PaymentModule */
     private static $module;
 
     public static function init($module)
@@ -135,6 +150,20 @@ class Api
                 self::$widget_script_url .= ('/' . trim($widget_prod_script_version, '/'));
             }
         }
+    }
+
+    public static function getApiClientInstance(): Client
+    {
+        if (self::$api_client === null) {
+            self::$api_client = (new ApiClientFactory())->createClient(
+                self::getApiKey(),
+                self::getUserAgentHeader(),
+                self::getApiHost(),
+                self::$module->context->language->iso_code
+            );
+        }
+
+        return self::$api_client;
     }
 
     /**
@@ -199,7 +228,7 @@ class Api
 
         $cart_total_with_delivery = $cart_total + $delivery;
 
-        if ($cart_total_with_delivery > $total) {
+/*        if ($cart_total_with_delivery > $total) {
             // Add discount item to the list - problems with cart items value and order total value inconsistency.
             $products[] = [
                 'name' => 'Rabat',
@@ -221,7 +250,7 @@ class Api
                 'externalId' => '',
                 'category' => 'CORRECTION',
             ];
-        }
+        }*/
 
         $address = $cart->getAddressCollection();
         $address_explode = explode(' ', $address[$cart->id_address_delivery]->address1);
@@ -280,14 +309,101 @@ class Api
             $data['customer']['taxId'] = $customer_tax_id;
         }
 
-        $response = self::sendRequest(
+        //-----------------------------
+        $client = new Client(
+            new RequestFactory(),
+            new StreamFactory(),
+            new \Sunrise\Http\Client\Curl\Client(new \Sunrise\Http\Factory\ResponseFactory()),
+            self::getApiKey()
+        );
+
+        $client->setCustomApiHost(self::getApiHost());
+        $client->setCustomUserAgent(self::getUserAgentHeader());
+
+        if ($allowed_product_types !== null) {
+            $allowed_product_types = array_map(
+                static function (string $product_type): LoanTypeEnum { return new LoanTypeEnum($product_type); },
+                $allowed_product_types
+            );
+        }
+
+        $cart_items = [];
+
+        foreach ($products as $product) {
+            $cart_items[] = new Cart\CartItem(
+                new Cart\Product(
+                    $product['name'],
+                    $product['price'],
+                    $product['externalId'],
+                    $product['category'],
+                    $product['ean'],
+                    $product['photoUrl']
+                    //self::getProductsImageUrl($product)
+                ),
+                $product['quantity']
+            );
+        }
+
+        $order = new Order(
+            (string) $order_id,
+            self::getReturnUrl($return_url),
+            new LoanParameters(
+                $total,
+                (int) $context->cookie->loan_term,
+                new LoanTypeEnum($context->cookie->loan_type),
+                $allowed_product_types
+            ),
+            new Cart($cart_items, $total, $delivery, 'Kategoria'),
+            new Shop\Order\Customer(
+                $address[$cart->id_address_delivery]->firstname,
+                $address[$cart->id_address_delivery]->lastname,
+                $customer->email,
+                $phone_number,
+                \Tools::getRemoteAddr(),
+                preg_match('/^[A-Z]{0,3}\d{7,}$/', $customer_tax_id) ? $customer_tax_id : null,
+                !$customer->is_guest,
+                $customer->isLogged(),
+                new \Comfino\Shop\Order\Customer\Address(
+                    $address_explode[0],
+                    $building_number,
+                    null,
+                    $address[$cart->id_address_delivery]->postcode,
+                    $address[$cart->id_address_delivery]->city,
+                    'PL'
+                )
+            ),
+            self::getNotifyUrl($context)
+        );
+
+        try {
+            $response = $client->createOrder($order);
+
+            return [
+                'externalId' => $response->externalId,
+                'applicationUrl' => $response->applicationUrl
+            ];
+        } catch (RequestValidationError $e) {
+            return ['errors' => [$e->getMessage()]];
+        } catch (AuthorizationError $e) {
+            return ['errors' => [$e->getMessage()]];
+        } catch (AccessDenied $e) {
+            return ['errors' => [$e->getMessage()]];
+        } catch (ServiceUnavailable $e) {
+            return ['errors' => [$e->getMessage()]];
+        } catch (ClientExceptionInterface $e) {
+            return ['errors' => [$e->getMessage()]];
+        }
+
+        //-----------------------------
+
+        /*$response = self::sendRequest(
             self::getApiHost() . '/v1/orders',
             'POST',
             [CURLOPT_FOLLOWLOCATION => true],
             $data
-        );
+        );*/
 
-        return $response !== false ? json_decode($response, true) : false;
+        //return $response !== false ? json_decode($response, true) : false;
     }
 
     /**
@@ -437,26 +553,6 @@ class Api
         }
 
         return $account_active;
-    }
-
-    /**
-     * @param ShopPluginError $error
-     * @return bool
-     */
-    public static function sendLoggedError(ShopPluginError $error)
-    {
-        $request = new ShopPluginErrorRequest();
-
-        if (!$request->prepareRequest($error, self::getUserAgentHeader())) {
-            ErrorLogger::logError('Error request preparation failed', $error->errorMessage);
-
-            return false;
-        }
-
-        $data = ['error_details' => $request->errorDetails, 'hash' => $request->hash];
-        $response = self::sendRequest(self::getApiHost() . '/v1/log-plugin-error', 'POST', [], $data, false);
-
-        return strpos($response, 'errors') === false;
     }
 
     /**
@@ -856,7 +952,7 @@ class Api
     /**
      * @return string
      */
-    private static function getUserAgentHeader()
+    public static function getUserAgentHeader()
     {
         return sprintf(
             'PS Comfino [%s], PS [%s], SF [%s], PHP [%s], %s',
