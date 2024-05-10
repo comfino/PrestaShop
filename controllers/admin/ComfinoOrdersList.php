@@ -53,7 +53,7 @@ class ComfinoOrdersListController extends ModuleAdminController
     public function postProcess()
     {
         if (!empty($_POST['change_status'])) {
-            $order = \Comfino\Api::getOrder(Tools::getValue('self_link'));
+            $order = \Comfino\ApiClient::getOrder(Tools::getValue('self_link'));
 
             if ($order === false || !isset($order['status']) || !isset($order['orderId'])) {
                 return false;

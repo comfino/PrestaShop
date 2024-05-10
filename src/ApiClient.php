@@ -47,10 +47,10 @@ if (!defined('_PS_VERSION_')) {
 require_once 'ShopPluginErrorRequest.php';
 require_once 'ErrorLogger.php';
 
-class Api
+final class ApiClient
 {
-    const COMFINO_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
-    const COMFINO_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
+    private const COMFINO_PRODUCTION_API_HOST = 'https://api-ecommerce.comfino.pl';
+    private const COMFINO_SANDBOX_API_HOST = 'https://api-ecommerce.ecraty.pl';
 
     const COMFINO_PAYWALL_PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
     const COMFINO_PAYWALL_SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
@@ -70,6 +70,9 @@ class Api
 
     /** @var Client */
     private static $api_client;
+
+    /** @var \PaymentModule */
+    private static $module;
 
     /** @var bool */
     private static $is_sandbox_mode;
@@ -107,20 +110,17 @@ class Api
     /** @var array */
     private static $last_errors = [];
 
-    /** @var \PaymentModule */
-    private static $module;
-
-    public static function init($module)
+    public static function init(\PaymentModule $module): void
     {
         self::$module = $module;
 
-        $config_manager = new ConfigManager($module);
+        $config_manager = ConfigManager::getInstance($module);
 
-        self::$is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
+        self::$is_sandbox_mode = $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
         self::$widget_key = $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY');
 
         if (self::$is_sandbox_mode) {
-            self::$api_host = self::COMFINO_SANDBOX_HOST;
+            self::$api_host = self::COMFINO_SANDBOX_API_HOST;
             self::$api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
             self::$api_paywall_host = self::COMFINO_PAYWALL_SANDBOX_HOST;
             self::$paywall_frontend_script_url = self::COMFINO_PAYWALL_FRONTEND_JS_SANDBOX;
@@ -135,7 +135,7 @@ class Api
                 self::$widget_script_url .= ('/' . trim($widget_dev_script_version, '/'));
             }
         } else {
-            self::$api_host = self::COMFINO_PRODUCTION_HOST;
+            self::$api_host = self::COMFINO_PRODUCTION_API_HOST;
             self::$api_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
             self::$api_paywall_host = self::COMFINO_PAYWALL_PRODUCTION_HOST;
             self::$paywall_frontend_script_url = self::COMFINO_PAYWALL_FRONTEND_JS_PRODUCTION;
@@ -152,14 +152,45 @@ class Api
         }
     }
 
-    public static function getApiClientInstance(): Client
+    public static function getInstance(\PaymentModule $module, ?bool $sandbox_mode = null): Client
     {
+        self::$module = $module;
+
         if (self::$api_client === null) {
+            $config_manager = ConfigManager::getInstance($module);
+
+            if ($sandbox_mode === null) {
+                $sandbox_mode = $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
+            }
+
+            if ($sandbox_mode) {
+                $api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
+            } else {
+                $api_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
+            }
+
+            $api_host = null;
+
+            if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') && getenv('COMFINO_DEV_API_HOST_BACKEND')
+                && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+            ) {
+                $api_host = getenv('COMFINO_DEV_API_HOST_BACKEND');
+            }
+
             self::$api_client = (new ApiClientFactory())->createClient(
-                self::getApiKey(),
-                self::getUserAgentHeader(),
-                self::getApiHost(),
-                self::$module->context->language->iso_code
+                $api_key,
+                sprintf(
+                    'PS Comfino [%s], PS [%s], SF [%s], PHP [%s], %s',
+                    COMFINO_VERSION,
+                    _PS_VERSION_,
+                    COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
+                        ? \Symfony\Component\HttpKernel\Kernel::VERSION
+                        : 'n/a',
+                    PHP_VERSION,
+                    \Tools::getShopDomain()
+                ),
+                $api_host,
+                $module->context->language->iso_code
             );
         }
 

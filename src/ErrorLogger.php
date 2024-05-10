@@ -40,6 +40,28 @@ final class ErrorLogger
     /** @var Common\Backend\ErrorLogger */
     private static $errorLogger;
 
+    public static function init(\PaymentModule $module): void
+    {
+        static $initialized = false;
+
+        self::$module = $module;
+
+        if (!$initialized) {
+            self::$errorLogger = Common\Backend\ErrorLogger::getInstance(
+                Tools::getShopDomain(),
+                'PrestaShop',
+                'modules/' . self::$module->name,
+                ConfigManager::getEnvironmentInfo(),
+                ApiClient::getInstance(),
+                new StorageAdapter()
+            );
+
+            self::$errorLogger->init();
+
+            $initialized = true;
+        }
+    }
+
     public static function sendError(
         string $error_prefix,
         string $error_code,
@@ -67,38 +89,5 @@ final class ErrorLogger
     public static function getErrorLog(int $num_lines): string
     {
         return self::$errorLogger->getErrorLog(_PS_MODULE_DIR_ . 'comfino/payment_log.log', $num_lines);
-    }
-
-    public static function init(\PaymentModule $module): void
-    {
-        static $initialized = false;
-
-        self::$module = $module;
-
-        if (!$initialized) {
-            self::$errorLogger = Common\Backend\ErrorLogger::getInstance(
-                Tools::getShopDomain(),
-                'PrestaShop',
-                'modules/' . self::$module->name,
-                [
-                    'plugin_version' => COMFINO_VERSION,
-                    'shop_version' => _PS_VERSION_,
-                    'symfony_version' => COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
-                        ? \Symfony\Component\HttpKernel\Kernel::VERSION
-                        : 'n/a',
-                    'php_version' => PHP_VERSION,
-                    'server_software' => $_SERVER['SERVER_SOFTWARE'],
-                    'server_name' => $_SERVER['SERVER_NAME'],
-                    'server_addr' => $_SERVER['SERVER_ADDR'],
-                    'database_version' => \Db::getInstance()->getVersion(),
-                ],
-                Api::getApiClientInstance(),
-                new StorageAdapter()
-            );
-
-            self::$errorLogger->init();
-
-            $initialized = true;
-        }
     }
 }

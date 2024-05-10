@@ -24,7 +24,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-use Comfino\Api;
+use Comfino\ApiClient;
 use Comfino\ConfigManager;
 use Comfino\ErrorLogger;
 
@@ -40,7 +40,7 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        Api::init($this->module);
+        ApiClient::init($this->module);
         ErrorLogger::init();
 
         parent::postProcess();
@@ -56,8 +56,8 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
                 $verification_key = Tools::getValue('vkey');
                 $hash_algorithm = $this->getHashAlgorithm();
 
-                if (in_array($hash_algorithm, Api::getHashAlgos(), true)) {
-                    if (!hash_equals(hash($hash_algorithm, Api::getApiKey() . $verification_key), $this->getSignature())) {
+                if (in_array($hash_algorithm, ApiClient::getHashAlgos(), true)) {
+                    if (!hash_equals(hash($hash_algorithm, ApiClient::getApiKey() . $verification_key), $this->getSignature())) {
                         exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
                     }
                 } else {
@@ -89,7 +89,7 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
                 $hash_algos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
 
                 if (in_array($hash_algorithm, $hash_algos, true)) {
-                    if (!hash_equals(hash($hash_algorithm, Api::getApiKey() . $json_data), $this->getSignature())) {
+                    if (!hash_equals(hash($hash_algorithm, ApiClient::getApiKey() . $json_data), $this->getSignature())) {
                         exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
                     }
                 } else {

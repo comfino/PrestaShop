@@ -26,6 +26,14 @@
 
 namespace Comfino;
 
+use Comfino\Common\Backend\ConfigurationManager;
+use Comfino\Common\Backend\Factory\ApiClientFactory;
+use Comfino\Configuration\StorageAdapter;
+use Comfino\Extended\Api\Client;
+use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
+use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Psr\Http\Client\ClientExceptionInterface;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -33,36 +41,39 @@ if (!defined('_PS_VERSION_')) {
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
-class ConfigManager
+final class ConfigManager
 {
-    const COMFINO_SETTINGS_OPTIONS = [
+    public const CONFIG_OPTIONS = [
         'payment_settings' => [
-            'COMFINO_API_KEY',
-            'COMFINO_PAYMENT_TEXT',
-            'COMFINO_MINIMAL_CART_AMOUNT',
+            'COMFINO_API_KEY' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_PAYMENT_TEXT' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_MINIMAL_CART_AMOUNT' => ConfigurationManager::OPT_VALUE_TYPE_FLOAT,
         ],
         'sale_settings' => [
-            'COMFINO_PRODUCT_CATEGORY_FILTERS',
+            'COMFINO_PRODUCT_CATEGORY_FILTERS' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
         ],
         'widget_settings' => [
-            'COMFINO_WIDGET_ENABLED',
-            'COMFINO_WIDGET_KEY',
-            'COMFINO_WIDGET_PRICE_SELECTOR',
-            'COMFINO_WIDGET_TARGET_SELECTOR',
-            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
-            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-            'COMFINO_WIDGET_TYPE',
-            'COMFINO_WIDGET_OFFER_TYPE',
-            'COMFINO_WIDGET_EMBED_METHOD',
-            'COMFINO_WIDGET_CODE',
+            'COMFINO_WIDGET_ENABLED' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_WIDGET_KEY' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_WIDGET_PRICE_SELECTOR' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_WIDGET_TARGET_SELECTOR' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => ConfigurationManager::OPT_VALUE_TYPE_INT,
+            'COMFINO_WIDGET_TYPE' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_WIDGET_OFFER_TYPE' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_WIDGET_EMBED_METHOD' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_WIDGET_CODE' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
         ],
         'developer_settings' => [
-            'COMFINO_IS_SANDBOX',
-            'COMFINO_SANDBOX_API_KEY',
+            'COMFINO_IS_SANDBOX' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_SANDBOX_API_KEY' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+        ],
+        'hidden_settings' => [
+            'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY
         ],
     ];
 
-    const ACCESSIBLE_CONFIG_OPTIONS = [
+    public const ACCESSIBLE_CONFIG_OPTIONS = [
         'COMFINO_PAYMENT_TEXT',
         'COMFINO_MINIMAL_CART_AMOUNT',
         'COMFINO_IS_SANDBOX',
@@ -82,25 +93,117 @@ class ConfigManager
         'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
     ];
 
-    const CONFIG_OPTIONS_TYPES = [
+    public const CONFIG_OPTIONS_TYPES = [
         'COMFINO_MINIMAL_CART_AMOUNT' => 'float',
         'COMFINO_IS_SANDBOX' => 'bool',
         'COMFINO_WIDGET_ENABLED' => 'bool',
         'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 'int',
     ];
 
-    /**
-     * @var \PaymentModule
-     */
-    private $module;
+    /** @var \PaymentModule */
+    private static $module;
+
+    /** @var ConfigurationManager */
+    private static $configuration_manager;
+
+    public static function getInstance(\PaymentModule $module): ConfigurationManager
+    {
+        self::$module = $module;
+
+        if (self::$configuration_manager === null) {
+            self::$configuration_manager = ConfigurationManager::getInstance(
+                array_merge(array_merge(...array_values(self::CONFIG_OPTIONS))),
+                self::ACCESSIBLE_CONFIG_OPTIONS,
+                new StorageAdapter(),
+                new JsonSerializer()
+            );
+        }
+
+        return self::$configuration_manager;
+    }
+
+    public static function load(): array
+    {
+        $configuration = [];
+
+        foreach (array_merge(array_merge(...array_values(self::CONFIG_OPTIONS))) as $opt_name) {
+            $configuration[$opt_name] = \Configuration::get($opt_name);
+        }
+
+        return $configuration;
+    }
+
+    public static function save(array $configuration): void
+    {
+        foreach ($configuration as $opt_name => $opt_value) {
+            \Configuration::updateValue($opt_name, $opt_value);
+        }
+    }
+
+    public static function getEnvironmentInfo(): array
+    {
+        return [
+            'plugin_version' => COMFINO_VERSION,
+            'shop_version' => _PS_VERSION_,
+            'symfony_version' => COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
+                ? \Symfony\Component\HttpKernel\Kernel::VERSION
+                : 'n/a',
+            'php_version' => PHP_VERSION,
+            'server_software' => $_SERVER['SERVER_SOFTWARE'],
+            'server_name' => $_SERVER['SERVER_NAME'],
+            'server_addr' => $_SERVER['SERVER_ADDR'],
+            'database_version' => \Db::getInstance()->getVersion(),
+        ];
+    }
+
+    public static function getProductTypes(ProductTypesListTypeEnum $list_type): array
+    {
+        try {
+            ApiClient::getInstance()->getProductTypes($list_type);
+        } catch (ClientExceptionInterface $e) {
+        }
+    }
 
     /**
-     * @param \PaymentModule $module
+     * @param string $list_type
+     * @return array
      */
-    public function __construct($module)
+    public function getOfferTypes($list_type = 'sale_settings')
     {
-        $this->module = $module;
+        if ($list_type === 'sale_settings') {
+            $list_type = 'paywall';
+        } else {
+            $list_type = 'widget';
+        }
+
+        \Comfino\ApiClient::init($this->module);
+
+        $product_types = \Comfino\ApiClient::getProductTypes($list_type);
+
+        if ($product_types !== false) {
+            $offer_types = [];
+
+            foreach ($product_types as $product_type_code => $product_type_name) {
+                $offer_types[] = ['key' => $product_type_code, 'name' => $product_type_name];
+            }
+        } else {
+            $offer_types = [
+                [
+                    'key' => \Comfino\ApiClient::INSTALLMENTS_ZERO_PERCENT,
+                    'name' => $this->module->l('Zero percent installments'),
+                ],
+                [
+                    'key' => \Comfino\ApiClient::CONVENIENT_INSTALLMENTS,
+                    'name' => $this->module->l('Convenient installments'),
+                ],
+                ['key' => \Comfino\ApiClient::PAY_LATER, 'name' => $this->module->l('Pay later')],
+            ];
+        }
+
+        return $offer_types;
     }
+
+    /* -------------------------------------------------- */
 
     /**
      * @param string $opt_name
@@ -132,18 +235,18 @@ class ConfigManager
     {
         $config_values = [];
 
-        if (!array_key_exists($options_group, self::COMFINO_SETTINGS_OPTIONS)) {
+        if (!array_key_exists($options_group, self::CONFIG_OPTIONS)) {
             return [];
         }
 
         if (count($options_to_return)) {
             foreach ($options_to_return as $opt_name) {
-                if (in_array($opt_name, self::COMFINO_SETTINGS_OPTIONS[$options_group], true)) {
+                if (in_array($opt_name, self::CONFIG_OPTIONS[$options_group], true)) {
                     $config_values[$opt_name] = \Configuration::get($opt_name);
                 }
             }
         } else {
-            foreach (self::COMFINO_SETTINGS_OPTIONS[$options_group] as $opt_name) {
+            foreach (self::CONFIG_OPTIONS[$options_group] as $opt_name) {
                 $config_values[$opt_name] = \Configuration::get($opt_name);
             }
         }
@@ -321,7 +424,7 @@ class ConfigManager
         $product_data = $this->getProductData($product_id);
 
         return [
-            '{WIDGET_SCRIPT_URL}' => Api::getWidgetScriptUrl(),
+            '{WIDGET_SCRIPT_URL}' => ApiClient::getWidgetScriptUrl(),
             '{PRODUCT_ID}' => $product_data['product_id'],
             '{PRODUCT_PRICE}' => $product_data['price'],
             '{PLATFORM}' => 'prestashop',
@@ -389,7 +492,7 @@ script.onload = function () {
         offerType: '{OFFER_TYPE}',
         embedMethod: '{EMBED_METHOD}',
         numOfInstallments: 0,
-        price: null,        
+        price: null,
         productId: {PRODUCT_ID},
         productPrice: {PRODUCT_PRICE},
         platform: '{PLATFORM}',
@@ -415,7 +518,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
      */
     public function getWidgetTypes()
     {
-        $widget_types = \Comfino\Api::getWidgetTypes();
+        $widget_types = \Comfino\ApiClient::getWidgetTypes();
 
         if ($widget_types !== false) {
             $widget_types_list = [];
@@ -439,43 +542,6 @@ document.getElementsByTagName('head')[0].appendChild(script);
         }
 
         return $widget_types_list;
-    }
-
-    /**
-     * @param string $list_type
-     * @return array
-     */
-    public function getOfferTypes($list_type = 'sale_settings')
-    {
-        if ($list_type === 'sale_settings') {
-            $list_type = 'paywall';
-        } else {
-            $list_type = 'widget';
-        }
-
-        $product_types = \Comfino\Api::getProductTypes($list_type);
-
-        if ($product_types !== false) {
-            $offer_types = [];
-
-            foreach ($product_types as $product_type_code => $product_type_name) {
-                $offer_types[] = ['key' => $product_type_code, 'name' => $product_type_name];
-            }
-        } else {
-            $offer_types = [
-                [
-                    'key' => \Comfino\Api::INSTALLMENTS_ZERO_PERCENT,
-                    'name' => $this->module->l('Zero percent installments'),
-                ],
-                [
-                    'key' => \Comfino\Api::CONVENIENT_INSTALLMENTS,
-                    'name' => $this->module->l('Convenient installments'),
-                ],
-                ['key' => \Comfino\Api::PAY_LATER, 'name' => $this->module->l('Pay later')],
-            ];
-        }
-
-        return $offer_types;
     }
 
     /**
