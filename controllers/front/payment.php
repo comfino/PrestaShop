@@ -24,16 +24,15 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-use Comfino\Api;
+use Comfino\ApiClient;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Common\Backend\Factory\OrderFactory;
 use Comfino\ErrorLogger;
-use Comfino\Shop\Order\Cart\CartItem;
-use Comfino\Shop\Order\Cart\CartItemInterface;
-use Comfino\Shop\Order\Cart\Product;
+use Comfino\OrderManager;
+use Comfino\SettingsManager;
 use Comfino\Shop\Order\Customer;
 use Comfino\Shop\Order\Customer\Address;
 use Psr\Http\Client\ClientExceptionInterface;
@@ -46,7 +45,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
     public function postProcess(): void
     {
-        Api::init($this->module);
+        ApiClient::init($this->module);
         ErrorLogger::init($this->module);
 
         parent::postProcess();
@@ -114,7 +113,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         $currency = $this->context->currency;
-        $total = (float) $cart->getOrderTotal(true, Cart::BOTH);
+        $total = (float) $cart->getOrderTotal(true, \Cart::BOTH);
         $loan_amount = ((int) $cookie->loan_amount / 100);
 
         if ($loan_amount > $total) {
@@ -124,7 +123,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $this->module->validateOrder(
             (int) $cart->id,
-            (int) Configuration::get('COMFINO_CREATED'),
+            (int) \Configuration::get('COMFINO_CREATED'),
             $total,
             $this->module->displayName,
             null,
@@ -150,27 +149,15 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $phone_number = trim($addresses[$cart->id_address_delivery]->phone_mobile);
         }
 
+        $shopCart = OrderManager::getShopCart($cart);
+
         $order = (new OrderFactory())->createOrder(
             $order_id,
-            (int) ($cart->getOrderTotal(true) * 100),
-            (int) ($cart->getOrderTotal(true, Cart::ONLY_SHIPPING) * 100),
+            $shopCart->getTotalValue(),
+            $shopCart->getDeliveryCost(),
             (int) $cookie->loan_term,
             $cookie->loan_type,
-            array_map(function (array $product): CartItemInterface {
-                $quantity = (int) $product['cart_quantity'];
-
-                return new CartItem(
-                    new Product(
-                        $product['name'],
-                        (int) ($product['total_wt'] / $quantity * 100),
-                        (string) $product['id_product'],
-                        $product['category'],
-                        $product['ean13'],
-                        $this->getProductImageUrl($product)
-                    ),
-                    $quantity
-                );
-            }, $cart->getProducts()),
+            $shopCart->getCartItems(),
             new Customer(
                 $addresses[$cart->id_address_delivery]->firstname,
                 $addresses[$cart->id_address_delivery]->lastname,
@@ -191,11 +178,12 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             ),
             Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
             "$cart->id&id_module={$this->module->id}&id_order=$order_id&key={$customer->secure_key}",
-            $this->context->link->getModuleLink($this->context->controller->module->name, 'notify', [], true)
+            $this->context->link->getModuleLink($this->context->controller->module->name, 'notify', [], true),
+            SettingsManager::getAllowedProductTypes($shopCart)
         );
 
         try {
-            Tools::redirect(Api::getApiClientInstance()->createOrder($order)->applicationUrl);
+            Tools::redirect(ApiClient::getInstance()->createOrder($order)->applicationUrl);
         } catch (RequestValidationError | AuthorizationError | AccessDenied | ServiceUnavailable $e) {
             $this->processApiError($e, '', '', '');
         } catch (ClientExceptionInterface $e) {
@@ -203,7 +191,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
     }
 
-    private function redirectWithNotificationsPs16()
+    private function redirectWithNotificationsPs16(): void
     {
         $notifications = json_encode(['error' => $this->errors]);
 
@@ -213,32 +201,13 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             setcookie('notifications', $notifications);
         }
 
-        return call_user_func_array(['Tools', 'redirect'], func_get_args());
-    }
-
-    private function getProductImageUrl(array $product): string
-    {
-        $link_rewrite = is_array($product['link_rewrite']) ? end($product['link_rewrite']) : $product['link_rewrite'];
-
-        if ($link_rewrite === false) {
-            return '';
-        }
-
-        $image = Image::getCover($product['id_product']);
-
-        if (!is_array($image) && !isset($image['id_image'])) {
-            return '';
-        }
-
-        $image_url = (new Link())->getImageLink($link_rewrite, $image['id_image']);
-
-        return strpos($image_url, 'http') === false ? "https://$image_url" : $image_url;
+        call_user_func_array(['Tools', 'redirect'], func_get_args());
     }
 
     private function processApiError(\Throwable $exception, ?string $url, ?string $request, ?string $response): void
     {
         $order = new Order($this->module->currentOrder);
-        $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
+        $order->setCurrentState(\Configuration::get('PS_OS_ERROR'));
         $order->save();
 
         ErrorLogger::sendError(
@@ -251,7 +220,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $exception->getTraceAsString()
         );
 
-        Tools::redirect($this->context->link->getModuleLink(
+        \Tools::redirect($this->context->link->getModuleLink(
             $this->module->name,
             'error',
             ['error' => $exception->getMessage()],

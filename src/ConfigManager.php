@@ -26,6 +26,7 @@
 
 namespace Comfino;
 
+use Comfino\Common\Backend\CacheManager;
 use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Backend\Factory\ApiClientFactory;
 use Comfino\Configuration\StorageAdapter;
@@ -154,14 +155,6 @@ final class ConfigManager
             'server_addr' => $_SERVER['SERVER_ADDR'],
             'database_version' => \Db::getInstance()->getVersion(),
         ];
-    }
-
-    public static function getProductTypes(ProductTypesListTypeEnum $list_type): array
-    {
-        try {
-            ApiClient::getInstance()->getProductTypes($list_type);
-        } catch (ClientExceptionInterface $e) {
-        }
     }
 
     /**
