@@ -36,6 +36,7 @@ use Comfino\SettingsManager;
 use Comfino\Shop\Order\Customer;
 use Comfino\Shop\Order\Customer\Address;
 use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\NetworkExceptionInterface;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -183,9 +184,11 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         );
 
         try {
-            Tools::redirect(ApiClient::getInstance()->createOrder($order)->applicationUrl);
+            Tools::redirect(ApiClient::getInstance($this->module)->createOrder($order)->applicationUrl);
         } catch (RequestValidationError | AuthorizationError | AccessDenied | ServiceUnavailable $e) {
-            $this->processApiError($e, '', '', '');
+            $this->processApiError($e, $e->getUrl(), $e->getRequestBody(), $e->getResponseBody());
+        } catch (NetworkExceptionInterface $e) {
+            $this->processApiError($e, $e->getRequest()->getRequestTarget(), $e->getRequest()->getBody()->getContents(), '');
         } catch (ClientExceptionInterface $e) {
             $this->processApiError($e, '', '', '');
         }
@@ -204,7 +207,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         call_user_func_array(['Tools', 'redirect'], func_get_args());
     }
 
-    private function processApiError(\Throwable $exception, ?string $url, ?string $request, ?string $response): void
+    private function processApiError(\Throwable $exception, string $url, string $request, string $response): void
     {
         $order = new Order($this->module->currentOrder);
         $order->setCurrentState(\Configuration::get('PS_OS_ERROR'));
@@ -214,9 +217,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             'Order creation failed on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API error)',
             $exception->getCode(),
             $exception->getMessage(),
-            $url,
-            $request,
-            $response,
+            $url !== '' ? $url : null,
+            $request !== '' ? $request : null,
+            $response !== '' ? $response : null,
             $exception->getTraceAsString()
         );
 
