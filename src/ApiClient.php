@@ -30,6 +30,7 @@ use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Api\Exception\RequestValidationError;
+use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Common\Backend\Factory\ApiClientFactory;
 use Comfino\Extended\Api\Client;
@@ -37,6 +38,7 @@ use Comfino\Shop\Order\Cart;
 use Comfino\Shop\Order\LoanParameters;
 use Comfino\Shop\Order\Order;
 use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\NetworkExceptionInterface;
 use Sunrise\Http\Factory\RequestFactory;
 use Sunrise\Http\Factory\StreamFactory;
 
@@ -197,264 +199,36 @@ final class ApiClient
         return self::$api_client;
     }
 
-    /**
-     * @param \Cart $cart
-     * @param string $order_id
-     * @param string $return_url
-     * @return array|bool
-     */
-    public static function createOrder($cart, $order_id, $return_url)
+    public static function processApiError(\Throwable $exception): void
     {
-        $context = \Context::getContext();
+        if ($exception instanceof RequestValidationError | $exception instanceof ResponseValidationError
+            | $exception instanceof AuthorizationError | $exception instanceof AccessDenied
+            | $exception instanceof ServiceUnavailable
+        ) {
+            $url = $exception->getUrl();
+            $requestBody = $exception->getRequestBody();
+            $responseBody = $exception->getResponseBody();
+        } elseif ($exception instanceof NetworkExceptionInterface) {
+            $exception->getRequest()->getBody()->rewind();
 
-        $total = (int) ($cart->getOrderTotal(true) * 100);
-        $delivery = (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100);
-
-        $loan_amount = (int) $context->cookie->loan_amount;
-
-        if ($loan_amount > $total) {
-            // Loan amount with price modifier (e.g. custom commission).
-            $total = $loan_amount;
+            $url = $exception->getRequest()->getRequestTarget();
+            $requestBody = $exception->getRequest()->getBody()->getContents();
+            $responseBody = '';
+        } else {
+            $url = '';
+            $requestBody = '';
+            $responseBody = '';
         }
 
-        $config_manager = new \Comfino\ConfigManager(self::$module);
-        $customer = new \Customer($cart->id_customer);
-        $products = [];
-        $allowed_product_types = null;
-        $disabled_product_types = [];
-        $available_product_types = array_map(
-            static function (array $offer_type) { return $offer_type['key']; },
-            $config_manager->getOfferTypes()
+        ErrorLogger::sendError(
+            'Order creation failed on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API error)',
+            $exception->getCode(),
+            $exception->getMessage(),
+            $url !== '' ? $url : null,
+            $requestBody !== '' ? $requestBody : null,
+            $responseBody !== '' ? $responseBody : null,
+            $exception->getTraceAsString()
         );
-
-        // Check product category filters.
-        foreach ($available_product_types as $product_type) {
-            if (!$config_manager->isFinancialProductAvailable($product_type, $cart->getProducts())) {
-                $disabled_product_types[] = $product_type;
-            }
-        }
-
-        if (count($disabled_product_types)) {
-            $allowed_product_types = array_values(array_diff($available_product_types, $disabled_product_types));
-        }
-
-        $cart_total = 0;
-
-        foreach ($cart->getProducts() as $product) {
-            $quantity = (int) $product['cart_quantity'];
-            $price = (int) ($product['total_wt'] / $quantity * 100);
-
-            $products[] = [
-                'name' => $product['name'],
-                'quantity' => $quantity,
-                'price' => $price,
-                'photoUrl' => self::getProductsImageUrl($product),
-                'ean' => $product['ean13'],
-                'externalId' => (string) $product['id_product'],
-                'category' => $product['category'],
-            ];
-
-            $cart_total += ($price * $quantity);
-        }
-
-        $cart_total_with_delivery = $cart_total + $delivery;
-
-/*        if ($cart_total_with_delivery > $total) {
-            // Add discount item to the list - problems with cart items value and order total value inconsistency.
-            $products[] = [
-                'name' => 'Rabat',
-                'quantity' => 1,
-                'price' => (int) ($total - $cart_total_with_delivery),
-                'photoUrl' => '',
-                'ean' => '',
-                'externalId' => '',
-                'category' => 'DISCOUNT',
-            ];
-        } elseif ($cart_total_with_delivery < $total) {
-            // Add correction item to the list - problems with cart items value and order total value inconsistency.
-            $products[] = [
-                'name' => 'Korekta',
-                'quantity' => 1,
-                'price' => (int) ($total - $cart_total_with_delivery),
-                'photoUrl' => '',
-                'ean' => '',
-                'externalId' => '',
-                'category' => 'CORRECTION',
-            ];
-        }*/
-
-        $address = $cart->getAddressCollection();
-        $address_explode = explode(' ', $address[$cart->id_address_delivery]->address1);
-        $building_number = '';
-
-        if (count($address_explode) === 2) {
-            $building_number = $address_explode[1];
-        }
-
-        $customer_tax_id = trim(str_replace('-', '', $address[$cart->id_address_delivery]->vat_number));
-        $phone_number = trim($address[$cart->id_address_delivery]->phone);
-
-        if (empty($phone_number)) {
-            $phone_number = trim($address[$cart->id_address_delivery]->phone_mobile);
-        }
-
-        $data = [
-            'notifyUrl' => self::getNotifyUrl($context),
-            'returnUrl' => self::getReturnUrl($return_url),
-            'orderId' => (string) $order_id,
-            'draft' => false,
-            'loanParameters' => [
-                'term' => (int) $context->cookie->loan_term,
-                'type' => $context->cookie->loan_type,
-            ],
-            'cart' => [
-                'category' => 'Kategoria',
-                'totalAmount' => $total,
-                'deliveryCost' => $delivery,
-                'products' => $products,
-            ],
-            'customer' => [
-                'firstName' => $address[$cart->id_address_delivery]->firstname,
-                'lastName' => $address[$cart->id_address_delivery]->lastname,
-                'email' => $customer->email,
-                'phoneNumber' => $phone_number,
-                'ip' => \Tools::getRemoteAddr(),
-                'regular' => !$customer->is_guest,
-                'logged' => $customer->isLogged(),
-                'address' => [
-                    'street' => $address_explode[0],
-                    'buildingNumber' => $building_number,
-                    'apartmentNumber' => '',
-                    'postalCode' => $address[$cart->id_address_delivery]->postcode,
-                    'city' => $address[$cart->id_address_delivery]->city,
-                    'countryCode' => 'PL',
-                ],
-            ],
-        ];
-
-        if ($allowed_product_types !== null) {
-            $data['loanParameters']['allowedProductTypes'] = $allowed_product_types;
-        }
-
-        if (preg_match('/^[A-Z]{0,3}\d{7,}$/', $customer_tax_id)) {
-            $data['customer']['taxId'] = $customer_tax_id;
-        }
-
-        //-----------------------------
-        $client = new Client(
-            new RequestFactory(),
-            new StreamFactory(),
-            new \Sunrise\Http\Client\Curl\Client(new \Sunrise\Http\Factory\ResponseFactory()),
-            self::getApiKey()
-        );
-
-        $client->setCustomApiHost(self::getApiHost());
-        $client->setCustomUserAgent(self::getUserAgentHeader());
-
-        if ($allowed_product_types !== null) {
-            $allowed_product_types = array_map(
-                static function (string $product_type): LoanTypeEnum { return new LoanTypeEnum($product_type); },
-                $allowed_product_types
-            );
-        }
-
-        $cart_items = [];
-
-        foreach ($products as $product) {
-            $cart_items[] = new Cart\CartItem(
-                new Cart\Product(
-                    $product['name'],
-                    $product['price'],
-                    $product['externalId'],
-                    $product['category'],
-                    $product['ean'],
-                    $product['photoUrl']
-                    //self::getProductsImageUrl($product)
-                ),
-                $product['quantity']
-            );
-        }
-
-        $order = new Order(
-            (string) $order_id,
-            self::getReturnUrl($return_url),
-            new LoanParameters(
-                $total,
-                (int) $context->cookie->loan_term,
-                new LoanTypeEnum($context->cookie->loan_type),
-                $allowed_product_types
-            ),
-            new Cart($cart_items, $total, $delivery, 'Kategoria'),
-            new Shop\Order\Customer(
-                $address[$cart->id_address_delivery]->firstname,
-                $address[$cart->id_address_delivery]->lastname,
-                $customer->email,
-                $phone_number,
-                \Tools::getRemoteAddr(),
-                preg_match('/^[A-Z]{0,3}\d{7,}$/', $customer_tax_id) ? $customer_tax_id : null,
-                !$customer->is_guest,
-                $customer->isLogged(),
-                new \Comfino\Shop\Order\Customer\Address(
-                    $address_explode[0],
-                    $building_number,
-                    null,
-                    $address[$cart->id_address_delivery]->postcode,
-                    $address[$cart->id_address_delivery]->city,
-                    'PL'
-                )
-            ),
-            self::getNotifyUrl($context)
-        );
-
-        try {
-            $response = $client->createOrder($order);
-
-            return [
-                'externalId' => $response->externalId,
-                'applicationUrl' => $response->applicationUrl
-            ];
-        } catch (RequestValidationError $e) {
-            return ['errors' => [$e->getMessage()]];
-        } catch (AuthorizationError $e) {
-            return ['errors' => [$e->getMessage()]];
-        } catch (AccessDenied $e) {
-            return ['errors' => [$e->getMessage()]];
-        } catch (ServiceUnavailable $e) {
-            return ['errors' => [$e->getMessage()]];
-        } catch (ClientExceptionInterface $e) {
-            return ['errors' => [$e->getMessage()]];
-        }
-
-        //-----------------------------
-
-        /*$response = self::sendRequest(
-            self::getApiHost() . '/v1/orders',
-            'POST',
-            [CURLOPT_FOLLOWLOCATION => true],
-            $data
-        );*/
-
-        //return $response !== false ? json_decode($response, true) : false;
-    }
-
-    /**
-     * @param $self_link
-     * @return array|bool
-     */
-    public static function getOrder($self_link)
-    {
-        $response = self::sendRequest(str_replace('https', 'http', $self_link), 'GET');
-
-        return $response !== false ? json_decode($response, true) : false;
-    }
-
-    /**
-     * @param string $order_id
-     * @return void
-     */
-    public static function cancelOrder($order_id)
-    {
-        self::sendRequest(self::getApiHost() . "/v1/orders/$order_id/cancel", 'PUT');
     }
 
     /**
