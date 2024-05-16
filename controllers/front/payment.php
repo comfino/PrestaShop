@@ -180,7 +180,18 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         try {
             Tools::redirect(ApiClient::getInstance($this->module)->createOrder($order)->applicationUrl);
         } catch (\Throwable $e) {
-            $this->processApiError($e);
+            $order = new Order($this->module->currentOrder);
+            $order->setCurrentState(\Configuration::get('PS_OS_ERROR'));
+            $order->save();
+
+            ApiClient::processApiError($e);
+
+            \Tools::redirect($this->context->link->getModuleLink(
+                $this->module->name,
+                'error',
+                ['error' => $e->getMessage()],
+                true
+            ));
         }
     }
 
@@ -195,21 +206,5 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         call_user_func_array(['Tools', 'redirect'], func_get_args());
-    }
-
-    private function processApiError(\Throwable $exception): void
-    {
-        $order = new Order($this->module->currentOrder);
-        $order->setCurrentState(\Configuration::get('PS_OS_ERROR'));
-        $order->save();
-
-        ApiClient::processApiError($exception);
-
-        \Tools::redirect($this->context->link->getModuleLink(
-            $this->module->name,
-            'error',
-            ['error' => $exception->getMessage()],
-            true
-        ));
     }
 }
