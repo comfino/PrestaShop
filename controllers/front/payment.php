@@ -107,23 +107,16 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $currency = $this->context->currency;
-        $total = (float) $cart->getOrderTotal(true, \Cart::BOTH);
-        $loan_amount = ((int) $cookie->loan_amount / 100);
-
-        if ($loan_amount > $total) {
-            // Loan amount with price modifier (e.g. custom commission).
-            $total = $loan_amount;
-        }
+        $shopCart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount);
 
         $this->module->validateOrder(
             (int) $cart->id,
             (int) \Configuration::get('COMFINO_CREATED'),
-            $total,
+            (float) ($shopCart->getTotalValue() / 100),
             $this->module->displayName,
             null,
             '',
-            (int) $currency->id,
+            (int) $this->context->currency->id,
             false,
             $customer->secure_key
         );
@@ -143,8 +136,6 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         if (empty($phone_number)) {
             $phone_number = trim($addresses[$cart->id_address_delivery]->phone_mobile);
         }
-
-        $shopCart = OrderManager::getShopCart($cart);
 
         $order = (new OrderFactory())->createOrder(
             $order_id,
@@ -184,7 +175,10 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $order->setCurrentState(\Configuration::get('PS_OS_ERROR'));
             $order->save();
 
-            ApiClient::processApiError($e);
+            ApiClient::processApiError(
+                'Order creation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
+                $e
+            );
 
             \Tools::redirect($this->context->link->getModuleLink(
                 $this->module->name,
