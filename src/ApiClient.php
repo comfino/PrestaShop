@@ -192,14 +192,14 @@ final class ApiClient
                     \Tools::getShopDomain()
                 ),
                 $api_host,
-                $module->context->language->iso_code
+                \Context::getContext()->language->iso_code
             );
         }
 
         return self::$api_client;
     }
 
-    public static function processApiError(\Throwable $exception): void
+    public static function processApiError(string $errorPrefix, \Throwable $exception): void
     {
         if ($exception instanceof RequestValidationError | $exception instanceof ResponseValidationError
             | $exception instanceof AuthorizationError | $exception instanceof AccessDenied
@@ -221,7 +221,7 @@ final class ApiClient
         }
 
         ErrorLogger::sendError(
-            'Order creation failed on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API error)',
+            $errorPrefix,
             $exception->getCode(),
             $exception->getMessage(),
             $url !== '' ? $url : null,
@@ -229,36 +229,6 @@ final class ApiClient
             $responseBody !== '' ? $responseBody : null,
             $exception->getTraceAsString()
         );
-    }
-
-    /**
-     * @return void
-     */
-    public static function notifyPluginRemoval()
-    {
-        if (!empty(self::getApiKey())) {
-            self::sendRequest(self::getApiHost() . '/v1/log-plugin-remove', 'PUT');
-        }
-    }
-
-    /**
-     * @return string|bool
-     */
-    public static function getWidgetKey()
-    {
-        $widget_key = '';
-
-        if (!empty(self::getApiKey())) {
-            $widget_key = self::sendRequest(self::getApiHost() . '/v1/widget-key', 'GET');
-
-            if (!count(self::$last_errors)) {
-                $widget_key = json_decode($widget_key, true);
-            } else {
-                $widget_key = false;
-            }
-        }
-
-        return $widget_key;
     }
 
     /**
@@ -282,54 +252,6 @@ final class ApiClient
         }
 
         return $product_types[$list_type];
-    }
-
-    /**
-     * @return string[]|bool
-     */
-    public static function getWidgetTypes()
-    {
-        static $product_types = null;
-
-        if ($product_types === null) {
-            $product_types = self::sendRequest(self::getApiHost() . '/v1/widget-types', 'GET');
-
-            if ($product_types !== false && !count(self::$last_errors) && strpos($product_types, 'errors') === false) {
-                $product_types = json_decode($product_types, true);
-            } else {
-                $product_types = null;
-
-                return false;
-            }
-        }
-
-        return $product_types;
-    }
-
-    /**
-     * @param string $name
-     * @param string $url
-     * @param string $contact_name
-     * @param string $email
-     * @param string $phone
-     * @param array $agreements
-     * @return array|bool
-     */
-    public static function registerShopAccount($name, $url, $contact_name, $email, $phone, $agreements)
-    {
-        $data = [
-            'name' => $name,
-            'webSiteUrl' => $url,
-            'contactName' => $contact_name,
-            'contactEmail' => $email,
-            'contactPhone' => $phone,
-            'platformId' => 11,
-            'agreements' => $agreements,
-        ];
-
-        $response = self::sendRequest(self::getApiHost() . '/v1/user', 'POST', $data);
-
-        return !count(self::$last_errors) ? json_decode($response, true) : false;
     }
 
     /**

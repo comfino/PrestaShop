@@ -24,7 +24,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-use Comfino\Api;
+use Comfino\ApiClient;
 use Comfino\ErrorLogger;
 
 if (!defined('_PS_VERSION_')) {
@@ -39,7 +39,7 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        Api::init($this->module);
+        ApiClient::init($this->module);
         ErrorLogger::init();
 
         parent::postProcess();
@@ -47,8 +47,8 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
         $json_data = Tools::file_get_contents('php://input');
         $hash_algorithm = $this->getHashAlgorithm();
 
-        if (in_array($hash_algorithm, Api::getHashAlgos(), true)) {
-            if (!hash_equals(hash($hash_algorithm, Api::getApiKey() . $json_data), $this->getSignature())) {
+        if (in_array($hash_algorithm, ApiClient::getHashAlgos(), true)) {
+            if (!hash_equals(hash($hash_algorithm, ApiClient::getApiKey() . $json_data), $this->getSignature())) {
                 exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
             }
         } else {
@@ -65,11 +65,11 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
             exit($this->setResponse(400, 'Status must be set.'));
         }
 
-        if ($data['status'] === OrdersList::CANCELLED_BY_SHOP) {
-            exit($this->setResponse(400, 'Invalid status ' . OrdersList::CANCELLED_BY_SHOP . '.'));
+        if ($data['status'] === \Comfino\OrderManager::CANCELLED_BY_SHOP) {
+            exit($this->setResponse(400, 'Invalid status ' . \Comfino\OrderManager::CANCELLED_BY_SHOP . '.'));
         }
 
-        if (!OrdersList::processState($data['externalId'], $data['status'])) {
+        if (!\Comfino\OrderManager::processState($data['externalId'], $data['status'])) {
             exit($this->setResponse(400, sprintf('Invalid status %s.', $data['status'])));
         }
 

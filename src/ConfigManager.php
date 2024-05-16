@@ -109,7 +109,7 @@ final class ConfigManager
 
     public static function getInstance(\PaymentModule $module): ConfigurationManager
     {
-        self::$module = $module;
+        //self::$module = $module;
 
         if (self::$configuration_manager === null) {
             self::$configuration_manager = ConfigurationManager::getInstance(
@@ -335,7 +335,7 @@ final class ConfigManager
     {
         $languages = \Language::getLanguages(false);
 
-        foreach (\OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
+        foreach (OrderManager::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
             $comfino_status_id = \Configuration::get($status_code);
 
             if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
@@ -386,7 +386,7 @@ final class ConfigManager
     {
         $languages = \Language::getLanguages(false);
 
-        foreach (\OrdersList::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
+        foreach (OrderManager::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
             $comfino_status_id = \Configuration::get($status_code);
 
             if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
@@ -504,37 +504,6 @@ script.src = '{WIDGET_SCRIPT_URL}';
 script.async = true;
 document.getElementsByTagName('head')[0].appendChild(script);
 ");
-    }
-
-    /**
-     * @return array
-     */
-    public function getWidgetTypes()
-    {
-        $widget_types = \Comfino\ApiClient::getWidgetTypes();
-
-        if ($widget_types !== false) {
-            $widget_types_list = [];
-
-            foreach ($widget_types as $widget_type_code => $widget_type_name) {
-                $widget_types_list[] = ['key' => $widget_type_code, 'name' => $widget_type_name];
-            }
-        } else {
-            $widget_types_list = [
-                ['key' => 'simple', 'name' => $this->module->l('Textual widget')],
-                ['key' => 'mixed', 'name' => $this->module->l('Graphical widget with banner')],
-                [
-                    'key' => 'with-modal',
-                    'name' => $this->module->l('Graphical widget with installments calculator'),
-                ],
-                [
-                    'key' => 'extended-modal',
-                    'name' => $this->module->l('Graphical widget with extended installments calculator'),
-                ],
-            ];
-        }
-
-        return $widget_types_list;
     }
 
     /**

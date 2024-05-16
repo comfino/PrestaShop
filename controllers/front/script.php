@@ -24,7 +24,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-use Comfino\Api;
+use Comfino\ApiClient;
 use Comfino\ConfigManager;
 
 if (!defined('_PS_VERSION_')) {
@@ -38,7 +38,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        Api::init($this->module);
+        ApiClient::init($this->module);
 
         parent::postProcess();
 
