@@ -43,7 +43,7 @@ class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontControl
         parent::postProcess();
 
         $serializer = new JsonSerializer();
-        $available_product_types = SettingsManager::getProductTypes(ProductTypesListTypeEnum::LIST_TYPE_WIDGET);
+        $available_product_types = SettingsManager::getProductTypesStrings(ProductTypesListTypeEnum::LIST_TYPE_WIDGET);
 
         if (!Tools::getIsset('product_id')) {
             echo $serializer->serialize($available_product_types);

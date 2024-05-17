@@ -714,14 +714,14 @@ class Comfino extends PaymentModule
             case 'sale_settings':
             case 'widget_settings':
                 if (!isset($params['offer_types'][$config_tab])) {
-                    $params['offer_types'][$config_tab] = SettingsManager::getProductTypesList(
+                    $params['offer_types'][$config_tab] = SettingsManager::getProductTypesSelectList(
                         $config_tab === 'sale_settings'
                             ? ProductTypesListTypeEnum::LIST_TYPE_PAYWALL
                             : ProductTypesListTypeEnum::LIST_TYPE_WIDGET
                     );
                 }
                 if (!isset($params['widget_types'])) {
-                    $params['widget_types'] = SettingsManager::getWidgetTypesList();
+                    $params['widget_types'] = SettingsManager::getWidgetTypesSelectList();
                 }
 
                 break;
