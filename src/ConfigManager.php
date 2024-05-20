@@ -107,7 +107,7 @@ final class ConfigManager
     /** @var ConfigurationManager */
     private static $configuration_manager;
 
-    public static function getInstance(\PaymentModule $module): ConfigurationManager
+    public static function getInstance(/*\PaymentModule $module*/): ConfigurationManager
     {
         //self::$module = $module;
 
@@ -161,7 +161,7 @@ final class ConfigManager
      * @param string $list_type
      * @return array
      */
-    public function getOfferTypes($list_type = 'sale_settings')
+    public function getOfferTypes($list_type = 'sale_settings'): array
     {
         if ($list_type === 'sale_settings') {
             $list_type = 'paywall';
@@ -196,6 +196,10 @@ final class ConfigManager
         return $offer_types;
     }
 
+    public static function getWidgetKey(): string
+    {
+        return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_KEY');
+    }
     /* -------------------------------------------------- */
 
     /**
@@ -206,17 +210,6 @@ final class ConfigManager
     public function getConfigurationValue($opt_name)
     {
         return \Configuration::get($opt_name);
-    }
-
-    /**
-     * @param string $opt_name
-     * @param mixed $opt_value
-     *
-     * @return void
-     */
-    public function setConfigurationValue($opt_name, $opt_value)
-    {
-        \Configuration::updateValue($opt_name, $opt_value);
     }
 
     /**

@@ -70,7 +70,12 @@ class SettingsManager
         }
     }
 
-    public static function getProductTypesList(string $list_type): array
+    public static function getWidgetKey(): string
+    {
+        return self::$config_manager->getConfigurationValue('COMFINO_WIDGET_KEY');
+    }
+
+    public static function getProductTypesSelectList(string $list_type): array
     {
         $product_types = self::getProductTypes($list_type, true);
 
@@ -87,7 +92,7 @@ class SettingsManager
         return $product_types_list;
     }
 
-    public static function getWidgetTypesList(): array
+    public static function getWidgetTypesSelectList(): array
     {
         $widget_types = self::getWidgetTypes(true);
 
@@ -137,6 +142,25 @@ class SettingsManager
     /**
      * @return string[]
      */
+    public static function getProductTypesStrings(string $list_type): array
+    {
+        return array_keys(self::getProductTypes($list_type));
+    }
+
+    /**
+     * @return LoanTypeEnum[]
+     */
+    public static function getProductTypesEnums(string $list_type): array
+    {
+        return array_map(
+            static function (string $product_type): LoanTypeEnum { return new LoanTypeEnum($product_type); },
+            array_keys(self::getProductTypes($list_type))
+        );
+    }
+
+    /**
+     * @return string[]
+     */
     public static function getWidgetTypes(bool $return_errors = false): array
     {
         $language = \Context::getContext()->language->iso_code;
@@ -175,21 +199,15 @@ class SettingsManager
     /**
      * @return LoanTypeEnum[]|null
      */
-    public static function getAllowedProductTypes(Cart $cart): ?array
+    public static function getAllowedProductTypes(string $list_type, Cart $cart): ?array
     {
-        if (!self::productCategoryFiltersActive($product_category_filters = self::getProductCategoryFilters())) {
+        $filter_manager = self::getFilterManager($list_type);
+
+        if (!$filter_manager->filtersActive()) {
             return null;
         }
 
-        self::getFilterManager()->addFilter(
-            new FilterByExcludedCategory(
-                $cart,
-                new CategoryFilter(new CategoryTree(new BuildStrategy())),
-                $product_category_filters
-            )
-        );
-
-        return self::getFilterManager()->getAvailableProductTypes();
+        return $filter_manager->getAllowedProductTypes(self::getProductTypesEnums($list_type), $cart);
     }
 
     public static function getProductCategoryFilters(): array
@@ -261,7 +279,7 @@ class SettingsManager
         $filters = [];
 
         if (($min_amount = $config_manager->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT')) > 0) {
-            $available_product_types = array_keys(self::getProductTypes($list_type));
+            $available_product_types = self::getProductTypesStrings($list_type);
             $filters[] = new FilterByCartValueLowerLimit(
                 array_combine($available_product_types, array_fill(0, count($available_product_types), $min_amount))
             );
