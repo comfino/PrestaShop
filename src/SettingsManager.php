@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
@@ -32,9 +31,9 @@ use Comfino\Cache\StorageAdapter;
 use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\Cache\Bucket;
 use Comfino\Common\Backend\CacheManager;
-use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByCartValueLowerLimit;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByExcludedCategory;
+use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByProductType;
 use Comfino\Common\Backend\Payment\ProductTypeFilterInterface;
 use Comfino\Common\Backend\Payment\ProductTypeFilterManager;
 use Comfino\Common\Shop\Cart;
@@ -45,34 +44,12 @@ use Psr\Http\Client\ClientExceptionInterface;
 
 class SettingsManager
 {
-    /** @var \PaymentModule */
-    private static $module;
-
-    /** @var ConfigurationManager */
-    private static $config_manager;
-
-    /** @var CacheManager */
-    private static $cache_manager;
-
     /** @var ProductTypeFilterManager */
     private static $filter_manager;
 
-    public static function init(\PaymentModule $module): void
-    {
-        self::$module = $module;
-
-        if (self::$config_manager === null) {
-            self::$config_manager = ConfigManager::getInstance($module);
-        }
-
-        if (self::$cache_manager === null) {
-            self::$cache_manager = CacheManager::getInstance();
-        }
-    }
-
     public static function getWidgetKey(): string
     {
-        return self::$config_manager->getConfigurationValue('COMFINO_WIDGET_KEY');
+        return ConfigManager::getConfigurationValue('COMFINO_WIDGET_KEY');
     }
 
     public static function getProductTypesSelectList(string $list_type): array
@@ -123,7 +100,7 @@ class SettingsManager
         }
 
         try {
-            $product_types = ApiClient::getInstance(self::$module)->getProductTypes($list_type_enum);
+            $product_types = ApiClient::getInstance()->getProductTypes($list_type_enum);
 
             self::getCache()->set($cache_key, $product_types->productTypesWithNames);
 
@@ -171,7 +148,7 @@ class SettingsManager
         }
 
         try {
-            $widget_types = ApiClient::getInstance(self::$module)->getWidgetTypes()->widgetTypesWithNames;
+            $widget_types = ApiClient::getInstance()->getWidgetTypes()->widgetTypesWithNames;
 
             self::getCache()->set($cache_key, $widget_types);
 
@@ -212,7 +189,7 @@ class SettingsManager
 
     public static function getProductCategoryFilters(): array
     {
-        return self::$config_manager->getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS') ?? [];
+        return ConfigManager::getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS') ?? [];
     }
 
     public static function productCategoryFiltersActive(array $product_category_filters): bool
@@ -230,12 +207,15 @@ class SettingsManager
         return false;
     }
 
+    /**
+     * @return string[] [['prodTypeCode' => 'prodTypeName'], ...]
+     */
     public static function getCatFilterAvailProdTypes(): array
     {
         $prod_types = self::getProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL);
         $cat_filter_avail_prod_types = [];
 
-        foreach (self::$config_manager->getConfigurationValue('COMFINO_CAT_FILTER_AVAIL_PROD_TYPES') as $prod_type) {
+        foreach (ConfigManager::getConfigurationValue('COMFINO_CAT_FILTER_AVAIL_PROD_TYPES') as $prod_type) {
             $cat_filter_avail_prod_types[$prod_type] = null;
         }
 
@@ -253,7 +233,7 @@ class SettingsManager
 
     private static function getCache(): Bucket
     {
-        return self::$cache_manager->getCacheBucket('settings', new StorageAdapter('api'));
+        return CacheManager::getInstance()->getCacheBucket('settings', new StorageAdapter('api'));
     }
 
     private static function getFilterManager(string $list_type): ProductTypeFilterManager
@@ -274,15 +254,20 @@ class SettingsManager
      */
     private static function buildFiltersList(string $list_type): array
     {
-        $config_manager = ConfigManager::getInstance(null);
-
         $filters = [];
 
-        if (($min_amount = $config_manager->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT')) > 0) {
+        if (($min_amount = ConfigManager::getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT')) > 0) {
             $available_product_types = self::getProductTypesStrings($list_type);
             $filters[] = new FilterByCartValueLowerLimit(
                 array_combine($available_product_types, array_fill(0, count($available_product_types), $min_amount))
             );
+        }
+
+        if ($list_type === 'widget'
+            && !empty($widget_product_type = ConfigManager::getConfigurationValue('COMFINO_WIDGET_OFFER_TYPE'))
+        )
+        {
+            $filters[] = new FilterByProductType([new LoanTypeEnum($widget_product_type)]);
         }
 
         if (self::productCategoryFiltersActive($product_category_filters = self::getProductCategoryFilters())) {

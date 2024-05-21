@@ -34,9 +34,6 @@ if (!defined('_PS_VERSION_')) {
 
 final class ErrorLogger
 {
-    /** @var \PaymentModule */
-    private static $module;
-
     /** @var Common\Backend\ErrorLogger */
     private static $errorLogger;
 
@@ -44,13 +41,11 @@ final class ErrorLogger
     {
         static $initialized = false;
 
-        self::$module = $module;
-
         if (!$initialized) {
             self::$errorLogger = Common\Backend\ErrorLogger::getInstance(
-                Tools::getShopDomain(),
+                \Tools::getShopDomain(),
                 'PrestaShop',
-                'modules/' . self::$module->name,
+                'modules/' . $module->name,
                 ConfigManager::getEnvironmentInfo(),
                 ApiClient::getInstance(),
                 new StorageAdapter()

@@ -65,18 +65,7 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
                 }
 
                 $response = [
-                    'shop_info' => [
-                        'plugin_version' => COMFINO_VERSION,
-                        'shop_version' => _PS_VERSION_,
-                        'symfony_version' => COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
-                            ? \Symfony\Component\HttpKernel\Kernel::VERSION
-                            : 'n/a',
-                        'php_version' => PHP_VERSION,
-                        'server_software' => $_SERVER['SERVER_SOFTWARE'],
-                        'server_name' => $_SERVER['SERVER_NAME'],
-                        'server_addr' => $_SERVER['SERVER_ADDR'],
-                        'database_version' => Db::getInstance()->getVersion(),
-                    ],
+                    'shop_info' => ConfigManager::getEnvironmentInfo(),
                     'shop_configuration' => $config_manager->returnConfigurationOptions(),
                 ];
 

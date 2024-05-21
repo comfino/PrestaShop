@@ -73,9 +73,6 @@ final class ApiClient
     /** @var Client */
     private static $api_client;
 
-    /** @var \PaymentModule */
-    private static $module;
-
     /** @var bool */
     private static $is_sandbox_mode;
 
@@ -112,24 +109,20 @@ final class ApiClient
     /** @var array */
     private static $last_errors = [];
 
-    public static function init(\PaymentModule $module): void
+    public static function init(): void
     {
-        self::$module = $module;
-
-        $config_manager = ConfigManager::getInstance($module);
-
-        self::$is_sandbox_mode = $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
-        self::$widget_key = $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY');
+        self::$is_sandbox_mode = ConfigManager::getConfigurationValue('COMFINO_IS_SANDBOX');
+        self::$widget_key = ConfigManager::getConfigurationValue('COMFINO_WIDGET_KEY');
 
         if (self::$is_sandbox_mode) {
             self::$api_host = self::COMFINO_SANDBOX_API_HOST;
-            self::$api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
+            self::$api_key = ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY');
             self::$api_paywall_host = self::COMFINO_PAYWALL_SANDBOX_HOST;
             self::$paywall_frontend_script_url = self::COMFINO_PAYWALL_FRONTEND_JS_SANDBOX;
             self::$paywall_frontend_style_url = self::COMFINO_PAYWALL_FRONTEND_CSS_SANDBOX;
             self::$widget_script_url = self::COMFINO_WIDGET_JS_SANDBOX_HOST;
 
-            $widget_dev_script_version = $config_manager->getConfigurationValue('COMFINO_WIDGET_DEV_SCRIPT_VERSION');
+            $widget_dev_script_version = ConfigManager::getConfigurationValue('COMFINO_WIDGET_DEV_SCRIPT_VERSION');
 
             if (empty($widget_dev_script_version)) {
                 self::$widget_script_url .= '/comfino.min.js';
@@ -138,13 +131,13 @@ final class ApiClient
             }
         } else {
             self::$api_host = self::COMFINO_PRODUCTION_API_HOST;
-            self::$api_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
+            self::$api_key = ConfigManager::getConfigurationValue('COMFINO_API_KEY');
             self::$api_paywall_host = self::COMFINO_PAYWALL_PRODUCTION_HOST;
             self::$paywall_frontend_script_url = self::COMFINO_PAYWALL_FRONTEND_JS_PRODUCTION;
             self::$paywall_frontend_style_url = self::COMFINO_PAYWALL_FRONTEND_CSS_PRODUCTION;
             self::$widget_script_url = self::COMFINO_WIDGET_JS_PRODUCTION_HOST;
 
-            $widget_prod_script_version = $config_manager->getConfigurationValue('COMFINO_WIDGET_PROD_SCRIPT_VERSION');
+            $widget_prod_script_version = ConfigManager::getConfigurationValue('COMFINO_WIDGET_PROD_SCRIPT_VERSION');
 
             if (empty($widget_prod_script_version)) {
                 self::$widget_script_url .= '/comfino.min.js';
@@ -154,21 +147,19 @@ final class ApiClient
         }
     }
 
-    public static function getInstance(\PaymentModule $module, ?bool $sandbox_mode = null): Client
+    public static function getInstance(?bool $sandbox_mode = null, ?string $api_key = null): Client
     {
-        self::$module = $module;
-
         if (self::$api_client === null) {
-            $config_manager = ConfigManager::getInstance($module);
-
             if ($sandbox_mode === null) {
-                $sandbox_mode = $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
+                $sandbox_mode = ConfigManager::getConfigurationValue('COMFINO_IS_SANDBOX');
             }
 
-            if ($sandbox_mode) {
-                $api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
-            } else {
-                $api_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
+            if ($api_key === null) {
+                if ($sandbox_mode) {
+                    $api_key = ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY');
+                } else {
+                    $api_key = ConfigManager::getConfigurationValue('COMFINO_API_KEY');
+                }
             }
 
             $api_host = null;
@@ -183,13 +174,15 @@ final class ApiClient
                 $api_key,
                 sprintf(
                     'PS Comfino [%s], PS [%s], SF [%s], PHP [%s], %s',
-                    COMFINO_VERSION,
-                    _PS_VERSION_,
-                    COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
-                        ? \Symfony\Component\HttpKernel\Kernel::VERSION
-                        : 'n/a',
-                    PHP_VERSION,
-                    \Tools::getShopDomain()
+                    ...array_merge(
+                        ConfigManager::getEnvironmentInfo([
+                            'plugin_version',
+                            'shop_version',
+                            'symfony_version',
+                            'php_version',
+                        ]),
+                        [\Tools::getShopDomain()]
+                    )
                 ),
                 $api_host,
                 \Context::getContext()->language->iso_code
@@ -231,6 +224,30 @@ final class ApiClient
         );
     }
 
+    public static function isShopAccountActive(): bool
+    {
+        $account_active = false;
+
+        if (!empty(self::getApiKey())) {
+            $response = self::sendRequest(self::getApiHost() . '/v1/user/is-active', 'GET', [], null, false);
+
+            if (!count(self::$last_errors)) {
+                $account_active = json_decode($response, true);
+            }
+        }
+
+        return $account_active;
+    }
+
+    public static function isApiKeyValid(): bool
+    {
+        $response = self::sendRequest(self::getApiHost() . '/v1/user/is-active', 'GET', [], null, false);
+
+        return strpos($response, 'errors') === false;
+    }
+
+    //-----------------------------------------
+
     /**
      * @param string $list_type
      * @return string[]|bool
@@ -262,34 +279,6 @@ final class ApiClient
         $response = self::sendRequest(self::getApiHost() . '/v1/fetch-agreements', 'GET');
 
         return !count(self::$last_errors) ? json_decode($response, true) : false;
-    }
-
-    /**
-     * @return bool
-     */
-    public static function isShopAccountActive()
-    {
-        $account_active = false;
-
-        if (!empty(self::getApiKey())) {
-            $response = self::sendRequest(self::getApiHost() . '/v1/user/is-active', 'GET', [], null, false);
-
-            if (!count(self::$last_errors)) {
-                $account_active = json_decode($response, true);
-            }
-        }
-
-        return $account_active;
-    }
-
-    /**
-     * @return bool
-     */
-    public static function isApiKeyValid()
-    {
-        $response = self::sendRequest(self::getApiHost() . '/v1/user/is-active', 'GET', [], null, false);
-
-        return strpos($response, 'errors') === false;
     }
 
     /**

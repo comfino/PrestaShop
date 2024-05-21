@@ -26,21 +26,15 @@
 
 namespace Comfino;
 
-use Comfino\Common\Backend\CacheManager;
 use Comfino\Common\Backend\ConfigurationManager;
-use Comfino\Common\Backend\Factory\ApiClientFactory;
 use Comfino\Configuration\StorageAdapter;
-use Comfino\Extended\Api\Client;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
-use Comfino\FinancialProduct\ProductTypesListTypeEnum;
-use Psr\Http\Client\ClientExceptionInterface;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
-require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
 final class ConfigManager
 {
@@ -101,16 +95,11 @@ final class ConfigManager
         'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 'int',
     ];
 
-    /** @var \PaymentModule */
-    private static $module;
-
     /** @var ConfigurationManager */
     private static $configuration_manager;
 
-    public static function getInstance(/*\PaymentModule $module*/): ConfigurationManager
+    public static function getInstance(): ConfigurationManager
     {
-        //self::$module = $module;
-
         if (self::$configuration_manager === null) {
             self::$configuration_manager = ConfigurationManager::getInstance(
                 array_merge(array_merge(...array_values(self::CONFIG_OPTIONS))),
@@ -141,9 +130,13 @@ final class ConfigManager
         }
     }
 
-    public static function getEnvironmentInfo(): array
+    /**
+     * @param string[]|null $selected_env_fields
+     * @return string[]
+     */
+    public static function getEnvironmentInfo(?array $selected_env_fields = null): array
     {
-        return [
+        $env_fields = [
             'plugin_version' => COMFINO_VERSION,
             'shop_version' => _PS_VERSION_,
             'symfony_version' => COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
@@ -155,62 +148,77 @@ final class ConfigManager
             'server_addr' => $_SERVER['SERVER_ADDR'],
             'database_version' => \Db::getInstance()->getVersion(),
         ];
+
+        if (empty($selected_env_fields)) {
+            return $env_fields;
+        }
+
+        $filtered_env_fields = [];
+
+        foreach ($selected_env_fields as $env_field) {
+            if (array_key_exists($env_field, $env_fields)) {
+                $filtered_env_fields[$env_field] = $env_fields[$env_field];
+            }
+        }
+
+        return $filtered_env_fields;
     }
 
     /**
-     * @param string $list_type
-     * @return array
+     * @return string[]
      */
-    public function getOfferTypes($list_type = 'sale_settings'): array
+    public static function getAllProductCategories(): ?array
     {
-        if ($list_type === 'sale_settings') {
-            $list_type = 'paywall';
-        } else {
-            $list_type = 'widget';
-        }
+        static $categories = null;
 
-        \Comfino\ApiClient::init($this->module);
+        if ($categories === null) {
+            $categories = [];
 
-        $product_types = \Comfino\ApiClient::getProductTypes($list_type);
-
-        if ($product_types !== false) {
-            $offer_types = [];
-
-            foreach ($product_types as $product_type_code => $product_type_name) {
-                $offer_types[] = ['key' => $product_type_code, 'name' => $product_type_name];
+            foreach (\Category::getSimpleCategories(\Context::getContext()->language->id) as $category) {
+                $categories[$category['id_category']] = $category['name'];
             }
-        } else {
-            $offer_types = [
-                [
-                    'key' => \Comfino\ApiClient::INSTALLMENTS_ZERO_PERCENT,
-                    'name' => $this->module->l('Zero percent installments'),
-                ],
-                [
-                    'key' => \Comfino\ApiClient::CONVENIENT_INSTALLMENTS,
-                    'name' => $this->module->l('Convenient installments'),
-                ],
-                ['key' => \Comfino\ApiClient::PAY_LATER, 'name' => $this->module->l('Pay later')],
-            ];
         }
 
-        return $offer_types;
+        return $categories;
+    }
+
+    public static function getConfigurationValue(string $optionName)
+    {
+        return self::getInstance()->getConfigurationValue($optionName);
+    }
+
+    public static function isSandboxMode(): bool
+    {
+        return self::getInstance()->getConfigurationValue('COMFINO_IS_SANDBOX');
+    }
+
+    public static function isWidgetEnabled(): bool
+    {
+        return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_ENABLED');
     }
 
     public static function getWidgetKey(): string
     {
         return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_KEY');
     }
-    /* -------------------------------------------------- */
 
-    /**
-     * @param string $opt_name
-     *
-     * @return string
-     */
-    public function getConfigurationValue($opt_name)
+    public static function deleteConfigurationValues(): bool
     {
-        return \Configuration::get($opt_name);
+        $result = true;
+
+        foreach (self::CONFIG_OPTIONS as $options) {
+            foreach ($options as $option_name) {
+                $result &= \Configuration::deleteByName($option_name);
+            }
+        }
+
+        $result &= \Configuration::deleteByName('COMFINO_REGISTERED_AT');
+        $result &= \Configuration::deleteByName('COMFINO_SANDBOX_REGISTERED_AT');
+
+        return $result;
     }
+
+    /* -------------------------------------------------- */
 
     /**
      * @param string $options_group
@@ -322,87 +330,6 @@ final class ConfigManager
     }
 
     /**
-     * @return bool
-     */
-    public function addCustomOrderStatuses()
-    {
-        $languages = \Language::getLanguages(false);
-
-        foreach (OrderManager::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
-            $comfino_status_id = \Configuration::get($status_code);
-
-            if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
-                $order_status = new \OrderState($comfino_status_id);
-
-                if (\Validate::isLoadedObject($order_status)) {
-                    // Update existing status definition.
-                    $order_status->color = $status_details['color'];
-                    $order_status->paid = $status_details['paid'];
-                    $order_status->deleted = $status_details['deleted'];
-
-                    $order_status->update();
-
-                    continue;
-                }
-            } elseif ($status_details['deleted']) {
-                // Ignore deleted statuses in first time plugin installations.
-                continue;
-            }
-
-            // Add a new status definition.
-            $order_status = new \OrderState();
-            $order_status->send_email = false;
-            $order_status->invoice = false;
-            $order_status->color = $status_details['color'];
-            $order_status->unremovable = false;
-            $order_status->logable = false;
-            $order_status->module_name = 'comfino';
-            $order_status->paid = $status_details['paid'];
-
-            foreach ($languages as $language) {
-                $status_name = $language['iso_code'] === 'pl' ? $status_details['name_pl'] : $status_details['name'];
-                $order_status->name[$language['id_lang']] = $status_name;
-            }
-
-            if ($order_status->add()) {
-                \Configuration::updateValue($status_code, $order_status->id);
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @return void
-     */
-    public function updateOrderStatuses()
-    {
-        $languages = \Language::getLanguages(false);
-
-        foreach (OrderManager::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
-            $comfino_status_id = \Configuration::get($status_code);
-
-            if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
-                $order_status = new \OrderState($comfino_status_id);
-
-                if (\Validate::isLoadedObject($order_status)) {
-                    // Update existing status definition.
-                    foreach ($languages as $language) {
-                        $status_name = $language['iso_code'] === 'pl' ? $status_details['name_pl'] : $status_details['name'];
-                        $order_status->name[$language['id_lang']] = $status_name;
-                    }
-
-                    $order_status->color = $status_details['color'];
-                    $order_status->paid = $status_details['paid'];
-                    $order_status->deleted = $status_details['deleted'];
-
-                    $order_status->save();
-                }
-            }
-        }
-    }
-
-    /**
      * @return array
      */
     public function getWidgetVariables($product_id = null)
@@ -497,121 +424,6 @@ script.src = '{WIDGET_SCRIPT_URL}';
 script.async = true;
 document.getElementsByTagName('head')[0].appendChild(script);
 ");
-    }
-
-    /**
-     * @return array
-     */
-    public function getProductCategoryFilters()
-    {
-        $categories = [];
-        $categories_str = $this->getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS');
-
-        if (!empty($categories_str)) {
-            $categories = json_decode($categories_str, true);
-        }
-
-        return $categories;
-    }
-
-    /**
-     * @return array
-     */
-    public function getCatFilterAvailProdTypes(array $prod_types)
-    {
-        $prod_types_assoc = [];
-        $cat_filter_avail_prod_types = [];
-
-        foreach ($prod_types as $prod_type) {
-            $prod_types_assoc[$prod_type['key']] = $prod_type['name'];
-        }
-
-        foreach (explode(',', $this->getConfigurationValue('COMFINO_CAT_FILTER_AVAIL_PROD_TYPES')) as $prod_type) {
-            $cat_filter_avail_prod_types[strtoupper(trim($prod_type))] = null;
-        }
-
-        if (empty($avail_prod_types = array_intersect_key($prod_types_assoc, $cat_filter_avail_prod_types))) {
-            $avail_prod_types = $prod_types_assoc;
-        }
-
-        return $avail_prod_types;
-    }
-
-    /**
-     * @return array
-     */
-    public function getAllProductCategories()
-    {
-        static $categories = null;
-
-        if ($categories === null) {
-            $categories = [];
-
-            foreach (\Category::getSimpleCategories(\Context::getContext()->language->id) as $category) {
-                $categories[$category['id_category']] = $category['name'];
-            }
-        }
-
-        return $categories;
-    }
-
-    /**
-     * @param string $product_type Financial product type (offer type)
-     * @param array $products Products in the cart
-     *
-     * @return bool
-     */
-    public function isFinancialProductAvailable($product_type, array $products)
-    {
-        static $product_category_filters = null;
-        static $cat_filter_avail_prod_types = null;
-
-        if ($cat_filter_avail_prod_types === null) {
-            $cat_filter_avail_prod_types = array_keys($this->getCatFilterAvailProdTypes($this->getOfferTypes()));
-        }
-
-        if (!in_array($product_type, $cat_filter_avail_prod_types, true)) {
-            return true;
-        }
-
-        if ($product_category_filters === null) {
-            $product_category_filters = $this->getProductCategoryFilters();
-        }
-
-        if (isset($product_category_filters[$product_type]) && count($product_category_filters[$product_type])) {
-            $excluded_cat_ids = $product_category_filters[$product_type];
-            $available_cat_ids = array_diff(array_keys($this->getAllProductCategories()), $excluded_cat_ids);
-
-            $parent_categories = [];
-
-            foreach ($products as $product) {
-                $category_id = (int) $product['id_category_default'];
-
-                if (in_array($category_id, $excluded_cat_ids, true)) {
-                    foreach (array_diff($available_cat_ids, [$category_id]) as $cat_id) {
-                        if (!isset($parent_categories[$cat_id])) {
-                            $parent_categories[$cat_id] = [];
-
-                            if (is_array($cat_parents = (new \Category($cat_id))->getParentsCategories())) {
-                                foreach ($cat_parents as $category) {
-                                    if ($category['id_category'] !== $cat_id) {
-                                        $parent_categories[$cat_id][] = $category['id_category'];
-                                    }
-                                }
-                            }
-                        }
-
-                        if (in_array($category_id, $parent_categories[$cat_id], true)) {
-                            continue 2;
-                        }
-                    }
-
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     /**
