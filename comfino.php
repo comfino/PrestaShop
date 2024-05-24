@@ -25,20 +25,18 @@
  */
 
 use Comfino\ApiClient;
+use Comfino\ConfigManager;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\OrderManager;
+use Comfino\SettingsForm;
 use Comfino\SettingsManager;
+use Comfino\ShopStatusManager;
+use Comfino\TemplateManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
-
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
-require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
 if (!defined('COMFINO_PS_17')) {
     define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='), false);
@@ -90,15 +88,15 @@ class Comfino extends PaymentModule
      */
     public function install()
     {
-        \Comfino\ErrorLogger::init();
+        ErrorLogger::init();
 
         if (!parent::install()) {
             return false;
         }
 
-        $config_manager = new \Comfino\ConfigManager($this);
+        $config_manager = new ConfigManager($this);
         $config_manager->initConfigurationValues();
-        $config_manager->addCustomOrderStatuses();
+        ShopStatusManager::addCustomOrderStatuses();
 
         if (!COMFINO_PS_17) {
             $this->registerHook('payment');
@@ -122,9 +120,7 @@ class Comfino extends PaymentModule
     public function uninstall()
     {
         if (parent::uninstall()) {
-            \Comfino\ApiClient::init($this);
-
-            $this->deleteConfigurationValues();
+            ConfigManager::deleteConfigurationValues();
 
             if (!COMFINO_PS_17) {
                 $this->unregisterHook('payment');
@@ -140,8 +136,7 @@ class Comfino extends PaymentModule
             $this->unregisterHook('actionAdminControllerSetMedia');
 
             ErrorLogger::init($this);
-
-            ApiClient::getInstance($this)->notifyPluginRemoval();
+            ApiClient::getInstance()->notifyPluginRemoval();
 
             return true;
         }
@@ -174,10 +169,10 @@ class Comfino extends PaymentModule
      */
     public function getContent()
     {
-        \Comfino\ApiClient::init($this);
-        \Comfino\ErrorLogger::init();
+        ApiClient::init();
+        ErrorLogger::init($this);
 
-        $config_manager = new \Comfino\ConfigManager($this);
+        $config_manager = new ConfigManager($this);
 
         $active_tab = 'payment_settings';
         $output = [];
@@ -193,7 +188,7 @@ class Comfino extends PaymentModule
 
             $configuration_options = [];
 
-            foreach (\Comfino\ConfigManager::CONFIG_OPTIONS[$active_tab] as $option_name) {
+            foreach (ConfigManager::CONFIG_OPTIONS[$active_tab] as $option_name) {
                 if ($option_name !== 'COMFINO_WIDGET_KEY') {
                     $configuration_options[$option_name] = Tools::getValue($option_name);
                 }
@@ -203,14 +198,14 @@ class Comfino extends PaymentModule
                 case 'payment_settings':
                 case 'developer_settings':
                     if ($active_tab === 'payment_settings') {
-                        $is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
+                        $is_sandbox_mode = ConfigManager::isSandboxMode();
 
                         $api_host = $is_sandbox_mode
-                            ? \Comfino\ApiClient::getApiHost(false, \Comfino\ApiClient::COMFINO_SANDBOX_HOST)
-                            : \Comfino\ApiClient::COMFINO_PRODUCTION_HOST;
+                            ? ApiClient::getApiHost(false, ApiClient::COMFINO_SANDBOX_HOST)
+                            : ApiClient::COMFINO_PRODUCTION_HOST;
 
                         $api_key = $is_sandbox_mode
-                            ? $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY')
+                            ? ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY')
                             : Tools::getValue('COMFINO_API_KEY');
 
                         if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
@@ -226,27 +221,22 @@ class Comfino extends PaymentModule
                         }
                     } else {
                         $is_sandbox_mode = (bool) Tools::getValue('COMFINO_IS_SANDBOX');
-
-                        $api_host = $is_sandbox_mode
-                            ? \Comfino\ApiClient::getApiHost(false, \Comfino\ApiClient::COMFINO_SANDBOX_HOST)
-                            : \Comfino\ApiClient::COMFINO_PRODUCTION_HOST;
-
                         $api_key = $is_sandbox_mode
                             ? Tools::getValue('COMFINO_SANDBOX_API_KEY')
-                            : $config_manager->getConfigurationValue('COMFINO_API_KEY');
+                            : ConfigManager::getConfigurationValue('COMFINO_API_KEY');
                     }
 
                     if (!empty($api_key) && !count($output)) {
                         // Update widget key.
-                        \Comfino\ApiClient::setSandboxMode($is_sandbox_mode);
-                        \Comfino\ApiClient::setApiHost($api_host);
-                        \Comfino\ApiClient::setApiKey($api_key);
+/*                        ApiClient::setSandboxMode($is_sandbox_mode);
+                        ApiClient::setApiHost($api_host);
+                        ApiClient::setApiKey($api_key);*/
 
-                        if (!\Comfino\ApiClient::isApiKeyValid()) {
+                        if (!ApiClient::isApiKeyValid()) {
                             $output[] = sprintf($this->l('API key %s is not valid.'), $api_key);
                         } else {
                             try {
-                                $widget_key = ApiClient::getInstance($this)->getWidgetKey();
+                                $widget_key = ApiClient::getInstance($is_sandbox_mode, $api_key)->getWidgetKey();
                             } catch (\Throwable $e) {
                                 ApiClient::processApiError(
                                     ($active_tab === 'payment_settings' ? 'Payment' : 'Developer') .
@@ -265,7 +255,7 @@ class Comfino extends PaymentModule
                     break;
 
                 case 'sale_settings':
-                    $product_categories = array_keys($config_manager->getAllProductCategories());
+                    $product_categories = array_keys(ConfigManager::getAllProductCategories());
                     $product_category_filters = [];
 
                     foreach (Tools::getValue('product_categories') as $product_type => $category_ids) {
@@ -290,8 +280,8 @@ class Comfino extends PaymentModule
                         $is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
 
                         $api_host = $is_sandbox_mode
-                            ? \Comfino\ApiClient::getApiHost(false, \Comfino\ApiClient::COMFINO_SANDBOX_HOST)
-                            : \Comfino\ApiClient::COMFINO_PRODUCTION_HOST;
+                            ? ApiClient::getApiHost(false, ApiClient::COMFINO_SANDBOX_HOST)
+                            : ApiClient::COMFINO_PRODUCTION_HOST;
 
                         $api_key = $is_sandbox_mode
                             ? $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY')
@@ -299,11 +289,11 @@ class Comfino extends PaymentModule
 
                         if (!empty($api_key)) {
                             // Update widget key.
-                            \Comfino\ApiClient::setSandboxMode($is_sandbox_mode);
-                            \Comfino\ApiClient::setApiHost($api_host);
-                            \Comfino\ApiClient::setApiKey($api_key);
+                            ApiClient::setSandboxMode($is_sandbox_mode);
+                            ApiClient::setApiHost($api_host);
+                            ApiClient::setApiKey($api_key);
 
-                            if (!\Comfino\ApiClient::isApiKeyValid()) {
+                            if (!ApiClient::isApiKeyValid()) {
                                 $output[] = sprintf($this->l('API key %s is not valid.'), $api_key);
                             } else {
                                 try {
@@ -341,7 +331,7 @@ class Comfino extends PaymentModule
             'active_tab' => $active_tab,
             'output' => $output,
             'output_type' => $output_type,
-            'logo_url' => \Comfino\ApiClient::getLogoUrl(),
+            'logo_url' => ApiClient::getLogoUrl(),
             'support_email_address' => self::COMFINO_SUPPORT_EMAIL,
             'support_email_subject' => sprintf(
                 $this->l('PrestaShop %s Comfino %s - question'),
@@ -367,27 +357,19 @@ class Comfino extends PaymentModule
     /**
      * PrestaShop 1.6.* compatibility.
      *
-     * @param $params
      * @return string|void
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function hookPayment($params)
+    public function hookPayment(array $params)
     {
         if (!$this->active || !$this->checkCurrency($params['cart']) || !$this->checkConfiguration()) {
             return;
         }
 
-        \Comfino\ErrorLogger::init($this);
-        \Comfino\ApiClient::init($this);
-
-        $config_manager = new \Comfino\ConfigManager($this);
-        $min_cart_value = (float) $config_manager->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT');
-
-        if ($this->context->cart->getOrderTotal() < $min_cart_value) {
-            return;
-        }
+        ErrorLogger::init($this);
 
         $allowed_product_types = SettingsManager::getAllowedProductTypes(
+            'paywall',
             OrderManager::getShopCart($this->context->cart,
             (int) $this->context->cookie->loan_amount)
         );
@@ -400,36 +382,31 @@ class Comfino extends PaymentModule
         return $this->preparePaywallIframe(
             (int) ($this->context->cart->getOrderTotal() * 100),
             $allowed_product_types,
-            $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY')
+            ConfigManager::getWidgetKey()
         );
     }
 
     /**
      * PrestaShop 1.7.* compatibility.
      *
-     * @param array $params
      * @return \PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function hookPaymentOptions($params)
+    public function hookPaymentOptions(array $params)
     {
         if (!$this->active || !$this->checkCurrency($params['cart']) || !$this->checkConfiguration()) {
             return;
         }
 
-        \Comfino\ErrorLogger::init();
-        \Comfino\ApiClient::init($this);
+        ErrorLogger::init($this);
 
-        $config_manager = new \Comfino\ConfigManager($this);
-        $min_cart_value = (float) $config_manager->getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT');
+        $allowed_product_types = SettingsManager::getAllowedProductTypes(
+            'paywall',
+            OrderManager::getShopCart($this->context->cart,
+            (int) $this->context->cookie->loan_amount)
+        );
 
-        if ($this->context->cart->getOrderTotal() < $min_cart_value) {
-            return;
-        }
-
-        $product_types_filter = $this->getProductTypesFilter($this->context->cart, $config_manager);
-
-        if ($product_types_filter === []) {
+        if ($allowed_product_types === []) {
             // Filters active - all product types disabled.
             return;
         }
@@ -437,13 +414,13 @@ class Comfino extends PaymentModule
         $comfino_payment_option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
         $comfino_payment_option->setModuleName($this->name)
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
-            ->setCallToActionText($config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'))
-            ->setLogo(\Comfino\ApiClient::getPaywallLogoUrl())
+            ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
+            ->setLogo(ApiClient::getPaywallLogoUrl())
             ->setAdditionalInformation(
                 $this->preparePaywallIframe(
                     (int) ($this->context->cart->getOrderTotal() * 100),
-                    $product_types_filter,
-                    $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY')
+                    $allowed_product_types,
+                    ConfigManager::getWidgetKey()
                 )
             );
 
@@ -461,9 +438,9 @@ class Comfino extends PaymentModule
             return '';
         }
 
-        \Comfino\ErrorLogger::init();
+        ErrorLogger::init();
 
-        $config_manager = new \Comfino\ConfigManager($this);
+        $config_manager = new ConfigManager($this);
 
         if (COMFINO_PS_17) {
             $state = $params['order']->getCurrentState();
@@ -499,213 +476,29 @@ class Comfino extends PaymentModule
         return '';
     }
 
-    /**
-     * @param array $params
-     * @return string
-     */
-    public function hookDisplayBackofficeComfinoForm($params)
+    public function hookDisplayBackofficeComfinoForm(array $params): string
     {
-        return $this->displayForm($params);
-    }
+        $config_tab = $params['config_tab'] ?? '';
+        $form_name = $params['form_name'] ?? 'submit_configuration';
 
-    /**
-     * @param array $params
-     * @return void
-     */
-    public function hookActionOrderStatusPostUpdate($params)
-    {
-        $order = new Order($params['id_order']);
-
-        if (stripos($order->payment, 'comfino') !== false) {
-            // Process orders paid by Comfino only.
-
-            /** @var OrderState $new_order_state */
-            $new_order_state = $params['newOrderStatus'];
-
-            $new_order_state_id = (int) $new_order_state->id;
-            $current_order_state_id = (int) $order->getCurrentState();
-            $canceled_order_state_id = (int) (new \Comfino\ConfigManager($this))->getConfigurationValue('PS_OS_CANCELED');
-
-            if ($new_order_state_id !== $current_order_state_id && $new_order_state_id === $canceled_order_state_id) {
-                ErrorLogger::init($this);
-
-                try {
-                    ApiClient::getInstance($this)->cancelOrder($params['id_order']);
-                } catch (\Throwable $e) {
-                    ApiClient::processApiError(
-                        'Order cancellation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
-                        $e
-                    );
-                }
-            }
-        }
-    }
-
-    /**
-     * @param array $params
-     * @return string
-     */
-    public function hookActionValidateCustomerAddressForm($params)
-    {
-        $vat_number = $params['form']->getField('vat_number');
-
-        if (!empty($vat_number->getValue()) && !$this->isValidTaxId($vat_number->getValue())) {
-            $vat_number->addError($this->l('Invalid VAT number.'));
-
-            return '0';
-        }
-
-        return '1';
-    }
-
-    public function hookHeader():void
-    {
-        if (stripos(get_class($this->context->controller), 'cart') !== false) {
-            $controller = 'cart';
-        } elseif (empty($controller = $this->context->controller->php_self)) {
-            $controller = $this->context->controller->name ?? '';
-        }
-
-        if (empty($controller)) {
-            return;
-        }
-
-        if ($controller === 'product') {
-            $config_manager = new \Comfino\ConfigManager($this);
-
-            // Widget initialization script
-            if ($config_manager->getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
-                $widget_settings = $config_manager->getConfigurationValues('widget_settings');
-
-                // Check product category filters.
-                $product_type = $widget_settings['COMFINO_WIDGET_OFFER_TYPE'];
-                $product = $this->context->controller->getProduct();
-                $products = [$product->getFields()];
-
-                if ($config_manager->isFinancialProductAvailable($product_type, $products)) {
-                    $config_crc = crc32(implode($widget_settings));
-                    $this->addScriptLink(
-                        'comfino-widget',
-                        $this->context->link->getModuleLink(
-                            $this->name, 'script', ['product_id' => $product->id, 'crc' => $config_crc], true
-                        ),
-                        'bottom',
-                        'defer'
-                    );
-                }
-            }
-        } elseif (preg_match('/order|cart|checkout/', $controller)) {
-            \Comfino\ApiClient::init($this);
-            $this->addStyleLink('comfino-paywall-frontend-style', \Comfino\ApiClient::getPaywallFrontendStyleUrl());
-        }
-    }
-
-    public function hookActionAdminControllerSetMedia($params)
-    {
-        $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/tree.min.js');
-    }
-
-    /**
-     * @param array $params
-     * @return string
-     */
-    private function displayForm($params)
-    {
-        $config_tab = isset($params['config_tab']) ? $params['config_tab'] : '';
-        $form_name = isset($params['form_name']) ? $params['form_name'] : 'submit_configuration';
-
-        if ($form_name === 'submit_registration') {
-            $form_template_dir = '';
-            $form_template = 'registration_form.tpl';
-        } else {
-            $form_template_dir = null;
-            $form_template = null;
-        }
-
-        $helper = $this->getHelperForm($form_name, $form_template_dir, $form_template);
+        $helper = \Comfino\FormManager::getHelperForm($this, $form_name);
         $helper->fields_value['active_tab'] = $config_tab;
 
-        $config_manager = new \Comfino\ConfigManager($this);
+        $config_manager = new ConfigManager($this);
 
-        foreach (\Comfino\ConfigManager::CONFIG_OPTIONS as $options) {
+        foreach (ConfigManager::CONFIG_OPTIONS as $options) {
             foreach ($options as $option_name) {
                 $helper->fields_value[$option_name] = $config_manager->getConfigurationValue($option_name);
             }
         }
 
-        $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = \Comfino\ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES);
+        $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES);
 
         $messages = [];
 
         switch ($config_tab) {
-            case 'registration':
-                $registration_available = true;
-                $user_active = false;
-                $api_error = false;
-                $agreements = [];
-
-                if ($config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')) {
-                    $registered_at = $config_manager->getConfigurationValue('COMFINO_SANDBOX_REGISTERED_AT');
-                    $api_key = $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY');
-                } else {
-                    $registered_at = $config_manager->getConfigurationValue('COMFINO_REGISTERED_AT');
-                    $api_key = $config_manager->getConfigurationValue('COMFINO_API_KEY');
-                }
-
-                if (!empty($registered_at) || !empty($api_key)) {
-                    $registration_available = false;
-                }
-
-                if (!empty($api_key)) {
-                    $user_active = \Comfino\ApiClient::isShopAccountActive();
-
-                    if (!$user_active) {
-                        if (count(\Comfino\ApiClient::getLastErrors())) {
-                            $api_error = true;
-                            $messages['error'] = implode('<br />', \Comfino\ApiClient::getLastErrors());
-                        }
-                    }
-                }
-
-                if ($registration_available) {
-                    $agreements = \Comfino\ApiClient::getShopAccountAgreements();
-
-                    if ($agreements === false) {
-                        $messages['error'] = implode('<br />', \Comfino\ApiClient::getLastErrors());
-                        $registration_available = false;
-                    } else {
-                        foreach ($agreements as &$agreement) {
-                            $agreement['content'] = preg_replace_callback(
-                                '/<a(\s+href="[^"]*"[^>]*)>[^<\/]+<\/a>/mU',
-                                static function (array $matches) {
-                                    return stripos($matches[1], 'target=') === false
-                                        ? str_replace($matches[1], $matches[1] . ' target="_blank"', $matches[0])
-                                        : $matches[0];
-                                },
-                                strip_tags($agreement['content'], '<a>')
-                            );
-                        }
-
-                        unset($agreement);
-                    }
-                }
-
-                $params['form_fields'] = [
-                    'register_form' => [
-                        'name' => $this->context->employee->firstname,
-                        'surname' => $this->context->employee->lastname,
-                        'email' => $this->context->employee->email,
-                        'url' => _PS_BASE_URL_,
-                    ],
-                    'agreements' => $agreements !== false ? $agreements : [],
-                    'registration_available' => $registration_available,
-                    'user_active' => $user_active,
-                    'api_error' => $api_error,
-                ];
-                break;
-
             case 'payment_settings':
-                if ($config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')) {
+                if (ConfigManager::isSandboxMode()) {
                     $messages['warning'] = $this->l('Developer mode is active. You are using test environment.');
                 }
 
@@ -732,38 +525,29 @@ class Comfino extends PaymentModule
                 $warning_messages = [];
                 $error_messages = [];
 
-                if (COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')) {
-                    $info_messages[] = sprintf(
-                        'PrestaShop Comfino %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
-                        COMFINO_VERSION,
-                        _PS_VERSION_,
-                        \Symfony\Component\HttpKernel\Kernel::VERSION,
-                        PHP_VERSION,
-                        $_SERVER['SERVER_SOFTWARE'],
-                        Db::getInstance()->getVersion()
-                    );
-                } else {
-                    $info_messages[] = sprintf(
-                        'PrestaShop Comfino %s, PrestaShop %s, PHP %s, web server %s, database %s',
-                        COMFINO_VERSION,
-                        _PS_VERSION_,
-                        PHP_VERSION,
-                        $_SERVER['SERVER_SOFTWARE'],
-                        Db::getInstance()->getVersion()
-                    );
-                }
+                $info_messages[] = sprintf(
+                    'PrestaShop Comfino %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
+                    ...ConfigManager::getEnvironmentInfo([
+                    'plugin_version',
+                    'shop_version',
+                    'symfony_version',
+                    'php_version',
+                    'server_software',
+                    'database_version'
+                ])
+                );
 
-                if ($config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')) {
+                if (ConfigManager::isSandboxMode()) {
                     $warning_messages[] = $this->l('Developer mode is active. You are using test environment.');
 
-                    if (!empty(\Comfino\ApiClient::getApiKey())) {
-                        if (\Comfino\ApiClient::isShopAccountActive()) {
+                    if (!empty(ApiClient::getApiKey())) {
+                        if (ApiClient::isShopAccountActive()) {
                             $success_messages[] = $this->l('Test account is active.');
                         } else {
-                            if (count(\Comfino\ApiClient::getLastErrors())) {
-                                $error_messages = array_merge($error_messages, \Comfino\ApiClient::getLastErrors());
+                            if (count(ApiClient::getLastErrors())) {
+                                $error_messages = array_merge($error_messages, ApiClient::getLastErrors());
 
-                                if (\Comfino\ApiClient::getLastResponseCode() === 401) {
+                                if (ApiClient::getLastResponseCode() === 401) {
                                     $error_messages[] = $this->l('Invalid test API key.');
                                 }
                             } else {
@@ -773,16 +557,16 @@ class Comfino extends PaymentModule
                     } else {
                         $error_messages[] = $this->l('Test API key not present.');
                     }
-                } elseif (!empty(\Comfino\ApiClient::getApiKey())) {
+                } elseif (!empty(ApiClient::getApiKey())) {
                     $success_messages[] = $this->l('Production mode is active.');
 
-                    if (\Comfino\ApiClient::isShopAccountActive()) {
+                    if (ApiClient::isShopAccountActive()) {
                         $success_messages[] = $this->l('Production account is active.');
                     } else {
-                        if (count(\Comfino\ApiClient::getLastErrors())) {
-                            $error_messages = array_merge($error_messages, \Comfino\ApiClient::getLastErrors());
+                        if (count(ApiClient::getLastErrors())) {
+                            $error_messages = array_merge($error_messages, ApiClient::getLastErrors());
 
-                            if (\Comfino\ApiClient::getLastResponseCode() === 401) {
+                            if (ApiClient::getLastResponseCode() === 401) {
                                 $error_messages[] = $this->l('Invalid production API key.');
                             }
                         } else {
@@ -813,439 +597,105 @@ class Comfino extends PaymentModule
             $params['messages'] = $messages;
         }
 
-        return $helper->generateForm($this->getFormFields($params));
-    }
-
-    /**
-     * @param string $submit_action
-     * @param string $form_template_dir
-     * @param string $form_template
-     * @return HelperForm
-     */
-    private function getHelperForm($submit_action, $form_template_dir = null, $form_template = null)
-    {
-        $helper = new HelperForm();
-        $language = (int) (new \Comfino\ConfigManager($this))->getConfigurationValue('PS_LANG_DEFAULT');
-
-        $helper->module = $this;
-        $helper->name_controller = $this->name;
-        $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
-
-        // Language
-        $helper->default_form_language = $language;
-        $helper->allow_employee_form_lang = $language;
-
-        // Title and toolbar
-        $helper->title = $this->displayName;
-        $helper->show_toolbar = true; // false -> remove toolbar
-        $helper->toolbar_scroll = true; // yes - > Toolbar is always visible at the top of the screen.
-        $helper->submit_action = $submit_action;
-        $helper->toolbar_btn = [
-            'save' => [
-                'desc' => $this->l('Save'),
-                'href' => AdminController::$currentIndex . '&configure=' . $this->name . '&save' . $this->name .
-                          '&token=' . Tools::getAdminTokenLite('AdminModules'),
-            ],
-            'back' => [
-                'href' => AdminController::$currentIndex . '&token=' . Tools::getAdminTokenLite('AdminModules'),
-                'desc' => $this->l('Back to list'),
-            ],
-        ];
-
-        if ($form_template !== null && $form_template_dir !== null) {
-            $helper->base_folder = $form_template_dir;
-            $helper->base_tpl = $form_template;
-        }
-
-        return $helper;
+        return $helper->generateForm(SettingsForm::getFormFields($this, $params));
     }
 
     /**
      * @param array $params
-     * @return array
+     * @return void
      */
-    private function getFormFields($params)
+    public function hookActionOrderStatusPostUpdate($params)
     {
-        $fields = [];
-        $config_tab = isset($params['config_tab']) ? $params['config_tab'] : '';
-        $form_name = isset($params['form_name']) ? $params['form_name'] : 'submit_configuration';
-        $form_fields = isset($params['form_fields']) ? $params['form_fields'] : [];
+        $order = new Order($params['id_order']);
 
-        switch ($config_tab) {
-            case 'registration':
-                $fields['registration']['form'] = [];
+        if (stripos($order->payment, 'comfino') !== false) {
+            // Process orders paid by Comfino only.
 
-                if (isset($params['messages'])) {
-                    // Messages list in the form header (type => message): description, warning, success, error
-                    $fields['registration']['form'] = array_merge(
-                        $fields['registration']['form'],
-                        $params['messages']
+            /** @var OrderState $new_order_state */
+            $new_order_state = $params['newOrderStatus'];
+
+            $new_order_state_id = (int) $new_order_state->id;
+            $current_order_state_id = (int) $order->getCurrentState();
+            $canceled_order_state_id = (int) (new ConfigManager($this))->getConfigurationValue('PS_OS_CANCELED');
+
+            if ($new_order_state_id !== $current_order_state_id && $new_order_state_id === $canceled_order_state_id) {
+                ErrorLogger::init($this);
+
+                try {
+                    ApiClient::getInstance($this)->cancelOrder($params['id_order']);
+                } catch (\Throwable $e) {
+                    ApiClient::processApiError(
+                        'Order cancellation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
+                        $e
                     );
                 }
-
-                // Initialize form fields - default values for input elements
-                foreach ($form_fields as $field_name => $field_value) {
-                    if ($this->context->smarty->getTemplateVars($field_name) === null) {
-                        $this->context->smarty->assign($field_name, $field_value);
-                    }
-                }
-
-                break;
-
-            case 'payment_settings':
-                $fields['payment_settings']['form'] = [];
-
-                if (isset($params['messages'])) {
-                    // Messages list in the form header (type => message): description, warning, success, error
-                    $fields['payment_settings']['form'] = array_merge(
-                        $fields['payment_settings']['form'],
-                        $params['messages']
-                    );
-                }
-
-                $fields['payment_settings']['form'] = array_merge(
-                    $fields['payment_settings']['form'],
-                    [
-                        'input' => [
-                            [
-                                'type' => 'hidden',
-                                'name' => 'active_tab',
-                                'required' => false,
-                            ],
-                            [
-                                'type' => 'text',
-                                'label' => $this->l('Production environment API key'),
-                                'name' => 'COMFINO_API_KEY',
-                                'required' => true,
-                                'placeholder' => $this->l('Please enter the key provided during registration'),
-                            ],
-                            [
-                                'type' => 'text',
-                                'label' => $this->l('Payment text'),
-                                'name' => 'COMFINO_PAYMENT_TEXT',
-                                'required' => true,
-                            ],
-                            [
-                                'type' => 'text',
-                                'label' => $this->l('Minimal amount in cart'),
-                                'name' => 'COMFINO_MINIMAL_CART_AMOUNT',
-                                'required' => true,
-                            ],
-                        ],
-                        'submit' => [
-                            'title' => $this->l('Save'),
-                            'class' => 'btn btn-default pull-right',
-                            'name' => $form_name,
-                        ],
-                    ]
-                );
-                break;
-
-            case 'sale_settings':
-                $config_manager = new \Comfino\ConfigManager($this);
-                $product_categories = $config_manager->getAllProductCategories();
-                $product_category_filters = $config_manager->getProductCategoryFilters();
-                $prod_types = $params['offer_types']['sale_settings'];
-
-                $product_category_filter_inputs = [
-                    [
-                        'type' => 'hidden',
-                        'name' => 'active_tab',
-                        'required' => false,
-                    ],
-                ];
-
-                $cat_filter_avail_prod_types = $config_manager->getCatFilterAvailProdTypes($prod_types);
-
-                foreach ($cat_filter_avail_prod_types as $prod_type_code => $prod_type_name) {
-                    $product_category_filter_inputs[] = [
-                        'type' => 'html',
-                        'name' => $prod_type_code . '_label',
-                        'required' => false,
-                        'html_content' => '<h3>' . $prod_type_name . '</h3>',
-                    ];
-
-                    if (isset($product_category_filters[$prod_type_code])) {
-                        $selected_categories = array_diff(
-                            array_keys($product_categories),
-                            $product_category_filters[$prod_type_code]
-                        );
-                    } else {
-                        $selected_categories = array_keys($product_categories);
-                    }
-
-                    $product_category_filter_inputs[] = [
-                        'type' => 'html',
-                        'name' => 'product_category_filter[' . $prod_type_code . ']',
-                        'required' => false,
-                        'html_content' => $this->renderCategoryTree(
-                            'product_categories',
-                            $prod_type_code,
-                            $selected_categories
-                        ),
-                    ];
-                }
-
-                $fields['sale_settings_category_filter']['form'] = [
-                    'legend' => ['title' => $this->l('Rules for the availability of financial products')],
-                    'input' => $product_category_filter_inputs,
-                    'submit' => [
-                        'title' => $this->l('Save'),
-                        'class' => 'btn btn-default pull-right',
-                        'name' => $form_name,
-                    ],
-                ];
-                break;
-
-            case 'widget_settings':
-                $fields['widget_settings_basic']['form'] = ['legend' => ['title' => $this->l('Basic settings')]];
-
-                if (isset($params['messages'])) {
-                    // Messages list in the form header (type => message): description, warning, success, error
-                    $fields['widget_settings_basic']['form'] = array_merge(
-                        $fields['widget_settings_basic']['form'],
-                        $params['messages']
-                    );
-                }
-
-                $fields['widget_settings_basic']['form'] = array_merge(
-                    $fields['widget_settings_basic']['form'],
-                    [
-                        'input' => [
-                            [
-                                'type' => 'hidden',
-                                'name' => 'active_tab',
-                                'required' => false,
-                            ],
-                            [
-                                'type' => 'switch',
-                                'label' => $this->l('Widget is active?'),
-                                'name' => 'COMFINO_WIDGET_ENABLED',
-                                'values' => [
-                                    [
-                                        'id' => 'widget_enabled',
-                                        'value' => true,
-                                        'label' => $this->l('Enabled'),
-                                    ],
-                                    [
-                                        'id' => 'widget_disabled',
-                                        'value' => false,
-                                        'label' => $this->l('Disabled'),
-                                    ],
-                                ],
-                            ],
-                            [
-                                'type' => 'hidden',
-                                'label' => $this->l('Widget key'),
-                                'name' => 'COMFINO_WIDGET_KEY',
-                                'required' => false,
-                            ],
-                            [
-                                'type' => 'select',
-                                'label' => $this->l('Widget type'),
-                                'name' => 'COMFINO_WIDGET_TYPE',
-                                'required' => false,
-                                'options' => [
-                                    'query' => $params['widget_types'],
-                                    'id' => 'key',
-                                    'name' => 'name',
-                                ],
-                            ],
-                            [
-                                'type' => 'select',
-                                'label' => $this->l('Offer type'),
-                                'name' => 'COMFINO_WIDGET_OFFER_TYPE',
-                                'required' => false,
-                                'options' => [
-                                    'query' => $params['offer_types']['widget_settings'],
-                                    'id' => 'key',
-                                    'name' => 'name',
-                                ],
-                                'desc' => $this->l(
-                                    'Other payment methods (Installments 0%, Buy now, pay later, Installments for ' .
-                                    'Companies) available after consulting a Comfino advisor (kontakt@comfino.pl).'
-                                ),
-                            ],
-                        ],
-                        'submit' => [
-                            'title' => $this->l('Save'),
-                            'class' => 'btn btn-default pull-right',
-                            'name' => $form_name,
-                        ],
-                    ]
-                );
-
-                $fields['widget_settings_advanced']['form'] = [
-                    'legend' => ['title' => $this->l('Advanced settings')],
-                    'input' => [
-                        [
-                            'type' => 'text',
-                            'label' => $this->l('Widget price element selector'),
-                            'name' => 'COMFINO_WIDGET_PRICE_SELECTOR',
-                            'required' => false,
-                        ],
-                        [
-                            'type' => 'text',
-                            'label' => $this->l('Widget anchor element selector'),
-                            'name' => 'COMFINO_WIDGET_TARGET_SELECTOR',
-                            'required' => false,
-                        ],
-                        [
-                            'type' => 'text',
-                            'label' => $this->l('Price change detection - container selector'),
-                            'name' => 'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
-                            'required' => false,
-                            'desc' => $this->l(
-                                'Selector of observed parent element which contains price element.'
-                            ),
-                        ],
-                        [
-                            'type' => 'text',
-                            'label' => $this->l('Price change detection - container hierarchy level'),
-                            'name' => 'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-                            'required' => false,
-                            'desc' => $this->l(
-                                'Hierarchy level of observed parent element relative to the price element.'
-                            ),
-                        ],
-                        [
-                            'type' => 'select',
-                            'label' => $this->l('Embedding method'),
-                            'name' => 'COMFINO_WIDGET_EMBED_METHOD',
-                            'required' => false,
-                            'options' => [
-                                'query' => [
-                                    ['key' => 'INSERT_INTO_FIRST', 'name' => 'INSERT_INTO_FIRST'],
-                                    ['key' => 'INSERT_INTO_LAST', 'name' => 'INSERT_INTO_LAST'],
-                                    ['key' => 'INSERT_BEFORE', 'name' => 'INSERT_BEFORE'],
-                                    ['key' => 'INSERT_AFTER', 'name' => 'INSERT_AFTER'],
-                                ],
-                                'id' => 'key',
-                                'name' => 'name',
-                            ],
-                        ],
-                        [
-                            'type' => 'textarea',
-                            'label' => $this->l('Widget initialization code'),
-                            'name' => 'COMFINO_WIDGET_CODE',
-                            'required' => false,
-                            'rows' => 15,
-                            'cols' => 60,
-                        ],
-                    ],
-                    'submit' => [
-                        'title' => $this->l('Save'),
-                        'class' => 'btn btn-default pull-right',
-                        'name' => $form_name,
-                    ],
-                ];
-                break;
-
-            case 'developer_settings':
-                $fields['developer_settings']['form'] = [];
-
-                if (isset($params['messages'])) {
-                    // Messages list in the form header (type => message): description, warning, success, error
-                    $fields['developer_settings']['form'] = array_merge(
-                        $fields['developer_settings']['form'],
-                        $params['messages']
-                    );
-                }
-
-                $fields['developer_settings']['form'] = array_merge(
-                    $fields['developer_settings']['form'],
-                    [
-                        'input' => [
-                            [
-                                'type' => 'hidden',
-                                'name' => 'active_tab',
-                                'required' => false,
-                            ],
-                            [
-                                'type' => 'switch',
-                                'label' => $this->l('Use test environment'),
-                                'name' => 'COMFINO_IS_SANDBOX',
-                                'values' => [
-                                    [
-                                        'id' => 'sandbox_enabled',
-                                        'value' => true,
-                                        'label' => $this->l('Enabled'),
-                                    ],
-                                    [
-                                        'id' => 'sandbox_disabled',
-                                        'value' => false,
-                                        'label' => $this->l('Disabled'),
-                                    ],
-                                ],
-                                'desc' => $this->l(
-                                    'The test environment allows the store owner to get acquainted with the ' .
-                                    'functionality of the Comfino module. This is a Comfino simulator, thanks ' .
-                                    'to which you can get to know all the advantages of this payment method. ' .
-                                    'The use of the test mode is free (there are also no charges for orders).'
-                                ),
-                            ],
-                            [
-                                'type' => 'text',
-                                'label' => $this->l('Test environment API key'),
-                                'name' => 'COMFINO_SANDBOX_API_KEY',
-                                'required' => false,
-                                'desc' => $this->l(
-                                    'Ask the supervisor for access to the test environment (key, login, password, ' .
-                                    'link). Remember, the test key is different from the production key.'
-                                ),
-                            ],
-                        ],
-                        'submit' => [
-                            'title' => $this->l('Save'),
-                            'class' => 'btn btn-default pull-right',
-                            'name' => $form_name,
-                        ],
-                    ]
-                );
-                break;
-
-            case 'plugin_diagnostics':
-                $fields['plugin_diagnostics']['form'] = [];
-
-                if (isset($params['messages'])) {
-                    // Messages list in the form header (type => message): description, warning, success, error
-                    $fields['plugin_diagnostics']['form'] = array_merge(
-                        $fields['plugin_diagnostics']['form'],
-                        $params['messages']
-                    );
-                }
-
-                $fields['plugin_diagnostics']['form'] = array_merge(
-                    $fields['plugin_diagnostics']['form'],
-                    [
-                        'input' => [
-                            [
-                                'type' => 'textarea',
-                                'label' => $this->l('Errors log'),
-                                'name' => 'COMFINO_WIDGET_ERRORS_LOG',
-                                'required' => false,
-                                'readonly' => true,
-                                'rows' => 20,
-                                'cols' => 60,
-                            ],
-                        ],
-                    ]
-                );
-                break;
-
-            default:
+            }
         }
-
-        return $fields;
     }
 
-    /**
-     * @return bool
-     */
-    private function checkConfiguration()
+    public function hookActionValidateCustomerAddressForm(array $params): string
     {
-        return (new \Comfino\ConfigManager($this))->getConfigurationValue('COMFINO_API_KEY') !== null;
+        $vat_number = $params['form']->getField('vat_number');
+
+        if (!empty($vat_number->getValue()) && !$this->isValidTaxId($vat_number->getValue())) {
+            $vat_number->addError($this->l('Invalid VAT number.'));
+
+            return '0';
+        }
+
+        return '1';
+    }
+
+    public function hookHeader(): void
+    {
+        if (stripos(get_class($this->context->controller), 'cart') !== false) {
+            $controller = 'cart';
+        } elseif (empty($controller = $this->context->controller->php_self)) {
+            $controller = $this->context->controller->name ?? '';
+        }
+
+        if (empty($controller)) {
+            return;
+        }
+
+        if ($controller === 'product') {
+            if (ConfigManager::isWidgetEnabled()) {
+                // Widget initialization script
+                $product = $this->context->controller->getProduct();
+                $allowed_product_types = SettingsManager::getAllowedProductTypes(
+                    'widget',
+                    OrderManager::getShopCartFromProduct($product)
+                );
+
+                if ($allowed_product_types === []) {
+                    // Filters active - all product types disabled.
+                    return;
+                }
+
+                $config_crc = '';//crc32(implode($widget_settings));
+                $this->addScriptLink(
+                    'comfino-widget',
+                    $this->context->link->getModuleLink(
+                        $this->name, 'script', ['product_id' => $product->id, 'crc' => $config_crc], true
+                    ),
+                    'bottom',
+                    'defer'
+                );
+            }
+        } elseif (preg_match('/order|cart|checkout/', $controller)) {
+            ApiClient::init();
+            $this->addStyleLink('comfino-paywall-frontend-style', ApiClient::getPaywallFrontendStyleUrl());
+        }
+    }
+
+    public function hookActionAdminControllerSetMedia(array $params): void
+    {
+        $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/tree.min.js');
+    }
+
+    private function checkConfiguration(): bool
+    {
+        return !empty(ConfigManager::getConfigurationValue('COMFINO_API_KEY'));
     }
 
     /**
@@ -1254,35 +704,16 @@ class Comfino extends PaymentModule
      */
     private function getTemplateVars()
     {
-        $config_manager = new \Comfino\ConfigManager($this);
+        $config_manager = new ConfigManager($this);
 
         return [
             'pay_with_comfino_text' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'),
-            'logo_url' => \Comfino\ApiClient::getPaywallLogoUrl(),
+            'logo_url' => ApiClient::getPaywallLogoUrl(),
             'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
             'paywall_options' => $this->getPaywallOptions(),
-            'paywall_script_url' => \Comfino\ApiClient::getPaywallFrontendScriptUrl(),
+            'paywall_script_url' => ApiClient::getPaywallFrontendScriptUrl(),
             'offers_url' => $this->context->link->getModuleLink($this->name, 'offer', [], true),
         ];
-    }
-
-    /**
-     * @return bool
-     */
-    private function deleteConfigurationValues()
-    {
-        $result = true;
-
-        foreach (\Comfino\ConfigManager::CONFIG_OPTIONS as $options) {
-            foreach ($options as $option_name) {
-                $result &= Configuration::deleteByName($option_name);
-            }
-        }
-
-        $result &= Configuration::deleteByName('COMFINO_REGISTERED_AT');
-        $result &= Configuration::deleteByName('COMFINO_SANDBOX_REGISTERED_AT');
-
-        return $result;
     }
 
     /**
@@ -1332,126 +763,6 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * @param bool $leafs_only
-     * @param array $sub_categories
-     * @param int $position
-     * @return array
-     */
-    private function getNestedCategories($leafs_only = false, $sub_categories = [], $position = 0)
-    {
-        static $categories = null;
-
-        if ($categories === null) {
-            $categories = Category::getNestedCategories();
-        }
-
-        if ($leafs_only) {
-            $filtered_categories = [];
-            $child_categories = [];
-
-            foreach (count($sub_categories) ? $sub_categories : $categories as $category) {
-                if (isset($category['children'])) {
-                    $child_categories[] = $this->getNestedCategories(
-                        true, $category['children'], count($filtered_categories) + $position
-                    );
-                    $position += count($child_categories[count($child_categories) - 1]);
-                } else {
-                    $category['position'] += $position;
-                    $filtered_categories[] = $category;
-                }
-            }
-
-            $filtered_categories = array_merge($filtered_categories, ...$child_categories);
-
-            usort(
-                $filtered_categories,
-                static function ($val1, $val2) { return $val1['position'] - $val2['position']; }
-            );
-
-            return $filtered_categories;
-        }
-
-        return $categories;
-    }
-
-    /**
-     * @param array $categories
-     * @param int[] $selected_categories
-     * @return array
-     */
-    private function buildCategoriesTree($categories, $selected_categories)
-    {
-        $cat_tree = [];
-
-        foreach ($categories as $category) {
-            $tree_node = ['id' => (int) $category['id_category'], 'text' => $category['name']];
-
-            if (isset($category['children'])) {
-                $tree_node['children'] = $this->buildCategoriesTree($category['children'], $selected_categories);
-            } elseif (in_array($tree_node['id'], $selected_categories, true)) {
-                $tree_node['checked'] = true;
-            }
-
-            $cat_tree[] = $tree_node;
-        }
-
-        return $cat_tree;
-    }
-
-    /**
-     * @param string $tree_id
-     * @param string $product_type
-     * @param int[] $selected_categories
-     * @return string
-     */
-    private function renderCategoryTree($tree_id, $product_type, $selected_categories)
-    {
-        $this->smarty->assign([
-            'tree_id' => $tree_id,
-            'tree_nodes' => json_encode($this->buildCategoriesTree($this->getNestedCategories(), $selected_categories)),
-            'close_depth' => 3,
-            'product_type' => $product_type,
-        ]);
-
-        if (method_exists($this, 'fetch')) {
-            $cat_tree = $this->fetch('module:comfino/views/templates/admin/_configure/product_category_filter.tpl');
-        } else {
-            $cat_tree = $this->display(__FILE__, 'views/templates/admin/_configure/product_category_filter.tpl');
-        }
-
-        return $cat_tree;
-    }
-
-    /**
-     * @param Cart $cart
-     * @param \Comfino\ConfigManager $config_manager
-     * @return array|null
-     */
-    private function getProductTypesFilter($cart, $config_manager)
-    {
-        if (empty($config_manager->getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS'))) {
-            // Product category filters not set.
-            return null;
-        }
-
-        $available_product_types = array_map(
-            static function (array $offer_type) { return $offer_type['key']; },
-            $config_manager->getOfferTypes()
-        );
-
-        $filtered_product_types = [];
-
-        // Check product category filters.
-        foreach ($available_product_types as $product_type) {
-            if ($config_manager->isFinancialProductAvailable($product_type, $cart->getProducts())) {
-                $filtered_product_types[] = $product_type;
-            }
-        }
-
-        return $filtered_product_types;
-    }
-
-    /**
      * @param string $id
      * @param string $script_url
      * @param string $position
@@ -1494,7 +805,7 @@ class Comfino extends PaymentModule
      * @return string
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    private function preparePaywallIframe(int $loan_amount, ?array $product_types_filter, string $widget_key)
+    private function preparePaywallIframe(int $loan_amount, ?array $product_types_filter, string $widget_key): string
     {
         if (is_array($product_types_filter)) {
             if (count($product_types_filter)) {
@@ -1515,18 +826,15 @@ class Comfino extends PaymentModule
         $request_data = $loan_amount . $product_types . $widget_key;
         $request_params = pack('V', $loan_amount) . pack('v', $product_types_length) . $product_types . $widget_key;
 
-        $hash = hash_hmac(current(Comfino\ApiClient::getHashAlgos()), $request_data, \Comfino\ApiClient::getApiKey(), true);
+        $hash = hash_hmac(current(Comfino\ApiClient::getHashAlgos()), $request_data, ApiClient::getApiKey(), true);
         $auth = urlencode(base64_encode($request_params . $hash));
-        $paywall_api_url = \Comfino\ApiClient::getPaywallApiHost() . '/v1/paywall?auth=' . $auth;
+        $paywall_api_url = ApiClient::getPaywallApiHost() . '/v1/paywall?auth=' . $auth;
 
-        $this->smarty->assign(array_merge($this->getTemplateVars(), ['paywall_api_url' => $paywall_api_url]));
-
-        if (COMFINO_PS_17) {
-            $iframeTemplate = $this->fetch('module:comfino/views/templates/front/payment.tpl');
-        } else {
-            $iframeTemplate = $this->display(__FILE__, 'payment.tpl');
-        }
-
-        return $iframeTemplate;
+        return TemplateManager::render(
+            $this,
+            'payment',
+            'views/templates/front',
+            array_merge($this->getTemplateVars(), ['paywall_api_url' => $paywall_api_url])
+        );
     }
 }

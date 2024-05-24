@@ -185,7 +185,8 @@ final class ApiClient
                     )
                 ),
                 $api_host,
-                \Context::getContext()->language->iso_code
+                \Context::getContext()->language->iso_code,
+                [CURLOPT_CONNECTTIMEOUT => 1, CURLOPT_TIMEOUT => 3]
             );
         }
 

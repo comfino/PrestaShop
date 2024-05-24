@@ -1,5 +1,4 @@
-<?php
-/**
+{**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
@@ -22,29 +21,6 @@
  * @author    PrestaShop SA and Contributors <contact@prestashop.com>
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
- */
+ *}
 
-use Comfino\ApiClient;
-use Comfino\Cache\StorageAdapter;
-use Comfino\Common\Backend\CacheManager;
-use Comfino\Common\Frontend\PaywallRenderer;
-use Comfino\TemplateRenderer\ModuleRendererStrategy;
-
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
-
-class ComfinoPaywallModuleFrontController extends ModuleFrontController
-{
-    public function postProcess()
-    {
-        parent::postProcess();
-
-        (new PaywallRenderer(
-            ApiClient::getInstance(),
-            CacheManager::getInstance()->getCacheBucket("paywall_$language", new StorageAdapter("paywall_$language")),
-            new ModuleRendererStrategy()
-        ));
-        //\Comfino\PaywallManager::renderPaywall();
-    }
-}
+{$error_message|escape:"htmlall":"UTF-8"}
