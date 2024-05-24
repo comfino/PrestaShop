@@ -25,9 +25,11 @@
  */
 
 use Comfino\ApiClient;
+use Comfino\Common\Frontend\IframeRenderer;
 use Comfino\ConfigManager;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\FormManager;
 use Comfino\OrderManager;
 use Comfino\SettingsForm;
 use Comfino\SettingsManager;
@@ -68,7 +70,7 @@ class Comfino extends PaymentModule
         $this->currencies_mode = 'checkbox';
 
         $this->controllers = [
-            'payment', 'offer', 'notify', 'error', 'script', 'configuration', 'availableoffertypes'
+            'payment', 'offer', 'paywall', 'notify', 'error', 'script', 'configuration', 'availableoffertypes'
         ];
 
         parent::__construct();
@@ -369,7 +371,7 @@ class Comfino extends PaymentModule
         ErrorLogger::init($this);
 
         $allowed_product_types = SettingsManager::getAllowedProductTypes(
-            'paywall',
+            ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
             OrderManager::getShopCart($this->context->cart,
             (int) $this->context->cookie->loan_amount)
         );
@@ -379,11 +381,7 @@ class Comfino extends PaymentModule
             return;
         }
 
-        return $this->preparePaywallIframe(
-            (int) ($this->context->cart->getOrderTotal() * 100),
-            $allowed_product_types,
-            ConfigManager::getWidgetKey()
-        );
+        return $this->preparePaywallIframe();
     }
 
     /**
@@ -401,7 +399,7 @@ class Comfino extends PaymentModule
         ErrorLogger::init($this);
 
         $allowed_product_types = SettingsManager::getAllowedProductTypes(
-            'paywall',
+            ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
             OrderManager::getShopCart($this->context->cart,
             (int) $this->context->cookie->loan_amount)
         );
@@ -416,31 +414,23 @@ class Comfino extends PaymentModule
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
             ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
             ->setLogo(ApiClient::getPaywallLogoUrl())
-            ->setAdditionalInformation(
-                $this->preparePaywallIframe(
-                    (int) ($this->context->cart->getOrderTotal() * 100),
-                    $allowed_product_types,
-                    ConfigManager::getWidgetKey()
-                )
-            );
+            ->setAdditionalInformation($this->preparePaywallIframe());
 
         return [$comfino_payment_option];
     }
 
     /**
-     * @param array $params
-     * @return string
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function hookPaymentReturn($params)
+    public function hookPaymentReturn(array $params): string
     {
         if (!$this->active) {
             return '';
         }
 
-        ErrorLogger::init();
+        ErrorLogger::init($this);
 
-        $config_manager = new ConfigManager($this);
+        $config_manager = new ConfigManager();
 
         if (COMFINO_PS_17) {
             $state = $params['order']->getCurrentState();
@@ -481,7 +471,7 @@ class Comfino extends PaymentModule
         $config_tab = $params['config_tab'] ?? '';
         $form_name = $params['form_name'] ?? 'submit_configuration';
 
-        $helper = \Comfino\FormManager::getHelperForm($this, $form_name);
+        $helper = FormManager::getHelperForm($this, $form_name);
         $helper->fields_value['active_tab'] = $config_tab;
 
         $config_manager = new ConfigManager($this);
@@ -528,13 +518,13 @@ class Comfino extends PaymentModule
                 $info_messages[] = sprintf(
                     'PrestaShop Comfino %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
                     ...ConfigManager::getEnvironmentInfo([
-                    'plugin_version',
-                    'shop_version',
-                    'symfony_version',
-                    'php_version',
-                    'server_software',
-                    'database_version'
-                ])
+                        'plugin_version',
+                        'shop_version',
+                        'symfony_version',
+                        'php_version',
+                        'server_software',
+                        'database_version'
+                    ])
                 );
 
                 if (ConfigManager::isSandboxMode()) {
@@ -616,13 +606,13 @@ class Comfino extends PaymentModule
 
             $new_order_state_id = (int) $new_order_state->id;
             $current_order_state_id = (int) $order->getCurrentState();
-            $canceled_order_state_id = (int) (new ConfigManager($this))->getConfigurationValue('PS_OS_CANCELED');
+            $canceled_order_state_id = (int) ConfigManager::getConfigurationValue('PS_OS_CANCELED');
 
             if ($new_order_state_id !== $current_order_state_id && $new_order_state_id === $canceled_order_state_id) {
                 ErrorLogger::init($this);
 
                 try {
-                    ApiClient::getInstance($this)->cancelOrder($params['id_order']);
+                    ApiClient::getInstance()->cancelOrder($params['id_order']);
                 } catch (\Throwable $e) {
                     ApiClient::processApiError(
                         'Order cancellation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
@@ -798,43 +788,10 @@ class Comfino extends PaymentModule
         }
     }
 
-    /**
-     * @param int $loan_amount
-     * @param array|null $product_types_filter
-     * @param string $widget_key
-     * @return string
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
-     */
-    private function preparePaywallIframe(int $loan_amount, ?array $product_types_filter, string $widget_key): string
+    private function preparePaywallIframe(): string
     {
-        if (is_array($product_types_filter)) {
-            if (count($product_types_filter)) {
-                // Filters active - product types available conditionally.
-                $product_types = implode(',', $product_types_filter);
-                $product_types_length = strlen($product_types);
-            } else {
-                // Filters active - all product types disabled.
-                $product_types = "\0";
-                $product_types_length = 1;
-            }
-        } else {
-            // No active filters - all product types available unconditionally.
-            $product_types = '';
-            $product_types_length = 0;
-        }
-
-        $request_data = $loan_amount . $product_types . $widget_key;
-        $request_params = pack('V', $loan_amount) . pack('v', $product_types_length) . $product_types . $widget_key;
-
-        $hash = hash_hmac(current(Comfino\ApiClient::getHashAlgos()), $request_data, ApiClient::getApiKey(), true);
-        $auth = urlencode(base64_encode($request_params . $hash));
-        $paywall_api_url = ApiClient::getPaywallApiHost() . '/v1/paywall?auth=' . $auth;
-
-        return TemplateManager::render(
-            $this,
-            'payment',
-            'views/templates/front',
-            array_merge($this->getTemplateVars(), ['paywall_api_url' => $paywall_api_url])
+        return (new IframeRenderer('PrestaShop', _PS_VERSION_))->renderPaywallIframe(
+            $this->context->link->getModuleLink($this->module->name, 'availableoffertypes', [], true)
         );
     }
 }
