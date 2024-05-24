@@ -28,6 +28,11 @@ class ModuleRendererStrategy implements RendererStrategyInterface
      */
     public function renderErrorTemplate($exception): string
     {
-        return TemplateManager::renderModuleView($this->module, '', '');
+        return TemplateManager::renderModuleView(
+            $this->module,
+            'error',
+            'front',
+            ['error' => $exception->getMessage()]
+        );
     }
 }

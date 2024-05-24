@@ -29,8 +29,12 @@ use Comfino\ApiClient;
 use Comfino\Cache\StorageAdapter;
 use Comfino\Common\Backend\CacheManager;
 use Comfino\Common\Frontend\PaywallRenderer;
+use Comfino\ErrorLogger;
+use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\OrderManager;
+use Comfino\SettingsManager;
 use Comfino\TemplateManager;
-use Comfino\TemplateRenderer\ControllerRendererStrategy;
+use Comfino\TemplateRenderer\ModuleRendererStrategy;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -40,6 +44,8 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
 {
     public function postProcess(): void
     {
+        ErrorLogger::init($this->module);
+
         parent::postProcess();
 
         if (!($this->module instanceof Comfino) || !$this->module->active) {
@@ -48,14 +54,26 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             return;
         }
 
+        $loan_amount = (int) ($this->context->cart->getOrderTotal() * 100);
+        $allowed_product_types = SettingsManager::getAllowedProductTypes(
+            ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
+            OrderManager::getShopCart($this->context->cart, $loan_amount)
+        );
+
+        if ($allowed_product_types === []) {
+            // Filters active - all product types disabled.
+            TemplateManager::renderControllerView($this, 'paywall_disabled', 'front');
+
+            return;
+        }
+
         $language = Context::getContext()->language->iso_code;
-        $queryCriteria = new LoanQueryCriteria(0);
 
         echo (new PaywallRenderer(
             ApiClient::getInstance(),
             CacheManager::getInstance()->getCacheBucket("paywall_$language", new StorageAdapter("paywall_$language")),
-            new ControllerRendererStrategy($this)
-        ))->renderPaywall($queryCriteria);
+            new ModuleRendererStrategy($this->module)
+        ))->renderPaywall(new LoanQueryCriteria($loan_amount, null, null, $allowed_product_types));
 
         exit;
     }
