@@ -653,7 +653,7 @@ class Comfino extends PaymentModule
                 // Widget initialization script
                 $product = $this->context->controller->getProduct();
                 $allowed_product_types = SettingsManager::getAllowedProductTypes(
-                    'widget',
+                    ProductTypesListTypeEnum::LIST_TYPE_WIDGET,
                     OrderManager::getShopCartFromProduct($product)
                 );
 

@@ -164,9 +164,9 @@ class SettingsManager
         return [];
     }
 
-    public static function isProductTypeAllowed(LoanTypeEnum $product_type, Cart $cart): bool
+    public static function isProductTypeAllowed(string $list_type, LoanTypeEnum $product_type, Cart $cart): bool
     {
-        if (($allowed_product_types = self::getAllowedProductTypes($cart)) === null) {
+        if (($allowed_product_types = self::getAllowedProductTypes($list_type, $cart)) === null) {
             return true;
         }
 
@@ -263,7 +263,7 @@ class SettingsManager
             );
         }
 
-        if ($list_type === 'widget'
+        if ($list_type === ProductTypesListTypeEnum::LIST_TYPE_WIDGET
             && !empty($widget_product_type = ConfigManager::getConfigurationValue('COMFINO_WIDGET_OFFER_TYPE'))
         )
         {
