@@ -11,7 +11,13 @@ class TemplateManager
         array $variables = []
     ): string
     {
-        $templatePath = "views/templates/$path/$name.tpl";
+        $templatePath = 'views/templates';
+
+        if (!empty($path)) {
+            $templatePath .= ('/' . trim($path, ' /'));
+        }
+
+        $templatePath .= "/$name.tpl";
 
         if (!empty($variables)) {
             $module->smarty->assign($variables);
@@ -31,7 +37,13 @@ class TemplateManager
         array $variables = []
     ): void
     {
-        $templatePath = "views/templates/$path/$name.tpl";
+        $templatePath = 'views/templates';
+
+        if (!empty($path)) {
+            $templatePath .= ('/' . trim($path, ' /'));
+        }
+
+        $templatePath .= "/$name.tpl";
 
         if (!empty($variables)) {
             $frontController->context->smarty->assign($variables);
@@ -40,7 +52,7 @@ class TemplateManager
         if (COMFINO_PS_17) {
             $frontController->setTemplate("module:{$frontController->module->name}/$templatePath");
         } else {
-            $frontController->setTemplate('payment_error_16.tpl');
+            $frontController->setTemplate("$name.tpl");
         }
     }
 }

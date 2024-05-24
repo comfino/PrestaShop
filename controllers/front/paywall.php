@@ -24,11 +24,13 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+use Comfino\Api\Dto\Payment\LoanQueryCriteria;
 use Comfino\ApiClient;
 use Comfino\Cache\StorageAdapter;
 use Comfino\Common\Backend\CacheManager;
 use Comfino\Common\Frontend\PaywallRenderer;
-use Comfino\TemplateRenderer\ModuleRendererStrategy;
+use Comfino\TemplateManager;
+use Comfino\TemplateRenderer\ControllerRendererStrategy;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -36,15 +38,25 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoPaywallModuleFrontController extends ModuleFrontController
 {
-    public function postProcess()
+    public function postProcess(): void
     {
         parent::postProcess();
 
-        (new PaywallRenderer(
+        if (!($this->module instanceof Comfino) || !$this->module->active) {
+            TemplateManager::renderControllerView($this, 'module_disabled', 'front');
+
+            return;
+        }
+
+        $language = Context::getContext()->language->iso_code;
+        $queryCriteria = new LoanQueryCriteria(0);
+
+        echo (new PaywallRenderer(
             ApiClient::getInstance(),
             CacheManager::getInstance()->getCacheBucket("paywall_$language", new StorageAdapter("paywall_$language")),
-            new ModuleRendererStrategy()
-        ));
-        //\Comfino\PaywallManager::renderPaywall();
+            new ControllerRendererStrategy($this)
+        ))->renderPaywall($queryCriteria);
+
+        exit;
     }
 }

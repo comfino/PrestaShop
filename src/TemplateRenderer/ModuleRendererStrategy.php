@@ -3,6 +3,7 @@
 namespace Comfino\TemplateRenderer;
 
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
+use Comfino\TemplateManager;
 
 class ModuleRendererStrategy implements RendererStrategyInterface
 {
@@ -19,7 +20,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
      */
     public function renderPaywallTemplate($paywallContents): string
     {
-        // TODO: Implement renderPaywallTemplate() method.
+        return $paywallContents;
     }
 
     /**
@@ -27,6 +28,6 @@ class ModuleRendererStrategy implements RendererStrategyInterface
      */
     public function renderErrorTemplate($exception): string
     {
-        // TODO: Implement renderErrorTemplate() method.
+        return TemplateManager::renderModuleView($this->module, '', '');
     }
 }
