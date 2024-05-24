@@ -27,6 +27,7 @@
 use Comfino\ApiClient;
 use Comfino\Common\Backend\Factory\OrderFactory;
 use Comfino\ErrorLogger;
+use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\OrderManager;
 use Comfino\SettingsManager;
 use Comfino\Shop\Order\Customer;
@@ -40,7 +41,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
     public function postProcess(): void
     {
-        ApiClient::init($this->module);
+        ApiClient::init();
         ErrorLogger::init($this->module);
 
         parent::postProcess();
@@ -111,7 +112,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $this->module->validateOrder(
             (int) $cart->id,
-            (int) \Configuration::get('COMFINO_CREATED'),
+            (int) Configuration::get('COMFINO_CREATED'),
             (float) ($shopCart->getTotalValue() / 100),
             $this->module->displayName,
             null,
@@ -165,14 +166,14 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
             "$cart->id&id_module={$this->module->id}&id_order=$order_id&key={$customer->secure_key}",
             $this->context->link->getModuleLink($this->context->controller->module->name, 'notify', [], true),
-            SettingsManager::getAllowedProductTypes($shopCart)
+            SettingsManager::getAllowedProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL, $shopCart)
         );
 
         try {
             Tools::redirect(ApiClient::getInstance($this->module)->createOrder($order)->applicationUrl);
         } catch (\Throwable $e) {
             $order = new Order($this->module->currentOrder);
-            $order->setCurrentState(\Configuration::get('PS_OS_ERROR'));
+            $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
             $order->save();
 
             ApiClient::processApiError(
@@ -180,7 +181,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 $e
             );
 
-            \Tools::redirect($this->context->link->getModuleLink(
+            Tools::redirect($this->context->link->getModuleLink(
                 $this->module->name,
                 'error',
                 ['error' => $e->getMessage()],
