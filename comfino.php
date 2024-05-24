@@ -34,7 +34,8 @@ use Comfino\OrderManager;
 use Comfino\SettingsForm;
 use Comfino\SettingsManager;
 use Comfino\ShopStatusManager;
-use Comfino\TemplateManager;
+use PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException;
+use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -146,18 +147,14 @@ class Comfino extends PaymentModule
         return false;
     }
 
-    /**
-     * @param Cart $cart
-     * @return bool
-     */
-    public function checkCurrency($cart)
+    private function checkCurrency(Cart $cart): bool
     {
         $currency_order = new Currency($cart->id_currency);
         $currencies_module = $this->getCurrency($cart->id_currency);
 
         if (is_array($currencies_module)) {
             foreach ($currencies_module as $currency_module) {
-                if ($currency_order->id == $currency_module['id_currency']) {
+                if ($currency_order->id === $currency_module['id_currency']) {
                     return true;
                 }
             }
@@ -166,15 +163,12 @@ class Comfino extends PaymentModule
         return false;
     }
 
-    /**
-     * @return string
-     */
-    public function getContent()
+    public function getContent(): string
     {
         ApiClient::init();
         ErrorLogger::init($this);
 
-        $config_manager = new ConfigManager($this);
+        $config_manager = new ConfigManager();
 
         $active_tab = 'payment_settings';
         $output = [];
@@ -360,24 +354,10 @@ class Comfino extends PaymentModule
      * PrestaShop 1.6.* compatibility.
      *
      * @return string|void
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookPayment(array $params)
     {
-        if (!$this->active || !$this->checkCurrency($params['cart']) || !$this->checkConfiguration()) {
-            return;
-        }
-
-        ErrorLogger::init($this);
-
-        $allowed_product_types = SettingsManager::getAllowedProductTypes(
-            ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
-            OrderManager::getShopCart($this->context->cart,
-            (int) $this->context->cookie->loan_amount)
-        );
-
-        if ($allowed_product_types === []) {
-            // Filters active - all product types disabled.
+        if (!$this->paymentIsAvailable($params)) {
             return;
         }
 
@@ -385,31 +365,18 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * PrestaShop 1.7.* compatibility.
+     * PrestaShop 1.7.* amd 8.* compatibility.
      *
-     * @return \PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     * @return PaymentOption[]|void
+     * @throws LocalizationException
      */
     public function hookPaymentOptions(array $params)
     {
-        if (!$this->active || !$this->checkCurrency($params['cart']) || !$this->checkConfiguration()) {
+        if (!$this->paymentIsAvailable($params)) {
             return;
         }
 
-        ErrorLogger::init($this);
-
-        $allowed_product_types = SettingsManager::getAllowedProductTypes(
-            ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
-            OrderManager::getShopCart($this->context->cart,
-            (int) $this->context->cookie->loan_amount)
-        );
-
-        if ($allowed_product_types === []) {
-            // Filters active - all product types disabled.
-            return;
-        }
-
-        $comfino_payment_option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
+        $comfino_payment_option = new PaymentOption();
         $comfino_payment_option->setModuleName($this->name)
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
             ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
@@ -420,7 +387,7 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     * @throws LocalizationException
      */
     public function hookPaymentReturn(array $params): string
     {
@@ -690,7 +657,7 @@ class Comfino extends PaymentModule
 
     /**
      * @return array
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     * @throws LocalizationException
      */
     private function getTemplateVars()
     {
@@ -730,7 +697,7 @@ class Comfino extends PaymentModule
 
     /**
      * @return array
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     * @throws LocalizationException
      */
     private function getPaywallOptions()
     {
@@ -786,6 +753,23 @@ class Comfino extends PaymentModule
         } else {
             $this->context->controller->addCSS($style_url);
         }
+    }
+
+    private function paymentIsAvailable(array $params): bool
+    {
+        /** @var Cart $cart */
+        $cart = $params['cart'];
+
+        if (!$this->active || !$this->checkCurrency($cart) || !$this->checkConfiguration()) {
+            return false;
+        }
+
+        ErrorLogger::init($this);
+
+        return SettingsManager::getAllowedProductTypes(
+            ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
+            OrderManager::getShopCart($cart, (int) $this->context->cookie->loan_amount)
+        ) !== [];
     }
 
     private function preparePaywallIframe(): string
