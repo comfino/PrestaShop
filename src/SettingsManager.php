@@ -42,7 +42,7 @@ use Comfino\Common\Shop\Product\CategoryTree;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Psr\Http\Client\ClientExceptionInterface;
 
-class SettingsManager
+final class SettingsManager
 {
     /** @var ProductTypeFilterManager */
     private static $filter_manager;

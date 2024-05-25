@@ -26,7 +26,7 @@
 
 namespace Comfino;
 
-class ShopStatusManager
+final class ShopStatusManager
 {
     public static function addCustomOrderStatuses(): void
     {

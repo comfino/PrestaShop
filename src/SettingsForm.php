@@ -29,7 +29,7 @@ namespace Comfino;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 
-class SettingsForm
+final class SettingsForm
 {
     private const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     private const COMFINO_SUPPORT_PHONE = '887-106-027';
@@ -185,8 +185,7 @@ class SettingsForm
                 $output[] = $module->l('Settings not updated.');
             } else {
                 // Update plugin configuration.
-                //ConfigManager::
-                $config_manager->updateConfiguration($configuration_options, false);
+                ConfigManager::updateConfiguration($configuration_options, false);
 
                 $output[] = $module->l('Settings updated.');
             }

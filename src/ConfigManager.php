@@ -34,8 +34,6 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
-
 final class ConfigManager
 {
     public const CONFIG_OPTIONS = [
@@ -209,6 +207,15 @@ final class ConfigManager
         return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_KEY');
     }
 
+    public static function updateConfiguration($configuration_options, $only_accessible_options = true): void
+    {
+        if ($only_accessible_options) {
+            self::getInstance()->updateConfigurationOptions($configuration_options);
+        } else {
+            self::getInstance()->setConfigurationValues($configuration_options);
+        }
+    }
+
     public static function deleteConfigurationValues(): bool
     {
         $result = true;
@@ -317,23 +324,6 @@ final class ConfigManager
         }
 
         return $configuration_options;
-    }
-
-    /**
-     * @param array $configuration_options
-     * @param bool $only_accessible_options
-     *
-     * @return void
-     */
-    public function updateConfiguration($configuration_options, $only_accessible_options = true)
-    {
-        foreach ($configuration_options as $opt_name => $opt_value) {
-            if ($only_accessible_options && !in_array($opt_name, self::ACCESSIBLE_CONFIG_OPTIONS, true)) {
-                continue;
-            }
-
-            \Configuration::updateValue($opt_name, $opt_value);
-        }
     }
 
     /**

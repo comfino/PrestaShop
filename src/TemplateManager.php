@@ -2,7 +2,7 @@
 
 namespace Comfino;
 
-class TemplateManager
+final class TemplateManager
 {
     public static function renderModuleView(
         \PaymentModule $module,

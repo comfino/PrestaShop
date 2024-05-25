@@ -30,7 +30,7 @@ use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 
-class FormManager
+final class FormManager
 {
     private const ERROR_LOG_NUM_LINES = 100;
 

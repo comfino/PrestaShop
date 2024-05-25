@@ -7,7 +7,7 @@ use Comfino\Shop\Order\Cart\CartItem;
 use Comfino\Shop\Order\Cart\CartItemInterface;
 use Comfino\Shop\Order\Cart\Product;
 
-class OrderManager
+final class OrderManager
 {
     const CREATED = 'CREATED';
     const WAITING_FOR_FILLING = 'WAITING_FOR_FILLING';

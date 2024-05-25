@@ -26,29 +26,18 @@
 
 namespace Comfino;
 
-use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
-use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Backend\Factory\ApiClientFactory;
 use Comfino\Extended\Api\Client;
-use Comfino\Shop\Order\Cart;
-use Comfino\Shop\Order\LoanParameters;
-use Comfino\Shop\Order\Order;
-use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\NetworkExceptionInterface;
-use Sunrise\Http\Factory\RequestFactory;
-use Sunrise\Http\Factory\StreamFactory;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
-
-require_once 'ShopPluginErrorRequest.php';
-require_once 'ErrorLogger.php';
 
 final class ApiClient
 {
@@ -66,10 +55,6 @@ final class ApiClient
 
     const COMFINO_WIDGET_JS_SANDBOX_HOST = 'https://widget.craty.pl';
     const COMFINO_WIDGET_JS_PRODUCTION_HOST = 'https://widget.comfino.pl';
-
-    const INSTALLMENTS_ZERO_PERCENT = 'INSTALLMENTS_ZERO_PERCENT';
-    const CONVENIENT_INSTALLMENTS = 'CONVENIENT_INSTALLMENTS';
-    const PAY_LATER = 'PAY_LATER';
 
     /** @var Client */
     private static $api_client;
@@ -226,13 +211,6 @@ final class ApiClient
         );
     }
 
-    public static function isApiKeyValid(): bool
-    {
-        $response = self::sendRequest(self::getApiHost() . '/v1/user/is-active', 'GET', [], null, false);
-
-        return strpos($response, 'errors') === false;
-    }
-
     //-----------------------------------------
 
     /**
@@ -258,89 +236,14 @@ final class ApiClient
         return $product_types[$list_type];
     }
 
-    /**
-     * @return array|bool
-     */
-    public static function getShopAccountAgreements()
-    {
-        $response = self::sendRequest(self::getApiHost() . '/v1/fetch-agreements', 'GET');
-
-        return !count(self::$last_errors) ? json_decode($response, true) : false;
-    }
-
-    /**
-     * @return string
-     */
-    public static function getLogoUrl()
+    public static function getLogoUrl(): string
     {
         return self::getApiHost(true) . '/v1/get-logo-url?auth=' . self::getLogoAuthHash();
     }
 
-    /**
-     * @return string
-     */
-    public static function getPaywallLogoUrl()
+    public static function getPaywallLogoUrl(): string
     {
         return self::getApiHost(true) . '/v1/get-paywall-logo?auth=' . self::getLogoAuthHash(true);
-    }
-
-    /**
-     * @param bool $is_sandbox_mode
-     * @return void
-     */
-    public static function setSandboxMode($is_sandbox_mode)
-    {
-        self::$is_sandbox_mode = $is_sandbox_mode;
-    }
-
-    /**
-     * @param string $api_host
-     * @return void
-     */
-    public static function setApiHost($api_host)
-    {
-        self::$api_host = $api_host;
-    }
-
-    /**
-     * @param string $api_key
-     * @return void
-     */
-    public static function setApiKey($api_key)
-    {
-        self::$api_key = $api_key;
-    }
-
-    /**
-     * @return string|null
-     */
-    public static function getLastRequestBody()
-    {
-        return self::$last_request_body;
-    }
-
-    /**
-     * @return string|null
-     */
-    public static function getLastResponseBody()
-    {
-        return self::$last_response_body;
-    }
-
-    /**
-     * @return int|null
-     */
-    public static function getLastResponseCode()
-    {
-        return self::$last_response_code;
-    }
-
-    /**
-     * @return array
-     */
-    public static function getLastErrors()
-    {
-        return self::$last_errors;
     }
 
     /**
