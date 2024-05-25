@@ -197,7 +197,14 @@ final class ConfigManager
         return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_ENABLED');
     }
 
-    public static function getWidgetKey(): string
+    public static function getApiKey(): ?string
+    {
+        return self::isSandboxMode()
+            ? self::getInstance()->getConfigurationValue('COMFINO_SANDBOX_API_KEY')
+            : self::getInstance()->getConfigurationValue('COMFINO_API_KEY');
+    }
+
+    public static function getWidgetKey(): ?string
     {
         return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_KEY');
     }

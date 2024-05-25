@@ -32,6 +32,7 @@ use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
+use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Backend\Factory\ApiClientFactory;
 use Comfino\Extended\Api\Client;
 use Comfino\Shop\Order\Cart;
@@ -151,7 +152,7 @@ final class ApiClient
     {
         if (self::$api_client === null) {
             if ($sandbox_mode === null) {
-                $sandbox_mode = ConfigManager::getConfigurationValue('COMFINO_IS_SANDBOX');
+                $sandbox_mode = ConfigManager::isSandboxMode();
             }
 
             if ($api_key === null) {
@@ -223,21 +224,6 @@ final class ApiClient
             $responseBody !== '' ? $responseBody : null,
             $exception->getTraceAsString()
         );
-    }
-
-    public static function isShopAccountActive(): bool
-    {
-        $account_active = false;
-
-        if (!empty(self::getApiKey())) {
-            $response = self::sendRequest(self::getApiHost() . '/v1/user/is-active', 'GET', [], null, false);
-
-            if (!count(self::$last_errors)) {
-                $account_active = json_decode($response, true);
-            }
-        }
-
-        return $account_active;
     }
 
     public static function isApiKeyValid(): bool
@@ -426,7 +412,7 @@ final class ApiClient
             }
         }
 
-        return $api_host !== null ? $api_host : self::$api_host;
+        return $api_host ?? self::$api_host;
     }
 
     /**

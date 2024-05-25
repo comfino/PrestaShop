@@ -188,6 +188,22 @@ class OrderManager
         );
     }
 
+    public static function checkCartCurrency(\PaymentModule $module, \Cart $cart): bool
+    {
+        $currency_order = new \Currency($cart->id_currency);
+        $currencies_module = $module->getCurrency($cart->id_currency);
+
+        if (is_array($currencies_module)) {
+            foreach ($currencies_module as $currency_module) {
+                if ($currency_order->id === $currency_module['id_currency']) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @param string $order_id
      * @param string $status
