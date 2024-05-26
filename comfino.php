@@ -25,6 +25,7 @@
  */
 
 use Comfino\ApiClient;
+use Comfino\ApiService;
 use Comfino\Common\Frontend\IframeRenderer;
 use Comfino\ConfigManager;
 use Comfino\ErrorLogger;
@@ -35,20 +36,20 @@ use Comfino\SettingsForm;
 use Comfino\SettingsManager;
 use Comfino\ShopStatusManager;
 use Comfino\TemplateManager;
-use PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException;
-use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 if (!defined('COMFINO_PS_17')) {
-    define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='), false);
+    define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='));
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.0.0', false);
+    define('COMFINO_VERSION', '4.0.0');
 }
+
+require_once 'vendor/autoload.php';
 
 class Comfino extends PaymentModule
 {
@@ -68,7 +69,14 @@ class Comfino extends PaymentModule
         $this->currencies_mode = 'checkbox';
 
         $this->controllers = [
-            'payment', 'offer', 'paywall', 'notify', 'error', 'script', 'configuration', 'availableoffertypes'
+            'payment',
+            'paymentstate',
+            'paywall',
+            'error',
+            'script',
+            'transactionstatus',
+            'configuration',
+            'availableoffertypes',
         ];
 
         parent::__construct();
@@ -81,14 +89,17 @@ class Comfino extends PaymentModule
             'These are installment payments, deferred (buy now, pay later) and corporate ' .
             'payments available on one platform with the help of quick integration. Grow your business with Comfino!'
         );
+
+        // Register module API endpoints.
+        ApiService::init();
     }
 
     /**
      * @return bool
      */
-    public function install()
+    public function install(): bool
     {
-        ErrorLogger::init();
+        ErrorLogger::init($this);
 
         if (!parent::install()) {
             return false;
@@ -164,10 +175,10 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * PrestaShop 1.7.* amd 8.* compatibility.
+     * PrestaShop 1.7.* and 8.* compatibility.
      *
-     * @return PaymentOption[]|void
-     * @throws LocalizationException
+     * @return \PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookPaymentOptions(array $params)
     {
@@ -175,7 +186,7 @@ class Comfino extends PaymentModule
             return;
         }
 
-        $comfino_payment_option = new PaymentOption();
+        $comfino_payment_option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
         $comfino_payment_option->setModuleName($this->name)
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
             ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
@@ -186,7 +197,7 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * @throws LocalizationException
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookPaymentReturn(array $params): string
     {
@@ -348,7 +359,7 @@ class Comfino extends PaymentModule
 
     /**
      * @return array
-     * @throws LocalizationException
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     private function getTemplateVars()
     {
@@ -388,7 +399,7 @@ class Comfino extends PaymentModule
 
     /**
      * @return array
-     * @throws LocalizationException
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     private function getPaywallOptions()
     {
@@ -466,7 +477,7 @@ class Comfino extends PaymentModule
     private function preparePaywallIframe(): string
     {
         return (new IframeRenderer('PrestaShop', _PS_VERSION_))->renderPaywallIframe(
-            $this->context->link->getModuleLink($this->module->name, 'availableoffertypes', [], true)
+            $this->context->link->getModuleLink($this->name, 'availableoffertypes', [], true)
         );
     }
 }
