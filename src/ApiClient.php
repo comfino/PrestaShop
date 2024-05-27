@@ -73,12 +73,12 @@ final class ApiClient
                 sprintf(
                     'PS Comfino [%s], PS [%s], SF [%s], PHP [%s], %s',
                     ...array_merge(
-                        ConfigManager::getEnvironmentInfo([
+                        array_values(ConfigManager::getEnvironmentInfo([
                             'plugin_version',
                             'shop_version',
                             'symfony_version',
                             'php_version',
-                        ]),
+                        ])),
                         [\Tools::getShopDomain()]
                     )
                 ),
