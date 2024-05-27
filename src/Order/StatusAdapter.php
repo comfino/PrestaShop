@@ -34,10 +34,6 @@ if (!defined('_PS_VERSION_')) {
 
 class StatusAdapter implements OrderStatusAdapterInterface
 {
-
-    /**
-     * @inheritDoc
-     */
     public function setStatus($orderId, $status): void
     {
         // TODO: Implement setStatus() method.
