@@ -180,8 +180,9 @@ class Comfino extends PaymentModule
     /**
      * Renders Comfino paywall iframe at payment methods list compatible with PrestaShop 1.7.* and 8.*.
      *
-     * @return \PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     * @return PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
+     *
+     * @throws PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookPaymentOptions(array $params)
     {
@@ -189,7 +190,7 @@ class Comfino extends PaymentModule
             return;
         }
 
-        $comfino_payment_option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
+        $comfino_payment_option = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
         $comfino_payment_option->setModuleName($this->name)
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
             ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
@@ -200,7 +201,7 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     * @throws PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookPaymentReturn(array $params): string
     {
@@ -223,7 +224,7 @@ class Comfino extends PaymentModule
             ], true)) {
                 $this->smarty->assign(
                     [
-                        'total_to_pay' => (new \Comfino\Tools($this->context))->formatPrice(
+                        'total_to_pay' => (new Comfino\Tools($this->context))->formatPrice(
                             $rest_to_paid,
                             $params['order']->id_currency
                         ),
@@ -276,7 +277,7 @@ class Comfino extends PaymentModule
 
                 try {
                     ApiClient::getInstance()->cancelOrder($params['id_order']);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     ApiClient::processApiError(
                         'Order cancellation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
                         $e
@@ -292,7 +293,7 @@ class Comfino extends PaymentModule
     public function hookActionValidateCustomerAddressForm(array $params): string
     {
         $vat_number = $params['form']->getField('vat_number');
-        $tools = new \Comfino\Tools($this->context);
+        $tools = new Comfino\Tools($this->context);
 
         if (!empty($vat_number->getValue()) && !$tools->isValidTaxId($vat_number->getValue())) {
             $vat_number->addError($this->l('Invalid VAT number.'));
@@ -332,7 +333,7 @@ class Comfino extends PaymentModule
                     return;
                 }
 
-                $config_crc = ''; //crc32(implode($widget_settings));
+                $config_crc = ''; // crc32(implode($widget_settings));
                 $this->addScriptLink(
                     'comfino-widget',
                     $this->context->link->getModuleLink(
