@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix src
+PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix tests
+PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix controllers
+PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix vendor/comfino
+PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix vendor/psr
+PHP_CS_FIXER_IGNORE_ENV=1 ./vendor/bin/php-cs-fixer fix vendor/sunrise

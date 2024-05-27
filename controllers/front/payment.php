@@ -41,7 +41,6 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
     public function postProcess(): void
     {
-        ApiClient::init();
         ErrorLogger::init($this->module);
 
         parent::postProcess();

@@ -91,7 +91,7 @@ class Comfino extends PaymentModule
         );
 
         // Register module API endpoints.
-        ApiService::init();
+        ApiService::init($this);
     }
 
     /**
@@ -105,7 +105,7 @@ class Comfino extends PaymentModule
             return false;
         }
 
-        $config_manager = new ConfigManager($this);
+        $config_manager = new ConfigManager();
         $config_manager->initConfigurationValues();
         ShopStatusManager::addCustomOrderStatuses();
 
@@ -128,7 +128,7 @@ class Comfino extends PaymentModule
     /**
      * @return bool
      */
-    public function uninstall()
+    public function uninstall(): bool
     {
         if (parent::uninstall()) {
             ConfigManager::deleteConfigurationValues();
@@ -155,13 +155,16 @@ class Comfino extends PaymentModule
         return false;
     }
 
+    /**
+     * Renders configuration form.
+     */
     public function getContent(): string
     {
         return TemplateManager::renderModuleView($this, 'configuration', 'admin', SettingsForm::processForm($this));
     }
 
     /**
-     * PrestaShop 1.6.* compatibility.
+     * Renders Comfino paywall iframe at payment methods list compatible with PrestaShop 1.6.*.
      *
      * @return string|void
      */
@@ -175,7 +178,7 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * PrestaShop 1.7.* and 8.* compatibility.
+     * Renders Comfino paywall iframe at payment methods list compatible with PrestaShop 1.7.* and 8.*.
      *
      * @return \PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
@@ -289,8 +292,9 @@ class Comfino extends PaymentModule
     public function hookActionValidateCustomerAddressForm(array $params): string
     {
         $vat_number = $params['form']->getField('vat_number');
+        $tools = new \Comfino\Tools($this->context);
 
-        if (!empty($vat_number->getValue()) && !$this->isValidTaxId($vat_number->getValue())) {
+        if (!empty($vat_number->getValue()) && !$tools->isValidTaxId($vat_number->getValue())) {
             $vat_number->addError($this->l('Invalid VAT number.'));
 
             return '0';
@@ -339,7 +343,6 @@ class Comfino extends PaymentModule
                 );
             }
         } elseif (preg_match('/order|cart|checkout/', $controller)) {
-            ApiClient::init();
             $this->addStyleLink('comfino-paywall-frontend-style', ApiClient::getPaywallFrontendStyleUrl());
         }
     }
@@ -350,75 +353,6 @@ class Comfino extends PaymentModule
     public function hookActionAdminControllerSetMedia(array $params): void
     {
         $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/tree.min.js');
-    }
-
-    private function checkConfiguration(): bool
-    {
-        return !empty(ConfigManager::getConfigurationValue('COMFINO_API_KEY'));
-    }
-
-    /**
-     * @return array
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
-     */
-    private function getTemplateVars()
-    {
-        $config_manager = new ConfigManager($this);
-
-        return [
-            'pay_with_comfino_text' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'),
-            'logo_url' => ApiClient::getPaywallLogoUrl(),
-            'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
-            'paywall_options' => $this->getPaywallOptions(),
-            'paywall_script_url' => ApiClient::getPaywallFrontendScriptUrl(),
-            'offers_url' => $this->context->link->getModuleLink($this->name, 'offer', [], true),
-        ];
-    }
-
-    /**
-     * @param string $tax_id
-     * @return bool
-     */
-    private function isValidTaxId($tax_id)
-    {
-        if (empty($tax_id) || strlen($tax_id) !== 10 || !preg_match('/^\d+$/', $tax_id)) {
-            return false;
-        }
-
-        $arr_steps = [6, 5, 7, 2, 3, 4, 5, 6, 7];
-        $int_sum = 0;
-
-        for ($i = 0; $i < 9; ++$i) {
-            $int_sum += $arr_steps[$i] * $tax_id[$i];
-        }
-
-        $int = $int_sum % 11;
-
-        return ($int === 10 ? 0 : $int) === (int) $tax_id[9];
-    }
-
-    /**
-     * @return array
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
-     */
-    private function getPaywallOptions()
-    {
-        $cart = $this->context->cart;
-        $total = $cart->getOrderTotal();
-
-        $tools = new \Comfino\Tools($this->context);
-
-        return [
-            'platform' => 'prestashop',
-            'platformName' => 'PrestaShop',
-            'platformVersion' => _PS_VERSION_,
-            'platformDomain' => \Tools::getShopDomain(),
-            'pluginVersion' => COMFINO_VERSION,
-            'language' => $tools->getLanguageIsoCode($cart->id_lang),
-            'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
-            'cartTotal' => (float) $total,
-            'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
-        ];
     }
 
     /**

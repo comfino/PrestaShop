@@ -4,7 +4,7 @@
     "description": "PrestaShop payment module for Comfino deferred payments gateway.",
     "homepage": "https://github.com/comfino/PrestaShop",
     "license": "OSL-3.0",
-    "author": "Comfino",
+    "author": "PrestaShop",
     "authors": [
         {
             "name": "Artur Kozubski",
