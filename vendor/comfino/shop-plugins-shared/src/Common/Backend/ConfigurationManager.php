@@ -247,7 +247,7 @@ final class ConfigurationManager
                         break;
 
                     case self::OPT_VALUE_TYPE_JSON:
-                        $this->configuration[$optionName] = $this->serializer->unserialize($optionValue);
+                        $this->configuration[$optionName] = !empty($optionValue) ? $this->serializer->unserialize($optionValue) : null;
                         break;
                 }
             }
