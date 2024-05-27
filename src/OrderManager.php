@@ -211,7 +211,7 @@ final class OrderManager
                         $product->getCategories()
                     ),
                     1
-                )
+                ),
             ]
         );
     }

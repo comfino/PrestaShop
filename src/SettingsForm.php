@@ -83,7 +83,7 @@ final class SettingsForm
                             $output[] = sprintf($error_numeric_format_msg, $module->l('Minimal amount in cart'));
                         }
                     } else {
-                        $sandbox_mode = (bool)\Tools::getValue('COMFINO_IS_SANDBOX');
+                        $sandbox_mode = (bool) \Tools::getValue('COMFINO_IS_SANDBOX');
                         $api_key = $sandbox_mode
                             ? \Tools::getValue('COMFINO_SANDBOX_API_KEY')
                             : ConfigManager::getConfigurationValue('COMFINO_API_KEY');
