@@ -42,6 +42,10 @@ use Comfino\Common\Shop\Product\CategoryTree;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Psr\Http\Client\ClientExceptionInterface;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 final class SettingsManager
 {
     /** @var ProductTypeFilterManager */
@@ -265,8 +269,7 @@ final class SettingsManager
 
         if ($list_type === ProductTypesListTypeEnum::LIST_TYPE_WIDGET
             && !empty($widget_product_type = ConfigManager::getConfigurationValue('COMFINO_WIDGET_OFFER_TYPE'))
-        )
-        {
+        ) {
             $filters[] = new FilterByProductType([new LoanTypeEnum($widget_product_type)]);
         }
 

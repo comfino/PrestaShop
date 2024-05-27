@@ -65,8 +65,7 @@ final class ErrorLogger
         ?string $api_request = null,
         ?string $api_response = null,
         ?string $stack_trace = null
-    ): void
-    {
+    ): void {
         self::$errorLogger->sendError(
             $error_prefix, $error_code, $error_message, $api_request_url, $api_request, $api_response, $stack_trace
         );

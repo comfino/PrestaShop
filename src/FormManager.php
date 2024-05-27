@@ -30,6 +30,10 @@ use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 final class FormManager
 {
     private const ERROR_LOG_NUM_LINES = 100;
@@ -89,7 +93,7 @@ final class FormManager
                         'symfony_version',
                         'php_version',
                         'server_software',
-                        'database_version'
+                        'database_version',
                     ])
                 );
 
@@ -157,8 +161,7 @@ final class FormManager
         string $submit_action,
         ?string $form_template_dir = null,
         ?string $form_template = null
-    ): \HelperForm
-    {
+    ): \HelperForm {
         $helper = new \HelperForm();
         $language = (int) \Configuration::get('PS_LANG_DEFAULT');
 

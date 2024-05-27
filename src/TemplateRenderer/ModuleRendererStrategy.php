@@ -29,6 +29,10 @@ namespace Comfino\TemplateRenderer;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
 use Comfino\TemplateManager;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class ModuleRendererStrategy implements RendererStrategyInterface
 {
     /** @var \PaymentModule */
@@ -39,17 +43,11 @@ class ModuleRendererStrategy implements RendererStrategyInterface
         $this->module = $module;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function renderPaywallTemplate($paywallContents): string
     {
         return $paywallContents;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function renderErrorTemplate($exception): string
     {
         return TemplateManager::renderModuleView(

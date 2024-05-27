@@ -332,7 +332,7 @@ class Comfino extends PaymentModule
                     return;
                 }
 
-                $config_crc = '';//crc32(implode($widget_settings));
+                $config_crc = ''; //crc32(implode($widget_settings));
                 $this->addScriptLink(
                     'comfino-widget',
                     $this->context->link->getModuleLink(

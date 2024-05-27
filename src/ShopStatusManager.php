@@ -26,6 +26,10 @@
 
 namespace Comfino;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 final class ShopStatusManager
 {
     public static function addCustomOrderStatuses(): void

@@ -29,6 +29,10 @@ namespace Comfino\Cache;
 use Comfino\Common\Backend\Cache\StorageAdapterInterface;
 use Comfino\Extended\Api\Serializer\Json;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class StorageAdapter implements StorageAdapterInterface
 {
     /** @var string */
@@ -41,7 +45,7 @@ class StorageAdapter implements StorageAdapterInterface
 
     public function load(): array
     {
-        if (($cache_storage = @file_get_contents(_PS_MODULE_DIR_ . "comfino/var/cache/$this->cache_id")) === false) {
+        if (($cache_storage = @\Tools::file_get_contents(_PS_MODULE_DIR_ . "comfino/var/cache/$this->cache_id")) === false) {
             return [];
         }
 

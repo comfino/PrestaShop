@@ -26,15 +26,16 @@
 
 namespace Comfino;
 
-use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Common\Backend\Factory\ApiServiceFactory;
 use Comfino\Common\Backend\RestEndpoint\Configuration;
 use Comfino\Common\Backend\RestEndpoint\StatusNotification;
 use Comfino\Common\Backend\RestEndpointManager;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Order\StatusAdapter;
-use Psr\Http\Message\ResponseInterface;
-use Sunrise\Http\Factory\ResponseFactory;
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
 final class ApiService
 {
@@ -49,7 +50,7 @@ final class ApiService
             COMFINO_VERSION,
             [
                 ConfigManager::getConfigurationValue('COMFINO_API_KEY'),
-                ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY')
+                ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY'),
             ]
         );
 

@@ -31,6 +31,10 @@ use Comfino\Shop\Order\Cart\CartItem;
 use Comfino\Shop\Order\Cart\CartItemInterface;
 use Comfino\Shop\Order\Cart\Product;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 final class OrderManager
 {
     const CREATED = 'CREATED';

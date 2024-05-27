@@ -426,7 +426,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
     /**
      * @return array
      */
-    private function getProductData($product_id)
+    private function getProductData($product_id): array
     {
         $context = \Context::getContext();
         $avail_offers_url = $context->link->getModuleLink($this->module->name, 'availableoffertypes', [], true);
@@ -439,7 +439,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
             if (($price = \Product::getPriceStatic($product_id)) === null) {
                 $price = 'null';
             } else {
-                $price = (new \Comfino\Tools($context))->getFormattedPrice($price);
+                $price = (new Tools($context))->getFormattedPrice($price);
             }
         } else {
             $product_id = 'null';

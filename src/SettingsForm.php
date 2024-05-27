@@ -29,6 +29,10 @@ namespace Comfino;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 final class SettingsForm
 {
     private const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';

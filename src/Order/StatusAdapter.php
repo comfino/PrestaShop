@@ -28,6 +28,10 @@ namespace Comfino\Order;
 
 use Comfino\Common\Shop\OrderStatusAdapterInterface;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class StatusAdapter implements OrderStatusAdapterInterface
 {
 

@@ -83,9 +83,7 @@ class Tools
 
     public function getCurrentCurrencyId(): int
     {
-        global $currency, $cookie;
-
-        return $currency !== null ? $currency->id : $cookie->id_currency;
+        return $this->context->cookie->id_currency;
     }
 
     /**

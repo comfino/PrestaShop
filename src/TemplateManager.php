@@ -26,6 +26,10 @@
 
 namespace Comfino;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 final class TemplateManager
 {
     public static function renderModuleView(
@@ -33,8 +37,7 @@ final class TemplateManager
         string $name,
         string $path,
         array $variables = []
-    ): string
-    {
+    ): string {
         $templatePath = 'views/templates';
 
         if (!empty($path)) {
@@ -59,8 +62,7 @@ final class TemplateManager
         string $name,
         string $path,
         array $variables = []
-    ): void
-    {
+    ): void {
         $templatePath = 'views/templates';
 
         if (!empty($path)) {

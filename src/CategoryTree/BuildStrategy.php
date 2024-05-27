@@ -31,6 +31,10 @@ use Comfino\Common\Shop\Product\CategoryTree\Descriptor;
 use Comfino\Common\Shop\Product\CategoryTree\Node;
 use Comfino\Common\Shop\Product\CategoryTree\NodeIterator;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class BuildStrategy implements BuildStrategyInterface
 {
     /** @var Descriptor */
