@@ -114,7 +114,7 @@ final class ConfigManager
     {
         $configuration = [];
 
-        foreach (array_merge(array_merge(...array_values(self::CONFIG_OPTIONS))) as $opt_name) {
+        foreach (array_merge(array_merge(...array_values(self::CONFIG_OPTIONS))) as $opt_name => $opt_type_flags) {
             $configuration[$opt_name] = \Configuration::get($opt_name);
         }
 
