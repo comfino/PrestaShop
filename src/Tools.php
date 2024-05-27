@@ -26,8 +26,6 @@
 
 namespace Comfino;
 
-use PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -55,6 +53,7 @@ class Tools
 
     /**
      * @return float|string
+     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function formatPrice(float $price, int $id_currency)
@@ -87,7 +86,7 @@ class Tools
     }
 
     /**
-     * @throws LocalizationException
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function getFormattedPrice(float $price): float
     {

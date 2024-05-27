@@ -189,7 +189,7 @@ final class ApiClient
         return urlencode(base64_encode($authHash));
     }
 
-    //-----------------------------------------
+    // -----------------------------------------
 
     /**
      * @return string
