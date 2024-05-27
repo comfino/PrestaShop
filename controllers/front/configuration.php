@@ -31,10 +31,6 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-
 class ComfinoConfigurationModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
