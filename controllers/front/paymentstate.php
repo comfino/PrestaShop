@@ -34,11 +34,11 @@ class ComfinoPaymentStateModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        ErrorLogger::init();
+        ErrorLogger::init($this->module);
 
         parent::postProcess();
 
-        $cookie = (new \Comfino\Tools($this->context))->getCookie();
+        $cookie = (new Comfino\Tools($this->context))->getCookie();
         $cookie->loan_amount = Tools::getValue('loan_amount');
         $cookie->loan_type = Tools::getValue('loan_type');
         $cookie->loan_term = Tools::getValue('loan_term');

@@ -170,7 +170,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         try {
             Tools::redirect(ApiClient::getInstance($this->module)->createOrder($order)->applicationUrl);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $order = new Order($this->module->currentOrder);
             $order->setCurrentState(Configuration::get('PS_OS_ERROR'));
             $order->save();

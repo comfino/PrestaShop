@@ -50,9 +50,9 @@ class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontControl
             exit;
         }
 
-        $product = new \Product(Tools::getValue('product_id'));
+        $product = new Product(Tools::getValue('product_id'));
 
-        if (!\Validate::isLoadedObject($product)) {
+        if (!Validate::isLoadedObject($product)) {
             echo $serializer->serialize($available_product_types);
             exit;
         }

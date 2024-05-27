@@ -24,6 +24,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+use Comfino\ConfigManager;
 use Comfino\ShopStatusManager;
 
 if (!defined('_PS_VERSION_')) {
@@ -34,7 +35,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 
 function upgrade_module_2_4_0(\PaymentModule $module): bool
 {
-    $config_manager = new \Comfino\ConfigManager();
+    $config_manager = new ConfigManager();
 
     // Update code of widget initialization script.
     $config_manager->updateWidgetCode('bde49851ffc0fd8239eb5d086c8165d4');

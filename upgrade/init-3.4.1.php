@@ -23,6 +23,9 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+use Comfino\ConfigManager;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -37,7 +40,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 function upgrade_module_3_4_1($module)
 {
     // Initialize new configuration options
-    (new \Comfino\ConfigManager($module))->updateConfiguration([
+    (new ConfigManager())->updateConfiguration([
         'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
     ]);
 
