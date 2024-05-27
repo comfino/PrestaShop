@@ -288,12 +288,4 @@ final class ApiClient
 
         return self::$paywall_frontend_style_url;
     }
-
-    /**
-     * @return string[]
-     */
-    public static function getHashAlgos()
-    {
-        return array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
-    }
 }

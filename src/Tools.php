@@ -26,6 +26,8 @@
 
 namespace Comfino;
 
+use PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -79,10 +81,7 @@ class Tools
         return $this->context->cookie;
     }
 
-    /**
-     * @return int
-     */
-    public function getCurrentCurrencyId()
+    public function getCurrentCurrencyId(): int
     {
         global $currency, $cookie;
 
@@ -90,16 +89,32 @@ class Tools
     }
 
     /**
-     * @param float $price
-     *
-     * @return float
+     * @throws LocalizationException
      */
-    public function getFormattedPrice($price)
+    public function getFormattedPrice(float $price): float
     {
         return (float) preg_replace(
             ['/[^\d,.]/', '/,/'],
             ['', '.'],
             $this->formatPrice($price, $this->getCurrentCurrencyId())
         );
+    }
+
+    public function isValidTaxId(string $tax_id): bool
+    {
+        if (empty($tax_id) || strlen($tax_id) !== 10 || !preg_match('/^\d+$/', $tax_id)) {
+            return false;
+        }
+
+        $arr_steps = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+        $int_sum = 0;
+
+        for ($i = 0; $i < 9; ++$i) {
+            $int_sum += $arr_steps[$i] * $tax_id[$i];
+        }
+
+        $int = $int_sum % 11;
+
+        return ($int === 10 ? 0 : $int) === (int) $tax_id[9];
     }
 }
