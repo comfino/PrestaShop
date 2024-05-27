@@ -91,7 +91,7 @@ class Comfino extends PaymentModule
         );
 
         // Register module API endpoints.
-        ApiService::init($this);
+        ApiService::init($this, $this->context);
     }
 
     /**
