@@ -582,8 +582,7 @@ final class SettingsForm
         string $tree_id,
         string $product_type,
         array $selected_categories
-    ): string
-    {
+    ): string {
         return TemplateManager::render(
             $module,
             'product_category_filter',
@@ -625,8 +624,7 @@ final class SettingsForm
         bool $leafs_only = false,
         array $sub_categories = [],
         int $position = 0
-    ): ?array
-    {
+    ): ?array {
         static $categories = null;
 
         if ($categories === null) {
