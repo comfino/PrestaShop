@@ -31,9 +31,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-
-function upgrade_module_2_4_0(\PaymentModule $module): bool
+function upgrade_module_2_4_0(Comfino $module): bool
 {
     $config_manager = new ConfigManager();
 
