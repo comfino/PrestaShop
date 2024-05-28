@@ -7,23 +7,23 @@ use Comfino\Shop\Order\LoanParametersInterface;
 class Order implements OrderInterface
 {
     /** @var string */
-    private $id;
+    private string $id;
     /** @var string|null */
-    private $notifyUrl;
+    private ?string $notifyUrl;
     /** @var string */
-    private $returnUrl;
+    private string $returnUrl;
     /** @var LoanParametersInterface */
-    private $loanParameters;
+    private LoanParametersInterface $loanParameters;
     /** @var CartInterface */
-    private $cart;
+    private CartInterface $cart;
     /** @var CustomerInterface */
-    private $customer;
+    private CustomerInterface $customer;
     /** @var SellerInterface|null */
-    private $seller;
+    private ?SellerInterface $seller;
     /** @var string|null */
-    private $accountNumber;
+    private ?string $accountNumber;
     /** @var string|null */
-    private $transferTitle;
+    private ?string $transferTitle;
 
     /**
      * @param string $id

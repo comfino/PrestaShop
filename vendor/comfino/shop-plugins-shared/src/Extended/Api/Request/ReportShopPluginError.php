@@ -11,20 +11,8 @@ use Comfino\Extended\Api\Dto\Plugin\ShopPluginError;
  */
 class ReportShopPluginError extends Request
 {
-    /**
-     * @readonly
-     * @var \Comfino\Extended\Api\Dto\Plugin\ShopPluginError
-     */
-    private $shopPluginError;
-    /**
-     * @readonly
-     * @var string
-     */
-    private $hashKey;
-    public function __construct(ShopPluginError $shopPluginError, string $hashKey)
+    public function __construct(private readonly ShopPluginError $shopPluginError, private readonly string $hashKey)
     {
-        $this->shopPluginError = $shopPluginError;
-        $this->hashKey = $hashKey;
         $this->setRequestMethod('POST');
         $this->setApiEndpointPath('log-plugin-error');
     }

@@ -5,9 +5,9 @@ namespace Comfino\Api\Exception;
 class AccessDenied extends \RuntimeException
 {
     /** @var string */
-    private $url;
+    private string $url;
     /** @var string */
-    private $requestBody;
+    private string $requestBody;
 
     public function __construct(string $message = '', int $code = 0, ?\Throwable $previous = null, string $url = '', string $requestBody = '')
     {
@@ -22,10 +22,7 @@ class AccessDenied extends \RuntimeException
         return $this->url;
     }
 
-    /**
-     * @param string $url
-     */
-    public function setUrl($url): void
+    public function setUrl(string $url): void
     {
         $this->url = $url;
     }
@@ -35,10 +32,7 @@ class AccessDenied extends \RuntimeException
         return $this->requestBody;
     }
 
-    /**
-     * @param string $requestBody
-     */
-    public function setRequestBody($requestBody): void
+    public function setRequestBody(string $requestBody): void
     {
         $this->requestBody = $requestBody;
     }

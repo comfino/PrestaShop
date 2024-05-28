@@ -9,54 +9,21 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class Configuration extends RestEndpoint
 {
-    /**
-     * @readonly
-     * @var \Comfino\Common\Backend\ConfigurationManager
-     */
-    private $configurationManager;
-    /**
-     * @readonly
-     * @var string
-     */
-    private $platformName;
-    /**
-     * @readonly
-     * @var string
-     */
-    private $platformVersion;
-    /**
-     * @readonly
-     * @var string
-     */
-    private $pluginVersion;
-    /**
-     * @readonly
-     * @var string
-     */
-    private $databaseVersion;
     public function __construct(
         string $name,
         string $endpointUrl,
-        ConfigurationManager $configurationManager,
-        string $platformName,
-        string $platformVersion,
-        string $pluginVersion,
-        string $databaseVersion
+        private readonly ConfigurationManager $configurationManager,
+        private readonly string $platformName,
+        private readonly string $platformVersion,
+        private readonly string $pluginVersion,
+        private readonly string $databaseVersion
     ) {
-        $this->configurationManager = $configurationManager;
-        $this->platformName = $platformName;
-        $this->platformVersion = $platformVersion;
-        $this->pluginVersion = $pluginVersion;
-        $this->databaseVersion = $databaseVersion;
         parent::__construct($name, $endpointUrl);
 
         $this->methods = ['GET', 'POST', 'PUT', 'PATCH'];
     }
 
-    /**
-     * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
-     */
-    public function processRequest($serverRequest): ?array
+    public function processRequest(ServerRequestInterface $serverRequest): ?array
     {
         if (!$this->endpointPathMatch($serverRequest)) {
             throw new InvalidEndpoint('Endpoint path does not match request path.');

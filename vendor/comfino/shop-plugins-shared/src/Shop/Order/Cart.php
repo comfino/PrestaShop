@@ -7,13 +7,13 @@ use Comfino\Shop\Order\Cart\CartItemInterface;
 class Cart implements CartInterface
 {
     /** @var CartItemInterface[] */
-    private $items;
+    private array $items;
     /** @var int */
-    private $totalAmount;
+    private int $totalAmount;
     /** @var int|null */
-    private $deliveryCost;
+    private ?int $deliveryCost;
     /** @var string|null */
-    private $category;
+    private ?string $category;
 
     /**
      * @param CartItemInterface[] $items

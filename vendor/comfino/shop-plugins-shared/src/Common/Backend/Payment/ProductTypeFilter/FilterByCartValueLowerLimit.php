@@ -5,26 +5,16 @@ namespace Comfino\Common\Backend\Payment\ProductTypeFilter;
 use Comfino\Common\Backend\Payment\ProductTypeFilterInterface;
 use Comfino\Common\Shop\Cart;
 
-class FilterByCartValueLowerLimit implements ProductTypeFilterInterface
+readonly class FilterByCartValueLowerLimit implements ProductTypeFilterInterface
 {
-    /**
-     * @var int[]
-     * @readonly
-     */
-    private $cartValueLimitsByProductType;
     /**
      * @param int[] $cartValueLimitsByProductType ['PRODUCT_TYPE' => cart_value_limit]
      */
-    public function __construct(array $cartValueLimitsByProductType)
+    public function __construct(private array $cartValueLimitsByProductType)
     {
-        $this->cartValueLimitsByProductType = $cartValueLimitsByProductType;
     }
 
-    /**
-     * @param mixed[] $availableProductTypes
-     * @param \Comfino\Common\Shop\Cart $cart
-     */
-    public function getAllowedProductTypes($availableProductTypes, $cart): array
+    public function getAllowedProductTypes(array $availableProductTypes, Cart $cart): array
     {
         $allowedProductTypes = [];
 

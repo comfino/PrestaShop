@@ -3,13 +3,9 @@
 namespace Comfino;
 
 /** Replacement of enum type to maintain source code compatibility with PHP 7.1 (workaround for Rector transpilation bug). */
-abstract class Enum implements \JsonSerializable
+readonly abstract class Enum implements \JsonSerializable
 {
-    /**
-     * @readonly
-     * @var string
-     */
-    private $value;
+    private string $value;
 
     public function __construct(string $value, bool $strict = true)
     {
@@ -30,11 +26,7 @@ abstract class Enum implements \JsonSerializable
         return array_keys((new \ReflectionClass(static::class))->getConstants());
     }
 
-    /**
-     * @param string $value
-     * @param bool $strict
-     */
-    abstract public static function from($value, $strict = true): self;
+    abstract public static function from(string $value, bool $strict = true): self;
 
     public function jsonSerialize(): string
     {

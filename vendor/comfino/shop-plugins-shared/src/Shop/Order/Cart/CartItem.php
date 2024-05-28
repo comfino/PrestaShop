@@ -5,9 +5,9 @@ namespace Comfino\Shop\Order\Cart;
 class CartItem implements CartItemInterface
 {
     /** @var ProductInterface */
-    private $product;
+    private ProductInterface $product;
     /** @var int */
-    private $quantity;
+    private int $quantity;
 
     /**
      * @param ProductInterface $product

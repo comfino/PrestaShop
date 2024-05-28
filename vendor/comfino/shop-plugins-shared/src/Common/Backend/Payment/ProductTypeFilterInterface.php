@@ -10,7 +10,6 @@ interface ProductTypeFilterInterface
     /**
      * @param LoanTypeEnum[] $availableProductTypes
      * @return LoanTypeEnum[]
-     * @param \Comfino\Common\Shop\Cart $cart
      */
-    public function getAllowedProductTypes($availableProductTypes, $cart): array;
+    public function getAllowedProductTypes(array $availableProductTypes, Cart $cart): array;
 }

@@ -5,7 +5,7 @@ namespace Comfino\Shop\Order;
 class Seller implements SellerInterface
 {
     /** @var string|null */
-    private $taxId;
+    private ?string $taxId;
 
     /**
      * @param string|null $taxId

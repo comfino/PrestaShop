@@ -7,13 +7,10 @@ use Comfino\Common\Backend\Cache\StorageAdapterInterface;
 
 final class CacheManager
 {
-    /**
-     * @var $this|null
-     */
-    private static $instance;
+    private static ?self $instance = null;
 
     /** @var Bucket[] */
-    private $cacheBuckets = [];
+    private array $cacheBuckets = [];
 
     public static function getInstance(): self
     {

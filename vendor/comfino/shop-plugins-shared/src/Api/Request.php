@@ -13,22 +13,19 @@ use Psr\Http\Message\StreamFactoryInterface;
 abstract class Request
 {
     /** @var SerializerInterface */
-    protected $serializer;
+    protected SerializerInterface $serializer;
     /** @var string */
-    private $method;
+    private string $method;
     /** @var string */
-    private $apiEndpointPath;
+    private string $apiEndpointPath;
     /** @var array|null */
-    private $requestParams;
+    private ?array $requestParams;
     /** @var string|null */
-    private $requestUri;
+    private ?string $requestUri = null;
     /** @var string|null */
-    private $requestBody;
+    private ?string $requestBody = null;
 
-    /**
-     * @param \Comfino\Api\SerializerInterface $serializer
-     */
-    final public function setSerializer($serializer): self
+    final public function setSerializer(SerializerInterface $serializer): self
     {
         $this->serializer = $serializer;
 
@@ -46,10 +43,10 @@ abstract class Request
      * @throws RequestValidationError
      */
     final public function getPsrRequest(
-        $requestFactory,
-        $streamFactory,
-        $apiHost,
-        $apiVersion
+        RequestFactoryInterface $requestFactory,
+        StreamFactoryInterface $streamFactory,
+        string $apiHost,
+        int $apiVersion
     ): RequestInterface {
         $this->requestUri = $this->getApiEndpointUri($apiHost, $apiVersion);
 
@@ -102,7 +99,7 @@ abstract class Request
      * @param string $method
      * @return void
      */
-    final protected function setRequestMethod($method): void
+    final protected function setRequestMethod(string $method): void
     {
         $this->method = strtoupper(trim($method));
     }
@@ -111,7 +108,7 @@ abstract class Request
      * @param string $apiEndpointPath
      * @return void
      */
-    final protected function setApiEndpointPath($apiEndpointPath): void
+    final protected function setApiEndpointPath(string $apiEndpointPath): void
     {
         $this->apiEndpointPath = trim($apiEndpointPath, " /\n\r\t\v\0");
     }
@@ -120,7 +117,7 @@ abstract class Request
      * @param array $requestParams
      * @return void
      */
-    final protected function setRequestParams($requestParams): void
+    final protected function setRequestParams(array $requestParams): void
     {
         $this->requestParams = $requestParams;
     }
@@ -139,7 +136,7 @@ abstract class Request
      * @param int $apiVersion
      * @return string
      */
-    final protected function getApiEndpointUri($apiHost, $apiVersion): string
+    final protected function getApiEndpointUri(string $apiHost, int $apiVersion): string
     {
         $uri = implode('/', [trim($apiHost, " /\n\r\t\v\0"), "v$apiVersion", $this->apiEndpointPath]);
 

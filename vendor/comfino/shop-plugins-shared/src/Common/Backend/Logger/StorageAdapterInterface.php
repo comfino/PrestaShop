@@ -4,9 +4,5 @@ namespace Comfino\Common\Backend\Logger;
 
 interface StorageAdapterInterface
 {
-    /**
-     * @param string $errorPrefix
-     * @param string $errorMessage
-     */
-    public function save($errorPrefix, $errorMessage): void;
+    public function save(string $errorPrefix, string $errorMessage): void;
 }

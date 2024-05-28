@@ -17,7 +17,7 @@ interface SerializerInterface
      * @return string
      * @throws RequestValidationError
      */
-    public function serialize($requestData): string;
+    public function serialize(mixed $requestData): string;
 
     /**
      * Unserializes serialized response string.
@@ -26,5 +26,5 @@ interface SerializerInterface
      * @return mixed
      * @throws ResponseValidationError
      */
-    public function unserialize($responseBody);
+    public function unserialize(string $responseBody): mixed;
 }

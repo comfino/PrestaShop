@@ -4,23 +4,15 @@ namespace Comfino;
 
 trait ReflectionTrait
 {
-    /**
-     * @param object $object
-     * @param string $name
-     * @return mixed
-     */
-    public function getConstantFromObject($object, $name)
+    public function getConstantFromObject(object $object, string $name): mixed
     {
         return (new \ReflectionObject($object))->getConstant($name);
     }
 
     /**
      * @throws \ReflectionException
-     * @param string $class
-     * @param string $name
-     * @return mixed
      */
-    public function getConstantFromClass($class, $name)
+    public function getConstantFromClass(string $class, string $name): mixed
     {
         return (new \ReflectionClass($class))->getConstant($name);
     }

@@ -2,20 +2,16 @@
 
 namespace Comfino\Api\Dto\Payment;
 
-class LoanParameters
+readonly class LoanParameters
 {
-    /** @var int
-     * @readonly */
-    public $instalmentAmount;
-    /** @var int
-     * @readonly */
-    public $toPay;
-    /** @var int
-     * @readonly */
-    public $loanTerm;
-    /** @var float
-     * @readonly */
-    public $rrso;
+    /** @var int */
+    public int $instalmentAmount;
+    /** @var int */
+    public int $toPay;
+    /** @var int */
+    public int $loanTerm;
+    /** @var float */
+    public float $rrso;
 
     /**
      * @param int $instalmentAmount

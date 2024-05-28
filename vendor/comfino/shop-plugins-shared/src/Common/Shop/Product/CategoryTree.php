@@ -8,22 +8,13 @@ use Comfino\Common\Shop\Product\CategoryTree\NodeIterator;
 
 final class CategoryTree
 {
-    /**
-     * @readonly
-     * @var \Comfino\Common\Shop\Product\CategoryTree\BuildStrategyInterface
-     */
-    private $buildStrategy;
-    /**
-     * @var \Comfino\Common\Shop\Product\CategoryTree\NodeIterator|null
-     */
-    private $nodes;
+    private ?NodeIterator $nodes = null;
 
     /** @var Node[]|null */
-    private $index;
+    private ?array $index = null;
 
-    public function __construct(BuildStrategyInterface $buildStrategy)
+    public function __construct(private readonly BuildStrategyInterface $buildStrategy)
     {
-        $this->buildStrategy = $buildStrategy;
     }
 
     public function getNodes(): NodeIterator
@@ -52,9 +43,7 @@ final class CategoryTree
         }
 
         if ($rootNode === null) {
-            $nodeIds = array_map(static function (Node $node) : int {
-                return $node->getId();
-            }, iterator_to_array($this->nodes));
+            $nodeIds = array_map(static fn (Node $node): int => $node->getId(), iterator_to_array($this->nodes));
             $subNodeIds = [];
 
             foreach ($this->nodes as $node) {

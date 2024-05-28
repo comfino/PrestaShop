@@ -31,10 +31,7 @@ trait ClientTestTrait
 {
     use ReflectionTrait;
 
-    /**
-     * @var string
-     */
-    protected $productionApiHost;
+    protected string $productionApiHost;
 
     /**
      * @throws Exception
@@ -381,9 +378,7 @@ trait ClientTestTrait
         $client = new \Http\Mock\Client();
         $client->on(
             new RequestMatcher($endpointPath, $this->productionApiHost, $method, 'https'),
-            function (RequestInterface $request) use ($queryParameters, $requestBody, $responseData, $apiKey, $isPublicEndpoint, $responseStatus) {
-                return $this->processRequest($request, $queryParameters, $requestBody, $responseData, $apiKey, $isPublicEndpoint, $responseStatus);
-            }
+            fn (RequestInterface $request) => $this->processRequest($request, $queryParameters, $requestBody, $responseData, $apiKey, $isPublicEndpoint, $responseStatus)
         );
 
         return new Client(new RequestFactory(), new StreamFactory(), $client, $apiKey);

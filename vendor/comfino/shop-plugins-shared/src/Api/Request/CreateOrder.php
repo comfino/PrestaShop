@@ -11,16 +11,10 @@ use Comfino\Shop\Order\OrderInterface;
 class CreateOrder extends Request
 {
     /**
-     * @var OrderInterface
-     * @readonly
-     */
-    private $order;
-    /**
      * @param OrderInterface $order Full order data (cart, loan details)
      */
-    public function __construct(OrderInterface $order)
+    public function __construct(private readonly OrderInterface $order)
     {
-        $this->order = $order;
         $this->setRequestMethod('POST');
         $this->setApiEndpointPath('orders');
     }
@@ -45,9 +39,7 @@ class CreateOrder extends Request
                 'ean' => $cartItem->getProduct()->getEan(),
                 'externalId' => $cartItem->getProduct()->getId(),
                 'category' => $cartItem->getProduct()->getCategory(),
-            ], static function ($value) : bool {
-                return $value !== null;
-            });
+            ], static fn ($value): bool => $value !== null);
 
             $cartTotal += ($cartItem->getProduct()->getPrice() * $cartItem->getQuantity());
         }
@@ -84,9 +76,7 @@ class CreateOrder extends Request
                 'term' => $this->order->getLoanParameters()->getTerm(),
                 'type' => $this->order->getLoanParameters()->getType(),
                 'allowedProductTypes' => $this->order->getLoanParameters()->getAllowedProductTypes(),
-            ], static function ($value) : bool {
-                return $value !== null;
-            }),
+            ], static fn ($value): bool => $value !== null),
 
             // Cart with list of products
             'cart' => array_filter([
@@ -94,9 +84,7 @@ class CreateOrder extends Request
                 'totalAmount' => $cart->getTotalAmount(),
                 'deliveryCost' => $cart->getDeliveryCost(),
                 'category' => $cart->getCategory(),
-            ], static function ($value) : bool {
-                return $value !== null;
-            }),
+            ], static fn ($value): bool => $value !== null),
 
             // Customer data (mandatory)
             'customer' => array_filter([
@@ -111,31 +99,23 @@ class CreateOrder extends Request
 
                 // Customer address (optional)
                 'address' => count($address = array_filter([
-                    'street' => ($nullsafeVariable1 = $customer->getAddress()) ? $nullsafeVariable1->getStreet() : null,
-                    'buildingNumber' => ($nullsafeVariable2 = $customer->getAddress()) ? $nullsafeVariable2->getBuildingNumber() : null,
-                    'apartmentNumber' => ($nullsafeVariable3 = $customer->getAddress()) ? $nullsafeVariable3->getApartmentNumber() : null,
-                    'postalCode' => ($nullsafeVariable4 = $customer->getAddress()) ? $nullsafeVariable4->getPostalCode() : null,
-                    'city' => ($nullsafeVariable5 = $customer->getAddress()) ? $nullsafeVariable5->getCity() : null,
-                    'countryCode' => ($nullsafeVariable6 = $customer->getAddress()) ? $nullsafeVariable6->getCountryCode() : null,
-                ], static function ($value) : bool {
-                    return $value !== null;
-                })) ? $address : null,
-            ], static function ($value) : bool {
-                return $value !== null;
-            }),
+                    'street' => $customer->getAddress()?->getStreet(),
+                    'buildingNumber' => $customer->getAddress()?->getBuildingNumber(),
+                    'apartmentNumber' => $customer->getAddress()?->getApartmentNumber(),
+                    'postalCode' => $customer->getAddress()?->getPostalCode(),
+                    'city' => $customer->getAddress()?->getCity(),
+                    'countryCode' => $customer->getAddress()?->getCountryCode(),
+                ], static fn ($value): bool => $value !== null)) ? $address : null,
+            ], static fn ($value): bool => $value !== null),
 
             // Seller data (optional)
             'seller' => count($seller = array_filter([
-                'taxId' => ($nullsafeVariable7 = $this->order->getSeller()) ? $nullsafeVariable7->getTaxId() : null
-            ], static function ($value) : bool {
-                return $value !== null;
-            })) ? $seller : null,
+                'taxId' => $this->order->getSeller()?->getTaxId()
+            ], static fn ($value): bool => $value !== null)) ? $seller : null,
 
             // Extra data (optional)
             'accountNumber' => $this->order->getAccountNumber(),
             'transferTitle' => $this->order->getTransferTitle(),
-        ], static function ($value) : bool {
-            return $value !== null;
-        });
+        ], static fn ($value): bool => $value !== null);
     }
 }

@@ -2,26 +2,20 @@
 
 namespace Comfino\Api\Dto\Order\Customer;
 
-class Address
+readonly class Address
 {
-    /** @var string|null
-     * @readonly */
-    public $street;
-    /** @var string|null
-     * @readonly */
-    public $buildingNumber;
-    /** @var string|null
-     * @readonly */
-    public $apartmentNumber;
-    /** @var string|null
-     * @readonly */
-    public $postalCode;
-    /** @var string|null
-     * @readonly */
-    public $city;
-    /** @var string|null
-     * @readonly */
-    public $countryCode;
+    /** @var string|null */
+    public ?string $street;
+    /** @var string|null */
+    public ?string $buildingNumber;
+    /** @var string|null */
+    public ?string $apartmentNumber;
+    /** @var string|null */
+    public ?string $postalCode;
+    /** @var string|null */
+    public ?string $city;
+    /** @var string|null */
+    public ?string $countryCode;
 
     /**
      * @param string|null $street

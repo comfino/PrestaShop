@@ -10,38 +10,26 @@ use Comfino\Api\Exception\ResponseValidationError;
 
 class GetOrder extends Base
 {
-    /** @var string
-     * @readonly */
-    public $orderId;
-    /** @var string
-     * @readonly */
-    public $status;
-    /** @var \DateTime|null
-     * @readonly */
-    public $createdAt;
-    /** @var string
-     * @readonly */
-    public $applicationUrl;
-    /** @var string
-     * @readonly */
-    public $notifyUrl;
-    /** @var string
-     * @readonly */
-    public $returnUrl;
-    /** @var LoanParameters
-     * @readonly */
-    public $loanParameters;
-    /** @var Cart
-     * @readonly */
-    public $cart;
-    /** @var Customer
-     * @readonly */
-    public $customer;
+    /** @var string */
+    public readonly string $orderId;
+    /** @var string */
+    public readonly string $status;
+    /** @var \DateTime|null */
+    public readonly ?\DateTime $createdAt;
+    /** @var string */
+    public readonly string $applicationUrl;
+    /** @var string */
+    public readonly string $notifyUrl;
+    /** @var string */
+    public readonly string $returnUrl;
+    /** @var LoanParameters */
+    public readonly LoanParameters $loanParameters;
+    /** @var Cart */
+    public readonly Cart $cart;
+    /** @var Customer */
+    public readonly Customer $customer;
 
-    /**
-     * @param mixed[]|string|bool|null $deserializedResponseBody
-     */
-    protected function processResponseBody($deserializedResponseBody): void
+    protected function processResponseBody(array|string|bool|null $deserializedResponseBody): void
     {
         if (!is_array($deserializedResponseBody)) {
             throw new ResponseValidationError('Invalid response data: array expected.');
@@ -49,7 +37,7 @@ class GetOrder extends Base
 
         try {
             $createdAt = new \DateTime($deserializedResponseBody['createdAt']);
-        } catch (\Exception $exception)  {
+        } catch (\Exception)  {
             $createdAt = null;
         }
 
@@ -66,9 +54,7 @@ class GetOrder extends Base
             $deserializedResponseBody['loanParameters']['term'],
             LoanTypeEnum::from($deserializedResponseBody['loanParameters']['type']),
             $deserializedResponseBody['loanParameters']['allowedProductTypes'] !== null ? array_map(
-                static function (string $productType) : LoanTypeEnum {
-                    return LoanTypeEnum::from($productType);
-                },
+                static fn (string $productType): LoanTypeEnum => LoanTypeEnum::from($productType),
                 $deserializedResponseBody['loanParameters']['allowedProductTypes']
             ) : null
         );
@@ -78,17 +64,15 @@ class GetOrder extends Base
             $deserializedResponseBody['cart']['deliveryCost'],
             $deserializedResponseBody['cart']['category'],
             array_map(
-                static function (array $cartItem) : Cart\CartItem {
-                    return new Cart\CartItem(
-                        $cartItem['name'],
-                        $cartItem['price'],
-                        $cartItem['quantity'],
-                        $cartItem['externalId'],
-                        $cartItem['photoUrl'],
-                        $cartItem['ean'],
-                        $cartItem['category']
-                    );
-                },
+                static fn (array $cartItem): Cart\CartItem => new Cart\CartItem(
+                    $cartItem['name'],
+                    $cartItem['price'],
+                    $cartItem['quantity'],
+                    $cartItem['externalId'],
+                    $cartItem['photoUrl'],
+                    $cartItem['ean'],
+                    $cartItem['category']
+                ),
                 $deserializedResponseBody['cart']['products']
             )
         );

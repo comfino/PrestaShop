@@ -41,14 +41,14 @@ class Client extends \Comfino\Api\Client
      * @param ShopPluginError $shopPluginError
      * @return bool
      */
-    public function sendLoggedError($shopPluginError): bool
+    public function sendLoggedError(ShopPluginError $shopPluginError): bool
     {
         try {
             new BaseApiResponse(
                 $this->sendRequest((new ReportShopPluginError($shopPluginError, $this->getUserAgent()))->setSerializer($this->serializer)),
                 $this->serializer
             );
-        } catch (\Throwable $exception) {
+        } catch (\Throwable) {
             return false;
         }
 
@@ -64,7 +64,7 @@ class Client extends \Comfino\Api\Client
     {
         try {
             $this->sendRequest((new NotifyShopPluginRemoval())->setSerializer($this->serializer));
-        } catch (\Throwable $exception) {
+        } catch (\Throwable) {
             return false;
         }
 
