@@ -67,12 +67,12 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $language = Context::getContext()->language->iso_code;
+        $language = $this->context->language->iso_code;
 
         echo (new PaywallRenderer(
             ApiClient::getInstance(),
             CacheManager::getInstance()->getCacheBucket("paywall_$language", new StorageAdapter("paywall_$language")),
-            new ModuleRendererStrategy($this->module)
+            new ModuleRendererStrategy($this->module, $this->context->smarty)
         ))->renderPaywall(new LoanQueryCriteria($loan_amount, null, null, $allowed_product_types));
 
         exit;

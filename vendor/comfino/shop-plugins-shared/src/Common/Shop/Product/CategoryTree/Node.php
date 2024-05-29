@@ -4,10 +4,22 @@ namespace Comfino\Common\Shop\Product\CategoryTree;
 
 final class Node
 {
-    private int $id;
-    private string $name;
-    private ?Node $parent;
-    private ?NodeIterator $children;
+    /**
+     * @var int
+     */
+    private $id;
+    /**
+     * @var string
+     */
+    private $name;
+    /**
+     * @var \Comfino\Common\Shop\Product\CategoryTree\Node|null
+     */
+    private $parent;
+    /**
+     * @var \Comfino\Common\Shop\Product\CategoryTree\NodeIterator|null
+     */
+    private $children;
 
     public function __construct(int $id, string $name, ?Node $parent = null, ?NodeIterator $children = null)
     {

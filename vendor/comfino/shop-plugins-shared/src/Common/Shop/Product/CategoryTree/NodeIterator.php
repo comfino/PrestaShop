@@ -5,7 +5,7 @@ namespace Comfino\Common\Shop\Product\CategoryTree;
 class NodeIterator implements \Iterator, \Countable
 {
     /** @var Node[]  */
-    private array $nodes;
+    private $nodes;
 
     /**
      * @param Node[] $nodes

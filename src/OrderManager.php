@@ -223,7 +223,7 @@ final class OrderManager
 
         if (is_array($currencies_module)) {
             foreach ($currencies_module as $currency_module) {
-                if ($currency_order->id === $currency_module['id_currency']) {
+                if ((int) $currency_order->id === (int) $currency_module['id_currency']) {
                     return true;
                 }
             }

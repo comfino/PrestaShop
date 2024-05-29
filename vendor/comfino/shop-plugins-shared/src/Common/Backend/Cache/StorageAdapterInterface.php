@@ -5,5 +5,8 @@ namespace Comfino\Common\Backend\Cache;
 interface StorageAdapterInterface
 {
     public function load(): array;
-    public function save(array $cacheData): void;
+    /**
+     * @param mixed[] $cacheData
+     */
+    public function save($cacheData): void;
 }

@@ -6,14 +6,32 @@ use Comfino\Shop\Order\Cart\CartItemInterface;
 
 class Cart
 {
+    /**
+     * @readonly
+     * @var int
+     */
+    private $totalValue;
+    /**
+     * @readonly
+     * @var int
+     */
+    private $deliveryCost;
+    /**
+     * @var CartItemInterface[]
+     * @readonly
+     */
+    private $cartItems;
     /** @var int[]|null  */
-    private ?array $cartCategoryIds = null;
+    private $cartCategoryIds;
 
     /**
      * @param CartItemInterface[] $cartItems
      */
-    public function __construct(private readonly int $totalValue, private readonly int $deliveryCost, private readonly array $cartItems)
+    public function __construct(int $totalValue, int $deliveryCost, array $cartItems)
     {
+        $this->totalValue = $totalValue;
+        $this->deliveryCost = $deliveryCost;
+        $this->cartItems = $cartItems;
     }
 
     public function getTotalValue(): int

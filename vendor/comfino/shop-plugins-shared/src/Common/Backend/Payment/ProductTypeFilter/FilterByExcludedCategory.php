@@ -6,16 +6,32 @@ use Comfino\Common\Backend\Payment\ProductTypeFilterInterface;
 use Comfino\Common\Shop\Cart;
 use Comfino\Common\Shop\Product\CategoryFilter;
 
-readonly class FilterByExcludedCategory implements ProductTypeFilterInterface
+class FilterByExcludedCategory implements ProductTypeFilterInterface
 {
+    /**
+     * @readonly
+     * @var \Comfino\Common\Shop\Product\CategoryFilter
+     */
+    private $categoryFilter;
+    /**
+     * @var int[][]
+     * @readonly
+     */
+    private $excludedCategoryIdsByProductType;
     /**
      * @param int[][] $excludedCategoryIdsByProductType ['PRODUCT_TYPE' => [excluded_category_ids]]
      */
-    public function __construct(private CategoryFilter $categoryFilter, private array $excludedCategoryIdsByProductType)
+    public function __construct(CategoryFilter $categoryFilter, array $excludedCategoryIdsByProductType)
     {
+        $this->categoryFilter = $categoryFilter;
+        $this->excludedCategoryIdsByProductType = $excludedCategoryIdsByProductType;
     }
 
-    public function getAllowedProductTypes(array $availableProductTypes, Cart $cart): array
+    /**
+     * @param mixed[] $availableProductTypes
+     * @param \Comfino\Common\Shop\Cart $cart
+     */
+    public function getAllowedProductTypes($availableProductTypes, $cart): array
     {
         $allowedProductTypes = [];
 

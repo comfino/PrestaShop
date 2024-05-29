@@ -19,7 +19,9 @@ class GetPaywall extends Request
             'productTypes' => $queryCriteria->productTypes,
             'taxId' => $queryCriteria->taxId,
             'viewType' => ($viewType !== null ? (string) $viewType : null),
-        ], static fn ($value): bool => $value !== null));
+        ], static function ($value) : bool {
+            return $value !== null;
+        }));
     }
 
     /**

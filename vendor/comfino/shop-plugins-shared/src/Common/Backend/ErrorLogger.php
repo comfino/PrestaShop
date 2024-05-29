@@ -8,6 +8,36 @@ use Comfino\Extended\Api\Dto\Plugin\ShopPluginError;
 
 final class ErrorLogger
 {
+    /**
+     * @readonly
+     * @var string
+     */
+    private $host;
+    /**
+     * @readonly
+     * @var string
+     */
+    private $platform;
+    /**
+     * @readonly
+     * @var string
+     */
+    private $modulePath;
+    /**
+     * @readonly
+     * @var mixed[]
+     */
+    private $environment;
+    /**
+     * @readonly
+     * @var \Comfino\Extended\Api\Client
+     */
+    private $apiClient;
+    /**
+     * @readonly
+     * @var \Comfino\Common\Backend\Logger\StorageAdapterInterface
+     */
+    private $storageAdapter;
     private const ERROR_TYPES = [
         E_ERROR => 'E_ERROR',
         E_WARNING => 'E_WARNING',
@@ -26,7 +56,10 @@ final class ErrorLogger
         E_USER_DEPRECATED => 'E_USER_DEPRECATED',
     ];
 
-    private static ?self $instance = null;
+    /**
+     * @var $this|null
+     */
+    private static $instance;
 
     public static function getInstance(string $host, string $platform, string $modulePath, array $environment, Client $apiClient, StorageAdapterInterface $storageAdapter): self
     {
@@ -37,14 +70,14 @@ final class ErrorLogger
         return self::$instance;
     }
 
-    private function __construct(
-        private readonly string $host,
-        private readonly string $platform,
-        private readonly string $modulePath,
-        private readonly array $environment,
-        private readonly Client $apiClient,
-        private readonly StorageAdapterInterface $storageAdapter
-    ) {
+    private function __construct(string $host, string $platform, string $modulePath, array $environment, Client $apiClient, StorageAdapterInterface $storageAdapter)
+    {
+        $this->host = $host;
+        $this->platform = $platform;
+        $this->modulePath = $modulePath;
+        $this->environment = $environment;
+        $this->apiClient = $apiClient;
+        $this->storageAdapter = $storageAdapter;
     }
 
     public function sendError(

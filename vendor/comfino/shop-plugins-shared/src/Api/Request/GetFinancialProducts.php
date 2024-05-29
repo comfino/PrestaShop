@@ -23,7 +23,9 @@ class GetFinancialProducts extends Request
             'loanType' => $queryCriteria->loanType,
             'productTypes' => $queryCriteria->productTypes,
             'taxId' => $queryCriteria->taxId,
-        ], static fn ($value): bool => $value !== null));
+        ], static function ($value) : bool {
+            return $value !== null;
+        }));
     }
 
     /**

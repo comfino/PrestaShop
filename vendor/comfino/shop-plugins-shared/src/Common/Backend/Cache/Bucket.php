@@ -7,19 +7,37 @@ use Psr\Cache\CacheItemPoolInterface;
 
 final class Bucket implements CacheItemPoolInterface
 {
-    private ?array $cacheItems = null;
-    private bool $modified = false;
+    /**
+     * @readonly
+     * @var \Comfino\Common\Backend\Cache\StorageAdapterInterface
+     */
+    private $storageAdapter;
+    /**
+     * @var mixed[]|null
+     */
+    private $cacheItems;
+    /**
+     * @var bool
+     */
+    private $modified = false;
 
-    public function __construct(private readonly StorageAdapterInterface $storageAdapter)
+    public function __construct(StorageAdapterInterface $storageAdapter)
     {
+        $this->storageAdapter = $storageAdapter;
     }
 
-    public function getItem(string $key): CacheItemInterface
+    /**
+     * @param string $key
+     */
+    public function getItem($key): CacheItemInterface
     {
         return new Item($this, $key);
     }
 
-    public function getItems(array $keys = []): iterable
+    /**
+     * @param mixed[] $keys
+     */
+    public function getItems($keys = []): iterable
     {
         $items = [];
 
@@ -30,7 +48,10 @@ final class Bucket implements CacheItemPoolInterface
         return $items;
     }
 
-    public function hasItem(string $key): bool
+    /**
+     * @param string $key
+     */
+    public function hasItem($key): bool
     {
         return $this->has($key);
     }
@@ -42,14 +63,20 @@ final class Bucket implements CacheItemPoolInterface
         return true;
     }
 
-    public function deleteItem(string $key): bool
+    /**
+     * @param string $key
+     */
+    public function deleteItem($key): bool
     {
         $this->delete($key);
 
         return true;
     }
 
-    public function deleteItems(array $keys): bool
+    /**
+     * @param mixed[] $keys
+     */
+    public function deleteItems($keys): bool
     {
         foreach ($keys as $key) {
             $this->delete($key);
@@ -58,14 +85,20 @@ final class Bucket implements CacheItemPoolInterface
         return true;
     }
 
-    public function save(CacheItemInterface $item): bool
+    /**
+     * @param \Psr\Cache\CacheItemInterface $item
+     */
+    public function save($item): bool
     {
         $this->persist();
 
         return true;
     }
 
-    public function saveDeferred(CacheItemInterface $item): bool
+    /**
+     * @param \Psr\Cache\CacheItemInterface $item
+     */
+    public function saveDeferred($item): bool
     {
         $this->persist();
 
@@ -77,7 +110,10 @@ final class Bucket implements CacheItemPoolInterface
         return true;
     }
 
-    public function has(string $key): bool
+    /**
+     * @param string $key
+     */
+    public function has($key): bool
     {
         $cache = $this->getCacheItems();
 
@@ -88,7 +124,11 @@ final class Bucket implements CacheItemPoolInterface
         return $cache[$key]['expiresAt'] === 0 || $cache[$key]['expiresAt'] < time();
     }
 
-    public function get(string $key): mixed
+    /**
+     * @param string $key
+     * @return mixed
+     */
+    public function get($key)
     {
         $cache = $this->getCacheItems();
 
@@ -107,7 +147,13 @@ final class Bucket implements CacheItemPoolInterface
         return $cache[$key]['value'];
     }
 
-    public function set(string $key, mixed $value, int $expiresAt = 0, ?array $tags = null): void
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @param int $expiresAt
+     * @param mixed[]|null $tags
+     */
+    public function set($key, $value, $expiresAt = 0, $tags = null): void
     {
         $this->getCacheItems()[$key] = [
             'value' => $value,
@@ -118,14 +164,20 @@ final class Bucket implements CacheItemPoolInterface
         $this->modified = true;
     }
 
-    public function delete(string $key): void
+    /**
+     * @param string $key
+     */
+    public function delete($key): void
     {
         unset($this->getCacheItems()[$key]);
 
         $this->modified = true;
     }
 
-    public function clearCache(?array $tags = null): void
+    /**
+     * @param mixed[]|null $tags
+     */
+    public function clearCache($tags = null): void
     {
         if ($tags === null || count($tags) === 0) {
             $this->cacheItems = [];

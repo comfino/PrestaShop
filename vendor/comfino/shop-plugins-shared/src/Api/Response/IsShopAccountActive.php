@@ -6,13 +6,15 @@ use Comfino\Api\Exception\ResponseValidationError;
 
 class IsShopAccountActive extends Base
 {
-    /** @var bool */
-    public readonly bool $isActive;
+    /** @var bool
+     * @readonly */
+    public $isActive;
 
     /**
      * @inheritDoc
+     * @param mixed[]|string|bool|null $deserializedResponseBody
      */
-    protected function processResponseBody(array|string|bool|null $deserializedResponseBody): void
+    protected function processResponseBody($deserializedResponseBody): void
     {
         if (!is_bool($deserializedResponseBody)) {
             throw new ResponseValidationError('Invalid response data: bool expected.');

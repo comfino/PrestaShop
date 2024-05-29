@@ -23,7 +23,7 @@ abstract class Response
      * @throws AccessDenied
      * @throws ServiceUnavailable
      */
-    final public function initFromPsrResponse(ResponseInterface $response, SerializerInterface $serializer): self
+    final public function initFromPsrResponse($response, $serializer): self
     {
         $response->getBody()->rewind();
         $responseBody = $response->getBody()->getContents();
@@ -67,10 +67,7 @@ abstract class Response
 
                 case 401:
                     throw new AuthorizationError(
-                        $this->getErrorMessage(
-                            $deserializedResponseBody,
-                            "Invalid credentials: {$response->getReasonPhrase()} [{$response->getStatusCode()}]",
-                        ),
+                        $this->getErrorMessage($deserializedResponseBody, "Invalid credentials: {$response->getReasonPhrase()} [{$response->getStatusCode()}]"),
                         0,
                         null,
                         $response->getBody()->getMetadata('uri')
@@ -125,18 +122,23 @@ abstract class Response
      * Fills response object properties with data from deserialized API response array.
      *
      * @throws ResponseValidationError
+     * @param mixed[]|string|bool|null $deserializedResponseBody
      */
-    abstract protected function processResponseBody(array|string|bool|null $deserializedResponseBody): void;
+    abstract protected function processResponseBody($deserializedResponseBody): void;
 
     /**
      * @throws ResponseValidationError
+     * @return mixed[]|bool|string|null
      */
-    private function deserializeResponseBody(string $responseBody, SerializerInterface $serializer): array|string|bool|null
+    private function deserializeResponseBody(string $responseBody, SerializerInterface $serializer)
     {
         return !empty($responseBody) ? $serializer->unserialize($responseBody) : null;
     }
 
-    private function getErrorMessage(array|string|bool|null $deserializedResponseBody, ?string $defaultMessage = null): ?string
+    /**
+     * @param mixed[]|string|bool|null $deserializedResponseBody
+     */
+    private function getErrorMessage($deserializedResponseBody, ?string $defaultMessage = null): ?string
     {
         if (!is_array($deserializedResponseBody)) {
             return null;
@@ -146,7 +148,9 @@ abstract class Response
 
         if (isset($deserializedResponseBody['errors'])) {
             $errorMessages = array_map(
-                static fn (string $errorFieldName, string $errorMessage) => "$errorFieldName: $errorMessage",
+                static function (string $errorFieldName, string $errorMessage) {
+                    return "$errorFieldName: $errorMessage";
+                },
                 array_keys($deserializedResponseBody['errors']),
                 array_values($deserializedResponseBody['errors'])
             );

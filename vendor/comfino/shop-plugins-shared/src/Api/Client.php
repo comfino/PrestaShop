@@ -46,18 +46,46 @@ use Psr\Http\Message\StreamFactoryInterface;
  */
 class Client
 {
+    /**
+     * @var RequestFactoryInterface
+     * @readonly
+     */
+    protected $requestFactory;
+    /**
+     * @var StreamFactoryInterface
+     * @readonly
+     */
+    protected $streamFactory;
+    /**
+     * @var ClientInterface
+     * @readonly
+     */
+    protected $client;
+    /**
+     * @var string|null
+     * @readonly
+     */
+    protected $apiKey;
+    /**
+     * @var int
+     */
+    protected $apiVersion = 1;
+    /**
+     * @var \Comfino\Api\SerializerInterface|null
+     */
+    protected $serializer;
     protected const CLIENT_VERSION = '1.0';
     protected const PRODUCTION_HOST = 'https://api-ecommerce.comfino.pl';
     protected const SANDBOX_HOST = 'https://api-ecommerce.ecraty.pl';
 
     /** @var string */
-    protected string $apiLanguage = 'pl';
+    protected $apiLanguage = 'pl';
     /** @var string|null */
-    protected ?string $customApiHost = null;
+    protected $customApiHost;
     /** @var string|null */
-    protected ?string $customUserAgent = null;
+    protected $customUserAgent;
     /** @var bool */
-    protected bool $isSandboxMode = false;
+    protected $isSandboxMode = false;
 
     /**
      * Comfino API client.
@@ -69,13 +97,19 @@ class Client
      * @param int $apiVersion Selected API version (default: v1)
      */
     public function __construct(
-        protected readonly RequestFactoryInterface $requestFactory,
-        protected readonly StreamFactoryInterface $streamFactory,
-        protected readonly ClientInterface $client,
-        protected readonly ?string $apiKey,
-        protected int $apiVersion = 1,
-        protected ?SerializerInterface $serializer = null
+        RequestFactoryInterface $requestFactory,
+        StreamFactoryInterface $streamFactory,
+        ClientInterface $client,
+        ?string $apiKey,
+        int $apiVersion = 1,
+        ?SerializerInterface $serializer = null
     ) {
+        $this->requestFactory = $requestFactory;
+        $this->streamFactory = $streamFactory;
+        $this->client = $client;
+        $this->apiKey = $apiKey;
+        $this->apiVersion = $apiVersion;
+        $this->serializer = $serializer;
         $this->serializer = $serializer ?? new JsonSerializer();
     }
 
@@ -85,7 +119,7 @@ class Client
      * @param SerializerInterface $serializer
      * @return void
      */
-    public function setSerializer(SerializerInterface $serializer): void
+    public function setSerializer($serializer): void
     {
         $this->serializer = $serializer;
     }
@@ -96,7 +130,7 @@ class Client
      * @param int $version Desired API version.
      * @return void
      */
-    public function setApiVersion(int $version): void
+    public function setApiVersion($version): void
     {
         $this->apiVersion = $version;
     }
@@ -127,7 +161,7 @@ class Client
      * @param string $language Language code (eg: pl, en)
      * @return void
      */
-    public function setApiLanguage(string $language): void
+    public function setApiLanguage($language): void
     {
         $this->apiLanguage = $language;
     }
@@ -148,7 +182,7 @@ class Client
      * @param string|null $host Custom API host
      * @return void
      */
-    public function setCustomApiHost(?string $host): void
+    public function setCustomApiHost($host): void
     {
         $this->customApiHost = $host;
     }
@@ -159,7 +193,7 @@ class Client
      * @param string|null $userAgent
      * @return void
      */
-    public function setCustomUserAgent(?string $userAgent): void
+    public function setCustomUserAgent($userAgent): void
     {
         $this->customUserAgent = $userAgent;
     }
@@ -220,7 +254,7 @@ class Client
      * @throws ServiceUnavailable
      * @throws ClientExceptionInterface
      */
-    public function getFinancialProducts(LoanQueryCriteria $queryCriteria): GetFinancialProductsResponse
+    public function getFinancialProducts($queryCriteria): GetFinancialProductsResponse
     {
         try {
             $request = (new GetFinancialProductsRequest($queryCriteria))->setSerializer($this->serializer);
@@ -247,7 +281,7 @@ class Client
      * @throws ServiceUnavailable
      * @throws ClientExceptionInterface
      */
-    public function createOrder(OrderInterface $order): CreateOrderResponse
+    public function createOrder($order): CreateOrderResponse
     {
         try {
             $request = (new CreateOrderRequest($order))->setSerializer($this->serializer);
@@ -274,7 +308,7 @@ class Client
      * @throws ServiceUnavailable
      * @throws ClientExceptionInterface
      */
-    public function getOrder(string $orderId): GetOrderResponse
+    public function getOrder($orderId): GetOrderResponse
     {
         try {
             $request = (new GetOrderRequest($orderId))->setSerializer($this->serializer);
@@ -300,7 +334,7 @@ class Client
      * @throws ServiceUnavailable
      * @throws ClientExceptionInterface
      */
-    public function cancelOrder(string $orderId): void
+    public function cancelOrder($orderId): void
     {
         try {
             $request = (new CancelOrderRequest($orderId))->setSerializer($this->serializer);
@@ -324,8 +358,9 @@ class Client
      * @throws AccessDenied
      * @throws ServiceUnavailable
      * @throws ClientExceptionInterface
+     * @param \Comfino\FinancialProduct\ProductTypesListTypeEnum $listType
      */
-    public function getProductTypes(ProductTypesListTypeEnum $listType): GetProductTypesResponse
+    public function getProductTypes($listType): GetProductTypesResponse
     {
         try {
             $request = (new GetProductTypesRequest($listType))->setSerializer($this->serializer);
@@ -403,7 +438,7 @@ class Client
      * @throws ServiceUnavailable
      * @throws ClientExceptionInterface
      */
-    public function getPaywall(LoanQueryCriteria $queryCriteria, ?PaywallViewTypeEnum $viewType = null): GetPaywallResponse
+    public function getPaywall($queryCriteria, $viewType = null): GetPaywallResponse
     {
         try {
             $request = (new GetPaywallRequest($queryCriteria, $viewType))->setSerializer($this->serializer);
@@ -447,8 +482,9 @@ class Client
      * @throws RequestValidationError
      * @throws ResponseValidationError
      * @throws ClientExceptionInterface
+     * @param \Comfino\Api\Request $request
      */
-    protected function sendRequest(Request $request): ResponseInterface
+    protected function sendRequest($request): ResponseInterface
     {
         $apiRequest = $request->getPsrRequest(
             $this->requestFactory,

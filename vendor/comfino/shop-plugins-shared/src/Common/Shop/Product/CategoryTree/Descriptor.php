@@ -2,10 +2,15 @@
 
 namespace Comfino\Common\Shop\Product\CategoryTree;
 
-final readonly class Descriptor
+final class Descriptor
 {
-    public NodeIterator $nodes;
+    /**
+     * @readonly
+     * @var \Comfino\Common\Shop\Product\CategoryTree\NodeIterator
+     */
+    public $nodes;
 
-    /** @var Node[]|null */
-    public ?array $index;
+    /** @var Node[]|null
+     * @readonly */
+    public $index;
 }

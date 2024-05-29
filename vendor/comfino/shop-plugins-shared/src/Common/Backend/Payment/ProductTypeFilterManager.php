@@ -7,10 +7,13 @@ use Comfino\Common\Shop\Cart;
 
 final class ProductTypeFilterManager
 {
-    private static ?self $instance = null;
+    /**
+     * @var $this|null
+     */
+    private static $instance;
 
     /** @var ProductTypeFilterInterface[] */
-    private array $filters = [];
+    private $filters = [];
 
     public static function getInstance(): self
     {

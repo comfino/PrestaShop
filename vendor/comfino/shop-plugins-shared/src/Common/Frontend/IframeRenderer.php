@@ -2,10 +2,22 @@
 
 namespace Comfino\Common\Frontend;
 
-final readonly class IframeRenderer
+final class IframeRenderer
 {
-    public function __construct(private string $platformName, private string $platformVersion)
+    /**
+     * @readonly
+     * @var string
+     */
+    private $platformName;
+    /**
+     * @readonly
+     * @var string
+     */
+    private $platformVersion;
+    public function __construct(string $platformName, string $platformVersion)
     {
+        $this->platformName = $platformName;
+        $this->platformVersion = $platformVersion;
     }
 
     public function renderPaywallIframe(string $iframeUrl): string

@@ -49,8 +49,6 @@ if (!defined('COMFINO_VERSION')) {
     define('COMFINO_VERSION', '4.0.0');
 }
 
-require_once 'vendor/autoload.php';
-
 class Comfino extends PaymentModule
 {
     public function __construct()
@@ -89,6 +87,8 @@ class Comfino extends PaymentModule
             'These are installment payments, deferred (buy now, pay later) and corporate ' .
             'payments available on one platform with the help of quick integration. Grow your business with Comfino!'
         );
+
+        require_once __DIR__ . '/vendor/autoload.php';
 
         // Register module API endpoints.
         ApiService::init($this, $this->context);
@@ -160,7 +160,7 @@ class Comfino extends PaymentModule
      */
     public function getContent(): string
     {
-        return TemplateManager::renderModuleView($this, 'configuration', 'admin', SettingsForm::processForm($this));
+        return TemplateManager::renderModuleView($this, $this->smarty, 'configuration', 'admin', SettingsForm::processForm($this));
     }
 
     /**
@@ -252,7 +252,7 @@ class Comfino extends PaymentModule
      */
     public function hookDisplayBackofficeComfinoForm(array $params): string
     {
-        return FormManager::getSettingsForm($this, $params);
+        return FormManager::getSettingsForm($this, $this->smarty, $params);
     }
 
     /**
@@ -397,7 +397,7 @@ class Comfino extends PaymentModule
         /** @var Cart $cart */
         $cart = $params['cart'];
 
-        if (!$this->active || !OrderManager::checkCartCurrency($cart) || empty(ConfigManager::getApiKey())) {
+        if (!$this->active || !OrderManager::checkCartCurrency($this, $cart) || empty(ConfigManager::getApiKey())) {
             return false;
         }
 

@@ -17,6 +17,7 @@ interface RestEndpointInterface
     /**
      * @throws InvalidEndpoint
      * @throws InvalidRequest
+     * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
      */
-    public function processRequest(ServerRequestInterface $serverRequest): ?array;
+    public function processRequest($serverRequest): ?array;
 }

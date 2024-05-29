@@ -7,10 +7,25 @@ use Psr\Cache\InvalidArgumentException;
 
 class Item implements CacheItemInterface
 {
-    private int $expiresAt = 0;
+    /**
+     * @readonly
+     * @var \Comfino\Common\Backend\Cache\Bucket
+     */
+    private $bucket;
+    /**
+     * @readonly
+     * @var string
+     */
+    private $key;
+    /**
+     * @var int
+     */
+    private $expiresAt = 0;
 
-    public function __construct(private readonly Bucket $bucket, private readonly string $key)
+    public function __construct(Bucket $bucket, string $key)
     {
+        $this->bucket = $bucket;
+        $this->key = $key;
     }
 
     public function getKey(): string
@@ -18,7 +33,10 @@ class Item implements CacheItemInterface
         return $this->key;
     }
 
-    public function get(): mixed
+    /**
+     * @return mixed
+     */
+    public function get()
     {
         return $this->bucket->get($this->key);
     }
@@ -31,14 +49,22 @@ class Item implements CacheItemInterface
         return $this->bucket->hasItem($this->key);
     }
 
-    public function set(mixed $value): static
+    /**
+     * @param mixed $value
+     * @return static
+     */
+    public function set($value)
     {
         $this->bucket->set($this->key, $value, $this->expiresAt);
 
         return $this;
     }
 
-    public function expiresAt(?\DateTimeInterface $expiration): static
+    /**
+     * @param \DateTimeInterface|null $expiration
+     * @return static
+     */
+    public function expiresAt($expiration)
     {
         if ($expiration === null) {
             $this->expiresAt = 0;
@@ -49,7 +75,11 @@ class Item implements CacheItemInterface
         return $this;
     }
 
-    public function expiresAfter(\DateInterval|int|null $time): static
+    /**
+     * @param \DateInterval|int|null $time
+     * @return static
+     */
+    public function expiresAfter($time)
     {
         if ($this === null) {
             $this->expiresAt = 0;

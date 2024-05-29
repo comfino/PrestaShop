@@ -23,7 +23,6 @@
             "Comfino\\": "src/"
         },
         "classmap": [
-            "comfino.php"
         ],
         "config": {
             "preferred-install": "dist",

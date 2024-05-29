@@ -7,6 +7,26 @@ use Comfino\Common\Backend\Configuration\StorageAdapterInterface;
 
 final class ConfigurationManager
 {
+    /**
+     * @var int[]
+     * @readonly
+     */
+    private $availConfigOptions;
+    /**
+     * @var string[]
+     * @readonly
+     */
+    private $accessibleConfigOptions;
+    /**
+     * @readonly
+     * @var \Comfino\Common\Backend\Configuration\StorageAdapterInterface
+     */
+    private $storageAdapter;
+    /**
+     * @readonly
+     * @var \Comfino\Api\SerializerInterface
+     */
+    private $serializer;
     // Data types of configuration options as bit masks.
     public const OPT_VALUE_TYPE_STRING = (1 << 0);
     public const OPT_VALUE_TYPE_INT = (1 << 1);
@@ -19,10 +39,22 @@ final class ConfigurationManager
     public const OPT_VALUE_TYPE_FLOAT_ARRAY = self::OPT_VALUE_TYPE_FLOAT | self::OPT_VALUE_TYPE_ARRAY;
     public const OPT_VALUE_TYPE_BOOL_ARRAY = self::OPT_VALUE_TYPE_BOOL | self::OPT_VALUE_TYPE_ARRAY;
 
-    private static ?self $instance = null;
-    private ?array $configuration = null;
-    private array $modified;
-    private bool $loaded = false;
+    /**
+     * @var $this|null
+     */
+    private static $instance;
+    /**
+     * @var mixed[]|null
+     */
+    private $configuration;
+    /**
+     * @var mixed[]
+     */
+    private $modified;
+    /**
+     * @var bool
+     */
+    private $loaded = false;
 
     /**
      * @param int[] $availConfigOptions List of available configuration options with data types as pairs [OPTION_NAME => OPT_VALUE_TYPE].
@@ -46,11 +78,15 @@ final class ConfigurationManager
      * @param string[] $accessibleConfigOptions List of accessible configuration options via REST endpoints.
      */
     private function __construct(
-        private readonly array $availConfigOptions,
-        private readonly array $accessibleConfigOptions,
-        private readonly StorageAdapterInterface $storageAdapter,
-        private readonly SerializerInterface $serializer
+        array $availConfigOptions,
+        array $accessibleConfigOptions,
+        StorageAdapterInterface $storageAdapter,
+        SerializerInterface $serializer
     ) {
+        $this->availConfigOptions = $availConfigOptions;
+        $this->accessibleConfigOptions = $accessibleConfigOptions;
+        $this->storageAdapter = $storageAdapter;
+        $this->serializer = $serializer;
         $this->modified = array_combine($availConfigOptions, array_fill(0, count($availConfigOptions), false));
     }
 
@@ -69,7 +105,10 @@ final class ConfigurationManager
         $this->setConfigurationValues($configurationOptions, $this->accessibleConfigOptions);
     }
 
-    public function getConfigurationValue(string $optionName): mixed
+    /**
+     * @return mixed
+     */
+    public function getConfigurationValue(string $optionName)
     {
         return $this->getConfiguration()[$optionName] ?? null;
     }
@@ -82,7 +121,10 @@ final class ConfigurationManager
         return array_intersect_key($this->getConfiguration(), array_flip($optionNames));
     }
 
-    public function setConfigurationValue(string $optionName, mixed $optionValue): void
+    /**
+     * @param mixed $optionValue
+     */
+    public function setConfigurationValue(string $optionName, $optionValue): void
     {
         if (isset($this->availConfigOptions[$optionName])) {
             $this->getConfiguration()[$optionName] = $optionValue;
@@ -108,6 +150,10 @@ final class ConfigurationManager
     {
         if ($this->configuration !== null && count($optionsToSave = array_intersect_key($this->configuration, array_filter($this->modified)))) {
             foreach ($optionsToSave as $optionName => &$optionValue) {
+                if (($this->availConfigOptions[$optionName] & self::OPT_VALUE_TYPE_STRING) && is_string($optionValue)) {
+                    $optionValue = trim($optionValue);
+                }
+
                 if (($this->availConfigOptions[$optionName] & self::OPT_VALUE_TYPE_ARRAY) && is_array($optionValue)) {
                     $optionValue = implode(',', $optionValue);
                 } elseif ($this->availConfigOptions[$optionName] & self::OPT_VALUE_TYPE_JSON) {
@@ -150,10 +196,12 @@ final class ConfigurationManager
                 switch ($this->availConfigOptions[$optionName] & (~self::OPT_VALUE_TYPE_ARRAY)) {
                     case self::OPT_VALUE_TYPE_STRING:
                         if ($this->availConfigOptions[$optionName] & self::OPT_VALUE_TYPE_ARRAY) {
-                            $this->configuration[$optionName] = array_map(
-                                static fn ($value): string => (string) $value,
-                                explode(',', $this->configuration[$optionName])
-                            );
+                            $this->configuration[$optionName] = (!empty($optionValue) ? array_map(
+                                static function ($value) : string {
+                                    return (string) $value;
+                                },
+                                explode(',', $optionValue)
+                            ) : []);
                         } else {
                             $this->configuration[$optionName] = (string) $optionValue;
                         }
@@ -162,10 +210,12 @@ final class ConfigurationManager
 
                     case self::OPT_VALUE_TYPE_INT:
                         if ($this->availConfigOptions[$optionName] & self::OPT_VALUE_TYPE_ARRAY) {
-                            $this->configuration[$optionName] = array_map(
-                                static fn ($value): int => (int) $value,
-                                explode(',', $this->configuration[$optionName])
-                            );
+                            $this->configuration[$optionName] = (!empty($optionValue) ? array_map(
+                                static function ($value) : int {
+                                    return (int) $value;
+                                },
+                                explode(',', $optionValue)
+                            ) : []);
                         } else {
                             $this->configuration[$optionName] = (int) $optionValue;
                         }
@@ -174,10 +224,12 @@ final class ConfigurationManager
 
                     case self::OPT_VALUE_TYPE_FLOAT:
                         if ($this->availConfigOptions[$optionName] & self::OPT_VALUE_TYPE_ARRAY) {
-                            $this->configuration[$optionName] = array_map(
-                                static fn ($value): float => (float) $value,
-                                explode(',', $this->configuration[$optionName])
-                            );
+                            $this->configuration[$optionName] = (!empty($optionValue) ? array_map(
+                                static function ($value) : float {
+                                    return (float) $value;
+                                },
+                                explode(',', $optionValue)
+                            ) : []);
                         } else {
                             $this->configuration[$optionName] = (float) $optionValue;
                         }
@@ -186,10 +238,12 @@ final class ConfigurationManager
 
                     case self::OPT_VALUE_TYPE_BOOL:
                         if ($this->availConfigOptions[$optionName] & self::OPT_VALUE_TYPE_ARRAY) {
-                            $this->configuration[$optionName] = array_map(
-                                static fn ($value): bool => (bool) $value,
-                                explode(',', $this->configuration[$optionName])
-                            );
+                            $this->configuration[$optionName] = (!empty($optionValue) ? array_map(
+                                static function ($value) : bool {
+                                    return (bool) $value;
+                                },
+                                explode(',', $optionValue)
+                            ) : []);
                         } else {
                             $this->configuration[$optionName] = (bool) $optionValue;
                         }

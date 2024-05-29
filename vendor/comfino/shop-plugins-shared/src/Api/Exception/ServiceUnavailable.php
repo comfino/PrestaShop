@@ -5,11 +5,11 @@ namespace Comfino\Api\Exception;
 class ServiceUnavailable extends \RuntimeException
 {
     /** @var string */
-    private string $url;
+    private $url;
     /** @var string */
-    private string $requestBody;
+    private $requestBody;
     /** @var string */
-    private string $responseBody;
+    private $responseBody;
 
     public function __construct(string $message = '', int $code = 0, ?\Throwable $previous = null, string $url = '', string $requestBody = '', string $responseBody = '')
     {
@@ -25,7 +25,10 @@ class ServiceUnavailable extends \RuntimeException
         return $this->url;
     }
 
-    public function setUrl(string $url): void
+    /**
+     * @param string $url
+     */
+    public function setUrl($url): void
     {
         $this->url = $url;
     }
@@ -35,7 +38,10 @@ class ServiceUnavailable extends \RuntimeException
         return $this->requestBody;
     }
 
-    public function setRequestBody(string $requestBody): void
+    /**
+     * @param string $requestBody
+     */
+    public function setRequestBody($requestBody): void
     {
         $this->requestBody = $requestBody;
     }
@@ -45,7 +51,10 @@ class ServiceUnavailable extends \RuntimeException
         return $this->responseBody;
     }
 
-    public function setResponseBody(string $responseBody): void
+    /**
+     * @param string $responseBody
+     */
+    public function setResponseBody($responseBody): void
     {
         $this->responseBody = $responseBody;
     }

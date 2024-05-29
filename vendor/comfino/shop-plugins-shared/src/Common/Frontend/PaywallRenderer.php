@@ -15,15 +15,30 @@ use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Http\Client\ClientExceptionInterface;
 
-final readonly class PaywallRenderer
+final class PaywallRenderer
 {
+    /**
+     * @readonly
+     * @var \Comfino\Api\Client
+     */
+    private $client;
+    /**
+     * @readonly
+     * @var \Psr\Cache\CacheItemPoolInterface
+     */
+    private $cache;
+    /**
+     * @readonly
+     * @var \Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface
+     */
+    private $rendererStrategy;
     private const PAYWALL_GUI_FRAGMENTS = ['template', 'style', 'script', 'frontend_style', 'frontend_script'];
 
-    public function __construct(
-        private Client $client,
-        private CacheItemPoolInterface $cache,
-        private RendererStrategyInterface $rendererStrategy
-    ) {
+    public function __construct(Client $client, CacheItemPoolInterface $cache, RendererStrategyInterface $rendererStrategy)
+    {
+        $this->client = $client;
+        $this->cache = $cache;
+        $this->rendererStrategy = $rendererStrategy;
     }
 
     public function renderPaywall(LoanQueryCriteria $queryCriteria): string
@@ -38,7 +53,7 @@ final readonly class PaywallRenderer
                 if ($this->cache->getItem($itemKey)->isHit()) {
                     $fragments[$fragmentName] = $this->cache->getItem($itemKey)->get();
                 }
-            } catch (InvalidArgumentException) {
+            } catch (InvalidArgumentException $exception) {
             }
         }
 

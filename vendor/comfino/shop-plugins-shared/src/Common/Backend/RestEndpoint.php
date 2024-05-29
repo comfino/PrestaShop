@@ -6,10 +6,25 @@ use Psr\Http\Message\ServerRequestInterface;
 
 abstract class RestEndpoint implements RestEndpointInterface
 {
-    protected array $methods;
+    /**
+     * @readonly
+     * @var string
+     */
+    private $name;
+    /**
+     * @readonly
+     * @var string
+     */
+    private $endpointUrl;
+    /**
+     * @var mixed[]
+     */
+    protected $methods;
 
-    public function __construct(private readonly string $name, private readonly string $endpointUrl)
+    public function __construct(string $name, string $endpointUrl)
     {
+        $this->name = $name;
+        $this->endpointUrl = $endpointUrl;
     }
 
     public function getName(): string
@@ -27,7 +42,10 @@ abstract class RestEndpoint implements RestEndpointInterface
         return $this->endpointUrl;
     }
 
-    protected function endpointPathMatch(ServerRequestInterface $serverRequest): bool
+    /**
+     * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
+     */
+    protected function endpointPathMatch($serverRequest): bool
     {
         return $serverRequest->getUri()->getPath() === parse_url($this->endpointUrl, PHP_URL_PATH) &&
             in_array($serverRequest->getMethod(), $this->methods, true);

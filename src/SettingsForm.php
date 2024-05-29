@@ -223,7 +223,7 @@ final class SettingsForm
         ];
     }
 
-    public static function getFormFields(\PaymentModule $module, array $params): array
+    public static function getFormFields(\PaymentModule $module, \Smarty_Data $smarty, array $params): array
     {
         $fields = [];
         $config_tab = $params['config_tab'] ?? '';
@@ -314,6 +314,7 @@ final class SettingsForm
                         'required' => false,
                         'html_content' => self::renderCategoryTree(
                             $module,
+                            $smarty,
                             'product_categories',
                             $prod_type_code,
                             $selected_categories
@@ -579,12 +580,14 @@ final class SettingsForm
      */
     private static function renderCategoryTree(
         \PaymentModule $module,
+        \Smarty_Data $smarty,
         string $tree_id,
         string $product_type,
         array $selected_categories
     ): string {
-        return TemplateManager::render(
+        return TemplateManager::renderModuleView(
             $module,
+            $smarty,
             'product_category_filter',
             'admin/_configure',
             [

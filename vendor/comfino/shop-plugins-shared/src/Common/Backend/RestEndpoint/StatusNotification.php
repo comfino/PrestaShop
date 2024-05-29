@@ -10,13 +10,31 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class StatusNotification extends RestEndpoint
 {
+    /**
+     * @readonly
+     * @var \Comfino\Common\Shop\Order\StatusManager
+     */
+    private $statusManager;
+    /**
+     * @readonly
+     * @var mixed[]
+     */
+    private $forbiddenStatuses;
+    /**
+     * @readonly
+     * @var mixed[]
+     */
+    private $ignoredStatuses;
     public function __construct(
         string $name,
         string $endpointUrl,
-        private readonly StatusManager $statusManager,
-        private readonly array $forbiddenStatuses,
-        private readonly array $ignoredStatuses
+        StatusManager $statusManager,
+        array $forbiddenStatuses,
+        array $ignoredStatuses
     ) {
+        $this->statusManager = $statusManager;
+        $this->forbiddenStatuses = $forbiddenStatuses;
+        $this->ignoredStatuses = $ignoredStatuses;
         parent::__construct($name, $endpointUrl);
 
         $this->methods = ['POST', 'PUT', 'PATCH'];
@@ -24,8 +42,9 @@ final class StatusNotification extends RestEndpoint
 
     /**
      * @inheritDoc
+     * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
      */
-    public function processRequest(ServerRequestInterface $serverRequest): ?array
+    public function processRequest($serverRequest): ?array
     {
         if (!$this->endpointPathMatch($serverRequest)) {
             throw new InvalidEndpoint('Endpoint path does not match request path.');

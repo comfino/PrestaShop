@@ -12,18 +12,33 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class FrontendNotification extends RestEndpoint
 {
+    /**
+     * @readonly
+     * @var \Comfino\Common\Backend\CacheManager
+     */
+    private $cacheManager;
+    /**
+     * @readonly
+     * @var \Comfino\Common\Backend\Cache\StorageAdapterInterface
+     */
+    private $storageAdapter;
     public function __construct(
         string $name,
         string $endpointUrl,
-        private readonly CacheManager $cacheManager,
-        private readonly StorageAdapterInterface $storageAdapter
+        CacheManager $cacheManager,
+        StorageAdapterInterface $storageAdapter
     ) {
+        $this->cacheManager = $cacheManager;
+        $this->storageAdapter = $storageAdapter;
         parent::__construct($name, $endpointUrl);
 
         $this->methods = ['POST', 'PUT', 'PATCH'];
     }
 
-    public function processRequest(ServerRequestInterface $serverRequest): ?array
+    /**
+     * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
+     */
+    public function processRequest($serverRequest): ?array
     {
         if (!$this->endpointPathMatch($serverRequest)) {
             throw new InvalidEndpoint('Endpoint path does not match request path.');

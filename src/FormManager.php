@@ -38,7 +38,7 @@ final class FormManager
 {
     private const ERROR_LOG_NUM_LINES = 100;
 
-    public static function getSettingsForm(\PaymentModule $module, array $params): string
+    public static function getSettingsForm(\PaymentModule $module, \Smarty_Data $smarty, array $params): string
     {
         $config_tab = $params['config_tab'] ?? '';
         $form_name = $params['form_name'] ?? 'submit_configuration';
@@ -87,14 +87,14 @@ final class FormManager
 
                 $info_messages[] = sprintf(
                     'PrestaShop Comfino %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
-                    ...ConfigManager::getEnvironmentInfo([
+                    ...array_values(ConfigManager::getEnvironmentInfo([
                         'plugin_version',
                         'shop_version',
                         'symfony_version',
                         'php_version',
                         'server_software',
                         'database_version',
-                    ])
+                    ]))
                 );
 
                 if ($sandbox_mode = ConfigManager::isSandboxMode()) {
@@ -153,7 +153,7 @@ final class FormManager
             $params['messages'] = $messages;
         }
 
-        return $helper->generateForm(SettingsForm::getFormFields($module, $params));
+        return $helper->generateForm(SettingsForm::getFormFields($module, $smarty, $params));
     }
 
     private static function getHelperForm(

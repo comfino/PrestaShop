@@ -4,5 +4,9 @@ namespace Comfino\Common\Shop;
 
 interface OrderStatusAdapterInterface
 {
-    public function setStatus(string $orderId, string $status): void;
+    /**
+     * @param string $orderId
+     * @param string $status
+     */
+    public function setStatus($orderId, $status): void;
 }

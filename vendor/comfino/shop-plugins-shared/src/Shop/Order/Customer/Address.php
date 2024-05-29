@@ -5,17 +5,17 @@ namespace Comfino\Shop\Order\Customer;
 class Address implements AddressInterface
 {
     /** @var string|null */
-    private ?string $street;
+    private $street;
     /** @var string|null */
-    private ?string $buildingNumber;
+    private $buildingNumber;
     /** @var string|null */
-    private ?string $apartmentNumber;
+    private $apartmentNumber;
     /** @var string|null */
-    private ?string $postalCode;
+    private $postalCode;
     /** @var string|null */
-    private ?string $city;
+    private $city;
     /** @var string|null */
-    private ?string $countryCode;
+    private $countryCode;
 
     /**
      * @param string|null $street
