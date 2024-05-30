@@ -412,7 +412,7 @@ class Comfino extends PaymentModule
     private function preparePaywallIframe(): string
     {
         return (new IframeRenderer('PrestaShop', _PS_VERSION_))->renderPaywallIframe(
-            $this->context->link->getModuleLink($this->name, 'availableoffertypes', [], true)
+            $this->context->link->getModuleLink($this->name, 'paywall', [], true)
         );
     }
 }

@@ -7,6 +7,7 @@ use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 abstract class Response
@@ -14,6 +15,7 @@ abstract class Response
     /**
      * Extracts API response data from input PSR-7 compatible HTTP response object.
      *
+     * @param Request $request
      * @param ResponseInterface $response
      * @param SerializerInterface $serializer
      * @return Response
@@ -23,7 +25,7 @@ abstract class Response
      * @throws AccessDenied
      * @throws ServiceUnavailable
      */
-    final public function initFromPsrResponse($response, $serializer): self
+    final public function initFromPsrResponse($request, $response, $serializer): self
     {
         $response->getBody()->rewind();
         $responseBody = $response->getBody()->getContents();
@@ -32,7 +34,7 @@ abstract class Response
             try {
                 $deserializedResponseBody = $this->deserializeResponseBody($responseBody, $serializer);
             } catch (ResponseValidationError $e) {
-                $e->setUrl($response->getBody()->getMetadata('uri'));
+                $e->setUrl($request->getRequestUri());
                 $e->setResponseBody($responseBody);
 
                 throw $e;
@@ -46,7 +48,7 @@ abstract class Response
                 "Comfino API service is unavailable: {$response->getReasonPhrase()} [{$response->getStatusCode()}]",
                 0,
                 null,
-                $response->getBody()->getMetadata('uri'),
+                $request->getRequestUri(),
                 '',
                 $responseBody
             );
@@ -62,7 +64,7 @@ abstract class Response
                         ),
                         0,
                         null,
-                        $response->getBody()->getMetadata('uri')
+                        $request->getRequestUri()
                     );
 
                 case 401:
@@ -70,7 +72,7 @@ abstract class Response
                         $this->getErrorMessage($deserializedResponseBody, "Invalid credentials: {$response->getReasonPhrase()} [{$response->getStatusCode()}]"),
                         0,
                         null,
-                        $response->getBody()->getMetadata('uri')
+                        $request->getRequestUri()
                     );
 
                 case 402:
@@ -84,7 +86,7 @@ abstract class Response
                         ),
                         0,
                         null,
-                        $response->getBody()->getMetadata('uri')
+                        $request->getRequestUri()
                     );
 
                 default:
@@ -92,7 +94,7 @@ abstract class Response
                         "Invalid request data: {$response->getReasonPhrase()} [{$response->getStatusCode()}]",
                         0,
                         null,
-                        $response->getBody()->getMetadata('uri')
+                        $request->getRequestUri()
                     );
             }
         }
@@ -102,14 +104,14 @@ abstract class Response
                 $errorMessage,
                 0,
                 null,
-                $response->getBody()->getMetadata('uri')
+                $request->getRequestUri()
             );
         }
 
         try {
             $this->processResponseBody($deserializedResponseBody);
         } catch (ResponseValidationError $e) {
-            $e->setUrl($response->getBody()->getMetadata('uri'));
+            $e->setUrl($request->getRequestUri());
             $e->setResponseBody($responseBody);
 
             throw $e;
@@ -141,7 +143,7 @@ abstract class Response
     private function getErrorMessage($deserializedResponseBody, ?string $defaultMessage = null): ?string
     {
         if (!is_array($deserializedResponseBody)) {
-            return null;
+            return $defaultMessage;
         }
 
         $errorMessages = [];
