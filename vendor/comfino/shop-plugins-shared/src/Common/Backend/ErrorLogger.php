@@ -88,8 +88,7 @@ final class ErrorLogger
         ?string $apiRequest = null,
         ?string $apiResponse = null,
         ?string $stackTrace = null
-    ): void
-    {
+    ): void {
         if (preg_match('/Error .*in \/|Exception .*in \//', $errorMessage) && strpos($errorMessage, $this->modulePath) === false
         ) {
             // Ignore all errors and exceptions outside the plugin code.
@@ -142,7 +141,7 @@ final class ErrorLogger
         }
     }
 
-    public function getErrorLog(string $logFilePath, int $numLines)
+    public function getErrorLog(string $logFilePath, int $numLines): string
     {
         $errorsLog = '';
 

@@ -2,19 +2,12 @@
 
 namespace Comfino\Extended\Api;
 
-use Comfino\Api\Exception\AccessDenied;
-use Comfino\Api\Exception\AuthorizationError;
-use Comfino\Api\Exception\RequestValidationError;
-use Comfino\Api\Exception\ResponseValidationError;
-use Comfino\Api\Exception\ServiceUnavailable;
-use Comfino\Api\Request\CancelOrder as CancelOrderRequest;
 use Comfino\Api\Response\Base as BaseApiResponse;
 use Comfino\Api\SerializerInterface;
 use Comfino\Extended\Api\Dto\Plugin\ShopPluginError;
 use Comfino\Extended\Api\Request\NotifyShopPluginRemoval;
 use Comfino\Extended\Api\Request\ReportShopPluginError;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
-use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;

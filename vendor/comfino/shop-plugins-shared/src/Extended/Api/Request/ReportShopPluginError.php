@@ -47,9 +47,11 @@ class ReportShopPluginError extends Request
             throw new RequestValidationError('Error report preparation failed.');
         }
 
+        $encodedErrorDetails = base64_encode($errorDetails);
+
         return [
-            'error_details' => base64_encode($errorDetails),
-            'hash' => hash_hmac('sha256', $errorDetails, $this->hashKey),
+            'error_details' => $encodedErrorDetails,
+            'hash' => hash_hmac('sha3-256', $encodedErrorDetails, $this->hashKey),
         ];
     }
 }

@@ -34,7 +34,7 @@ final class TemplateManager
 {
     public static function renderModuleView(
         \PaymentModule $module,
-        \Smarty_data $smarty,
+        \Smarty $smarty,
         string $name,
         string $path,
         array $variables = []

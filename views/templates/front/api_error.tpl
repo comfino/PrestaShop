@@ -29,4 +29,4 @@
 <p>Request:</p>
 <code>{$request_body|escape:"htmlall":"UTF-8"}</code>
 <p>Response:</p>
-<code>$response_body|escape:"htmlall":"UTF-8"}</code>{
+<code>{$response_body|escape:"htmlall":"UTF-8"}</code>
