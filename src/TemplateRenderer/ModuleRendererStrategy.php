@@ -26,8 +26,14 @@
 
 namespace Comfino\TemplateRenderer;
 
+use Comfino\Api\Exception\AccessDenied;
+use Comfino\Api\Exception\AuthorizationError;
+use Comfino\Api\Exception\RequestValidationError;
+use Comfino\Api\Exception\ResponseValidationError;
+use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
 use Comfino\TemplateManager;
+use Psr\Http\Client\NetworkExceptionInterface;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -37,10 +43,10 @@ class ModuleRendererStrategy implements RendererStrategyInterface
 {
     /** @var \PaymentModule */
     private $module;
-    /** @var \Smarty_Data */
+    /** @var \Smarty */
     private $smarty;
 
-    public function __construct(\PaymentModule $module, \Smarty_Data $smarty)
+    public function __construct(\PaymentModule $module, \Smarty $smarty)
     {
         $this->module = $module;
         $this->smarty = $smarty;
@@ -53,12 +59,45 @@ class ModuleRendererStrategy implements RendererStrategyInterface
 
     public function renderErrorTemplate($exception): string
     {
+        if ($exception instanceof RequestValidationError || $exception instanceof ResponseValidationError
+            || $exception instanceof AuthorizationError || $exception instanceof AccessDenied
+            || $exception instanceof ServiceUnavailable
+        ) {
+            $url = $exception->getUrl();
+            $request_body = $exception->getRequestBody();
+
+            if ($exception instanceof ResponseValidationError || $exception instanceof ServiceUnavailable) {
+                $response_body = $exception->getResponseBody();
+            } else {
+                $response_body = '';
+            }
+
+            $template_name = 'api_error';
+        } elseif ($exception instanceof NetworkExceptionInterface) {
+            $exception->getRequest()->getBody()->rewind();
+
+            $url = $exception->getRequest()->getRequestTarget();
+            $request_body = $exception->getRequest()->getBody()->getContents();
+            $response_body = '';
+            $template_name = 'api_error';
+        } else {
+            $url = '';
+            $request_body = '';
+            $response_body = '';
+            $template_name = 'error';
+        }
+
         return TemplateManager::renderModuleView(
             $this->module,
             $this->smarty,
-            'error',
+            $template_name,
             'front',
-            ['error' => $exception->getMessage()]
+            [
+                'error_message' => $exception->getMessage(),
+                'url' => $url,
+                'request_body' => $request_body,
+                'response_body' => $response_body,
+            ]
         );
     }
 }

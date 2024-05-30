@@ -93,23 +93,28 @@ final class ApiClient
 
     public static function processApiError(string $errorPrefix, \Throwable $exception): void
     {
-        if ($exception instanceof RequestValidationError | $exception instanceof ResponseValidationError
-            | $exception instanceof AuthorizationError | $exception instanceof AccessDenied
-            | $exception instanceof ServiceUnavailable
+        if ($exception instanceof RequestValidationError || $exception instanceof ResponseValidationError
+            || $exception instanceof AuthorizationError || $exception instanceof AccessDenied
+            || $exception instanceof ServiceUnavailable
         ) {
             $url = $exception->getUrl();
-            $requestBody = $exception->getRequestBody();
-            $responseBody = $exception->getResponseBody();
+            $request_body = $exception->getRequestBody();
+
+            if ($exception instanceof ResponseValidationError || $exception instanceof ServiceUnavailable) {
+                $response_body = $exception->getResponseBody();
+            } else {
+                $response_body = null;
+            }
         } elseif ($exception instanceof NetworkExceptionInterface) {
             $exception->getRequest()->getBody()->rewind();
 
             $url = $exception->getRequest()->getRequestTarget();
-            $requestBody = $exception->getRequest()->getBody()->getContents();
-            $responseBody = '';
+            $request_body = $exception->getRequest()->getBody()->getContents();
+            $response_body = null;
         } else {
-            $url = '';
-            $requestBody = '';
-            $responseBody = '';
+            $url = null;
+            $request_body = null;
+            $response_body = null;
         }
 
         ErrorLogger::sendError(
@@ -117,8 +122,8 @@ final class ApiClient
             $exception->getCode(),
             $exception->getMessage(),
             $url !== '' ? $url : null,
-            $requestBody !== '' ? $requestBody : null,
-            $responseBody !== '' ? $responseBody : null,
+            $request_body !== '' ? $request_body : null,
+            $response_body !== '' ? $response_body : null,
             $exception->getTraceAsString()
         );
     }

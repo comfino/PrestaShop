@@ -23,4 +23,10 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
+<h2>API error</h2>
 {$error_message|escape:"htmlall":"UTF-8"}
+<p>URL: {$url|escape:"htmlall":"UTF-8"}</p>
+<p>Request:</p>
+<code>{$request_body|escape:"htmlall":"UTF-8"}</code>
+<p>Response:</p>
+<code>$response_body|escape:"htmlall":"UTF-8"}</code>{

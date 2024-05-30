@@ -23,4 +23,4 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
-{$error|escape:"htmlall":"UTF-8"}
+{$error_message|escape:"htmlall":"UTF-8"}
