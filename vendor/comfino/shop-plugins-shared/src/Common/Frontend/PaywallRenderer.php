@@ -81,8 +81,8 @@ final class PaywallRenderer
 
             return $this->rendererStrategy->renderPaywallTemplate(
                 str_replace(
-                    ['{PAYWALL_STYLE}', '{PAYWALL_PRODUCTS_LIST}', '{PAYWALL_SCRIPT}'],
-                    [$fragments['style'], $paywallProductsList, $fragments['script']],
+                    ['{PAYWALL_STYLE}', '{LOAN_AMOUNT}', '{PAYWALL_PRODUCTS_LIST}', '{PAYWALL_SCRIPT}'],
+                    [$fragments['style'], $queryCriteria->loanAmount, $paywallProductsList, $fragments['script']],
                     $fragments['template']
                 )
             );
