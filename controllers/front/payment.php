@@ -108,12 +108,12 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $shopCart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount);
+        $shop_cart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount);
 
         $this->module->validateOrder(
             (int) $cart->id,
             (int) Configuration::get('COMFINO_CREATED'),
-            (float) ($shopCart->getTotalValue() / 100),
+            (float) ($shop_cart->getTotalValue() / 100),
             $this->module->displayName,
             null,
             '',
@@ -138,13 +138,20 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $phone_number = trim($addresses[$cart->id_address_delivery]->phone_mobile);
         }
 
+        $return_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
+            "$cart->id&id_module={$this->module->id}&id_order=$order_id&key={$customer->secure_key}";
+
+        $notification_url = $this->context->link->getModuleLink(
+            $this->context->controller->module->name, 'transactionstatus', [], true
+        );
+
         $order = (new OrderFactory())->createOrder(
             $order_id,
-            $shopCart->getTotalValue(),
-            $shopCart->getDeliveryCost(),
+            $shop_cart->getTotalValue(),
+            $shop_cart->getDeliveryCost(),
             (int) $cookie->loan_term,
             new LoanTypeEnum($cookie->loan_type),
-            $shopCart->getCartItems(),
+            $shop_cart->getCartItems(),
             new Customer(
                 $addresses[$cart->id_address_delivery]->firstname,
                 $addresses[$cart->id_address_delivery]->lastname,
@@ -163,10 +170,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                     'PL'
                 )
             ),
-            Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
-            "$cart->id&id_module={$this->module->id}&id_order=$order_id&key={$customer->secure_key}",
-            $this->context->link->getModuleLink($this->context->controller->module->name, 'notify', [], true),
-            SettingsManager::getAllowedProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL, $shopCart)
+            $return_url,
+            $notification_url,
+            SettingsManager::getAllowedProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL, $shop_cart)
         );
 
         try {
