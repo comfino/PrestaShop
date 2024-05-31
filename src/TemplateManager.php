@@ -34,7 +34,6 @@ final class TemplateManager
 {
     public static function renderModuleView(
         \PaymentModule $module,
-        \Smarty $smarty,
         string $name,
         string $path,
         array $variables = []
@@ -48,9 +47,7 @@ final class TemplateManager
         $templatePath .= "/$name.tpl";
 
         if (!empty($variables)) {
-            //\Context::getContext()->smarty->assign($variables);
-            $smarty->assign($variables);
-            //$module->smarty->assign($variables);
+            \Context::getContext()->smarty->assign($variables);
         }
 
         if (method_exists($module, 'fetch')) {

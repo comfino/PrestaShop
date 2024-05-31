@@ -43,13 +43,10 @@ class ModuleRendererStrategy implements RendererStrategyInterface
 {
     /** @var \PaymentModule */
     private $module;
-    /** @var \Smarty */
-    private $smarty;
 
-    public function __construct(\PaymentModule $module, \Smarty $smarty)
+    public function __construct(\PaymentModule $module)
     {
         $this->module = $module;
-        $this->smarty = $smarty;
     }
 
     public function renderPaywallTemplate($paywallContents): string
@@ -89,7 +86,6 @@ class ModuleRendererStrategy implements RendererStrategyInterface
 
         return TemplateManager::renderModuleView(
             $this->module,
-            $this->smarty,
             $template_name,
             'front',
             [

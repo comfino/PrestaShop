@@ -160,7 +160,7 @@ class Comfino extends PaymentModule
      */
     public function getContent(): string
     {
-        return TemplateManager::renderModuleView($this, $this->smarty, 'configuration', 'admin', SettingsForm::processForm($this));
+        return TemplateManager::renderModuleView($this, 'configuration', 'admin', SettingsForm::processForm($this));
     }
 
     /**
@@ -252,7 +252,7 @@ class Comfino extends PaymentModule
      */
     public function hookDisplayBackofficeComfinoForm(array $params): string
     {
-        return FormManager::getSettingsForm($this, $this->smarty, $params);
+        return FormManager::getSettingsForm($this, $params);
     }
 
     /**

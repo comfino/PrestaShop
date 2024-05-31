@@ -38,7 +38,7 @@ final class FormManager
 {
     private const ERROR_LOG_NUM_LINES = 100;
 
-    public static function getSettingsForm(\PaymentModule $module, \Smarty_Data $smarty, array $params): string
+    public static function getSettingsForm(\PaymentModule $module, array $params): string
     {
         $config_tab = $params['config_tab'] ?? '';
         $form_name = $params['form_name'] ?? 'submit_configuration';
@@ -153,7 +153,7 @@ final class FormManager
             $params['messages'] = $messages;
         }
 
-        return $helper->generateForm(SettingsForm::getFormFields($module, $smarty, $params));
+        return $helper->generateForm(SettingsForm::getFormFields($module, $params));
     }
 
     private static function getHelperForm(
