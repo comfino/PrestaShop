@@ -89,7 +89,12 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             $template_name,
             'front',
             [
+                'exception_class' => get_class($exception),
                 'error_message' => $exception->getMessage(),
+                'error_code' => $exception->getCode(),
+                'error_file' => $exception->getFile(),
+                'error_line' => $exception->getLine(),
+                'error_trace' => $exception->getTraceAsString(),
                 'url' => $url,
                 'request_body' => $request_body,
                 'response_body' => $response_body,
