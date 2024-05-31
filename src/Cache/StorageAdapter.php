@@ -61,7 +61,7 @@ class StorageAdapter implements StorageAdapterInterface
     {
         $cache_dir = _PS_MODULE_DIR_ . 'comfino/var/cache';
 
-        if (!mkdir($cache_dir, 0755, true) && !is_dir($cache_dir)) {
+        if (!@mkdir($cache_dir, 0755, true) && !is_dir($cache_dir)) {
             return;
         }
 
