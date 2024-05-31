@@ -24,6 +24,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\ApiClient;
 use Comfino\Common\Backend\Factory\OrderFactory;
 use Comfino\ErrorLogger;
@@ -142,7 +143,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $shopCart->getTotalValue(),
             $shopCart->getDeliveryCost(),
             (int) $cookie->loan_term,
-            $cookie->loan_type,
+            new LoanTypeEnum($cookie->loan_type),
             $shopCart->getCartItems(),
             new Customer(
                 $addresses[$cart->id_address_delivery]->firstname,
@@ -169,7 +170,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         );
 
         try {
-            Tools::redirect(ApiClient::getInstance($this->module)->createOrder($order)->applicationUrl);
+            Tools::redirect(ApiClient::getInstance()->createOrder($order)->applicationUrl);
         } catch (Throwable $e) {
             $order = new Order($this->module->currentOrder);
             $order->setCurrentState(Configuration::get('PS_OS_ERROR'));

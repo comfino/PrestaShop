@@ -45,13 +45,7 @@ final class ApiClient
     private static $api_client;
 
     /** @var string */
-    public static $paywall_frontend_style_url;
-
-    /** @var string */
     private static $widget_script_url;
-
-    /** @var string */
-    private static $widget_key;
 
     public static function getInstance(?bool $sandbox_mode = null, ?string $api_key = null): Client
     {
@@ -187,26 +181,10 @@ final class ApiClient
         $authHash = "PS$platformVersionLength$pluginVersionLength$packedPlatformVersion$packedPluginVersion";
 
         if ($paywallLogo) {
-            $authHash .= self::$widget_key;
+            $authHash .= ConfigManager::getWidgetKey();
             $authHash .= hash_hmac('sha3-256', $authHash, self::getInstance()->getApiKey(), true);
         }
 
         return urlencode(base64_encode($authHash));
-    }
-
-    // -----------------------------------------
-
-    /**
-     * @return string
-     */
-    public static function getPaywallFrontendStyleUrl()
-    {
-        if (getenv('COMFINO_DEV') && getenv('COMFINO_DEV_PAYWALL_FRONTEND_STYLE_URL')
-            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
-        ) {
-            return getenv('COMFINO_DEV_PAYWALL_FRONTEND_STYLE_URL');
-        }
-
-        return self::$paywall_frontend_style_url;
     }
 }
