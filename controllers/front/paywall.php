@@ -25,16 +25,12 @@
  */
 
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
-use Comfino\ApiClient;
-use Comfino\Cache\StorageAdapter;
-use Comfino\Common\Backend\CacheManager;
-use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\FrontendManager;
 use Comfino\OrderManager;
 use Comfino\SettingsManager;
 use Comfino\TemplateManager;
-use Comfino\TemplateRenderer\ModuleRendererStrategy;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -67,13 +63,16 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $language = $this->context->language->iso_code;
+        if (!Tools::isEmpty('priceModifier') && is_numeric(Tools::getValue('priceModifier'))) {
+            $price_modifier = (float) Tools::getValue('priceModifier');
 
-        echo (new PaywallRenderer(
-            ApiClient::getInstance(),
-            CacheManager::getInstance()->getCacheBucket("paywall_$language", new StorageAdapter("paywall_$language")),
-            new ModuleRendererStrategy($this->module)
-        ))->renderPaywall(new LoanQueryCriteria($loan_amount, null, null, $allowed_product_types));
+            if ($price_modifier > 0) {
+                $loan_amount += ((int) ($price_modifier * 100));
+            }
+        }
+
+        echo FrontendManager::getPaywallRenderer($this->module)
+            ->renderPaywall(new LoanQueryCriteria($loan_amount, null, null, $allowed_product_types));
 
         exit;
     }

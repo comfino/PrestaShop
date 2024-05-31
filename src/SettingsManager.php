@@ -40,7 +40,6 @@ use Comfino\Common\Shop\Cart;
 use Comfino\Common\Shop\Product\CategoryFilter;
 use Comfino\Common\Shop\Product\CategoryTree;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
-use Psr\Http\Client\ClientExceptionInterface;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -157,7 +156,7 @@ final class SettingsManager
             self::getCache()->set($cache_key, $widget_types);
 
             return $widget_types;
-        } catch (ClientExceptionInterface $e) {
+        } catch (\Throwable $e) {
             ApiClient::processApiError('Settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
 
             if ($return_errors) {

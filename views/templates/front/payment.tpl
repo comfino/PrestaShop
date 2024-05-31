@@ -23,37 +23,21 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
-<div id="comfino-iframe-container"></div>
+<div id="comfino-iframe-container">{$paywall_iframe nofilter}</div>
 <script>
     window.Comfino = {
         paywallOptions: {$paywall_options|@json_encode nofilter},
         init: () => {
-            var iframe = document.createElement('iframe');
-            iframe.id = 'comfino-paywall-container';
-            iframe.className = 'comfino-paywall';
-            iframe.onload = function () {
-                ComfinoPaywallFrontend.onload(
-                    this,
-                    '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}',
-                    '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}'
-                );
-            };
-            iframe.src = '{$paywall_api_url}';
-            iframe.referrerPolicy = 'strict-origin';
-            iframe.loading = 'lazy';
-            iframe.scrolling = 'no';
-
+            let iframe = document.getElementById('comfino-paywall-container');
             let frontendInitElement = document.querySelector('input[data-module-name="comfino"]');
 
             if ('priceModifier' in frontendInitElement.dataset) {
-                let priceModifier = parseFloat(frontendInitElement.dataset.priceModifier);
+                let priceModifier = parseInt(frontendInitElement.dataset.priceModifier);
 
                 if (!Number.isNaN(priceModifier)) {
                     iframe.src += ('&priceModifier=' + priceModifier);
                 }
             }
-
-            document.getElementById('comfino-iframe-container').appendChild(iframe);
 
             ComfinoPaywallFrontend.init(
                 frontendInitElement,
@@ -63,40 +47,34 @@
         }
     }
 
-    var script = document.createElement('script');
-    script.onload = function () {
-        if (ComfinoPaywallFrontend.isInitialized()) {
+    if (ComfinoPaywallFrontend.isInitialized()) {
+        Comfino.init();
+    } else {
+        Comfino.paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
+            ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
+
+            let paymentStateUrl = '{$payment_state_url|escape:"url"}';
+            let urlParams = new URLSearchParams({
+                loan_amount: loanParams.loanAmount,
+                loan_type: loanParams.loanType,
+                loan_term: loanParams.loanTerm
+            });
+
+            paymentStateUrl += (paymentStateUrl.indexOf('?') > 0 ? '&' : '?') + urlParams.toString();
+
+            fetch(paymentStateUrl, { method: 'POST' }).then(response => {
+                ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', paymentStateUrl, response);
+            });
+        }
+
+        if (document.readyState === 'complete') {
             Comfino.init();
         } else {
-            Comfino.paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
-                ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
-
-                let offersUrl = '{$offers_url}'.replace(/&amp;/g, '&');
-                let urlParams = new URLSearchParams({
-                    loan_amount: loanParams.loanAmount,
-                    loan_type: loanParams.loanType,
-                    loan_term: loanParams.loanTerm
-                });
-
-                offersUrl += (offersUrl.indexOf('?') > 0 ? '&' : '?') + urlParams.toString();
-
-                fetch(offersUrl, { method: 'POST' }).then(response => {
-                    ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', offersUrl, response);
-                });
-            }
-
-            if (document.readyState === 'complete') {
-                Comfino.init();
-            } else {
-                document.addEventListener('readystatechange', () => {
-                    if (document.readyState === 'complete') {
-                        Comfino.init();
-                    }
-                });
-            }
+            document.addEventListener('readystatechange', () => {
+                if (document.readyState === 'complete') {
+                    Comfino.init();
+                }
+            });
         }
-    };
-    script.src = '{$paywall_script_url}';
-    script.async = true;
-    document.getElementsByTagName('head')[0].appendChild(script);
+    }
 </script>

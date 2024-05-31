@@ -31,6 +31,7 @@ use Comfino\ConfigManager;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\FormManager;
+use Comfino\FrontendManager;
 use Comfino\OrderManager;
 use Comfino\SettingsForm;
 use Comfino\SettingsManager;
@@ -170,11 +171,11 @@ class Comfino extends PaymentModule
      */
     public function hookPayment(array $params)
     {
-        if (!$this->paymentIsAvailable($params)) {
+        if (!$this->paymentIsAvailable($params) || ($paywallIframe = $this->preparePaywallIframe()) === null) {
             return;
         }
 
-        return $this->preparePaywallIframe();
+        return $paywallIframe;
     }
 
     /**
@@ -186,7 +187,7 @@ class Comfino extends PaymentModule
      */
     public function hookPaymentOptions(array $params)
     {
-        if (!$this->paymentIsAvailable($params)) {
+        if (!$this->paymentIsAvailable($params) || ($paywallIframe = $this->preparePaywallIframe()) === null) {
             return;
         }
 
@@ -195,7 +196,7 @@ class Comfino extends PaymentModule
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
             ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
             ->setLogo(ApiClient::getPaywallLogoUrl())
-            ->setAdditionalInformation($this->preparePaywallIframe());
+            ->setAdditionalInformation($paywallIframe);
 
         return [$comfino_payment_option];
     }
@@ -343,8 +344,6 @@ class Comfino extends PaymentModule
                     'defer'
                 );
             }
-        } elseif (preg_match('/order|cart|checkout/', $controller)) {
-            $this->addStyleLink('comfino-paywall-frontend-style', ApiClient::getPaywallFrontendStyleUrl());
         }
     }
 
@@ -378,20 +377,6 @@ class Comfino extends PaymentModule
         }
     }
 
-    /**
-     * @param string $id
-     * @param string $style_url
-     * @return void
-     */
-    private function addStyleLink($id, $style_url)
-    {
-        if (COMFINO_PS_17) {
-            $this->context->controller->registerStylesheet($id, $style_url, ['server' => 'remote']);
-        } else {
-            $this->context->controller->addCSS($style_url);
-        }
-    }
-
     private function paymentIsAvailable(array $params): bool
     {
         /** @var Cart $cart */
@@ -409,10 +394,51 @@ class Comfino extends PaymentModule
         ) !== [];
     }
 
-    private function preparePaywallIframe(): string
+    private function preparePaywallIframe(): ?string
     {
-        return (new IframeRenderer('PrestaShop', _PS_VERSION_))->renderPaywallIframe(
-            $this->context->link->getModuleLink($this->name, 'paywall', [], true)
-        );
+        try {
+            return TemplateManager::renderModuleView(
+                $this,
+                'payment',
+                'front',
+                [
+                    'paywall_iframe' => (new IframeRenderer(
+                        FrontendManager::getPaywallRenderer($this),
+                        'PrestaShop',
+                        _PS_VERSION_)
+                    )->renderPaywallIframe($this->context->link->getModuleLink($this->name, 'paywall', [], true)),
+                    'payment_state_url' => $this->context->link->getModuleLink($this->name, 'paymentstate', [], true),
+                    'paywall_options' => $this->getPaywallOptions(),
+                ]
+            );
+        } catch (\Throwable $e) {
+            ApiClient::processApiError('Paywall error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
+        }
+
+        return null;
+    }
+
+    /**
+     * @throws PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     */
+    private function getPaywallOptions(): array
+    {
+        /** @var Cart $cart */
+        $cart = $this->context->cart;
+        $total = $cart->getOrderTotal();
+
+        $tools = new \Comfino\Tools($this->context);
+
+        return [
+            'platform' => 'prestashop',
+            'platformName' => 'PrestaShop',
+            'platformVersion' => _PS_VERSION_,
+            'platformDomain' => Tools::getShopDomain(),
+            'pluginVersion' => COMFINO_VERSION,
+            'language' => $tools->getLanguageIsoCode($cart->id_lang),
+            'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
+            'cartTotal' => (float) $total,
+            'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
+        ];
     }
 }
