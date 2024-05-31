@@ -42,7 +42,7 @@ final class ApiService
     /** @var RestEndpointManager */
     private static $endpointManager;
 
-    public static function init(\PaymentModule $module, \Context $context): void
+    public static function init(\PaymentModule $module): void
     {
         self::$endpointManager = (new ApiServiceFactory())->createService(
             'PrestaShop',
@@ -57,7 +57,7 @@ final class ApiService
         self::$endpointManager->registerEndpoint(
             new StatusNotification(
                 'transactionStatus',
-                $context->link->getModuleLink($module->name, 'transactionstatus', [], true),
+                \Context::getContext()->link->getModuleLink($module->name, 'transactionstatus', [], true),
                 StatusManager::getInstance(new StatusAdapter()),
                 [],
                 []
@@ -67,7 +67,7 @@ final class ApiService
         self::$endpointManager->registerEndpoint(
             new Configuration(
                 'configuration',
-                $context->link->getModuleLink($module->name, 'configuration', [], true),
+                \Context::getContext()->link->getModuleLink($module->name, 'configuration', [], true),
                 ConfigManager::getInstance(),
                 'PrestaShop',
                 ...array_values(

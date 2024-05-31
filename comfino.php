@@ -91,7 +91,7 @@ class Comfino extends PaymentModule
         require_once __DIR__ . '/vendor/autoload.php';
 
         // Register module API endpoints.
-        ApiService::init($this, $this->context);
+        ApiService::init($this);
     }
 
     /**
