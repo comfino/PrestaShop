@@ -72,7 +72,7 @@ final class TemplateManager
         $templatePath .= "/$name.tpl";
 
         if (!empty($variables)) {
-            $frontController->context->smarty->assign($variables);
+            \Context::getContext()->smarty->assign($variables);
         }
 
         if (COMFINO_PS_17) {
