@@ -56,7 +56,7 @@ final class SettingsForm
         if (\Tools::isSubmit('submit_configuration')) {
             $active_tab = \Tools::getValue('active_tab');
 
-            foreach (ConfigManager::CONFIG_OPTIONS[$active_tab] as $option_name) {
+            foreach (ConfigManager::CONFIG_OPTIONS[$active_tab] as $option_name => $option_type) {
                 if ($option_name !== 'COMFINO_WIDGET_KEY') {
                     $configuration_options[$option_name] = \Tools::getValue($option_name);
                 }

@@ -87,7 +87,7 @@ final class ConfigurationManager
         $this->accessibleConfigOptions = $accessibleConfigOptions;
         $this->storageAdapter = $storageAdapter;
         $this->serializer = $serializer;
-        $this->modified = array_combine($availConfigOptions, array_fill(0, count($availConfigOptions), false));
+        $this->modified = array_combine(array_keys($availConfigOptions), array_fill(0, count($availConfigOptions), false));
     }
 
     public function __destruct()
@@ -165,7 +165,7 @@ final class ConfigurationManager
 
             $this->storageAdapter->save($optionsToSave);
 
-            $this->modified = array_merge($this->modified, array_combine($optionsToSave, array_fill(0, count($optionsToSave), false)));
+            $this->modified = array_merge($this->modified, array_combine(array_keys($optionsToSave), array_fill(0, count($optionsToSave), false)));
         }
     }
 

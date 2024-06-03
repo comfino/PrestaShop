@@ -214,6 +214,8 @@ final class ConfigManager
         } else {
             self::getInstance()->setConfigurationValues($configuration_options);
         }
+
+        self::getInstance()->persist();
     }
 
     public static function deleteConfigurationValues(): bool

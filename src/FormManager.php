@@ -47,7 +47,7 @@ final class FormManager
         $helper->fields_value['active_tab'] = $config_tab;
 
         foreach (ConfigManager::CONFIG_OPTIONS as $options) {
-            foreach ($options as $option_name) {
+            foreach ($options as $option_name => $option_type) {
                 $helper->fields_value[$option_name] = ConfigManager::getConfigurationValue($option_name);
             }
         }
