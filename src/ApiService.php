@@ -59,8 +59,8 @@ final class ApiService
                 'transactionStatus',
                 \Context::getContext()->link->getModuleLink($module->name, 'transactionstatus', [], true),
                 StatusManager::getInstance(new StatusAdapter()),
-                [],
-                []
+                ConfigManager::getConfigurationValue('COMFINO_FORBIDDEN_STATUSES'),
+                ConfigManager::getConfigurationValue('COMFINO_IGNORED_STATUSES')
             )
         );
 

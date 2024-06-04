@@ -83,6 +83,7 @@ final class Configuration extends RestEndpoint
         }
 
         $this->configurationManager->updateConfigurationOptions($serverRequest->getParsedBody());
+        $this->configurationManager->persist();
 
         return null;
     }

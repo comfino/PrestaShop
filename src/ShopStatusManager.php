@@ -26,17 +26,56 @@
 
 namespace Comfino;
 
+use Comfino\Common\Shop\Order\StatusManager;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 final class ShopStatusManager
 {
+    public const DEFAULT_STATUS_MAP = [
+        StatusManager::STATUS_ACCEPTED => 'PS_OS_WS_PAYMENT',
+        StatusManager::STATUS_CANCELLED => 'PS_OS_CANCELED',
+        StatusManager::STATUS_REJECTED => 'PS_OS_CANCELED',
+    ];
+
+    private const CUSTOM_ORDER_STATUSES = [
+        'COMFINO_' . StatusManager::STATUS_CREATED => [
+            'name' => 'Order created - waiting for payment (Comfino)',
+            'name_pl' => 'Zamówienie utworzone - oczekiwanie na płatność (Comfino)',
+            'color' => '#87b921',
+            'paid' => false,
+            'deleted' => false,
+        ],
+        'COMFINO_' . StatusManager::STATUS_ACCEPTED => [
+            'name' => 'Credit granted (Comfino)',
+            'name_pl' => 'Kredyt udzielony (Comfino)',
+            'color' => '#227b34',
+            'paid' => true,
+            'deleted' => false,
+        ],
+        'COMFINO_' . StatusManager::STATUS_REJECTED => [
+            'name' => 'Credit rejected (Comfino)',
+            'name_pl' => 'Wniosek kredytowy odrzucony (Comfino)',
+            'color' => '#ba3f1d',
+            'paid' => false,
+            'deleted' => false,
+        ],
+        'COMFINO_' . StatusManager::STATUS_CANCELLED => [
+            'name' => 'Cancelled (Comfino)',
+            'name_pl' => 'Anulowano (Comfino)',
+            'color' => '#ba3f1d',
+            'paid' => false,
+            'deleted' => false,
+        ],
+    ];
+
     public static function addCustomOrderStatuses(): void
     {
         $languages = \Language::getLanguages(false);
 
-        foreach (OrderManager::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
+        foreach (self::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
             $comfino_status_id = \Configuration::get($status_code);
 
             if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
@@ -82,7 +121,7 @@ final class ShopStatusManager
     {
         $languages = \Language::getLanguages(false);
 
-        foreach (OrderManager::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
+        foreach (self::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
             $comfino_status_id = \Configuration::get($status_code);
 
             if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
@@ -91,8 +130,11 @@ final class ShopStatusManager
                 if (\Validate::isLoadedObject($order_status)) {
                     // Update existing status definition.
                     foreach ($languages as $language) {
-                        $status_name = $language['iso_code'] === 'pl' ? $status_details['name_pl'] : $status_details['name'];
-                        $order_status->name[$language['id_lang']] = $status_name;
+                        if ($language['iso_code'] === 'pl') {
+                            $order_status->name[$language['id_lang']] = $status_details['name_pl'];
+                        } else {
+                            $order_status->name[$language['id_lang']] = $status_details['name'];
+                        }
                     }
 
                     $order_status->color = $status_details['color'];

@@ -63,6 +63,9 @@ final class ConfigManager
         ],
         'hidden_settings' => [
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
+            'COMFINO_IGNORED_STATUSES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
+            'COMFINO_FORBIDDEN_STATUSES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
+            'COMFINO_STATUS_MAP' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
         ],
     ];
 
@@ -84,6 +87,9 @@ final class ConfigManager
         'COMFINO_WIDGET_CODE',
         'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
         'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
+        'COMFINO_IGNORED_STATUSES',
+        'COMFINO_FORBIDDEN_STATUSES',
+        'COMFINO_STATUS_MAP',
     ];
 
     /** @var ConfigurationManager */

@@ -73,7 +73,7 @@ final class StatusNotification extends RestEndpoint
 
         try {
             $this->statusManager->setOrderStatus($requestPayload['externalId'], $requestPayload['status']);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw new InvalidRequest($e->getMessage());
         }
 

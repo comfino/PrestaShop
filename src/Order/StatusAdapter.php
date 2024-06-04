@@ -26,7 +26,9 @@
 
 namespace Comfino\Order;
 
+use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Common\Shop\OrderStatusAdapterInterface;
+use Comfino\ConfigManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -36,6 +38,41 @@ class StatusAdapter implements OrderStatusAdapterInterface
 {
     public function setStatus($orderId, $status): void
     {
-        // TODO: Implement setStatus() method.
+        $order = new \Order($orderId);
+
+        if (!\ValidateCore::isLoadedObject($order)) {
+            throw new \RuntimeException(sprintf('Order not found by id: %s', $orderId));
+        }
+
+        $input_status = \Tools::strtoupper($status);
+
+        if (in_array($input_status, StatusManager::STATUSES, true)) {
+            $custom_status_new = "COMFINO_$input_status";
+        } else {
+            return;
+        }
+
+        $current_internal_status_id = (int) $order->getCurrentState();
+        $new_custom_status_id = (int) \Configuration::get($custom_status_new);
+
+        if ($new_custom_status_id !== $current_internal_status_id) {
+            $order->setCurrentState($new_custom_status_id);
+
+            $status_map = ConfigManager::getConfigurationValue('COMFINO_STATUS_MAP');
+
+            if (!array_key_exists($input_status, $status_map)) {
+                return;
+            }
+
+            $new_internal_status_id = (int) \Configuration::get($status_map[$input_status]);
+
+            foreach ($order->getHistory(0) as $history_entry) {
+                if ($history_entry['id_order_state'] === $new_internal_status_id) {
+                    return;
+                }
+            }
+
+            $order->setCurrentState($new_internal_status_id);
+        }
     }
 }

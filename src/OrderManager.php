@@ -27,6 +27,7 @@
 namespace Comfino;
 
 use Comfino\Common\Shop\Cart;
+use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Shop\Order\Cart\CartItem;
 use Comfino\Shop\Order\Cart\CartItemInterface;
 use Comfino\Shop\Order\Cart\Product;
@@ -75,92 +76,12 @@ final class OrderManager
     /**
      * After setting notification status we want some statuses to change to internal PrestaShop statuses right away.
      */
-    const CHANGE_STATUS_MAP = [
-        self::ACCEPTED => 'PS_OS_WS_PAYMENT',
-        self::CANCELLED => 'PS_OS_CANCELED',
-        self::CANCELLED_BY_SHOP => 'PS_OS_CANCELED',
+    public const CHANGE_STATUS_MAP = [
+        'ACCEPTED' => 'PS_OS_WS_PAYMENT',
+        'CANCELLED' => 'PS_OS_CANCELED',
+        'CANCELLED_BY_SHOP' => 'PS_OS_CANCELED',
         self::REJECTED => 'PS_OS_CANCELED',
         self::RESIGN => 'PS_OS_CANCELED',
-    ];
-
-    const CUSTOM_ORDER_STATUSES = [
-        self::COMFINO_CREATED => [
-            'name' => 'Order created - waiting for payment (Comfino)',
-            'name_pl' => 'Zamówienie utworzone - oczekiwanie na płatność (Comfino)',
-            'color' => '#87b921',
-            'paid' => false,
-            'deleted' => false,
-        ],
-        self::COMFINO_WAITING_FOR_FILLING => [
-            'name' => 'Waiting for form\'s filling (Comfino)',
-            'name_pl' => 'Oczekiwanie na wypełnienie formularza (Comfino)',
-            'color' => '#ffffff',
-            'paid' => false,
-            'deleted' => true,
-        ],
-        self::COMFINO_WAITING_FOR_CONFIRMATION => [
-            'name' => 'Waiting for form\'s confirmation (Comfino)',
-            'name_pl' => 'Oczekiwanie na zatwierdzenie formularza (Comfino)',
-            'color' => '#ffffff',
-            'paid' => false,
-            'deleted' => true,
-        ],
-        self::COMFINO_WAITING_FOR_PAYMENT => [
-            'name' => 'Waiting for payment (Comfino)',
-            'name_pl' => 'Oczekiwanie na płatność (Comfino)',
-            'color' => '#ffffff',
-            'paid' => false,
-            'deleted' => true,
-        ],
-        self::COMFINO_ACCEPTED => [
-            'name' => 'Credit granted (Comfino)',
-            'name_pl' => 'Kredyt udzielony (Comfino)',
-            'color' => '#227b34',
-            'paid' => true,
-            'deleted' => false,
-        ],
-        self::COMFINO_PAID => [
-            'name' => 'Paid (Comfino)',
-            'name_pl' => 'Zapłacono (Comfino)',
-            'color' => '#227b34',
-            'paid' => true,
-            'deleted' => true,
-        ],
-        self::COMFINO_REJECTED => [
-            'name' => 'Credit rejected (Comfino)',
-            'name_pl' => 'Wniosek kredytowy odrzucony (Comfino)',
-            'color' => '#ba3f1d',
-            'paid' => false,
-            'deleted' => false,
-        ],
-        self::COMFINO_RESIGN => [
-            'name' => 'Resigned (Comfino)',
-            'name_pl' => 'Odstąpiono (Comfino)',
-            'color' => '#ba3f1d',
-            'paid' => false,
-            'deleted' => false,
-        ],
-        self::COMFINO_CANCELLED_BY_SHOP => [
-            'name' => 'Cancelled by shop (Comfino)',
-            'name_pl' => 'Anulowano przez sklep (Comfino)',
-            'color' => '#ba3f1d',
-            'paid' => false,
-            'deleted' => false,
-        ],
-        self::COMFINO_CANCELLED => [
-            'name' => 'Cancelled (Comfino)',
-            'name_pl' => 'Anulowano (Comfino)',
-            'color' => '#ba3f1d',
-            'paid' => false,
-            'deleted' => false,
-        ],
-    ];
-
-    const IGNORED_STATUSES = [
-        self::WAITING_FOR_FILLING,
-        self::WAITING_FOR_CONFIRMATION,
-        self::WAITING_FOR_PAYMENT,
-        self::PAID,
     ];
 
     public static function getShopCart(\Cart $cart, int $loan_amount): Cart
@@ -238,16 +159,16 @@ final class OrderManager
      * @return bool
      * @throws Exception
      */
-    public static function processState($order_id, $status): bool
+    public static function processState(string $order_id, string $status): bool
     {
-        if (in_array($status, self::IGNORED_STATUSES, true)) {
+/*        if (in_array($status, self::IGNORED_STATUSES, true)) {
             return true;
-        }
+        }*/
 
-        $order = new OrderCore($order_id);
+        $order = new \Order($order_id);
 
-        if (!ValidateCore::isLoadedObject($order)) {
-            throw new Exception(sprintf('Order not found by id: %s', $order_id));
+        if (!\ValidateCore::isLoadedObject($order)) {
+            throw new \RuntimeException(sprintf('Order not found by id: %s', $order_id));
         }
 
         $internal_status_new = self::getState($status);
@@ -268,16 +189,12 @@ final class OrderManager
         return true;
     }
 
-    /**
-     * @param string $state
-     * @return string
-     */
-    private static function getState($state)
+    private static function getState(string $state): string
     {
         $state = Tools::strtoupper($state);
 
-        if (array_key_exists($state, self::STATUSES)) {
-            return self::STATUSES[$state];
+        if (in_array($state, self::STATUSES, true)) {
+            return "COMFINO_$state";
         }
 
         return 'PS_OS_ERROR';

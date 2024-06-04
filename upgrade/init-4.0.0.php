@@ -24,6 +24,9 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+use Comfino\Common\Shop\Order\StatusManager;
+use Comfino\ShopStatusManager;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -32,6 +35,10 @@ function upgrade_module_4_0_0(Comfino $module): bool
 {
     Configuration::deleteByName('COMFINO_REGISTERED_AT');
     Configuration::deleteByName('COMFINO_SANDBOX_REGISTERED_AT');
+
+    Configuration::updateValue('COMFINO_IGNORED_STATUSES', implode(',', StatusManager::DEFAULT_IGNORED_STATUSES));
+    Configuration::updateValue('COMFINO_FORBIDDEN_STATUSES', implode(',', StatusManager::DEFAULT_FORBIDDEN_STATUSES));
+    Configuration::updateValue('COMFINO_STATUS_MAP', json_encode(ShopStatusManager::DEFAULT_STATUS_MAP));
 
     return true;
 }
