@@ -23,7 +23,46 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
+{if $is_ps_16}
+<style>
+    a.comfino-payment-method {
+        padding: 25px 20px !important;
+        cursor: pointer;
+    }
+
+    a.comfino-payment-method:after {
+        width: 14px;
+        height: 22px;
+        display: block;
+        content: "\f078";
+        font-family: 'FontAwesome';
+        font-size: 25px;
+        color: #777777;
+        position: absolute;
+        right: 25px;
+        margin-top: -11px;
+        top: 50%;
+    }
+</style>
+<div class="row">
+    <div class="col-xs-12 col-md-12">
+        <p class="payment_module">
+            <a id="pay-with-comfino" class="comfino-payment-method">
+                <img style="height: 49px" src="{$logo_url}" alt="{l s="Pay with comfino" mod="comfino"}" loading="lazy" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')" />
+                {$pay_with_comfino_text|escape:"htmlall":"UTF-8"}
+            </a>
+        </p>
+    </div>
+</div>
+{/if}
 <div id="comfino-iframe-container">{$paywall_iframe nofilter}</div>
+{if $is_ps_16}
+<div id="comfino-payment-bar" class="comfino-payment-bar">
+    <a id="comfino-go-to-payment" href="{$go_to_payment_url|escape:"htmlall":"UTF-8"}" class="comfino-payment-btn">
+        {l s="Go to payment" mod="comfino"}
+    </a>
+</div>
+{/if}
 <script>
     window.Comfino = {
         paywallOptions: {$paywall_options|@json_encode nofilter},

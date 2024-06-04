@@ -31,12 +31,9 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
-
 class ComfinoScriptModuleFrontController extends ModuleFrontController
 {
-    public function postProcess()
+    public function postProcess(): void
     {
         ErrorLogger::init($this->module);
 
@@ -44,44 +41,55 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
 
         header('Content-Type: application/javascript');
 
-        $config_manager = new ConfigManager($this->module);
-
-        if ($config_manager->getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
+        if (ConfigManager::getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
             $product_id = Tools::getValue('product_id', null);
-            $widget_variables = $config_manager->getWidgetVariables($product_id);
 
-            echo str_replace(
-                array_merge(
-                    [
-                        '{WIDGET_KEY}',
-                        '{WIDGET_PRICE_SELECTOR}',
-                        '{WIDGET_TARGET_SELECTOR}',
-                        '{WIDGET_PRICE_OBSERVER_SELECTOR}',
-                        '{WIDGET_PRICE_OBSERVER_LEVEL}',
-                        '{WIDGET_TYPE}',
-                        '{OFFER_TYPE}',
-                        '{EMBED_METHOD}',
-                    ],
-                    array_keys($widget_variables)
-                ),
-                array_merge(
-                    $config_manager->getConfigurationValues(
-                        'widget_settings',
+            try {
+                $widget_variables = ConfigManager::getWidgetVariables($this->module, $product_id);
+
+                echo str_replace(
+                    array_merge(
                         [
-                            'COMFINO_WIDGET_KEY',
-                            'COMFINO_WIDGET_PRICE_SELECTOR',
-                            'COMFINO_WIDGET_TARGET_SELECTOR',
-                            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
-                            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-                            'COMFINO_WIDGET_TYPE',
-                            'COMFINO_WIDGET_OFFER_TYPE',
-                            'COMFINO_WIDGET_EMBED_METHOD',
-                        ]
+                            '{WIDGET_KEY}',
+                            '{WIDGET_PRICE_SELECTOR}',
+                            '{WIDGET_TARGET_SELECTOR}',
+                            '{WIDGET_PRICE_OBSERVER_SELECTOR}',
+                            '{WIDGET_PRICE_OBSERVER_LEVEL}',
+                            '{WIDGET_TYPE}',
+                            '{OFFER_TYPE}',
+                            '{EMBED_METHOD}',
+                        ],
+                        array_keys($widget_variables)
                     ),
-                    array_values($widget_variables)
-                ),
-                $config_manager->getCurrentWidgetCode($product_id)
-            );
+                    array_merge(
+                        ConfigManager::getConfigurationValues(
+                            'widget_settings',
+                            [
+                                'COMFINO_WIDGET_KEY',
+                                'COMFINO_WIDGET_PRICE_SELECTOR',
+                                'COMFINO_WIDGET_TARGET_SELECTOR',
+                                'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
+                                'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+                                'COMFINO_WIDGET_TYPE',
+                                'COMFINO_WIDGET_OFFER_TYPE',
+                                'COMFINO_WIDGET_EMBED_METHOD',
+                            ]
+                        ),
+                        array_values($widget_variables)
+                    ),
+                    ConfigManager::getCurrentWidgetCode($this->module, $product_id)
+                );
+            } catch (\Throwable $e) {
+                ErrorLogger::sendError(
+                    'Widget script endpoint',
+                    $e->getCode(),
+                    $e->getMessage(),
+                    null,
+                    null,
+                    null,
+                    $e->getTraceAsString()
+                );
+            }
         }
 
         exit;
