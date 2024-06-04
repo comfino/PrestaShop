@@ -140,7 +140,7 @@ final class RestEndpointManager
         return $endpoints;
     }
 
-    public function processRequest(): ResponseInterface
+    public function processRequest(?string $endpointName = null): ResponseInterface
     {
         $serverRequest = $this->getServerRequest();
 
@@ -152,30 +152,20 @@ final class RestEndpointManager
             return $this->getPreparedResponse($this->responseFactory->createResponse(403, $e->getMessage()));
         }
 
+        if (($endpointName !== null) && ($endpoint = $this->getEndpointByName($endpointName)) !== null) {
+            try {
+                return $this->prepareResponse($serverRequest, $endpoint->processRequest($serverRequest, $endpointName));
+            } catch (InvalidRequest $e) {
+                return $this->getPreparedResponse(
+                    $this->responseFactory->createResponse(400, $e->getMessage()),
+                    ['error' => $e->getMessage()]
+                );
+            }
+        }
+
         foreach ($this->registeredEndpoints as $endpoint) {
             try {
-                $responseBody = $endpoint->processRequest($serverRequest);
-
-                switch ($serverRequest->getMethod()) {
-                    case 'GET':
-                        return $this->getPreparedResponse(
-                            $this->responseFactory->createResponse(200, 'OK'),
-                            $responseBody
-                        );
-
-                    case 'POST':
-                        return $this->getPreparedResponse(
-                            $this->responseFactory->createResponse(201, 'Created'),
-                            $responseBody
-                        );
-
-                    case 'PUT':
-                    case 'PATCH':
-                    case 'DELETE':
-                        return empty($responseBody)
-                            ? $this->getPreparedResponse($this->responseFactory->createResponse(204, 'No content'))
-                            : $this->getPreparedResponse($this->responseFactory->createResponse(200, 'OK'), $responseBody);
-                }
+                return $this->prepareResponse($serverRequest, $endpoint->processRequest($serverRequest));
             } catch (InvalidEndpoint $exception) {
                 continue;
             } catch (InvalidRequest $e) {
@@ -309,6 +299,32 @@ final class RestEndpointManager
         if (!$requestAuthorized) {
             throw new AccessDenied('Access not allowed. Failed comparison of CR-Signature and shop hash.');
         }
+    }
+
+    protected function prepareResponse(ServerRequestInterface $serverRequest, ?array $responseBody): ResponseInterface
+    {
+        switch ($serverRequest->getMethod()) {
+            case 'GET':
+                return $this->getPreparedResponse(
+                    $this->responseFactory->createResponse(200, 'OK'),
+                    $responseBody
+                );
+
+            case 'POST':
+                return $this->getPreparedResponse(
+                    $this->responseFactory->createResponse(201, 'Created'),
+                    $responseBody
+                );
+
+            case 'PUT':
+            case 'PATCH':
+            case 'DELETE':
+                return empty($responseBody)
+                    ? $this->getPreparedResponse($this->responseFactory->createResponse(204, 'No content'))
+                    : $this->getPreparedResponse($this->responseFactory->createResponse(200, 'OK'), $responseBody);
+        }
+
+        return $this->getPreparedResponse($this->responseFactory->createResponse(404, 'Endpoint not found.'));
     }
 
     protected function getPreparedResponse(ResponseInterface $response, ?array $responseData = null): ResponseInterface

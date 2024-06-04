@@ -77,7 +77,7 @@ final class ApiService
         );
     }
 
-    public static function processRequest(): string
+    public static function processRequest(string $endpointName): string
     {
         if (self::$endpointManager === null || empty(self::$endpointManager->getRegisteredEndpoints())) {
             http_response_code(503);
@@ -85,7 +85,7 @@ final class ApiService
             return 'Endpoint manager not initialized.';
         }
 
-        $response = self::$endpointManager->processRequest();
+        $response = self::$endpointManager->processRequest($endpointName);
 
         foreach ($response->getHeaders() as $headerName => $headerValues) {
             foreach ($headerValues as $headerValue) {

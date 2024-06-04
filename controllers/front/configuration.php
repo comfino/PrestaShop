@@ -39,6 +39,6 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
 
         parent::postProcess();
 
-        exit(ApiService::processRequest());
+        exit(ApiService::processRequest('configuration'));
     }
 }

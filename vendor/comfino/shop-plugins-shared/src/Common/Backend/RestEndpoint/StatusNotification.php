@@ -41,12 +41,13 @@ final class StatusNotification extends RestEndpoint
     }
 
     /**
+     * @param ServerRequestInterface $serverRequest
+     * @param string|null $endpointName
      * @inheritDoc
-     * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
      */
-    public function processRequest($serverRequest): ?array
+    public function processRequest($serverRequest, $endpointName = null): ?array
     {
-        if (!$this->endpointPathMatch($serverRequest)) {
+        if (!$this->endpointPathMatch($serverRequest, $endpointName)) {
             throw new InvalidEndpoint('Endpoint path does not match request path.');
         }
 

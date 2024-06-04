@@ -55,10 +55,11 @@ final class Configuration extends RestEndpoint
 
     /**
      * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
+     * @param string|null $endpointName
      */
-    public function processRequest($serverRequest): ?array
+    public function processRequest($serverRequest, $endpointName = null): ?array
     {
-        if (!$this->endpointPathMatch($serverRequest)) {
+        if (!$this->endpointPathMatch($serverRequest, $endpointName)) {
             throw new InvalidEndpoint('Endpoint path does not match request path.');
         }
 

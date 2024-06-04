@@ -44,10 +44,14 @@ abstract class RestEndpoint implements RestEndpointInterface
 
     /**
      * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
+     * @param string|null $endpointName
      */
-    protected function endpointPathMatch($serverRequest): bool
+    protected function endpointPathMatch($serverRequest, $endpointName = null): bool
     {
-        return $serverRequest->getUri()->getPath() === parse_url($this->endpointUrl, PHP_URL_PATH) &&
-            in_array($serverRequest->getMethod(), $this->methods, true);
+        if ($endpointName !== null && $endpointName === $this->name && in_array($serverRequest->getMethod(), $this->methods, true)) {
+            return true;
+        }
+
+        return (string) $serverRequest->getUri() === $this->endpointUrl && in_array($serverRequest->getMethod(), $this->methods, true);
     }
 }

@@ -39,6 +39,6 @@ class ComfinoTransactionStatusModuleFrontController extends ModuleFrontControlle
 
         parent::postProcess();
 
-        exit(ApiService::processRequest());
+        exit(ApiService::processRequest('transactionStatus'));
     }
 }
