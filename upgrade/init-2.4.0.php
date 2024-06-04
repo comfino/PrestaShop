@@ -33,10 +33,8 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_2_4_0(Comfino $module): bool
 {
-    $config_manager = new ConfigManager();
-
     // Update code of widget initialization script.
-    $config_manager->updateWidgetCode('bde49851ffc0fd8239eb5d086c8165d4');
+    ConfigManager::updateWidgetCode($module, 'bde49851ffc0fd8239eb5d086c8165d4');
     // Update custom order statuses.
     ShopStatusManager::updateOrderStatuses();
 

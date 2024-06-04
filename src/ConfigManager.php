@@ -86,13 +86,6 @@ final class ConfigManager
         'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
     ];
 
-    public const CONFIG_OPTIONS_TYPES = [
-        'COMFINO_MINIMAL_CART_AMOUNT' => 'float',
-        'COMFINO_IS_SANDBOX' => 'bool',
-        'COMFINO_WIDGET_ENABLED' => 'bool',
-        'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 'int',
-    ];
-
     /** @var ConfigurationManager */
     private static $configuration_manager;
 
@@ -228,145 +221,41 @@ final class ConfigManager
             }
         }
 
-        $result &= \Configuration::deleteByName('COMFINO_REGISTERED_AT');
-        $result &= \Configuration::deleteByName('COMFINO_SANDBOX_REGISTERED_AT');
-
         return $result;
     }
 
-    /* -------------------------------------------------- */
-
-    /**
-     * @param string $options_group
-     *
-     * @return string[]
-     */
-    public function getConfigurationValues($options_group, array $options_to_return = [])
+    public static function updateWidgetCode(\PaymentModule $module, string $last_widget_code_hash): void
     {
-        $config_values = [];
+        ErrorLogger::init($module);
 
-        if (!array_key_exists($options_group, self::CONFIG_OPTIONS)) {
-            return [];
-        }
+        try {
+            $initial_widget_code = self::getInitialWidgetCode();
+            $current_widget_code = self::getCurrentWidgetCode($module);
 
-        if (count($options_to_return)) {
-            foreach ($options_to_return as $opt_name) {
-                if (in_array($opt_name, self::CONFIG_OPTIONS[$options_group], true)) {
-                    $config_values[$opt_name] = \Configuration::get($opt_name);
-                }
+            if (md5($current_widget_code) === $last_widget_code_hash) {
+                // Widget code not changed since last installed version - safely replace with new one.
+                \Configuration::updateValue('COMFINO_WIDGET_CODE', $initial_widget_code);
             }
-        } else {
-            foreach (self::CONFIG_OPTIONS[$options_group] as $opt_name) {
-                $config_values[$opt_name] = \Configuration::get($opt_name);
-            }
-        }
-
-        return $config_values;
-    }
-
-    /**
-     * @return void
-     */
-    public function initConfigurationValues()
-    {
-        if (\Configuration::hasKey('COMFINO_API_KEY')) {
-            // Avoid overwriting of existing configuration if plugin is reinstalled/upgraded.
-            return;
-        }
-
-        $initial_config_values = [
-            'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
-            'COMFINO_MINIMAL_CART_AMOUNT' => 30,
-            'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
-            'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-            'COMFINO_WIDGET_ENABLED' => false,
-            'COMFINO_WIDGET_KEY' => '',
-            'COMFINO_WIDGET_PRICE_SELECTOR' => COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]',
-            'COMFINO_WIDGET_TARGET_SELECTOR' => 'div.product-actions',
-            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR' => '',
-            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 0,
-            'COMFINO_WIDGET_TYPE' => 'with-modal',
-            'COMFINO_WIDGET_OFFER_TYPE' => 'CONVENIENT_INSTALLMENTS',
-            'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
-            'COMFINO_WIDGET_CODE' => $this->getInitialWidgetCode(),
-            'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => '',
-            'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => '',
-        ];
-
-        foreach ($initial_config_values as $opt_name => $opt_value) {
-            \Configuration::updateValue($opt_name, $opt_value);
+        } catch (\Throwable $e) {
+            ErrorLogger::sendError(
+                'Widget code update',
+                $e->getCode(),
+                $e->getMessage(),
+                null,
+                null,
+                null,
+                $e->getTraceAsString()
+            );
         }
     }
 
     /**
-     * @return array
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function returnConfigurationOptions()
-    {
-        $configuration_options = [];
-
-        foreach (self::ACCESSIBLE_CONFIG_OPTIONS as $opt_name) {
-            $configuration_options[$opt_name] = \Configuration::get($opt_name);
-
-            if (array_key_exists($opt_name, self::CONFIG_OPTIONS_TYPES)) {
-                switch (self::CONFIG_OPTIONS_TYPES[$opt_name]) {
-                    case 'bool':
-                        $configuration_options[$opt_name] = (bool) $configuration_options[$opt_name];
-                        break;
-
-                    case 'int':
-                        $configuration_options[$opt_name] = (int) $configuration_options[$opt_name];
-                        break;
-
-                    case 'float':
-                        $configuration_options[$opt_name] = (float) $configuration_options[$opt_name];
-                        break;
-                }
-            }
-        }
-
-        return $configuration_options;
-    }
-
-    /**
-     * @return array
-     */
-    public function getWidgetVariables($product_id = null)
-    {
-        $product_data = $this->getProductData($product_id);
-
-        return [
-            '{WIDGET_SCRIPT_URL}' => ApiClient::getWidgetScriptUrl(),
-            '{PRODUCT_ID}' => $product_data['product_id'],
-            '{PRODUCT_PRICE}' => $product_data['price'],
-            '{PLATFORM}' => 'prestashop',
-            '{PLATFORM_VERSION}' => _PS_VERSION_,
-            '{PLATFORM_DOMAIN}' => \Tools::getShopDomain(),
-            '{PLUGIN_VERSION}' => COMFINO_VERSION,
-            '{AVAILABLE_OFFER_TYPES}' => $product_data['avail_offers_url'],
-        ];
-    }
-
-    /**
-     * @param string $last_widget_code_hash
-     *
-     * @return void
-     */
-    public function updateWidgetCode($last_widget_code_hash)
-    {
-        $initial_widget_code = $this->getInitialWidgetCode();
-        $current_widget_code = $this->getCurrentWidgetCode();
-
-        if (md5($current_widget_code) === $last_widget_code_hash) {
-            // Widget code not changed since last installed version - safely replace with new one.
-            \Configuration::updateValue('COMFINO_WIDGET_CODE', $initial_widget_code);
-        }
-    }
-
-    public function getCurrentWidgetCode($product_id = null)
+    public static function getCurrentWidgetCode(\PaymentModule $module, $product_id = null): string
     {
         $widget_code = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
-        $product_data = $this->getProductData($product_id);
+        $product_data = self::getProductData($module, $product_id);
 
         $options_to_inject = [];
 
@@ -387,9 +276,96 @@ final class ConfigManager
     }
 
     /**
-     * @return string
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function getInitialWidgetCode()
+    private static function getProductData(\PaymentModule $module, $product_id): array
+    {
+        $context = \Context::getContext();
+        $avail_offers_url = $context->link->getModuleLink($module->name, 'availableoffertypes', [], true);
+
+        $price = 'null';
+
+        if ($product_id !== null) {
+            $avail_offers_url .= ((strpos($avail_offers_url, '?') === false ? '?' : '&') . "product_id=$product_id");
+
+            if (($price = \Product::getPriceStatic($product_id)) === null) {
+                $price = 'null';
+            } else {
+                $price = (new Tools($context))->getFormattedPrice($price);
+            }
+        } else {
+            $product_id = 'null';
+        }
+
+        return [
+            'product_id' => $product_id,
+            'price' => $price,
+            'avail_offers_url' => $avail_offers_url,
+        ];
+    }
+
+    /**
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     */
+    public static function getWidgetVariables(\PaymentModule $module, $product_id = null): array
+    {
+        $product_data = self::getProductData($module, $product_id);
+
+        return [
+            '{WIDGET_SCRIPT_URL}' => ApiClient::getWidgetScriptUrl(),
+            '{PRODUCT_ID}' => $product_data['product_id'],
+            '{PRODUCT_PRICE}' => $product_data['price'],
+            '{PLATFORM}' => 'prestashop',
+            '{PLATFORM_VERSION}' => _PS_VERSION_,
+            '{PLATFORM_DOMAIN}' => \Tools::getShopDomain(),
+            '{PLUGIN_VERSION}' => COMFINO_VERSION,
+            '{AVAILABLE_OFFER_TYPES}' => $product_data['avail_offers_url'],
+        ];
+    }
+
+    public static function getConfigurationValues(string $options_group, array $options_to_return = []): array
+    {
+        if (!array_key_exists($options_group, self::CONFIG_OPTIONS)) {
+            return [];
+        }
+
+        return count($options_to_return)
+            ? self::getInstance()->getConfigurationValues($options_to_return)
+            : self::getInstance()->getConfigurationValues(self::CONFIG_OPTIONS[$options_group]);
+    }
+
+    public static function initConfigurationValues(): void
+    {
+        if (\Configuration::hasKey('COMFINO_API_KEY')) {
+            // Avoid overwriting of existing configuration if plugin is reinstalled/upgraded.
+            return;
+        }
+
+        $initial_config_values = [
+            'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
+            'COMFINO_MINIMAL_CART_AMOUNT' => 30,
+            'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
+            'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
+            'COMFINO_WIDGET_ENABLED' => false,
+            'COMFINO_WIDGET_KEY' => '',
+            'COMFINO_WIDGET_PRICE_SELECTOR' => COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]',
+            'COMFINO_WIDGET_TARGET_SELECTOR' => 'div.product-actions',
+            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR' => '',
+            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 0,
+            'COMFINO_WIDGET_TYPE' => 'with-modal',
+            'COMFINO_WIDGET_OFFER_TYPE' => 'CONVENIENT_INSTALLMENTS',
+            'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
+            'COMFINO_WIDGET_CODE' => self::getInitialWidgetCode(),
+            'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => '',
+            'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => '',
+        ];
+
+        foreach ($initial_config_values as $opt_name => $opt_value) {
+            \Configuration::updateValue($opt_name, $opt_value);
+        }
+    }
+
+    private static function getInitialWidgetCode(): string
     {
         return trim("
 var script = document.createElement('script');
@@ -423,34 +399,5 @@ script.src = '{WIDGET_SCRIPT_URL}';
 script.async = true;
 document.getElementsByTagName('head')[0].appendChild(script);
 ");
-    }
-
-    /**
-     * @return array
-     */
-    private function getProductData($product_id): array
-    {
-        $context = \Context::getContext();
-        $avail_offers_url = $context->link->getModuleLink($this->module->name, 'availableoffertypes', [], true);
-
-        $price = 'null';
-
-        if ($product_id !== null) {
-            $avail_offers_url .= ((strpos($avail_offers_url, '?') === false ? '?' : '&') . "product_id=$product_id");
-
-            if (($price = \Product::getPriceStatic($product_id)) === null) {
-                $price = 'null';
-            } else {
-                $price = (new Tools($context))->getFormattedPrice($price);
-            }
-        } else {
-            $product_id = 'null';
-        }
-
-        return [
-            'product_id' => $product_id,
-            'price' => $price,
-            'avail_offers_url' => $avail_offers_url,
-        ];
     }
 }

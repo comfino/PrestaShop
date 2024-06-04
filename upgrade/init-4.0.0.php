@@ -23,12 +23,15 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
-header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 
-header('Cache-Control: no-store, no-cache, must-revalidate');
-header('Cache-Control: post-check=0, pre-check=0', false);
-header('Pragma: no-cache');
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
-header('Location: ../');
-exit;
+function upgrade_module_4_0_0(Comfino $module): bool
+{
+    Configuration::deleteByName('COMFINO_REGISTERED_AT');
+    Configuration::deleteByName('COMFINO_SANDBOX_REGISTERED_AT');
+
+    return true;
+}

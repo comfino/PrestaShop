@@ -32,10 +32,8 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_2_4_3(Comfino $module): bool
 {
-    $config_manager = new ConfigManager();
-
     // Update code of widget initialization script.
-    $config_manager->updateWidgetCode('f4107dede201847d84a372002e748767');
+    ConfigManager::updateWidgetCode($module, 'f4107dede201847d84a372002e748767');
 
     return true;
 }

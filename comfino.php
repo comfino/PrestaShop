@@ -95,9 +95,6 @@ class Comfino extends PaymentModule
         ApiService::init($this);
     }
 
-    /**
-     * @return bool
-     */
     public function install(): bool
     {
         ErrorLogger::init($this);
@@ -106,8 +103,7 @@ class Comfino extends PaymentModule
             return false;
         }
 
-        $config_manager = new ConfigManager();
-        $config_manager->initConfigurationValues();
+        ConfigManager::initConfigurationValues();
         ShopStatusManager::addCustomOrderStatuses();
 
         if (!COMFINO_PS_17) {
@@ -126,9 +122,6 @@ class Comfino extends PaymentModule
         return true;
     }
 
-    /**
-     * @return bool
-     */
     public function uninstall(): bool
     {
         if (parent::uninstall()) {
@@ -206,46 +199,31 @@ class Comfino extends PaymentModule
      */
     public function hookPaymentReturn(array $params): string
     {
-        if (!$this->active) {
+        if (!COMFINO_PS_17 || !$this->active) {
             return '';
         }
 
         ErrorLogger::init($this);
 
-        $config_manager = new ConfigManager();
+        if (in_array($params['order']->getCurrentState(), [
+            Configuration::get('COMFINO_CREATED'),
+            ConfigManager::get('PS_OS_OUTOFSTOCK'),
+            ConfigManager::get('PS_OS_OUTOFSTOCK_UNPAID'),
+        ], true)) {
+            $tpl_variables = [
+                'shop_name' => $this->context->shop->name,
+                'status' => 'ok',
+                'id_order' => $params['order']->id,
+            ];
 
-        if (COMFINO_PS_17) {
-            $state = $params['order']->getCurrentState();
-            $rest_to_paid = $params['order']->getOrdersTotalPaid() - $params['order']->getTotalPaid();
-
-            if (in_array($state, [
-                $config_manager->getConfigurationValue('COMFINO_CREATED'),
-                $config_manager->getConfigurationValue('PS_OS_OUTOFSTOCK'),
-                $config_manager->getConfigurationValue('PS_OS_OUTOFSTOCK_UNPAID'),
-            ], true)) {
-                $this->smarty->assign(
-                    [
-                        'total_to_pay' => (new Comfino\Tools($this->context))->formatPrice(
-                            $rest_to_paid,
-                            $params['order']->id_currency
-                        ),
-                        'shop_name' => $this->context->shop->name,
-                        'status' => 'ok',
-                        'id_order' => $params['order']->id,
-                    ]
-                );
-
-                if (isset($params['order']->reference) && !empty($params['order']->reference)) {
-                    $this->smarty->assign('reference', $params['order']->reference);
-                }
-            } else {
-                $this->smarty->assign('status', 'failed');
+            if (isset($params['order']->reference) && !empty($params['order']->reference)) {
+                $tpl_variables['reference'] = $params['order']->reference;
             }
-
-            return $this->fetch('module:comfino/views/templates/hook/payment_return.tpl');
+        } else {
+            $tpl_variables['status'] = 'failed';
         }
 
-        return '';
+        return TemplateManager::renderModuleView($this, 'payment_return', 'front', $tpl_variables);
     }
 
     /**
@@ -320,30 +298,28 @@ class Comfino extends PaymentModule
             return;
         }
 
-        if ($controller === 'product') {
-            if (ConfigManager::isWidgetEnabled()) {
-                // Widget initialization script
-                $product = $this->context->controller->getProduct();
-                $allowed_product_types = SettingsManager::getAllowedProductTypes(
-                    ProductTypesListTypeEnum::LIST_TYPE_WIDGET,
-                    OrderManager::getShopCartFromProduct($product)
-                );
+        if (($controller === 'product') && ConfigManager::isWidgetEnabled()) {
+            // Widget initialization script
+            $product = $this->context->controller->getProduct();
+            $allowed_product_types = SettingsManager::getAllowedProductTypes(
+                ProductTypesListTypeEnum::LIST_TYPE_WIDGET,
+                OrderManager::getShopCartFromProduct($product)
+            );
 
-                if ($allowed_product_types === []) {
-                    // Filters active - all product types disabled.
-                    return;
-                }
-
-                $config_crc = ''; // crc32(implode($widget_settings));
-                $this->addScriptLink(
-                    'comfino-widget',
-                    $this->context->link->getModuleLink(
-                        $this->name, 'script', ['product_id' => $product->id, 'crc' => $config_crc], true
-                    ),
-                    'bottom',
-                    'defer'
-                );
+            if ($allowed_product_types === []) {
+                // Filters active - all product types disabled.
+                return;
             }
+
+            $config_crc = ''; // crc32(implode($widget_settings));
+            $this->addScriptLink(
+                'comfino-widget',
+                $this->context->link->getModuleLink(
+                    $this->name, 'script', ['product_id' => $product->id, 'crc' => $config_crc], true
+                ),
+                'bottom',
+                'defer'
+            );
         }
     }
 
@@ -355,13 +331,12 @@ class Comfino extends PaymentModule
         $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/tree.min.js');
     }
 
-    /**
-     * @param string $id
-     * @param string $script_url
-     * @param string $position
-     * @return void
-     */
-    private function addScriptLink($id, $script_url, $position = 'bottom', $load_strategy = null)
+    private function addScriptLink(
+        string $id,
+        string $script_url,
+        string $position = 'bottom',
+        $load_strategy = null
+    ): void
     {
         if (COMFINO_PS_17) {
             $this->context->controller->registerJavascript(
@@ -405,10 +380,11 @@ class Comfino extends PaymentModule
                     'paywall_iframe' => (new IframeRenderer(
                         FrontendManager::getPaywallRenderer($this),
                         'PrestaShop',
-                        _PS_VERSION_)
-                    )->renderPaywallIframe($this->context->link->getModuleLink($this->name, 'paywall', [], true)),
+                        _PS_VERSION_
+                    ))->renderPaywallIframe($this->context->link->getModuleLink($this->name, 'paywall', [], true)),
                     'payment_state_url' => $this->context->link->getModuleLink($this->name, 'paymentstate', [], true),
                     'paywall_options' => $this->getPaywallOptions(),
+                    'is_ps_16' => !COMFINO_PS_17,
                 ]
             );
         } catch (\Throwable $e) {

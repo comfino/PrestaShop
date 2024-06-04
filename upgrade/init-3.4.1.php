@@ -33,7 +33,7 @@ if (!defined('_PS_VERSION_')) {
 function upgrade_module_3_4_1(Comfino $module): bool
 {
     // Initialize new configuration options
-    (new ConfigManager())->updateConfiguration([
+    ConfigManager::updateConfiguration([
         'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
     ]);
 

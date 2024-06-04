@@ -32,16 +32,14 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_2_5_0(Comfino $module): bool
 {
-    $config_manager = new ConfigManager();
-
     // Initialize new configuration options
-    $config_manager->updateConfiguration([
+    ConfigManager::updateConfiguration([
         'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR' => '',
         'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 0,
     ]);
 
     // Update code of widget initialization script.
-    $config_manager->updateWidgetCode('e632ce7d5ec92ef9d0cd5c9f70e1914a');
+    ConfigManager::updateWidgetCode($module, 'e632ce7d5ec92ef9d0cd5c9f70e1914a');
 
     return true;
 }
