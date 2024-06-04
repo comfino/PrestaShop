@@ -278,35 +278,6 @@ final class ConfigManager
     /**
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    private static function getProductData(\PaymentModule $module, $product_id): array
-    {
-        $context = \Context::getContext();
-        $avail_offers_url = $context->link->getModuleLink($module->name, 'availableoffertypes', [], true);
-
-        $price = 'null';
-
-        if ($product_id !== null) {
-            $avail_offers_url .= ((strpos($avail_offers_url, '?') === false ? '?' : '&') . "product_id=$product_id");
-
-            if (($price = \Product::getPriceStatic($product_id)) === null) {
-                $price = 'null';
-            } else {
-                $price = (new Tools($context))->getFormattedPrice($price);
-            }
-        } else {
-            $product_id = 'null';
-        }
-
-        return [
-            'product_id' => $product_id,
-            'price' => $price,
-            'avail_offers_url' => $avail_offers_url,
-        ];
-    }
-
-    /**
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
-     */
     public static function getWidgetVariables(\PaymentModule $module, $product_id = null): array
     {
         $product_data = self::getProductData($module, $product_id);
@@ -363,6 +334,35 @@ final class ConfigManager
         foreach ($initial_config_values as $opt_name => $opt_value) {
             \Configuration::updateValue($opt_name, $opt_value);
         }
+    }
+
+    /**
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     */
+    private static function getProductData(\PaymentModule $module, $product_id): array
+    {
+        $context = \Context::getContext();
+        $avail_offers_url = $context->link->getModuleLink($module->name, 'availableoffertypes', [], true);
+
+        $price = 'null';
+
+        if ($product_id !== null) {
+            $avail_offers_url .= ((strpos($avail_offers_url, '?') === false ? '?' : '&') . "product_id=$product_id");
+
+            if (($price = \Product::getPriceStatic($product_id)) === null) {
+                $price = 'null';
+            } else {
+                $price = (new Tools($context))->getFormattedPrice($price);
+            }
+        } else {
+            $product_id = 'null';
+        }
+
+        return [
+            'product_id' => $product_id,
+            'price' => $price,
+            'avail_offers_url' => $avail_offers_url,
+        ];
     }
 
     private static function getInitialWidgetCode(): string
