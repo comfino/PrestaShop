@@ -58,7 +58,7 @@ class StatusAdapter implements OrderStatusAdapterInterface
         if ($new_custom_status_id !== $current_internal_status_id) {
             $order->setCurrentState($new_custom_status_id);
 
-            $status_map = ConfigManager::getConfigurationValue('COMFINO_STATUS_MAP');
+            $status_map = ConfigManager::getStatusMap();
 
             if (!array_key_exists($input_status, $status_map)) {
                 return;

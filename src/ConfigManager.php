@@ -27,6 +27,7 @@
 namespace Comfino;
 
 use Comfino\Common\Backend\ConfigurationManager;
+use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Configuration\StorageAdapter;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 
@@ -204,6 +205,30 @@ final class ConfigManager
     public static function getWidgetKey(): ?string
     {
         return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_KEY');
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getIgnoredStatuses(): array
+    {
+        return self::getConfigurationValue('COMFINO_IGNORED_STATUSES') ?? StatusManager::DEFAULT_IGNORED_STATUSES;
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getForbiddenStatuses(): array
+    {
+        return self::getConfigurationValue('COMFINO_FORBIDDEN_STATUSES') ?? StatusManager::DEFAULT_FORBIDDEN_STATUSES;
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getStatusMap(): array
+    {
+        return self::getConfigurationValue('COMFINO_STATUS_MAP') ?? ShopStatusManager::DEFAULT_STATUS_MAP;
     }
 
     public static function updateConfiguration($configuration_options, $only_accessible_options = true): void
