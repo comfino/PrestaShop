@@ -92,7 +92,7 @@
         Comfino.paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
             ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
 
-            let paymentStateUrl = '{$payment_state_url|escape:"url"}';
+            let paymentStateUrl = '{$payment_state_url nofilter}';
             let urlParams = new URLSearchParams({
                 loan_amount: loanParams.loanAmount,
                 loan_type: loanParams.loanType,
