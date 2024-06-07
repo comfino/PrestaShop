@@ -201,7 +201,7 @@ final class ConfigurationManager
                                     return (string) $value;
                                 },
                                 explode(',', $optionValue)
-                            ) : []);
+                            ) : ($optionValue !== null ? [] : null));
                         } else {
                             $this->configuration[$optionName] = (string) $optionValue;
                         }
@@ -215,7 +215,7 @@ final class ConfigurationManager
                                     return (int) $value;
                                 },
                                 explode(',', $optionValue)
-                            ) : []);
+                            ) : ($optionValue !== null ? [] : null));
                         } else {
                             $this->configuration[$optionName] = (int) $optionValue;
                         }
@@ -229,7 +229,7 @@ final class ConfigurationManager
                                     return (float) $value;
                                 },
                                 explode(',', $optionValue)
-                            ) : []);
+                            ) : ($optionValue !== null ? [] : null));
                         } else {
                             $this->configuration[$optionName] = (float) $optionValue;
                         }
@@ -243,7 +243,7 @@ final class ConfigurationManager
                                     return (bool) $value;
                                 },
                                 explode(',', $optionValue)
-                            ) : []);
+                            ) : ($optionValue !== null ? [] : null));
                         } else {
                             $this->configuration[$optionName] = (bool) $optionValue;
                         }
