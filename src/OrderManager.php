@@ -76,7 +76,7 @@ final class OrderManager
             [
                 new CartItem(
                     new Product(
-                        $product->name,
+                        is_array($product->name) ? current($product->name) : $product->name,
                         (int) ($product->getPrice() * 100),
                         (string) $product->id,
                         null,

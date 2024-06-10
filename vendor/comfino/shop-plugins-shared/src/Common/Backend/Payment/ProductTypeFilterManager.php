@@ -58,6 +58,6 @@ final class ProductTypeFilterManager
             $allowedProductTypes[] = $filter->getAllowedProductTypes($availableProductTypes, $cart);
         }
 
-        return array_intersect($availableProductTypes, ...$allowedProductTypes);
+        return array_values(array_intersect($availableProductTypes, ...$allowedProductTypes));
     }
 }

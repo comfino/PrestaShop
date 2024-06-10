@@ -60,7 +60,7 @@ class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontControl
         }
 
         echo $serializer->serialize(
-            SettingsManager::getAllowedProductTypes('widget', OrderManager::getShopCartFromProduct($product))
+            SettingsManager::getAllowedProductTypes('widget', OrderManager::getShopCartFromProduct($product), true)
         );
 
         exit;

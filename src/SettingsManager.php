@@ -179,7 +179,7 @@ final class SettingsManager
     /**
      * @return LoanTypeEnum[]|null
      */
-    public static function getAllowedProductTypes(string $list_type, Cart $cart): ?array
+    public static function getAllowedProductTypes(string $list_type, Cart $cart, bool $ret_only_array = false): ?array
     {
         $filter_manager = self::getFilterManager($list_type);
 
@@ -187,7 +187,14 @@ final class SettingsManager
             return null;
         }
 
-        return $filter_manager->getAllowedProductTypes(self::getProductTypesEnums($list_type), $cart);
+        $available_product_types = self::getProductTypesEnums($list_type);
+        $allowed_product_types = $filter_manager->getAllowedProductTypes($available_product_types, $cart);
+
+        if ($ret_only_array) {
+            return $allowed_product_types;
+        }
+
+        return count($available_product_types) !== count($allowed_product_types) ? $allowed_product_types : null;
     }
 
     public static function getProductCategoryFilters(): array

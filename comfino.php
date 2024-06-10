@@ -206,9 +206,9 @@ class Comfino extends PaymentModule
         ErrorLogger::init($this);
 
         if (in_array($params['order']->getCurrentState(), [
-            Configuration::get('COMFINO_CREATED'),
-            ConfigManager::get('PS_OS_OUTOFSTOCK'),
-            ConfigManager::get('PS_OS_OUTOFSTOCK_UNPAID'),
+            (int) Configuration::get('COMFINO_CREATED'),
+            (int) Configuration::get('PS_OS_OUTOFSTOCK'),
+            (int) Configuration::get('PS_OS_OUTOFSTOCK_UNPAID'),
         ], true)) {
             $tpl_variables = [
                 'shop_name' => $this->context->shop->name,
@@ -248,10 +248,10 @@ class Comfino extends PaymentModule
             $new_order_state = $params['newOrderStatus'];
 
             $new_order_state_id = (int) $new_order_state->id;
-            $current_order_state_id = (int) $order->getCurrentState();
-            $canceled_order_state_id = (int) ConfigManager::getConfigurationValue('PS_OS_CANCELED');
+            $canceled_order_state_id = (int) Configuration::get('PS_OS_CANCELED');
 
-            if ($new_order_state_id !== $current_order_state_id && $new_order_state_id === $canceled_order_state_id) {
+            if ($new_order_state_id === $canceled_order_state_id) {
+                // Send notification about cancelled order paid by Comfino.
                 ErrorLogger::init($this);
 
                 try {
