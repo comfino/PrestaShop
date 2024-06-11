@@ -39,12 +39,12 @@ final class FrontendManager
 {
     public static function getPaywallRenderer(\PaymentModule $module): PaywallRenderer
     {
-        $language = \Context::getContext()->language->iso_code;
-
         return (new PaywallRenderer(
             ApiClient::getInstance(),
-            CacheManager::getInstance()->getCacheBucket("paywall_$language", new StorageAdapter("paywall_$language")),
-            new ModuleRendererStrategy($module)
+            CacheManager::getInstance()->getCacheBucket('paywall', new StorageAdapter('paywall')),
+            new ModuleRendererStrategy($module),
+            ApiService::getEndpointUrl('paywallFragments'),
+            ApiService::getEndpointUrl('configuration')
         ));
     }
 }

@@ -23,22 +23,22 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+use Comfino\ApiService;
+use Comfino\ErrorLogger;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-/**
- * @deprecated 1.5.0 This file is deprecated, use moduleFrontController instead
- */
+class ComfinoPaywallFragmentsModuleFrontController extends ModuleFrontController
+{
+    public function postProcess(): void
+    {
+        ErrorLogger::init($this->module);
 
-/* SSL Management */
-$useSSL = true;
+        parent::postProcess();
 
-require '../../config/config.inc.php';
-Tools::displayFileAsDeprecated();
-
-// init front controller in order to use Tools::redirect
-$controller = new FrontController();
-$controller->init();
-
-Tools::redirect(Context::getContext()->link->getModuleLink('comfino', 'payment'));
+        exit(ApiService::processRequest('paywallFragments'));
+    }
+}

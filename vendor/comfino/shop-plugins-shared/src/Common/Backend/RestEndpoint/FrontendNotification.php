@@ -2,40 +2,33 @@
 
 namespace Comfino\Common\Backend\RestEndpoint;
 
-use Comfino\Common\Backend\Cache\StorageAdapterInterface;
-use Comfino\Common\Backend\CacheManager;
 use Comfino\Common\Backend\RestEndpoint;
 use Comfino\Common\Exception\InvalidEndpoint;
 use Comfino\Common\Exception\InvalidRequest;
-use Comfino\Common\Frontend\FrontendManager;
+use Comfino\Common\Frontend\PaywallRenderer;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
 
 class FrontendNotification extends RestEndpoint
 {
     /**
      * @readonly
-     * @var \Comfino\Common\Backend\CacheManager
+     * @var \Comfino\Common\Frontend\PaywallRenderer
      */
-    private $cacheManager;
-    /**
-     * @readonly
-     * @var \Comfino\Common\Backend\Cache\StorageAdapterInterface
-     */
-    private $storageAdapter;
+    private $paywallRenderer;
     public function __construct(
         string $name,
         string $endpointUrl,
-        CacheManager $cacheManager,
-        StorageAdapterInterface $storageAdapter
+        PaywallRenderer $paywallRenderer
     ) {
-        $this->cacheManager = $cacheManager;
-        $this->storageAdapter = $storageAdapter;
+        $this->paywallRenderer = $paywallRenderer;
         parent::__construct($name, $endpointUrl);
 
         $this->methods = ['POST', 'PUT', 'PATCH'];
     }
 
     /**
+     * @throws InvalidArgumentException
      * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
      * @param string|null $endpointName
      */
@@ -49,11 +42,7 @@ class FrontendNotification extends RestEndpoint
             throw new InvalidRequest('Invalid request payload.');
         }
 
-        foreach ($requestPayload as $key => $value) {
-            if (in_array($key, FrontendManager::FRONTEND_FRAGMENTS, true)) {
-                $this->cacheManager->getCacheBucket(FrontendManager::CACHE_BUCKET_NAME, $this->storageAdapter)->set($key, $value);
-            }
-        }
+        $this->paywallRenderer->savePaywallFragments($requestPayload);
 
         return null;
     }

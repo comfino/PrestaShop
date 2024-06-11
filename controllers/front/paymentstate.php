@@ -25,6 +25,7 @@
  */
 
 use Comfino\ErrorLogger;
+use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -32,11 +33,15 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoPaymentStateModuleFrontController extends ModuleFrontController
 {
-    public function postProcess()
+    public function postProcess(): void
     {
         ErrorLogger::init($this->module);
 
         parent::postProcess();
+
+        header('Content-Type: application/json');
+
+        $serializer = new JsonSerializer();
 
         $cookie = (new Comfino\Tools($this->context))->getCookie();
         $cookie->loan_amount = Tools::getValue('loan_amount');
@@ -44,7 +49,11 @@ class ComfinoPaymentStateModuleFrontController extends ModuleFrontController
         $cookie->loan_term = Tools::getValue('loan_term');
         $cookie->write();
 
-        echo json_encode(['status' => 'OK', 'type' => $cookie->loan_type, 'term' => (int) $cookie->loan_term]);
+        echo $serializer->serialize([
+            'status' => 'OK',
+            'type' => $cookie->loan_type,
+            'term' => (int) $cookie->loan_term]
+        );
 
         exit;
     }

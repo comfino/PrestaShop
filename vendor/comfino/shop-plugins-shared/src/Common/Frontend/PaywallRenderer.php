@@ -32,13 +32,25 @@ final class PaywallRenderer
      * @var \Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface
      */
     private $rendererStrategy;
+    /**
+     * @readonly
+     * @var string|null
+     */
+    private $notificationUrl;
+    /**
+     * @readonly
+     * @var string|null
+     */
+    private $configurationUrl;
     private const PAYWALL_GUI_FRAGMENTS = ['template', 'style', 'script', 'frontend_style', 'frontend_script'];
 
-    public function __construct(Client $client, CacheItemPoolInterface $cache, RendererStrategyInterface $rendererStrategy)
+    public function __construct(Client $client, CacheItemPoolInterface $cache, RendererStrategyInterface $rendererStrategy, ?string $notificationUrl = null, ?string $configurationUrl = null)
     {
         $this->client = $client;
         $this->cache = $cache;
         $this->rendererStrategy = $rendererStrategy;
+        $this->notificationUrl = $notificationUrl;
+        $this->configurationUrl = $configurationUrl;
     }
 
     public function renderPaywall(LoanQueryCriteria $queryCriteria): string
@@ -61,13 +73,7 @@ final class PaywallRenderer
             try {
                 $fragments = $this->fetchPaywallFragments();
 
-                foreach ($fragments as $fragmentName => $fragmentContents) {
-                    $this->cache->saveDeferred(
-                        $this->cache->getItem($this->getItemKey($fragmentName, $language))->set($fragmentContents)
-                    );
-                }
-
-                $this->cache->commit();
+                $this->savePaywallFragments($fragments, $language);
             } catch (\Throwable $e) {
                 return $this->rendererStrategy->renderErrorTemplate($e);
             }
@@ -102,7 +108,31 @@ final class PaywallRenderer
      */
     public function fetchPaywallFragments(): array
     {
-        return $this->client->getPaywallFragments()->paywallFragments;
+        return $this->client->getPaywallFragments($this->notificationUrl, $this->configurationUrl)->paywallFragments;
+    }
+
+    /**
+     * @throws InvalidArgumentException
+     */
+    public function savePaywallFragments(array $fragments, ?string $language = null): void
+    {
+        foreach ($fragments as $fragmentName => $fragmentContents) {
+            if (!in_array($fragmentName, self::PAYWALL_GUI_FRAGMENTS, true)) {
+                continue;
+            }
+
+            if ($language !== null && !is_array($fragmentContents)) {
+                $this->cache->saveDeferred($this->cache->getItem($this->getItemKey($fragmentName, $language))->set($fragmentContents));
+            } elseif (is_array($fragmentContents)) {
+                foreach ($fragmentContents as $fragmentLanguage => $fragmentLanguageContents) {
+                    $this->cache->saveDeferred($this->cache->getItem($this->getItemKey($fragmentName, $fragmentLanguage))->set($fragmentLanguageContents));
+                }
+            } else {
+                $this->cache->saveDeferred($this->cache->getItem($this->getItemKey($fragmentName, ''))->set($fragmentContents));
+            }
+        }
+
+        $this->cache->commit();
     }
 
     private function getItemKey(string $fragmentName, string $language): string

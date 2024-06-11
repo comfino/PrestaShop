@@ -28,6 +28,7 @@ namespace Comfino;
 
 use Comfino\Common\Backend\Factory\ApiServiceFactory;
 use Comfino\Common\Backend\RestEndpoint\Configuration;
+use Comfino\Common\Backend\RestEndpoint\FrontendNotification;
 use Comfino\Common\Backend\RestEndpoint\StatusNotification;
 use Comfino\Common\Backend\RestEndpointManager;
 use Comfino\Common\Shop\Order\StatusManager;
@@ -57,7 +58,7 @@ final class ApiService
         self::$endpointManager->registerEndpoint(
             new StatusNotification(
                 'transactionStatus',
-                \Context::getContext()->link->getModuleLink($module->name, 'transactionstatus', [], true),
+                self::getControllerUrl($module, 'transactionstatus', [], false),
                 StatusManager::getInstance(new StatusAdapter()),
                 ConfigManager::getForbiddenStatuses(),
                 ConfigManager::getIgnoredStatuses()
@@ -67,7 +68,7 @@ final class ApiService
         self::$endpointManager->registerEndpoint(
             new Configuration(
                 'configuration',
-                \Context::getContext()->link->getModuleLink($module->name, 'configuration', [], true),
+                self::getControllerUrl($module, 'configuration', [], false),
                 ConfigManager::getInstance(),
                 'PrestaShop',
                 ...array_values(
@@ -75,6 +76,34 @@ final class ApiService
                 )
             )
         );
+
+        self::$endpointManager->registerEndpoint(
+            new FrontendNotification(
+                'paywallFragments',
+                self::getControllerUrl($module, 'paywallfragments', [], false),
+                FrontendManager::getPaywallRenderer($module)
+            )
+        );
+    }
+
+    public static function getControllerUrl(
+        \PaymentModule $module,
+        string $controller_name,
+        array $params = [],
+        bool $with_lang_id = true
+    ): string {
+        $url = \Context::getContext()->link->getModuleLink($module->name, $controller_name, $params, true);
+
+        return $with_lang_id ? $url : preg_replace('/&?id_lang=\d+&?/', '', $url);
+    }
+
+    public static function getEndpointUrl(string $endpointName): string
+    {
+        if (($endpoint = self::$endpointManager->getEndpointByName($endpointName)) !== null) {
+            return $endpoint->getEndpointUrl();
+        }
+
+        return '';
     }
 
     public static function processRequest(string $endpointName): string

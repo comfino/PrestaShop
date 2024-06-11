@@ -7,7 +7,6 @@ use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 abstract class Response

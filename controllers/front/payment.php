@@ -26,6 +26,7 @@
 
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\ApiClient;
+use Comfino\ApiService;
 use Comfino\Common\Backend\Factory\OrderFactory;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
@@ -141,10 +142,6 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $return_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
             "$cart->id&id_module={$this->module->id}&id_order=$order_id&key={$customer->secure_key}";
 
-        $notification_url = $this->context->link->getModuleLink(
-            $this->context->controller->module->name, 'transactionstatus', [], true
-        );
-
         $order = (new OrderFactory())->createOrder(
             $order_id,
             $shop_cart->getTotalValue(),
@@ -171,7 +168,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 )
             ),
             $return_url,
-            $notification_url,
+            ApiService::getEndpointUrl('transactionStatus'),
             SettingsManager::getAllowedProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL, $shop_cart)
         );
 
@@ -187,12 +184,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 $e
             );
 
-            Tools::redirect($this->context->link->getModuleLink(
-                $this->module->name,
-                'error',
-                ['error' => $e->getMessage()],
-                true
-            ));
+            Tools::redirect(ApiService::getControllerUrl($this, 'error', ['error' => $e->getMessage()]));
         }
     }
 

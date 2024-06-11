@@ -373,7 +373,7 @@ final class ConfigManager
     private static function getProductData(\PaymentModule $module, $product_id): array
     {
         $context = \Context::getContext();
-        $avail_offers_url = $context->link->getModuleLink($module->name, 'availableoffertypes', [], true);
+        $avail_offers_url = ApiService::getControllerUrl($module, 'availableoffertypes', [], false);
 
         $price = 'null';
 

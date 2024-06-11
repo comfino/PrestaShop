@@ -19,6 +19,8 @@ abstract class Request
     /** @var string */
     private $apiEndpointPath;
     /** @var array|null */
+    private $requestHeaders;
+    /** @var array|null */
     private $requestParams;
     /** @var string|null */
     private $requestUri;
@@ -61,6 +63,12 @@ abstract class Request
         }
 
         $request = $requestFactory->createRequest($this->method, $this->requestUri);
+
+        if (!empty($requestHeaders = $this->getRequestHeaders())) {
+            foreach ($requestHeaders as $headerName => $headerValue) {
+                $request = $request->withHeader($headerName, $headerValue);
+            }
+        }
 
         try {
             $this->requestBody = $this->serializeRequestBody();
@@ -117,6 +125,15 @@ abstract class Request
     }
 
     /**
+     * @param array $requestHeaders
+     * @return void
+     */
+    final protected function setRequestHeaders($requestHeaders): void
+    {
+        $this->requestHeaders = $requestHeaders;
+    }
+
+    /**
      * @param array $requestParams
      * @return void
      */
@@ -148,6 +165,11 @@ abstract class Request
         }
 
         return $uri;
+    }
+
+    final protected function getRequestHeaders(): ?array
+    {
+        return $this->requestHeaders;
     }
 
     /**

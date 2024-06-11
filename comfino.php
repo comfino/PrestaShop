@@ -71,6 +71,7 @@ class Comfino extends PaymentModule
             'payment',
             'paymentstate',
             'paywall',
+            'paywallfragments',
             'error',
             'script',
             'transactionstatus',
@@ -186,7 +187,7 @@ class Comfino extends PaymentModule
 
         $comfino_payment_option = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
         $comfino_payment_option->setModuleName($this->name)
-            ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
+            ->setAction(ApiService::getControllerUrl($this, 'payment'))
             ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
             ->setLogo(ApiClient::getPaywallLogoUrl())
             ->setAdditionalInformation($paywallIframe);
@@ -314,8 +315,10 @@ class Comfino extends PaymentModule
             $config_crc = ''; // crc32(implode($widget_settings));
             $this->addScriptLink(
                 'comfino-widget',
-                $this->context->link->getModuleLink(
-                    $this->name, 'script', ['product_id' => $product->id, 'crc' => $config_crc], true
+                ApiService::getControllerUrl(
+                    $this->name,
+                    'script',
+                    ['product_id' => $product->id, 'crc' => $config_crc]
                 ),
                 'bottom',
                 'defer'
@@ -381,8 +384,8 @@ class Comfino extends PaymentModule
                         FrontendManager::getPaywallRenderer($this),
                         'PrestaShop',
                         _PS_VERSION_
-                    ))->renderPaywallIframe($this->context->link->getModuleLink($this->name, 'paywall', [], true)),
-                    'payment_state_url' => $this->context->link->getModuleLink($this->name, 'paymentstate', [], true),
+                    ))->renderPaywallIframe(ApiService::getControllerUrl($this, 'paywall')),
+                    'payment_state_url' => ApiService::getControllerUrl($this, 'paymentstate', [], false),
                     'paywall_options' => $this->getPaywallOptions(),
                     'is_ps_16' => !COMFINO_PS_17,
                 ]
