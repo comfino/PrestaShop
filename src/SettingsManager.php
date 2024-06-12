@@ -27,10 +27,8 @@
 namespace Comfino;
 
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
-use Comfino\Cache\StorageAdapter;
 use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\Cache\Bucket;
-use Comfino\Common\Backend\CacheManager;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByCartValueLowerLimit;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByExcludedCategory;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByProductType;
@@ -105,7 +103,7 @@ final class SettingsManager
         try {
             $product_types = ApiClient::getInstance()->getProductTypes($list_type_enum);
 
-            self::getCache()->set($cache_key, $product_types->productTypesWithNames);
+            self::getCache()->set($cache_key, $product_types->productTypesWithNames, 0, ['admin_product_types']);
 
             return $product_types->productTypesWithNames;
         } catch (\Throwable $e) {
@@ -153,7 +151,7 @@ final class SettingsManager
         try {
             $widget_types = ApiClient::getInstance()->getWidgetTypes()->widgetTypesWithNames;
 
-            self::getCache()->set($cache_key, $widget_types);
+            self::getCache()->set($cache_key, $widget_types, 0, ['admin_widget_types']);
 
             return $widget_types;
         } catch (\Throwable $e) {
@@ -238,12 +236,12 @@ final class SettingsManager
 
     public static function clearCache(): void
     {
-        self::getCache()->clear();
+        self::getCache()->clearCache();
     }
 
     private static function getCache(): Bucket
     {
-        return CacheManager::getInstance()->getCacheBucket('settings', new StorageAdapter('api'));
+        return ApiService::getCacheManager()->getCacheBucket('settings');
     }
 
     private static function getFilterManager(string $list_type): ProductTypeFilterManager

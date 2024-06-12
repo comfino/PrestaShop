@@ -31,7 +31,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class ComfinoPaywallFragmentsModuleFrontController extends ModuleFrontController
+class ComfinoCacheInvalidateModuleFrontController extends ModuleFrontController
 {
     public function postProcess(): void
     {
@@ -39,6 +39,6 @@ class ComfinoPaywallFragmentsModuleFrontController extends ModuleFrontController
 
         parent::postProcess();
 
-        exit(ApiService::processRequest('paywallFragments'));
+        exit(ApiService::processRequest('cacheInvalidate'));
     }
 }

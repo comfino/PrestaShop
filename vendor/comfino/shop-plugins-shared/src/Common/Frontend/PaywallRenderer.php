@@ -2,6 +2,7 @@
 
 namespace Comfino\Common\Frontend;
 
+use Cache\TagInterop\TaggableCacheItemPoolInterface;
 use Comfino\Api\Client;
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
 use Comfino\Api\Exception\AccessDenied;
@@ -11,7 +12,6 @@ use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
 use Comfino\Paywall\PaywallViewTypeEnum;
-use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Http\Client\ClientExceptionInterface;
 
@@ -24,7 +24,7 @@ final class PaywallRenderer
     private $client;
     /**
      * @readonly
-     * @var \Psr\Cache\CacheItemPoolInterface
+     * @var \Cache\TagInterop\TaggableCacheItemPoolInterface
      */
     private $cache;
     /**
@@ -36,7 +36,7 @@ final class PaywallRenderer
      * @readonly
      * @var string|null
      */
-    private $notificationUrl;
+    private $cacheInvalidateUrl;
     /**
      * @readonly
      * @var string|null
@@ -44,12 +44,12 @@ final class PaywallRenderer
     private $configurationUrl;
     private const PAYWALL_GUI_FRAGMENTS = ['template', 'style', 'script', 'frontend_style', 'frontend_script'];
 
-    public function __construct(Client $client, CacheItemPoolInterface $cache, RendererStrategyInterface $rendererStrategy, ?string $notificationUrl = null, ?string $configurationUrl = null)
+    public function __construct(Client $client, TaggableCacheItemPoolInterface $cache, RendererStrategyInterface $rendererStrategy, ?string $cacheInvalidateUrl = null, ?string $configurationUrl = null)
     {
         $this->client = $client;
         $this->cache = $cache;
         $this->rendererStrategy = $rendererStrategy;
-        $this->notificationUrl = $notificationUrl;
+        $this->cacheInvalidateUrl = $cacheInvalidateUrl;
         $this->configurationUrl = $configurationUrl;
     }
 
@@ -108,7 +108,7 @@ final class PaywallRenderer
      */
     public function fetchPaywallFragments(): array
     {
-        return $this->client->getPaywallFragments($this->notificationUrl, $this->configurationUrl)->paywallFragments;
+        return $this->client->getPaywallFragments($this->cacheInvalidateUrl, $this->configurationUrl)->paywallFragments;
     }
 
     /**
@@ -122,13 +122,25 @@ final class PaywallRenderer
             }
 
             if ($language !== null && !is_array($fragmentContents)) {
-                $this->cache->saveDeferred($this->cache->getItem($this->getItemKey($fragmentName, $language))->set($fragmentContents));
+                $this->cache->saveDeferred(
+                    $this->cache->getItem($this->getItemKey($fragmentName, $language))
+                        ->set($fragmentContents)
+                        ->setTags(["paywall_$fragmentName"])
+                );
             } elseif (is_array($fragmentContents)) {
                 foreach ($fragmentContents as $fragmentLanguage => $fragmentLanguageContents) {
-                    $this->cache->saveDeferred($this->cache->getItem($this->getItemKey($fragmentName, $fragmentLanguage))->set($fragmentLanguageContents));
+                    $this->cache->saveDeferred(
+                        $this->cache->getItem($this->getItemKey($fragmentName, $fragmentLanguage))
+                            ->set($fragmentLanguageContents)
+                            ->setTags(["paywall_$fragmentName"])
+                    );
                 }
             } else {
-                $this->cache->saveDeferred($this->cache->getItem($this->getItemKey($fragmentName, ''))->set($fragmentContents));
+                $this->cache->saveDeferred(
+                    $this->cache->getItem($this->getItemKey($fragmentName, ''))
+                        ->set($fragmentContents)
+                        ->setTags(["paywall_$fragmentName"])
+                );
             }
         }
 

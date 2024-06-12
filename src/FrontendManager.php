@@ -26,8 +26,6 @@
 
 namespace Comfino;
 
-use Comfino\Cache\StorageAdapter;
-use Comfino\Common\Backend\CacheManager;
 use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\TemplateRenderer\ModuleRendererStrategy;
 
@@ -41,9 +39,9 @@ final class FrontendManager
     {
         return (new PaywallRenderer(
             ApiClient::getInstance(),
-            CacheManager::getInstance()->getCacheBucket('paywall', new StorageAdapter('paywall')),
+            ApiService::getCacheManager()->getCacheBucket('paywall'),
             new ModuleRendererStrategy($module),
-            ApiService::getEndpointUrl('paywallFragments'),
+            ApiService::getEndpointUrl('cacheInvalidate'),
             ApiService::getEndpointUrl('configuration')
         ));
     }

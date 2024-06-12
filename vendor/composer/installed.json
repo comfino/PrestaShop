@@ -1,21 +1,84 @@
 {
     "packages": [
         {
+            "name": "cache/tag-interop",
+            "version": "1.1.0",
+            "version_normalized": "1.1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/php-cache/tag-interop.git",
+                "reference": "b062b1d735357da50edf8387f7a8696f3027d328"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/php-cache/tag-interop/zipball/b062b1d735357da50edf8387f7a8696f3027d328",
+                "reference": "b062b1d735357da50edf8387f7a8696f3027d328",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^5.5 || ^7.0 || ^8.0",
+                "psr/cache": "^1.0 || ^2.0"
+            },
+            "time": "2021-12-31T10:03:23+00:00",
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.1-dev"
+                }
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Cache\\TagInterop\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Tobias Nyholm",
+                    "email": "tobias.nyholm@gmail.com",
+                    "homepage": "https://github.com/nyholm"
+                },
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com",
+                    "homepage": "https://github.com/nicolas-grekas"
+                }
+            ],
+            "description": "Framework interoperable interfaces for tags",
+            "homepage": "https://www.php-cache.com/en/latest/",
+            "keywords": [
+                "cache",
+                "psr",
+                "psr6",
+                "tag"
+            ],
+            "support": {
+                "issues": "https://github.com/php-cache/tag-interop/issues",
+                "source": "https://github.com/php-cache/tag-interop/tree/1.1.0"
+            },
+            "install-path": "../cache/tag-interop"
+        },
+        {
             "name": "comfino/shop-plugins-shared",
             "version": "dev-master",
             "version_normalized": "dev-master",
             "source": {
                 "type": "git",
                 "url": "git@github.com:comfino/shop-plugins-shared.git",
-                "reference": "9275234ca7f9e20715ba6a6b5de88b54c0908f1d"
+                "reference": "8a5c0afeba2e81fadb482e1a930f3dff89722285"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/9275234ca7f9e20715ba6a6b5de88b54c0908f1d",
-                "reference": "9275234ca7f9e20715ba6a6b5de88b54c0908f1d",
+                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/8a5c0afeba2e81fadb482e1a930f3dff89722285",
+                "reference": "8a5c0afeba2e81fadb482e1a930f3dff89722285",
                 "shasum": ""
             },
             "require": {
+                "cache/tag-interop": "^1.1",
                 "ext-curl": "*",
                 "ext-json": "*",
                 "ext-zlib": "*",
@@ -30,7 +93,7 @@
                 "phpspec/prophecy-phpunit": "^1.1",
                 "phpunit/phpunit": "^5.7"
             },
-            "time": "2024-06-11T14:39:15+00:00",
+            "time": "2024-06-12T15:09:59+00:00",
             "default-branch": true,
             "type": "library",
             "installation-source": "dist",

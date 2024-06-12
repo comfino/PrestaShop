@@ -19,4 +19,5 @@ return array(
     'Psr\\Cache\\' => array($vendorDir . '/psr/cache/src'),
     'Fig\\Http\\Message\\' => array($vendorDir . '/fig/http-message-util/src'),
     'Comfino\\' => array($baseDir . '/src', $vendorDir . '/comfino/shop-plugins-shared/src'),
+    'Cache\\TagInterop\\' => array($vendorDir . '/cache/tag-interop'),
 );

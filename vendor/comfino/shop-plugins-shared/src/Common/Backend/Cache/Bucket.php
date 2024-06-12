@@ -2,10 +2,11 @@
 
 namespace Comfino\Common\Backend\Cache;
 
+use Cache\TagInterop\TaggableCacheItemInterface;
+use Cache\TagInterop\TaggableCacheItemPoolInterface;
 use Psr\Cache\CacheItemInterface;
-use Psr\Cache\CacheItemPoolInterface;
 
-final class Bucket implements CacheItemPoolInterface
+final class Bucket implements TaggableCacheItemPoolInterface
 {
     /**
      * @readonly
@@ -29,7 +30,7 @@ final class Bucket implements CacheItemPoolInterface
     /**
      * @param string $key
      */
-    public function getItem($key): CacheItemInterface
+    public function getItem($key): TaggableCacheItemInterface
     {
         return new Item($this, $key);
     }
@@ -125,6 +126,22 @@ final class Bucket implements CacheItemPoolInterface
     }
 
     /**
+     * @param string $tag
+     */
+    public function invalidateTag($tag): void
+    {
+        $this->clearCache([$tag]);
+    }
+
+    /**
+     * @param string[] $tags
+     */
+    public function invalidateTags($tags): void
+    {
+        $this->clearCache($tags);
+    }
+
+    /**
      * @param string $key
      * @return mixed
      */
@@ -175,7 +192,33 @@ final class Bucket implements CacheItemPoolInterface
     }
 
     /**
-     * @param mixed[]|null $tags
+     * @param string $key
+     */
+    public function getTags($key): array
+    {
+        $cache = $this->getCacheItems();
+
+        if (!isset($cache[$key])) {
+            return [];
+        }
+
+        return $cache[$key]['tags'] ?? [];
+    }
+
+    /**
+     * @param string[] $tags
+     * @param string $key
+     */
+    public function setTags($key, $tags): void
+    {
+        if (isset($this->getCacheItems()[$key])) {
+            $this->cacheItems[$key]['tags'] = $tags;
+            $this->modified = true;
+        }
+    }
+
+    /**
+     * @param string[]|null $tags
      */
     public function clearCache($tags = null): void
     {

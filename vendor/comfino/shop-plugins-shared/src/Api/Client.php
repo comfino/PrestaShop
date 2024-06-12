@@ -462,13 +462,13 @@ class Client
      * @throws AccessDenied
      * @throws ServiceUnavailable
      * @throws ClientExceptionInterface
-     * @param string|null $notificationUrl
+     * @param string|null $cacheInvalidateUrl
      * @param string|null $configurationUrl
      */
-    public function getPaywallFragments($notificationUrl = null, $configurationUrl = null): GetPaywallFragmentsResponse
+    public function getPaywallFragments($cacheInvalidateUrl = null, $configurationUrl = null): GetPaywallFragmentsResponse
     {
         try {
-            $request = (new GetPaywallFragmentsRequest($notificationUrl, $configurationUrl))->setSerializer($this->serializer);
+            $request = (new GetPaywallFragmentsRequest($cacheInvalidateUrl, $configurationUrl))->setSerializer($this->serializer);
 
             return new GetPaywallFragmentsResponse($request, $this->sendRequest($request), $this->serializer);
         } catch (RequestValidationError | ResponseValidationError | AuthorizationError | AccessDenied | ServiceUnavailable $e) {

@@ -26,9 +26,11 @@
 
 namespace Comfino;
 
+use Comfino\Cache\StorageAdapter;
+use Comfino\Common\Backend\CacheManager;
 use Comfino\Common\Backend\Factory\ApiServiceFactory;
+use Comfino\Common\Backend\RestEndpoint\CacheInvalidate;
 use Comfino\Common\Backend\RestEndpoint\Configuration;
-use Comfino\Common\Backend\RestEndpoint\FrontendNotification;
 use Comfino\Common\Backend\RestEndpoint\StatusNotification;
 use Comfino\Common\Backend\RestEndpointManager;
 use Comfino\Common\Shop\Order\StatusManager;
@@ -78,10 +80,10 @@ final class ApiService
         );
 
         self::$endpointManager->registerEndpoint(
-            new FrontendNotification(
-                'paywallFragments',
-                self::getControllerUrl($module, 'paywallfragments', [], false),
-                FrontendManager::getPaywallRenderer($module)
+            new CacheInvalidate(
+                'cacheInvalidate',
+                self::getControllerUrl($module, 'cacheinvalidate', [], false),
+                self::getCacheManager()
             )
         );
     }
@@ -127,5 +129,13 @@ final class ApiService
         http_response_code($response->getStatusCode());
 
         return !empty($responseBody) ? $responseBody : $response->getReasonPhrase();
+    }
+
+    public static function getCacheManager(): CacheManager
+    {
+        return CacheManager::getInstance([
+            'paywall' => new StorageAdapter('paywall'),
+            'settings' => new StorageAdapter('api'),
+        ]);
     }
 }

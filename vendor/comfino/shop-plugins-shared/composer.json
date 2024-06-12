@@ -18,6 +18,7 @@
         "ext-json": "*",
         "ext-zlib": "*",
         "psr/cache": "^1.0",
+        "cache/tag-interop": "^1.1",
         "sunrise/http-client-curl": "^1.4",
         "sunrise/http-factory": "^2.0"
     },

@@ -42,6 +42,7 @@ class ComposerStaticInit9e99c7988be00666d69107bbdeea8363
         'C' => 
         array (
             'Comfino\\' => 8,
+            'Cache\\TagInterop\\' => 17,
         ),
     );
 
@@ -99,6 +100,10 @@ class ComposerStaticInit9e99c7988be00666d69107bbdeea8363
         array (
             0 => __DIR__ . '/../..' . '/src',
             1 => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src',
+        ),
+        'Cache\\TagInterop\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/cache/tag-interop',
         ),
     );
 

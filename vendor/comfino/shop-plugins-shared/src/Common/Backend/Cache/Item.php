@@ -2,10 +2,10 @@
 
 namespace Comfino\Common\Backend\Cache;
 
-use Psr\Cache\CacheItemInterface;
+use Cache\TagInterop\TaggableCacheItemInterface;
 use Psr\Cache\InvalidArgumentException;
 
-class Item implements CacheItemInterface
+class Item implements TaggableCacheItemInterface
 {
     /**
      * @readonly
@@ -58,6 +58,19 @@ class Item implements CacheItemInterface
         $this->bucket->set($this->key, $value, $this->expiresAt);
 
         return $this;
+    }
+
+    public function getPreviousTags(): array
+    {
+        return $this->bucket->getTags($this->key);
+    }
+
+    /**
+     * @param mixed[] $tags
+     */
+    public function setTags($tags): void
+    {
+        $this->bucket->setTags($this->key, $tags);
     }
 
     /**
