@@ -26,7 +26,6 @@
 
 use Comfino\ApiClient;
 use Comfino\ApiService;
-use Comfino\Common\Frontend\IframeRenderer;
 use Comfino\ConfigManager;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
@@ -380,11 +379,8 @@ class Comfino extends PaymentModule
                 'payment',
                 'front',
                 [
-                    'paywall_iframe' => (new IframeRenderer(
-                        FrontendManager::getPaywallRenderer($this),
-                        'PrestaShop',
-                        _PS_VERSION_
-                    ))->renderPaywallIframe(ApiService::getControllerUrl($this, 'paywall')),
+                    'paywall_iframe' => FrontendManager::getPaywallIframeRenderer($this)
+                        ->renderPaywallIframe(ApiService::getControllerUrl($this, 'paywall')),
                     'payment_state_url' => ApiService::getControllerUrl($this, 'paymentstate', [], false),
                     'paywall_options' => $this->getPaywallOptions(),
                     'is_ps_16' => !COMFINO_PS_17,

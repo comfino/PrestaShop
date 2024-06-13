@@ -26,6 +26,7 @@
 
 namespace Comfino;
 
+use Comfino\Common\Frontend\PaywallIframeRenderer;
 use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\TemplateRenderer\ModuleRendererStrategy;
 
@@ -37,12 +38,25 @@ final class FrontendManager
 {
     public static function getPaywallRenderer(\PaymentModule $module): PaywallRenderer
     {
-        return (new PaywallRenderer(
+        return new PaywallRenderer(
             ApiClient::getInstance(),
             ApiService::getCacheManager()->getCacheBucket('paywall'),
             new ModuleRendererStrategy($module),
             ApiService::getEndpointUrl('cacheInvalidate'),
             ApiService::getEndpointUrl('configuration')
-        ));
+        );
+    }
+
+    public static function getPaywallIframeRenderer(\PaymentModule $module): PaywallIframeRenderer
+    {
+        return new PaywallIframeRenderer(
+            ApiClient::getInstance(),
+            ApiService::getCacheManager()->getCacheBucket('paywall'),
+            new ModuleRendererStrategy($module),
+            'PrestaShop',
+            _PS_VERSION_,
+            ApiService::getEndpointUrl('cacheInvalidate'),
+            ApiService::getEndpointUrl('configuration')
+        );
     }
 }

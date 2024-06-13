@@ -3,7 +3,7 @@
         'name' => 'comfino/prestashop',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'd88f83f248b94f8ab08f3d00d303584422df8c24',
+        'reference' => 'e533141307eb77857c8f255bac1afcca886a44e2',
         'type' => 'prestashop-module',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'comfino/prestashop' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'd88f83f248b94f8ab08f3d00d303584422df8c24',
+            'reference' => 'e533141307eb77857c8f255bac1afcca886a44e2',
             'type' => 'prestashop-module',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -31,7 +31,7 @@
         'comfino/shop-plugins-shared' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '8a5c0afeba2e81fadb482e1a930f3dff89722285',
+            'reference' => '568d29fb4c18e309721ea397d0c5c09e9cf4ce96',
             'type' => 'library',
             'install_path' => __DIR__ . '/../comfino/shop-plugins-shared',
             'aliases' => array(
