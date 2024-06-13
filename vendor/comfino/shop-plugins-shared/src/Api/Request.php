@@ -18,9 +18,9 @@ abstract class Request
     private $method;
     /** @var string */
     private $apiEndpointPath;
-    /** @var array|null */
+    /** @var string[]|null */
     private $requestHeaders;
-    /** @var array|null */
+    /** @var string[]|null */
     private $requestParams;
     /** @var string|null */
     private $requestUri;
@@ -125,7 +125,7 @@ abstract class Request
     }
 
     /**
-     * @param array $requestHeaders
+     * @param string[] $requestHeaders
      * @return void
      */
     final protected function setRequestHeaders($requestHeaders): void
@@ -134,7 +134,7 @@ abstract class Request
     }
 
     /**
-     * @param array $requestParams
+     * @param string[] $requestParams
      * @return void
      */
     final protected function setRequestParams($requestParams): void

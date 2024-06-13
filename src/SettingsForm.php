@@ -142,7 +142,7 @@ final class SettingsForm
 
                         $product_category_filters[$product_type] = array_values(array_diff(
                             $product_categories,
-                            ...$node_ids
+                            ...array_filter($node_ids)
                         ));
                     }
 
