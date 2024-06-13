@@ -135,15 +135,21 @@ final class SettingsForm
                         $node_ids = [];
 
                         foreach (explode(',', $category_ids) as $category_id) {
-                            if (($category_node = $categories_tree->getNodeById((int) $category_id)) !== null) {
-                                $node_ids[] = $categories_tree->getPathNodeIds($category_node->getPathToRoot());
+                            if (($category_node = $categories_tree->getNodeById((int) $category_id)) !== null
+                                && count($path_nodes = $category_node->getPathToRoot()) > 0
+                            ) {
+                                $node_ids[] = $categories_tree->getPathNodeIds($path_nodes);
                             }
                         }
 
-                        $product_category_filters[$product_type] = array_values(array_diff(
-                            $product_categories,
-                            ...array_filter($node_ids)
-                        ));
+                        if (count($node_ids) > 0) {
+                            $product_category_filters[$product_type] = array_values(array_diff(
+                                $product_categories,
+                                ...$node_ids
+                            ));
+                        } else {
+                            $product_category_filters[$product_type] = $product_categories;
+                        }
                     }
 
                     $configuration_options['COMFINO_PRODUCT_CATEGORY_FILTERS'] = $product_category_filters;
