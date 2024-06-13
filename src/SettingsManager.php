@@ -270,6 +270,7 @@ final class SettingsManager
         }
 
         if ($list_type === ProductTypesListTypeEnum::LIST_TYPE_WIDGET
+            && ConfigManager::getConfigurationValue('COMFINO_WIDGET_TYPE') === 'with-modal'
             && !empty($widget_product_type = ConfigManager::getConfigurationValue('COMFINO_WIDGET_OFFER_TYPE'))
         ) {
             $filters[] = new FilterByProductType([new LoanTypeEnum($widget_product_type)]);
