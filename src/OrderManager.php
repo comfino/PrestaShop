@@ -82,7 +82,7 @@ final class OrderManager
                         null,
                         null,
                         null,
-                        $product->getCategories()
+                        array_map('intval', $product->getCategories())
                     ),
                     1
                 ),
