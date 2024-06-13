@@ -36,6 +36,8 @@ final class ErrorLogger
 {
     /** @var Common\Backend\ErrorLogger */
     private static $errorLogger;
+    /** @var string */
+    private static $log_file_path;
 
     public static function init(\PaymentModule $module): void
     {
@@ -52,6 +54,8 @@ final class ErrorLogger
             );
 
             self::$errorLogger->init();
+
+            self::$log_file_path = _PS_MODULE_DIR_ . $module->name . '/var/log/errors.log';
 
             $initialized = true;
         }
@@ -74,7 +78,7 @@ final class ErrorLogger
     public static function logError(string $error_prefix, string $error_message): void
     {
         @file_put_contents(
-            _PS_MODULE_DIR_ . 'comfino/payment_log.log',
+            self::$log_file_path,
             '[' . date('Y-m-d H:i:s') . "] $error_prefix: $error_message\n",
             FILE_APPEND
         );
@@ -82,6 +86,6 @@ final class ErrorLogger
 
     public static function getErrorLog(int $num_lines): string
     {
-        return self::$errorLogger->getErrorLog(_PS_MODULE_DIR_ . 'comfino/payment_log.log', $num_lines);
+        return self::$errorLogger->getErrorLog(self::$log_file_path, $num_lines);
     }
 }

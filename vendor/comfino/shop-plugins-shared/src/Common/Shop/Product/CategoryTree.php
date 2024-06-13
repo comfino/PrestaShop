@@ -81,6 +81,16 @@ final class CategoryTree
         return $nodeIds;
     }
 
+    /**
+     * @return int[]
+     */
+    public function getPathNodeIds(NodeIterator $nodes): array
+    {
+        return array_map(static function (Node $node) : int {
+            return $node->getId();
+        }, iterator_to_array($nodes));
+    }
+
     public function getNodeById(int $id, ?Node $rootNode = null): ?Node
     {
         if ($this->index !== null && array_key_exists($id, $this->index)) {

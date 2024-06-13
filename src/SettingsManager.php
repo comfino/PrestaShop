@@ -27,7 +27,6 @@
 namespace Comfino;
 
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
-use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\Cache\Bucket;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByCartValueLowerLimit;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByExcludedCategory;
@@ -36,7 +35,6 @@ use Comfino\Common\Backend\Payment\ProductTypeFilterInterface;
 use Comfino\Common\Backend\Payment\ProductTypeFilterManager;
 use Comfino\Common\Shop\Cart;
 use Comfino\Common\Shop\Product\CategoryFilter;
-use Comfino\Common\Shop\Product\CategoryTree;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 
 if (!defined('_PS_VERSION_')) {
@@ -279,7 +277,7 @@ final class SettingsManager
 
         if (self::productCategoryFiltersActive($product_category_filters = self::getProductCategoryFilters())) {
             $filters[] = new FilterByExcludedCategory(
-                new CategoryFilter(new CategoryTree(new BuildStrategy())),
+                new CategoryFilter(ConfigManager::getCategoriesTree()),
                 $product_category_filters
             );
         }

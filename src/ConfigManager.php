@@ -26,8 +26,10 @@
 
 namespace Comfino;
 
+use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Shop\Order\StatusManager;
+use Comfino\Common\Shop\Product\CategoryTree;
 use Comfino\Configuration\StorageAdapter;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 
@@ -178,6 +180,18 @@ final class ConfigManager
         }
 
         return $categories;
+    }
+
+    public static function getCategoriesTree(): CategoryTree
+    {
+        /** @var CategoryTree $categories_tree */
+        static $categories_tree = null;
+
+        if ($categories_tree === null) {
+            $categories_tree = new CategoryTree(new BuildStrategy());
+        }
+
+        return $categories_tree;
     }
 
     public static function getConfigurationValue(string $optionName)

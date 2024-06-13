@@ -125,4 +125,16 @@ final class Node
     {
         return $this->children !== null && $this->children->count() !== 0;
     }
+
+    public function getPathToRoot(): NodeIterator
+    {
+        $nodes = [];
+        $node = $this;
+
+        do {
+            $nodes[] = $node;
+        } while (($node = $node->getParent()) !== null);
+
+        return new NodeIterator($nodes);
+    }
 }

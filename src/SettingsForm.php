@@ -127,13 +127,22 @@ final class SettingsForm
                     break;
 
                 case 'sale_settings':
+                    $categories_tree = ConfigManager::getCategoriesTree();
                     $product_categories = array_keys(ConfigManager::getAllProductCategories());
                     $product_category_filters = [];
 
                     foreach (\Tools::getValue('product_categories') as $product_type => $category_ids) {
+                        $node_ids = [];
+
+                        foreach (explode(',', $category_ids) as $category_id) {
+                            if (($category_node = $categories_tree->getNodeById((int) $category_id)) !== null) {
+                                $node_ids[] = $categories_tree->getPathNodeIds($category_node->getPathToRoot());
+                            }
+                        }
+
                         $product_category_filters[$product_type] = array_values(array_diff(
                             $product_categories,
-                            explode(',', $category_ids)
+                            ...$node_ids
                         ));
                     }
 

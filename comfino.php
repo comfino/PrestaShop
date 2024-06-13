@@ -315,7 +315,7 @@ class Comfino extends PaymentModule
             $this->addScriptLink(
                 'comfino-widget',
                 ApiService::getControllerUrl(
-                    $this->name,
+                    $this,
                     'script',
                     ['product_id' => $product->id, 'crc' => $config_crc]
                 ),
