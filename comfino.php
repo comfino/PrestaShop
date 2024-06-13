@@ -338,8 +338,7 @@ class Comfino extends PaymentModule
         string $script_url,
         string $position = 'bottom',
         $load_strategy = null
-    ): void
-    {
+    ): void {
         if (COMFINO_PS_17) {
             $this->context->controller->registerJavascript(
                 $id,
@@ -386,7 +385,7 @@ class Comfino extends PaymentModule
                     'is_ps_16' => !COMFINO_PS_17,
                 ]
             );
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             ApiClient::processApiError('Paywall error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
         }
 
@@ -402,7 +401,7 @@ class Comfino extends PaymentModule
         $cart = $this->context->cart;
         $total = $cart->getOrderTotal();
 
-        $tools = new \Comfino\Tools($this->context);
+        $tools = new Comfino\Tools($this->context);
 
         return [
             'platform' => 'prestashop',

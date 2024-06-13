@@ -79,7 +79,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     ),
                     ConfigManager::getCurrentWidgetCode($this->module, $product_id)
                 );
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 ErrorLogger::sendError(
                     'Widget script endpoint',
                     $e->getCode(),

@@ -48,12 +48,12 @@
     <div class="col-md-12">
         <div class="panel">
             <div class="panel-body">
-                <img style="width: 300px" src="{$logo_url|escape:"htmlall":"UTF-8"}" alt="Comfino logo"> <span style="font-weight: bold; font-size: 16px; vertical-align: bottom">{$plugin_version}</span>
+                <img style="width: 300px" src="{$logo_url|escape:"htmlall":"UTF-8"}" alt="Comfino logo"> <span style="font-weight: bold; font-size: 16px; vertical-align: bottom">{$plugin_version|escape:"htmlall":"UTF-8"}</span>
             </div>
             <div class="panel-body">
                 {$contact_msg1|escape:"htmlall":"UTF-8"}
-                <a href="mailto:{$support_email_address}?subject={$support_email_subject}&body={$support_email_body}">
-                    {$support_email_address}
+                <a href="mailto:{$support_email_address|escape:"htmlall":"UTF-8"}?subject={$support_email_subject|escape:"htmlall":"UTF-8"}&body={$support_email_body|escape:"htmlall":"UTF-8"}">
+                    {$support_email_address|escape:"htmlall":"UTF-8"}
                 </a>
                 {$contact_msg2|escape:"htmlall":"UTF-8"}
             </div>
