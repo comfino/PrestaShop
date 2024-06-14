@@ -2,24 +2,25 @@
 
 namespace Comfino\Common\Backend\RestEndpoint;
 
+use Cache\TagInterop\TaggableCacheItemPoolInterface;
 use Comfino\Common\Backend\Cache\ItemTypeEnum;
-use Comfino\Common\Backend\CacheManager;
 use Comfino\Common\Backend\RestEndpoint;
 use Comfino\Common\Exception\InvalidEndpoint;
 use Comfino\Common\Exception\InvalidRequest;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
 
 class CacheInvalidate extends RestEndpoint
 {
     /**
      * @readonly
-     * @var \Comfino\Common\Backend\CacheManager
+     * @var \Cache\TagInterop\TaggableCacheItemPoolInterface
      */
     private $cache;
     public function __construct(
         string $name,
         string $endpointUrl,
-        CacheManager $cache
+        TaggableCacheItemPoolInterface $cache
     ) {
         $this->cache = $cache;
         parent::__construct($name, $endpointUrl);
@@ -28,6 +29,7 @@ class CacheInvalidate extends RestEndpoint
     }
 
     /**
+     * @throws InvalidArgumentException
      * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
      * @param string|null $endpointName
      */
@@ -41,7 +43,7 @@ class CacheInvalidate extends RestEndpoint
             throw new InvalidRequest('Invalid request payload.');
         }
 
-        $this->cache->clear(array_intersect($requestPayload, ItemTypeEnum::values()));
+        $this->cache->invalidateTags(array_intersect($requestPayload, ItemTypeEnum::values()));
 
         return null;
     }

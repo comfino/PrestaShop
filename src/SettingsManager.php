@@ -27,7 +27,6 @@
 namespace Comfino;
 
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
-use Comfino\Common\Backend\Cache\Bucket;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByCartValueLowerLimit;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByExcludedCategory;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByProductType;
@@ -91,17 +90,17 @@ final class SettingsManager
     public static function getProductTypes(string $list_type, bool $return_errors = false): array
     {
         $language = \Context::getContext()->language->iso_code;
-        $cache_key = "product_types:$list_type:$language";
+        $cache_key = "product_types.$list_type.$language";
         $list_type_enum = new ProductTypesListTypeEnum($list_type);
 
-        if (self::getCache()->has($cache_key)) {
-            return self::getCache()->get($cache_key);
+        if (($product_types = CacheManager::get($cache_key)) !== null) {
+            return $product_types;
         }
 
         try {
             $product_types = ApiClient::getInstance()->getProductTypes($list_type_enum);
 
-            self::getCache()->set($cache_key, $product_types->productTypesWithNames, 0, ['admin_product_types']);
+            CacheManager::set($cache_key, $product_types->productTypesWithNames, 0, ['admin_product_types']);
 
             return $product_types->productTypesWithNames;
         } catch (\Throwable $e) {
@@ -140,16 +139,16 @@ final class SettingsManager
     public static function getWidgetTypes(bool $return_errors = false): array
     {
         $language = \Context::getContext()->language->iso_code;
-        $cache_key = "widget_types:$language";
+        $cache_key = "widget_types.$language";
 
-        if (self::getCache()->has($cache_key)) {
-            return self::getCache()->get($cache_key);
+        if (($widget_types = CacheManager::get($cache_key)) !== null) {
+            return $widget_types;
         }
 
         try {
             $widget_types = ApiClient::getInstance()->getWidgetTypes()->widgetTypesWithNames;
 
-            self::getCache()->set($cache_key, $widget_types, 0, ['admin_widget_types']);
+            CacheManager::set($cache_key, $widget_types, 0, ['admin_widget_types']);
 
             return $widget_types;
         } catch (\Throwable $e) {
@@ -230,16 +229,6 @@ final class SettingsManager
         }
 
         return $avail_prod_types;
-    }
-
-    public static function clearCache(): void
-    {
-        self::getCache()->clearCache();
-    }
-
-    private static function getCache(): Bucket
-    {
-        return ApiService::getCacheManager()->getCacheBucket('settings');
     }
 
     private static function getFilterManager(string $list_type): ProductTypeFilterManager

@@ -26,6 +26,7 @@
 
 use Comfino\ApiClient;
 use Comfino\ApiService;
+use Comfino\CacheManager;
 use Comfino\ConfigManager;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
@@ -91,6 +92,8 @@ class Comfino extends PaymentModule
 
         require_once __DIR__ . '/vendor/autoload.php';
 
+        // Initialize cache system.
+        CacheManager::init($this);
         // Register module API endpoints.
         ApiService::init($this);
     }

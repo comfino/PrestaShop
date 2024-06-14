@@ -26,8 +26,8 @@
 
 namespace Comfino;
 
-use Comfino\Cache\StorageAdapter;
-use Comfino\Common\Backend\CacheManager;
+use Cache\Adapter\Common\AbstractCachePool;
+use Cache\Adapter\Filesystem\FilesystemCachePool;
 use Comfino\Common\Backend\Factory\ApiServiceFactory;
 use Comfino\Common\Backend\RestEndpoint\CacheInvalidate;
 use Comfino\Common\Backend\RestEndpoint\Configuration;
@@ -35,6 +35,8 @@ use Comfino\Common\Backend\RestEndpoint\StatusNotification;
 use Comfino\Common\Backend\RestEndpointManager;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Order\StatusAdapter;
+use League\Flysystem\Adapter\Local;
+use League\Flysystem\Filesystem;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -43,11 +45,11 @@ if (!defined('_PS_VERSION_')) {
 final class ApiService
 {
     /** @var RestEndpointManager */
-    private static $endpointManager;
+    private static $endpoint_manager;
 
     public static function init(\PaymentModule $module): void
     {
-        self::$endpointManager = (new ApiServiceFactory())->createService(
+        self::$endpoint_manager = (new ApiServiceFactory())->createService(
             'PrestaShop',
             _PS_VERSION_,
             COMFINO_VERSION,
@@ -57,7 +59,7 @@ final class ApiService
             ]
         );
 
-        self::$endpointManager->registerEndpoint(
+        self::$endpoint_manager->registerEndpoint(
             new StatusNotification(
                 'transactionStatus',
                 self::getControllerUrl($module, 'transactionstatus', [], false),
@@ -67,7 +69,7 @@ final class ApiService
             )
         );
 
-        self::$endpointManager->registerEndpoint(
+        self::$endpoint_manager->registerEndpoint(
             new Configuration(
                 'configuration',
                 self::getControllerUrl($module, 'configuration', [], false),
@@ -79,11 +81,11 @@ final class ApiService
             )
         );
 
-        self::$endpointManager->registerEndpoint(
+        self::$endpoint_manager->registerEndpoint(
             new CacheInvalidate(
                 'cacheInvalidate',
                 self::getControllerUrl($module, 'cacheinvalidate', [], false),
-                self::getCacheManager()
+                CacheManager::getCachePool()
             )
         );
     }
@@ -101,7 +103,7 @@ final class ApiService
 
     public static function getEndpointUrl(string $endpointName): string
     {
-        if (($endpoint = self::$endpointManager->getEndpointByName($endpointName)) !== null) {
+        if (($endpoint = self::$endpoint_manager->getEndpointByName($endpointName)) !== null) {
             return $endpoint->getEndpointUrl();
         }
 
@@ -110,32 +112,24 @@ final class ApiService
 
     public static function processRequest(string $endpointName): string
     {
-        if (self::$endpointManager === null || empty(self::$endpointManager->getRegisteredEndpoints())) {
+        if (self::$endpoint_manager === null || empty(self::$endpoint_manager->getRegisteredEndpoints())) {
             http_response_code(503);
 
             return 'Endpoint manager not initialized.';
         }
 
-        $response = self::$endpointManager->processRequest($endpointName);
+        $response = self::$endpoint_manager->processRequest($endpointName);
 
-        foreach ($response->getHeaders() as $headerName => $headerValues) {
-            foreach ($headerValues as $headerValue) {
-                header(sprintf('%s: %s', $headerName, $headerValue), false);
+        foreach ($response->getHeaders() as $header_name => $header_values) {
+            foreach ($header_values as $header_value) {
+                header(sprintf('%s: %s', $header_name, $header_value), false);
             }
         }
 
-        $responseBody = $response->getBody()->getContents();
+        $response_body = $response->getBody()->getContents();
 
         http_response_code($response->getStatusCode());
 
-        return !empty($responseBody) ? $responseBody : $response->getReasonPhrase();
-    }
-
-    public static function getCacheManager(): CacheManager
-    {
-        return CacheManager::getInstance([
-            'paywall' => new StorageAdapter('paywall'),
-            'settings' => new StorageAdapter('api'),
-        ]);
+        return !empty($response_body) ? $response_body : $response->getReasonPhrase();
     }
 }

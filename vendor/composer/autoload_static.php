@@ -30,10 +30,16 @@ class ComposerStaticInit9e99c7988be00666d69107bbdeea8363
         ),
         'P' => 
         array (
+            'Psr\\SimpleCache\\' => 16,
             'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
             'Psr\\Cache\\' => 10,
+        ),
+        'L' => 
+        array (
+            'League\\MimeTypeDetection\\' => 25,
+            'League\\Flysystem\\' => 17,
         ),
         'F' => 
         array (
@@ -43,6 +49,10 @@ class ComposerStaticInit9e99c7988be00666d69107bbdeea8363
         array (
             'Comfino\\' => 8,
             'Cache\\TagInterop\\' => 17,
+            'Cache\\Hierarchy\\' => 16,
+            'Cache\\Adapter\\PHPArray\\' => 23,
+            'Cache\\Adapter\\Filesystem\\' => 25,
+            'Cache\\Adapter\\Common\\' => 21,
         ),
     );
 
@@ -75,6 +85,10 @@ class ComposerStaticInit9e99c7988be00666d69107bbdeea8363
         array (
             0 => __DIR__ . '/..' . '/sunrise/http-client-curl/src',
         ),
+        'Psr\\SimpleCache\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/simple-cache/src',
+        ),
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
@@ -92,6 +106,14 @@ class ComposerStaticInit9e99c7988be00666d69107bbdeea8363
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
         ),
+        'League\\MimeTypeDetection\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/league/mime-type-detection/src',
+        ),
+        'League\\Flysystem\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/league/flysystem/src',
+        ),
         'Fig\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/fig/http-message-util/src',
@@ -104,6 +126,22 @@ class ComposerStaticInit9e99c7988be00666d69107bbdeea8363
         'Cache\\TagInterop\\' => 
         array (
             0 => __DIR__ . '/..' . '/cache/tag-interop',
+        ),
+        'Cache\\Hierarchy\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/cache/hierarchical-cache',
+        ),
+        'Cache\\Adapter\\PHPArray\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/cache/array-adapter',
+        ),
+        'Cache\\Adapter\\Filesystem\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/cache/filesystem-adapter',
+        ),
+        'Cache\\Adapter\\Common\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/cache/adapter-common',
         ),
     );
 

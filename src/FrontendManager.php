@@ -40,7 +40,7 @@ final class FrontendManager
     {
         return new PaywallRenderer(
             ApiClient::getInstance(),
-            ApiService::getCacheManager()->getCacheBucket('paywall'),
+            CacheManager::getCachePool(),
             new ModuleRendererStrategy($module),
             ApiService::getEndpointUrl('cacheInvalidate'),
             ApiService::getEndpointUrl('configuration')
@@ -51,7 +51,7 @@ final class FrontendManager
     {
         return new PaywallIframeRenderer(
             ApiClient::getInstance(),
-            ApiService::getCacheManager()->getCacheBucket('paywall'),
+            CacheManager::getCachePool(),
             new ModuleRendererStrategy($module),
             'PrestaShop',
             _PS_VERSION_,

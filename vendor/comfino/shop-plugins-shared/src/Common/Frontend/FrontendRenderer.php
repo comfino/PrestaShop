@@ -122,6 +122,6 @@ abstract class FrontendRenderer
      */
     protected function getItemKey($fragmentName, $language): string
     {
-        return "comfino_paywall:$fragmentName" . ($fragmentName === 'template' ? ":$language" : '');
+        return "comfino_paywall.$fragmentName" . ($fragmentName === 'template' ? ".$language" : '');
     }
 }
