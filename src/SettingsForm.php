@@ -208,6 +208,9 @@ final class SettingsForm
 
                 $output[] = $module->l('Settings updated.');
             }
+
+            // Clear configuration and frontend cache.
+            CacheManager::getCachePool()->clear();
         }
 
         return [
