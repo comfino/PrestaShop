@@ -24,20 +24,6 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-use Comfino\ApiClient;
-use Comfino\ApiService;
-use Comfino\CacheManager;
-use Comfino\ConfigManager;
-use Comfino\ErrorLogger;
-use Comfino\FinancialProduct\ProductTypesListTypeEnum;
-use Comfino\FormManager;
-use Comfino\FrontendManager;
-use Comfino\OrderManager;
-use Comfino\SettingsForm;
-use Comfino\SettingsManager;
-use Comfino\ShopStatusManager;
-use Comfino\TemplateManager;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -93,21 +79,21 @@ class Comfino extends PaymentModule
         require_once __DIR__ . '/vendor/autoload.php';
 
         // Initialize cache system.
-        CacheManager::init($this);
+        \Comfino\CacheManager::init($this);
         // Register module API endpoints.
-        ApiService::init($this);
+        \Comfino\ApiService::init($this);
     }
 
     public function install(): bool
     {
-        ErrorLogger::init($this);
+        \Comfino\ErrorLogger::init($this);
 
         if (!parent::install()) {
             return false;
         }
 
-        ConfigManager::initConfigurationValues();
-        ShopStatusManager::addCustomOrderStatuses();
+        \Comfino\ConfigManager::initConfigurationValues();
+        \Comfino\ShopStatusManager::addCustomOrderStatuses();
 
         if (!COMFINO_PS_17) {
             $this->registerHook('payment');
@@ -128,7 +114,7 @@ class Comfino extends PaymentModule
     public function uninstall(): bool
     {
         if (parent::uninstall()) {
-            ConfigManager::deleteConfigurationValues();
+            \Comfino\ConfigManager::deleteConfigurationValues();
 
             if (!COMFINO_PS_17) {
                 $this->unregisterHook('payment');
@@ -143,8 +129,8 @@ class Comfino extends PaymentModule
             $this->unregisterHook('header');
             $this->unregisterHook('actionAdminControllerSetMedia');
 
-            ErrorLogger::init($this);
-            ApiClient::getInstance()->notifyPluginRemoval();
+            \Comfino\ErrorLogger::init($this);
+            \Comfino\ApiClient::getInstance()->notifyPluginRemoval();
 
             return true;
         }
@@ -157,7 +143,9 @@ class Comfino extends PaymentModule
      */
     public function getContent(): string
     {
-        return TemplateManager::renderModuleView($this, 'configuration', 'admin', SettingsForm::processForm($this));
+        return \Comfino\TemplateManager::renderModuleView(
+            $this, 'configuration', 'admin', \Comfino\SettingsForm::processForm($this)
+        );
     }
 
     /**
@@ -189,9 +177,9 @@ class Comfino extends PaymentModule
 
         $comfino_payment_option = new PrestaShop\PrestaShop\Core\Payment\PaymentOption();
         $comfino_payment_option->setModuleName($this->name)
-            ->setAction(ApiService::getControllerUrl($this, 'payment'))
-            ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
-            ->setLogo(ApiClient::getPaywallLogoUrl())
+            ->setAction(\Comfino\ApiService::getControllerUrl($this, 'payment'))
+            ->setCallToActionText(\Comfino\ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
+            ->setLogo(\Comfino\ApiClient::getPaywallLogoUrl())
             ->setAdditionalInformation($paywallIframe);
 
         return [$comfino_payment_option];
@@ -206,7 +194,7 @@ class Comfino extends PaymentModule
             return '';
         }
 
-        ErrorLogger::init($this);
+        \Comfino\ErrorLogger::init($this);
 
         if (in_array($params['order']->getCurrentState(), [
             (int) Configuration::get('COMFINO_CREATED'),
@@ -226,7 +214,7 @@ class Comfino extends PaymentModule
             $tpl_variables['status'] = 'failed';
         }
 
-        return TemplateManager::renderModuleView($this, 'payment_return', 'front', $tpl_variables);
+        return \Comfino\TemplateManager::renderModuleView($this, 'payment_return', 'front', $tpl_variables);
     }
 
     /**
@@ -234,7 +222,7 @@ class Comfino extends PaymentModule
      */
     public function hookDisplayBackofficeComfinoForm(array $params): string
     {
-        return FormManager::getSettingsForm($this, $params);
+        return \Comfino\FormManager::getSettingsForm($this, $params);
     }
 
     /**
@@ -255,14 +243,13 @@ class Comfino extends PaymentModule
 
             if ($new_order_state_id === $canceled_order_state_id) {
                 // Send notification about cancelled order paid by Comfino.
-                ErrorLogger::init($this);
+                \Comfino\ErrorLogger::init($this);
 
                 try {
-                    ApiClient::getInstance()->cancelOrder($params['id_order']);
+                    \Comfino\ApiClient::getInstance()->cancelOrder($params['id_order']);
                 } catch (Throwable $e) {
-                    ApiClient::processApiError(
-                        'Order cancellation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
-                        $e
+                    \Comfino\ApiClient::processApiError(
+                        'Order cancellation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e
                     );
                 }
             }
@@ -301,12 +288,12 @@ class Comfino extends PaymentModule
             return;
         }
 
-        if (($controller === 'product') && ConfigManager::isWidgetEnabled()) {
+        if (($controller === 'product') && \Comfino\ConfigManager::isWidgetEnabled()) {
             // Widget initialization script
             $product = $this->context->controller->getProduct();
-            $allowed_product_types = SettingsManager::getAllowedProductTypes(
-                ProductTypesListTypeEnum::LIST_TYPE_WIDGET,
-                OrderManager::getShopCartFromProduct($product)
+            $allowed_product_types = \Comfino\SettingsManager::getAllowedProductTypes(
+                \Comfino\FinancialProduct\ProductTypesListTypeEnum::LIST_TYPE_WIDGET,
+                \Comfino\OrderManager::getShopCartFromProduct($product)
             );
 
             if ($allowed_product_types === []) {
@@ -317,7 +304,7 @@ class Comfino extends PaymentModule
             $config_crc = ''; // crc32(implode($widget_settings));
             $this->addScriptLink(
                 'comfino-widget',
-                ApiService::getControllerUrl(
+                \Comfino\ApiService::getControllerUrl(
                     $this,
                     'script',
                     ['product_id' => $product->id, 'crc' => $config_crc]
@@ -340,7 +327,7 @@ class Comfino extends PaymentModule
         string $id,
         string $script_url,
         string $position = 'bottom',
-        $load_strategy = null
+               $load_strategy = null
     ): void {
         if (COMFINO_PS_17) {
             $this->context->controller->registerJavascript(
@@ -361,35 +348,39 @@ class Comfino extends PaymentModule
         /** @var Cart $cart */
         $cart = $params['cart'];
 
-        if (!$this->active || !OrderManager::checkCartCurrency($this, $cart) || empty(ConfigManager::getApiKey())) {
+        if (!$this->active || !\Comfino\OrderManager::checkCartCurrency($this, $cart)
+            || empty(\Comfino\ConfigManager::getApiKey())
+        ) {
             return false;
         }
 
-        ErrorLogger::init($this);
+        \Comfino\ErrorLogger::init($this);
 
-        return SettingsManager::getAllowedProductTypes(
-            ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
-            OrderManager::getShopCart($cart, (int) $this->context->cookie->loan_amount)
-        ) !== [];
+        return \Comfino\SettingsManager::getAllowedProductTypes(
+                \Comfino\FinancialProduct\ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
+                \Comfino\OrderManager::getShopCart($cart, (int) $this->context->cookie->loan_amount)
+            ) !== [];
     }
 
     private function preparePaywallIframe(): ?string
     {
         try {
-            return TemplateManager::renderModuleView(
+            return \Comfino\TemplateManager::renderModuleView(
                 $this,
                 'payment',
                 'front',
                 [
-                    'paywall_iframe' => FrontendManager::getPaywallIframeRenderer($this)
-                        ->renderPaywallIframe(ApiService::getControllerUrl($this, 'paywall')),
-                    'payment_state_url' => ApiService::getControllerUrl($this, 'paymentstate', [], false),
+                    'paywall_iframe' => \Comfino\FrontendManager::getPaywallIframeRenderer($this)
+                        ->renderPaywallIframe(\Comfino\ApiService::getControllerUrl($this, 'paywall')),
+                    'payment_state_url' => \Comfino\ApiService::getControllerUrl($this, 'paymentstate', [], false),
                     'paywall_options' => $this->getPaywallOptions(),
                     'is_ps_16' => !COMFINO_PS_17,
                 ]
             );
         } catch (Throwable $e) {
-            ApiClient::processApiError('Paywall error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
+            \Comfino\ApiClient::processApiError(
+                'Paywall error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e
+            );
         }
 
         return null;
