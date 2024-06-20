@@ -54,7 +54,7 @@ final class TemplateManager
             return $module->fetch("module:$module->name/$templatePath");
         }
 
-        return $module->display(__FILE__, $templatePath);
+        return $module->display(_MODULE_DIR_ . "$module->name/$module->name.php", $templatePath);
     }
 
     public static function renderControllerView(
