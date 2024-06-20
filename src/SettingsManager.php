@@ -45,11 +45,6 @@ final class SettingsManager
     /** @var ProductTypeFilterManager */
     private static $filter_manager;
 
-    public static function getWidgetKey(): string
-    {
-        return ConfigManager::getConfigurationValue('COMFINO_WIDGET_KEY');
-    }
-
     public static function getProductTypesSelectList(string $list_type): array
     {
         $product_types = self::getProductTypes($list_type, true);
