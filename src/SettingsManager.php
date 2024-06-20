@@ -55,7 +55,7 @@ final class SettingsManager
         $product_types = self::getProductTypes($list_type, true);
 
         if (isset($product_types['error'])) {
-            $product_types_list = ['key' => 'error', 'name' => $product_types['error']];
+            $product_types_list = [['key' => 'error', 'name' => $product_types['error']]];
         } else {
             $product_types_list = [];
 
@@ -72,7 +72,7 @@ final class SettingsManager
         $widget_types = self::getWidgetTypes(true);
 
         if (isset($widget_types['error'])) {
-            $widget_types_list = ['key' => 'error', 'name' => $widget_types['error']];
+            $widget_types_list = [['key' => 'error', 'name' => $widget_types['error']]];
         } else {
             $widget_types_list = [];
 
