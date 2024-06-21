@@ -17,6 +17,7 @@
         "ext-curl": "*",
         "ext-json": "*",
         "ext-zlib": "*",
+        "psr/http-message": "1.0.1",
         "sunrise/http-client-curl": "^1.4",
         "sunrise/http-factory": "^2.0",
         "cache/array-adapter": "1.1.0",
