@@ -184,7 +184,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 $e
             );
 
-            Tools::redirect(ApiService::getControllerUrl($this, 'error', ['error' => $e->getMessage()]));
+            Tools::redirect(ApiService::getControllerUrl($this->module, 'error', ['error' => $e->getMessage()]));
         }
     }
 
