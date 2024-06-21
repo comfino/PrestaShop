@@ -164,6 +164,7 @@ final class Main
                         'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
                     ],
                     'is_ps_16' => !COMFINO_PS_17,
+                    'comfino_logo_url' => ApiClient::getPaywallLogoUrl($module),
                     'pay_with_comfino_text' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
                 ]
             );
