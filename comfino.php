@@ -301,13 +301,12 @@ class Comfino extends PaymentModule
                 return;
             }
 
-            $config_crc = ''; // crc32(implode($widget_settings));
             $this->addScriptLink(
                 'comfino-widget',
                 \Comfino\ApiService::getControllerUrl(
                     $this,
                     'script',
-                    ['product_id' => $product->id, 'crc' => $config_crc]
+                    ['product_id' => $product->id]
                 ),
                 'bottom',
                 'defer'
@@ -327,7 +326,7 @@ class Comfino extends PaymentModule
         string $id,
         string $script_url,
         string $position = 'bottom',
-               $load_strategy = null
+        $load_strategy = null
     ): void {
         if (COMFINO_PS_17) {
             $this->context->controller->registerJavascript(
@@ -357,9 +356,9 @@ class Comfino extends PaymentModule
         \Comfino\ErrorLogger::init($this);
 
         return \Comfino\SettingsManager::getAllowedProductTypes(
-                \Comfino\FinancialProduct\ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
-                \Comfino\OrderManager::getShopCart($cart, (int) $this->context->cookie->loan_amount)
-            ) !== [];
+            \Comfino\FinancialProduct\ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
+            \Comfino\OrderManager::getShopCart($cart, (int) $this->context->cookie->loan_amount)
+        ) !== [];
     }
 
     private function preparePaywallIframe(): ?string
@@ -375,6 +374,7 @@ class Comfino extends PaymentModule
                     'payment_state_url' => \Comfino\ApiService::getControllerUrl($this, 'paymentstate', [], false),
                     'paywall_options' => $this->getPaywallOptions(),
                     'is_ps_16' => !COMFINO_PS_17,
+                    'pay_with_comfino_text' => \Comfino\ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
                 ]
             );
         } catch (Throwable $e) {

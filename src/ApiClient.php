@@ -140,9 +140,7 @@ final class ApiClient
 
     public static function getWidgetScriptUrl(): string
     {
-        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') && getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')
-            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
-        ) {
+        if (self::isDevEnv() && getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')) {
             return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
         }
 
@@ -160,16 +158,15 @@ final class ApiClient
 
     private static function getApiHost(bool $frontend_host = false, ?string $api_host = null): ?string
     {
-        if (getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')) {
-            if ($frontend_host) {
-                if (getenv('COMFINO_DEV_API_HOST_FRONTEND')) {
-                    return getenv('COMFINO_DEV_API_HOST_FRONTEND');
-                }
-            } elseif (getenv('COMFINO_DEV_API_HOST_BACKEND')) {
-                return getenv('COMFINO_DEV_API_HOST_BACKEND');
-            }
+        if (self::isDevEnv() && getenv('COMFINO_DEV_API_HOST')) {
+            return getenv('COMFINO_DEV_API_HOST');
         }
 
         return $api_host;
+    }
+
+    private static function isDevEnv(): bool
+    {
+        return getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN');
     }
 }
