@@ -49,7 +49,7 @@
         <p class="payment_module">
             <a id="pay-with-comfino" class="comfino-payment-method">
                 <img style="height: 49px" src="{$comfino_logo_url|escape:"htmlall":"UTF-8"}" alt="{l s="Pay with comfino" mod="comfino"}" loading="lazy" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')" />
-                {$pay_with_comfino_text|escape:"htmlall":"UTF-8"}
+                {$comfino_label|escape:"htmlall":"UTF-8"}
             </a>
         </p>
     </div>
@@ -58,7 +58,7 @@
 <div id="comfino-iframe-container">{$paywall_iframe nofilter}</div>
 {if $is_ps_16}
 <div id="comfino-payment-bar" class="comfino-payment-bar">
-    <a id="comfino-go-to-payment" href="{$go_to_payment_url|escape:"htmlall":"UTF-8"}" class="comfino-payment-btn">
+    <a id="comfino-go-to-payment" href="{$comfino_redirect_url|escape:"htmlall":"UTF-8"}" class="comfino-payment-btn">
         {l s="Go to payment" mod="comfino"}
     </a>
 </div>
@@ -68,7 +68,7 @@
         paywallOptions: {$paywall_options|@json_encode nofilter},
         init: () => {
             let iframe = document.getElementById('comfino-paywall-container');
-            let frontendInitElement = document.querySelector('input[data-module-name="comfino"]');
+            let frontendInitElement = {if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if};
 
             if ('priceModifier' in frontendInitElement.dataset) {
                 let priceModifier = parseInt(frontendInitElement.dataset.priceModifier);

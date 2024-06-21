@@ -165,7 +165,8 @@ final class Main
                     ],
                     'is_ps_16' => !COMFINO_PS_17,
                     'comfino_logo_url' => ApiClient::getPaywallLogoUrl($module),
-                    'pay_with_comfino_text' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
+                    'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
+                    'comfino_redirect_url' => ApiService::getControllerUrl($module, 'payment'),
                 ]
             );
         } catch (\Throwable $e) {
