@@ -217,7 +217,7 @@ final class SettingsForm
             'active_tab' => $active_tab,
             'output' => $output,
             'output_type' => $output_type,
-            'logo_url' => ApiClient::getLogoUrl(),
+            'logo_url' => ApiClient::getLogoUrl($module),
             'support_email_address' => self::COMFINO_SUPPORT_EMAIL,
             'support_email_subject' => sprintf(
                 $module->l('PrestaShop %s Comfino %s - question'),

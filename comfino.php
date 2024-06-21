@@ -179,7 +179,7 @@ class Comfino extends PaymentModule
         $comfino_payment_option->setModuleName($this->name)
             ->setAction(\Comfino\ApiService::getControllerUrl($this, 'payment'))
             ->setCallToActionText(\Comfino\ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
-            ->setLogo(\Comfino\ApiClient::getPaywallLogoUrl())
+            ->setLogo(\Comfino\ApiClient::getPaywallLogoUrl($this))
             ->setAdditionalInformation($paywallIframe);
 
         return [$comfino_payment_option];

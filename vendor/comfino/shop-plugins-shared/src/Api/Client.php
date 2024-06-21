@@ -63,7 +63,6 @@ class Client
     protected $client;
     /**
      * @var string|null
-     * @readonly
      */
     protected $apiKey;
     /**
@@ -143,6 +142,17 @@ class Client
     public function getApiKey(): string
     {
         return $this->apiKey;
+    }
+
+    /**
+     * Sets current API key.
+     *
+     * @param string $apiKey API key
+     * @return void
+     */
+    public function setApiKey($apiKey): void
+    {
+        $this->apiKey = $apiKey;
     }
 
     /**

@@ -81,6 +81,29 @@ abstract class FrontendRenderer
     }
 
     /**
+     * @param string $platformCode
+     * @param string $platformVersion
+     * @param string $pluginVersion
+     */
+    protected function getLogoAuthKey($platformCode, $platformVersion, $pluginVersion): string
+    {
+        $packedPlatformVersion = pack('c*', ...array_map('intval', explode('.', $platformVersion)));
+        $packedPluginVersion = pack('c*', ...array_map('intval', explode('.', $pluginVersion)));
+        $platformVersionLength = pack('c', strlen($packedPlatformVersion));
+        $pluginVersionLength = pack('c', strlen($packedPluginVersion));
+
+        $authKeyParts = [
+            $platformCode,
+            $platformVersionLength,
+            $pluginVersionLength,
+            $packedPlatformVersion,
+            $packedPluginVersion,
+        ];
+
+        return implode($authKeyParts);
+    }
+
+    /**
      * @throws InvalidArgumentException
      */
     private function savePaywallFragments(array $fragments, ?string $language = null): void
@@ -116,11 +139,7 @@ abstract class FrontendRenderer
         $this->cache->commit();
     }
 
-    /**
-     * @param string $fragmentName
-     * @param string $language
-     */
-    protected function getItemKey($fragmentName, $language): string
+    private function getItemKey(string $fragmentName, string $language): string
     {
         return "comfino_paywall.$fragmentName" . ($fragmentName === 'template' ? ".$language" : '');
     }

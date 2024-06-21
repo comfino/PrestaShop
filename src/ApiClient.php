@@ -44,24 +44,21 @@ final class ApiClient
     /** @var Client */
     private static $api_client;
 
-    /** @var string */
-    private static $widget_script_url;
-
     public static function getInstance(?bool $sandbox_mode = null, ?string $api_key = null): Client
     {
+        if ($sandbox_mode === null) {
+            $sandbox_mode = ConfigManager::isSandboxMode();
+        }
+
+        if ($api_key === null) {
+            if ($sandbox_mode) {
+                $api_key = ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY');
+            } else {
+                $api_key = ConfigManager::getConfigurationValue('COMFINO_API_KEY');
+            }
+        }
+
         if (self::$api_client === null) {
-            if ($sandbox_mode === null) {
-                $sandbox_mode = ConfigManager::isSandboxMode();
-            }
-
-            if ($api_key === null) {
-                if ($sandbox_mode) {
-                    $api_key = ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY');
-                } else {
-                    $api_key = ConfigManager::getConfigurationValue('COMFINO_API_KEY');
-                }
-            }
-
             self::$api_client = (new ApiClientFactory())->createClient(
                 $api_key,
                 sprintf(
@@ -80,6 +77,9 @@ final class ApiClient
                 \Context::getContext()->language->iso_code,
                 [CURLOPT_CONNECTTIMEOUT => 1, CURLOPT_TIMEOUT => 3]
             );
+        } else {
+            self::$api_client->setApiKey($api_key);
+            self::$api_client->setApiLanguage(\Context::getContext()->language->iso_code);
         }
 
         return self::$api_client;
@@ -122,16 +122,20 @@ final class ApiClient
         );
     }
 
-    public static function getLogoUrl(): string
+    public static function getLogoUrl(\PaymentModule $module): string
     {
         return self::getApiHost(true, self::getInstance()->getApiHost())
-            . '/v1/get-logo-url?auth=' . self::getLogoAuthHash();
+            . '/v1/get-logo-url?auth='
+            . FrontendManager::getPaywallRenderer($module)->getLogoAuthHash('PS', _PS_VERSION_, COMFINO_VERSION);
     }
 
-    public static function getPaywallLogoUrl(): string
+    public static function getPaywallLogoUrl(\PaymentModule $module): string
     {
         return self::getApiHost(true, self::getInstance()->getApiHost())
-            . '/v1/get-paywall-logo?auth=' . self::getLogoAuthHash(true);
+            . '/v1/get-paywall-logo?auth='
+            . FrontendManager::getPaywallRenderer($module)->getPaywallLogoAuthHash(
+                'PS', _PS_VERSION_, COMFINO_VERSION, self::getInstance()->getApiKey(), ConfigManager::getWidgetKey()
+            );
     }
 
     public static function getWidgetScriptUrl(): string
@@ -167,24 +171,5 @@ final class ApiClient
         }
 
         return $api_host;
-    }
-
-    private static function getLogoAuthHash(bool $paywallLogo = false): string
-    {
-        $platformVersion = array_map('intval', explode('.', _PS_VERSION_));
-        $pluginVersion = array_map('intval', explode('.', COMFINO_VERSION));
-        $packedPlatformVersion = pack('c*', ...$platformVersion);
-        $packedPluginVersion = pack('c*', ...$pluginVersion);
-        $platformVersionLength = pack('c', strlen($packedPlatformVersion));
-        $pluginVersionLength = pack('c', strlen($packedPluginVersion));
-
-        $authHash = "PS$platformVersionLength$pluginVersionLength$packedPlatformVersion$packedPluginVersion";
-
-        if ($paywallLogo) {
-            $authHash .= ConfigManager::getWidgetKey();
-            $authHash .= hash_hmac('sha3-256', $authHash, self::getInstance()->getApiKey(), true);
-        }
-
-        return urlencode(base64_encode($authHash));
     }
 }
