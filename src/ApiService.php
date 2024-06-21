@@ -26,8 +26,6 @@
 
 namespace Comfino;
 
-use Cache\Adapter\Common\AbstractCachePool;
-use Cache\Adapter\Filesystem\FilesystemCachePool;
 use Comfino\Common\Backend\Factory\ApiServiceFactory;
 use Comfino\Common\Backend\RestEndpoint\CacheInvalidate;
 use Comfino\Common\Backend\RestEndpoint\Configuration;
@@ -35,8 +33,6 @@ use Comfino\Common\Backend\RestEndpoint\StatusNotification;
 use Comfino\Common\Backend\RestEndpointManager;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Order\StatusAdapter;
-use League\Flysystem\Adapter\Local;
-use League\Flysystem\Filesystem;
 
 if (!defined('_PS_VERSION_')) {
     exit;
