@@ -71,10 +71,17 @@ abstract class FrontendRenderer
         }
 
         if (count($fragments) < count($fragmentsToGet)) {
-            $this->savePaywallFragments(
-                $fragments = $this->client->getPaywallFragments($this->cacheInvalidateUrl, $this->configurationUrl)->paywallFragments,
-                $language
-            );
+            $paywallFragments = $this->client->getPaywallFragments($this->cacheInvalidateUrl, $this->configurationUrl);
+            $fragments = $paywallFragments->paywallFragments;
+            $fragmentsCacheTtl = [];
+
+            if ($paywallFragments->hasHeader('Cache-TTL')) {
+                if (($fragmentsCacheTtl = json_decode($paywallFragments->getHeader('Cache-TTL'), true)) === null) {
+                    $fragmentsCacheTtl = [];
+                }
+            }
+
+            $this->savePaywallFragments($fragments, $fragmentsCacheTtl, $language);
         }
 
         return $fragments;
@@ -104,9 +111,11 @@ abstract class FrontendRenderer
     }
 
     /**
+     * @param string[] $fragments
+     * @param int[] $fragmentsCacheTtl
      * @throws InvalidArgumentException
      */
-    private function savePaywallFragments(array $fragments, ?string $language = null): void
+    private function savePaywallFragments(array $fragments, array $fragmentsCacheTtl, ?string $language = null): void
     {
         foreach ($fragments as $fragmentName => $fragmentContents) {
             if (!in_array($fragmentName, self::PAYWALL_GUI_FRAGMENTS, true)) {
@@ -114,25 +123,37 @@ abstract class FrontendRenderer
             }
 
             if ($language !== null && !is_array($fragmentContents)) {
-                $this->cache->saveDeferred(
-                    $this->cache->getItem($this->getItemKey($fragmentName, $language))
-                        ->set($fragmentContents)
-                        ->setTags(["paywall_$fragmentName"])
-                );
+                $cacheItem = $this->cache->getItem($this->getItemKey($fragmentName, $language))
+                    ->set($fragmentContents)
+                    ->setTags(["paywall_$fragmentName"]);
+
+                if (isset($fragmentsCacheTtl[$fragmentName]) && $fragmentsCacheTtl[$fragmentName] > 0) {
+                    $cacheItem->expiresAfter($fragmentsCacheTtl[$fragmentName]);
+                }
+
+                $this->cache->saveDeferred($cacheItem);
             } elseif (is_array($fragmentContents)) {
                 foreach ($fragmentContents as $fragmentLanguage => $fragmentLanguageContents) {
-                    $this->cache->saveDeferred(
-                        $this->cache->getItem($this->getItemKey($fragmentName, $fragmentLanguage))
-                            ->set($fragmentLanguageContents)
-                            ->setTags(["paywall_$fragmentName"])
-                    );
+                    $cacheItem = $this->cache->getItem($this->getItemKey($fragmentName, $fragmentLanguage))
+                        ->set($fragmentLanguageContents)
+                        ->setTags(["paywall_$fragmentName"]);
+
+                    if (isset($fragmentsCacheTtl[$fragmentName]) && $fragmentsCacheTtl[$fragmentName] > 0) {
+                        $cacheItem->expiresAfter($fragmentsCacheTtl[$fragmentName]);
+                    }
+
+                    $this->cache->saveDeferred($cacheItem);
                 }
             } else {
-                $this->cache->saveDeferred(
-                    $this->cache->getItem($this->getItemKey($fragmentName, ''))
-                        ->set($fragmentContents)
-                        ->setTags(["paywall_$fragmentName"])
-                );
+                $cacheItem = $this->cache->getItem($this->getItemKey($fragmentName, ''))
+                    ->set($fragmentContents)
+                    ->setTags(["paywall_$fragmentName"]);
+
+                if (isset($fragmentsCacheTtl[$fragmentName]) && $fragmentsCacheTtl[$fragmentName] > 0) {
+                    $cacheItem->expiresAfter($fragmentsCacheTtl[$fragmentName]);
+                }
+
+                $this->cache->saveDeferred($cacheItem);
             }
         }
 
