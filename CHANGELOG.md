@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.0.0](https://github.com/comfino/PrestaShop/tree/4.0.0) (2024-07-05)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.4...4.0.0)
+
+**Merged pull requests:**
+
+- FN-11773 Complete plugin refactoring: redesigned plugin architecture, improved errors handling, stability and reliability, code clean up (lowest supported PHP version is 7.1). [\#91](https://github.com/comfino/PrestaShop/pull/91) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.5.4](https://github.com/comfino/PrestaShop/tree/3.5.4) (2024-05-07)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.3...3.5.4)
