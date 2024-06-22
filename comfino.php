@@ -135,31 +135,7 @@ class Comfino extends PaymentModule
      */
     public function hookPaymentReturn(array $params): string
     {
-        if (!COMFINO_PS_17 || !$this->active) {
-            return '';
-        }
-
-        Comfino\ErrorLogger::init($this);
-
-        if (in_array($params['order']->getCurrentState(), [
-            (int) Configuration::get('COMFINO_CREATED'),
-            (int) Configuration::get('PS_OS_OUTOFSTOCK'),
-            (int) Configuration::get('PS_OS_OUTOFSTOCK_UNPAID'),
-        ], true)) {
-            $tpl_variables = [
-                'shop_name' => $this->context->shop->name,
-                'status' => 'ok',
-                'id_order' => $params['order']->id,
-            ];
-
-            if (isset($params['order']->reference) && !empty($params['order']->reference)) {
-                $tpl_variables['reference'] = $params['order']->reference;
-            }
-        } else {
-            $tpl_variables['status'] = 'failed';
-        }
-
-        return Comfino\TemplateManager::renderModuleView($this, 'payment_return', 'front', $tpl_variables);
+        return Comfino\Main::processFinishedPaymentTransaction($this, $params);
     }
 
     /**
@@ -175,30 +151,7 @@ class Comfino extends PaymentModule
      */
     public function hookActionOrderStatusPostUpdate(array $params): void
     {
-        $order = new Order($params['id_order']);
-
-        if (stripos($order->payment, 'comfino') !== false) {
-            // Process orders paid by Comfino only.
-
-            /** @var OrderState $new_order_state */
-            $new_order_state = $params['newOrderStatus'];
-
-            $new_order_state_id = (int) $new_order_state->id;
-            $canceled_order_state_id = (int) Configuration::get('PS_OS_CANCELED');
-
-            if ($new_order_state_id === $canceled_order_state_id) {
-                // Send notification about cancelled order paid by Comfino.
-                Comfino\ErrorLogger::init($this);
-
-                try {
-                    Comfino\ApiClient::getInstance()->cancelOrder($params['id_order']);
-                } catch (Throwable $e) {
-                    Comfino\ApiClient::processApiError(
-                        'Order cancellation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e
-                    );
-                }
-            }
-        }
+        Comfino\ShopStatusManager::orderStatusUpdateEventHandler($this, $params);
     }
 
     /**
@@ -206,16 +159,7 @@ class Comfino extends PaymentModule
      */
     public function hookActionValidateCustomerAddressForm(array $params): string
     {
-        $vat_number = $params['form']->getField('vat_number');
-        $tools = new Comfino\Tools($this->context);
-
-        if (!empty($vat_number->getValue()) && !$tools->isValidTaxId($vat_number->getValue())) {
-            $vat_number->addError($this->l('Invalid VAT number.'));
-
-            return '0';
-        }
-
-        return '1';
+        return Comfino\OrderManager::validateCustomerData($this, $params);
     }
 
     /**

@@ -146,4 +146,32 @@ final class ShopStatusManager
             }
         }
     }
+
+    public static function orderStatusUpdateEventHandler(\PaymentModule $module, array $params): void
+    {
+        $order = new \Order($params['id_order']);
+
+        if (stripos($order->payment, 'comfino') !== false) {
+            // Process orders paid by Comfino only.
+
+            /** @var \OrderState $new_order_state */
+            $new_order_state = $params['newOrderStatus'];
+
+            $new_order_state_id = (int) $new_order_state->id;
+            $canceled_order_state_id = (int) \Configuration::get('PS_OS_CANCELED');
+
+            if ($new_order_state_id === $canceled_order_state_id) {
+                // Send notification about cancelled order paid by Comfino.
+                ErrorLogger::init($module);
+
+                try {
+                    ApiClient::getInstance()->cancelOrder($params['id_order']);
+                } catch (\Throwable $e) {
+                    ApiClient::processApiError(
+                        'Order cancellation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e
+                    );
+                }
+            }
+        }
+    }
 }

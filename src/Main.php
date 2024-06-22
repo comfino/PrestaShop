@@ -124,6 +124,35 @@ final class Main
         return $paywall_iframe;
     }
 
+    public static function processFinishedPaymentTransaction(\PaymentModule $module, array $params): string
+    {
+        if (!COMFINO_PS_17 || !$module->active) {
+            return '';
+        }
+
+        ErrorLogger::init($module);
+
+        if (in_array($params['order']->getCurrentState(), [
+            (int) \Configuration::get('COMFINO_CREATED'),
+            (int) \Configuration::get('PS_OS_OUTOFSTOCK'),
+            (int) \Configuration::get('PS_OS_OUTOFSTOCK_UNPAID'),
+        ], true)) {
+            $tpl_variables = [
+                'shop_name' => \Context::getContext()->shop->name,
+                'status' => 'ok',
+                'id_order' => $params['order']->id,
+            ];
+
+            if (isset($params['order']->reference) && !empty($params['order']->reference)) {
+                $tpl_variables['reference'] = $params['order']->reference;
+            }
+        } else {
+            $tpl_variables['status'] = 'failed';
+        }
+
+        return TemplateManager::renderModuleView($module, 'payment_return', 'front', $tpl_variables);
+    }
+
     private static function paymentIsAvailable(\PaymentModule $module, \Cart $cart): bool
     {
         if (!$module->active || !OrderManager::checkCartCurrency($module, $cart) || empty(ConfigManager::getApiKey())) {

@@ -106,6 +106,20 @@ final class OrderManager
         return false;
     }
 
+    public static function validateCustomerData(\PaymentModule $module, array $params): string
+    {
+        $vat_number = $params['form']->getField('vat_number');
+        $tools = new Tools(\Context::getContext());
+
+        if (!empty($vat_number->getValue()) && !$tools->isValidTaxId($vat_number->getValue())) {
+            $vat_number->addError($module->l('Invalid VAT number.'));
+
+            return '0';
+        }
+
+        return '1';
+    }
+
     private static function getProductImageUrl(array $product): string
     {
         $link_rewrite = is_array($product['link_rewrite']) ? end($product['link_rewrite']) : $product['link_rewrite'];
