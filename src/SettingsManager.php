@@ -94,10 +94,12 @@ final class SettingsManager
 
         try {
             $product_types = ApiClient::getInstance()->getProductTypes($list_type_enum);
+            $product_types_list = $product_types->productTypesWithNames;
+            $cache_ttl = (int) $product_types->getHeader('Cache-TTL', '0');
 
-            CacheManager::set($cache_key, $product_types->productTypesWithNames, 0, ['admin_product_types']);
+            CacheManager::set($cache_key, $product_types_list, $cache_ttl, ['admin_product_types']);
 
-            return $product_types->productTypesWithNames;
+            return $product_types_list;
         } catch (\Throwable $e) {
             ApiClient::processApiError('Settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
 
@@ -141,11 +143,13 @@ final class SettingsManager
         }
 
         try {
-            $widget_types = ApiClient::getInstance()->getWidgetTypes()->widgetTypesWithNames;
+            $widget_types = ApiClient::getInstance()->getWidgetTypes();
+            $widget_types_list = $widget_types->widgetTypesWithNames;
+            $cache_ttl = (int) $widget_types->getHeader('Cache-TTL', '0');
 
-            CacheManager::set($cache_key, $widget_types, 0, ['admin_widget_types']);
+            CacheManager::set($cache_key, $widget_types_list, $cache_ttl, ['admin_widget_types']);
 
-            return $widget_types;
+            return $widget_types_list;
         } catch (\Throwable $e) {
             ApiClient::processApiError('Settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
 

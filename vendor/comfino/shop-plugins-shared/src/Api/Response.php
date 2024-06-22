@@ -11,6 +11,9 @@ use Psr\Http\Message\ResponseInterface;
 
 abstract class Response
 {
+    /** @var string[] */
+    protected $headers = [];
+
     /**
      * Extracts API response data from input PSR-7 compatible HTTP response object.
      *
@@ -29,7 +32,7 @@ abstract class Response
         $response->getBody()->rewind();
         $responseBody = $response->getBody()->getContents();
 
-        if (strpos($response->getHeader('Content-Type')[0], 'application/json') !== false) {
+        if ($response->hasHeader('Content-Type') && strpos($response->getHeader('Content-Type')[0], 'application/json') !== false) {
             try {
                 $deserializedResponseBody = $this->deserializeResponseBody($responseBody, $serializer);
             } catch (ResponseValidationError $e) {
@@ -40,6 +43,12 @@ abstract class Response
             }
         } else {
             $deserializedResponseBody = $responseBody;
+        }
+
+        $this->headers = [];
+
+        foreach ($response->getHeaders() as $headerName => $headerValues) {
+            $this->headers[$headerName] = end($headerValues);
         }
 
         if ($response->getStatusCode() >= 500) {
@@ -117,6 +126,60 @@ abstract class Response
         }
 
         return $this;
+    }
+
+    /**
+     * Returns response HTTP headers as associative array ['headerName' => 'headerValue'].
+     *
+     * @return string[]
+     */
+    final public function getHeaders(): array
+    {
+        return $this->headers;
+    }
+
+    /**
+     * Checks if specified response HTTP header exists (case-insensitive).
+     *
+     * @param string $headerName
+     *
+     * @return bool
+     */
+    final public function hasHeader($headerName): bool
+    {
+        if (isset($this->headers[$headerName])) {
+            return true;
+        }
+
+        foreach ($this->headers as $responseHeaderName => $headerValue) {
+            if (strcasecmp($responseHeaderName, $headerName) === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns specified response HTTP header (case-insensitive) or default value if it does not exist.
+     *
+     * @param string $headerName
+     * @param string|null $defaultValue
+     * @return string|null
+     */
+    final public function getHeader($headerName, $defaultValue = null): ?string
+    {
+        if (isset($this->headers[$headerName])) {
+            return $this->headers[$headerName];
+        }
+
+        foreach ($this->headers as $responseHeaderName => $headerValue) {
+            if (strcasecmp($responseHeaderName, $headerName) === 0) {
+                return $headerValue;
+            }
+        }
+
+        return $defaultValue;
     }
 
     /**
