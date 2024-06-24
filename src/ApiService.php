@@ -41,11 +41,11 @@ if (!defined('_PS_VERSION_')) {
 final class ApiService
 {
     /** @var RestEndpointManager */
-    private static $endpoint_manager;
+    private static $endpointManager;
 
     public static function init(\PaymentModule $module): void
     {
-        self::$endpoint_manager = (new ApiServiceFactory())->createService(
+        self::$endpointManager = (new ApiServiceFactory())->createService(
             'PrestaShop',
             _PS_VERSION_,
             COMFINO_VERSION,
@@ -55,7 +55,7 @@ final class ApiService
             ]
         );
 
-        self::$endpoint_manager->registerEndpoint(
+        self::$endpointManager->registerEndpoint(
             new StatusNotification(
                 'transactionStatus',
                 self::getControllerUrl($module, 'transactionstatus', [], false),
@@ -65,7 +65,7 @@ final class ApiService
             )
         );
 
-        self::$endpoint_manager->registerEndpoint(
+        self::$endpointManager->registerEndpoint(
             new Configuration(
                 'configuration',
                 self::getControllerUrl($module, 'configuration', [], false),
@@ -77,7 +77,7 @@ final class ApiService
             )
         );
 
-        self::$endpoint_manager->registerEndpoint(
+        self::$endpointManager->registerEndpoint(
             new CacheInvalidate(
                 'cacheInvalidate',
                 self::getControllerUrl($module, 'cacheinvalidate', [], false),
@@ -88,18 +88,18 @@ final class ApiService
 
     public static function getControllerUrl(
         \PaymentModule $module,
-        string $controller_name,
+        string $controllerName,
         array $params = [],
-        bool $with_lang_id = true
+        bool $withLangId = true
     ): string {
-        $url = \Context::getContext()->link->getModuleLink($module->name, $controller_name, $params, true);
+        $url = \Context::getContext()->link->getModuleLink($module->name, $controllerName, $params, true);
 
-        return $with_lang_id ? $url : preg_replace('/&?id_lang=\d+&?/', '', $url);
+        return $withLangId ? $url : preg_replace('/&?id_lang=\d+&?/', '', $url);
     }
 
     public static function getEndpointUrl(string $endpointName): string
     {
-        if (($endpoint = self::$endpoint_manager->getEndpointByName($endpointName)) !== null) {
+        if (($endpoint = self::$endpointManager->getEndpointByName($endpointName)) !== null) {
             return $endpoint->getEndpointUrl();
         }
 
@@ -108,24 +108,24 @@ final class ApiService
 
     public static function processRequest(string $endpointName): string
     {
-        if (self::$endpoint_manager === null || empty(self::$endpoint_manager->getRegisteredEndpoints())) {
+        if (self::$endpointManager === null || empty(self::$endpointManager->getRegisteredEndpoints())) {
             http_response_code(503);
 
             return 'Endpoint manager not initialized.';
         }
 
-        $response = self::$endpoint_manager->processRequest($endpointName);
+        $response = self::$endpointManager->processRequest($endpointName);
 
-        foreach ($response->getHeaders() as $header_name => $header_values) {
-            foreach ($header_values as $header_value) {
-                header(sprintf('%s: %s', $header_name, $header_value), false);
+        foreach ($response->getHeaders() as $headerName => $headerValues) {
+            foreach ($headerValues as $headerValue) {
+                header(sprintf('%s: %s', $headerName, $headerValue), false);
             }
         }
 
-        $response_body = $response->getBody()->getContents();
+        $responseBody = $response->getBody()->getContents();
 
         http_response_code($response->getStatusCode());
 
-        return !empty($response_body) ? $response_body : $response->getReasonPhrase();
+        return !empty($responseBody) ? $responseBody : $response->getReasonPhrase();
     }
 }

@@ -96,12 +96,12 @@ final class ConfigManager
     ];
 
     /** @var ConfigurationManager */
-    private static $configuration_manager;
+    private static $configurationManager;
 
     public static function getInstance(): ConfigurationManager
     {
-        if (self::$configuration_manager === null) {
-            self::$configuration_manager = ConfigurationManager::getInstance(
+        if (self::$configurationManager === null) {
+            self::$configurationManager = ConfigurationManager::getInstance(
                 array_merge(array_merge(...array_values(self::CONFIG_OPTIONS))),
                 self::ACCESSIBLE_CONFIG_OPTIONS,
                 new StorageAdapter(),
@@ -109,15 +109,15 @@ final class ConfigManager
             );
         }
 
-        return self::$configuration_manager;
+        return self::$configurationManager;
     }
 
     public static function load(): array
     {
         $configuration = [];
 
-        foreach (array_merge(array_merge(...array_values(self::CONFIG_OPTIONS))) as $opt_name => $opt_type_flags) {
-            $configuration[$opt_name] = \Configuration::get($opt_name, null, null, null, null);
+        foreach (array_merge(array_merge(...array_values(self::CONFIG_OPTIONS))) as $optName => $optTypeFlags) {
+            $configuration[$optName] = \Configuration::get($optName, null, null, null, null);
         }
 
         return $configuration;
@@ -125,18 +125,18 @@ final class ConfigManager
 
     public static function save(array $configuration): void
     {
-        foreach ($configuration as $opt_name => $opt_value) {
-            \Configuration::updateValue($opt_name, $opt_value);
+        foreach ($configuration as $optName => $optValue) {
+            \Configuration::updateValue($optName, $optValue);
         }
     }
 
     /**
-     * @param string[]|null $selected_env_fields
+     * @param string[]|null $selectedEnvFields
      * @return string[]
      */
-    public static function getEnvironmentInfo(?array $selected_env_fields = null): array
+    public static function getEnvironmentInfo(?array $selectedEnvFields = null): array
     {
-        $env_fields = [
+        $envFields = [
             'plugin_version' => COMFINO_VERSION,
             'shop_version' => _PS_VERSION_,
             'symfony_version' => COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
@@ -149,19 +149,19 @@ final class ConfigManager
             'database_version' => \Db::getInstance()->getVersion(),
         ];
 
-        if (empty($selected_env_fields)) {
-            return $env_fields;
+        if (empty($selectedEnvFields)) {
+            return $envFields;
         }
 
-        $filtered_env_fields = [];
+        $filteredEnvFields = [];
 
-        foreach ($selected_env_fields as $env_field) {
-            if (array_key_exists($env_field, $env_fields)) {
-                $filtered_env_fields[$env_field] = $env_fields[$env_field];
+        foreach ($selectedEnvFields as $envField) {
+            if (array_key_exists($envField, $envFields)) {
+                $filteredEnvFields[$envField] = $envFields[$envField];
             }
         }
 
-        return $filtered_env_fields;
+        return $filteredEnvFields;
     }
 
     /**
@@ -184,14 +184,14 @@ final class ConfigManager
 
     public static function getCategoriesTree(): CategoryTree
     {
-        /** @var CategoryTree $categories_tree */
-        static $categories_tree = null;
+        /** @var CategoryTree $categoriesTree */
+        static $categoriesTree = null;
 
-        if ($categories_tree === null) {
-            $categories_tree = new CategoryTree(new BuildStrategy());
+        if ($categoriesTree === null) {
+            $categoriesTree = new CategoryTree(new BuildStrategy());
         }
 
-        return $categories_tree;
+        return $categoriesTree;
     }
 
     public static function getConfigurationValue(string $optionName)
@@ -245,12 +245,12 @@ final class ConfigManager
         return self::getConfigurationValue('COMFINO_STATUS_MAP') ?? ShopStatusManager::DEFAULT_STATUS_MAP;
     }
 
-    public static function updateConfiguration($configuration_options, $only_accessible_options = true): void
+    public static function updateConfiguration($configurationOptions, $onlyAccessibleOptions = true): void
     {
-        if ($only_accessible_options) {
-            self::getInstance()->updateConfigurationOptions($configuration_options);
+        if ($onlyAccessibleOptions) {
+            self::getInstance()->updateConfigurationOptions($configurationOptions);
         } else {
-            self::getInstance()->setConfigurationValues($configuration_options);
+            self::getInstance()->setConfigurationValues($configurationOptions);
         }
 
         self::getInstance()->persist();
@@ -261,25 +261,25 @@ final class ConfigManager
         $result = true;
 
         foreach (self::CONFIG_OPTIONS as $options) {
-            foreach ($options as $option_name) {
-                $result &= \Configuration::deleteByName($option_name);
+            foreach ($options as $optionName) {
+                $result &= \Configuration::deleteByName($optionName);
             }
         }
 
         return $result;
     }
 
-    public static function updateWidgetCode(\PaymentModule $module, string $last_widget_code_hash): void
+    public static function updateWidgetCode(\PaymentModule $module, string $lastWidgetCodeHash): void
     {
         ErrorLogger::init($module);
 
         try {
-            $initial_widget_code = self::getInitialWidgetCode();
-            $current_widget_code = self::getCurrentWidgetCode($module);
+            $initialWidgetCode = self::getInitialWidgetCode();
+            $currentWidgetCode = self::getCurrentWidgetCode($module);
 
-            if (md5($current_widget_code) === $last_widget_code_hash) {
+            if (md5($currentWidgetCode) === $lastWidgetCodeHash) {
                 // Widget code not changed since last installed version - safely replace with new one.
-                \Configuration::updateValue('COMFINO_WIDGET_CODE', $initial_widget_code);
+                \Configuration::updateValue('COMFINO_WIDGET_CODE', $initialWidgetCode);
             }
         } catch (\Throwable $e) {
             ErrorLogger::sendError(
@@ -297,57 +297,57 @@ final class ConfigManager
     /**
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public static function getCurrentWidgetCode(\PaymentModule $module, $product_id = null): string
+    public static function getCurrentWidgetCode(\PaymentModule $module, $productId = null): string
     {
-        $widget_code = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
-        $product_data = self::getProductData($module, $product_id);
+        $widgetCode = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
+        $productData = self::getProductData($module, $productId);
 
-        $options_to_inject = [];
+        $optionsToInject = [];
 
-        if (strpos($widget_code, 'productId') === false) {
-            $options_to_inject[] = "        productId: $product_data[product_id]";
+        if (strpos($widgetCode, 'productId') === false) {
+            $optionsToInject[] = "        productId: $productData[product_id]";
         }
-        if (strpos($widget_code, 'availOffersUrl') === false) {
-            $options_to_inject[] = "        availOffersUrl: '$product_data[avail_offers_url]'";
-        }
-
-        if (count($options_to_inject)) {
-            $injected_init_options = implode(",\n", $options_to_inject) . ",\n";
-
-            return preg_replace('/\{\n(.*widgetKey:)/', "{\n$injected_init_options\$1", $widget_code);
+        if (strpos($widgetCode, 'availOffersUrl') === false) {
+            $optionsToInject[] = "        availOffersUrl: '$productData[avail_offers_url]'";
         }
 
-        return $widget_code;
+        if (count($optionsToInject)) {
+            $injectedInitOptions = implode(",\n", $optionsToInject) . ",\n";
+
+            return preg_replace('/\{\n(.*widgetKey:)/', "{\n$injectedInitOptions\$1", $widgetCode);
+        }
+
+        return $widgetCode;
     }
 
     /**
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public static function getWidgetVariables(\PaymentModule $module, $product_id = null): array
+    public static function getWidgetVariables(\PaymentModule $module, $productId = null): array
     {
-        $product_data = self::getProductData($module, $product_id);
+        $productData = self::getProductData($module, $productId);
 
         return [
             '{WIDGET_SCRIPT_URL}' => ApiClient::getWidgetScriptUrl(),
-            '{PRODUCT_ID}' => $product_data['product_id'],
-            '{PRODUCT_PRICE}' => $product_data['price'],
+            '{PRODUCT_ID}' => $productData['product_id'],
+            '{PRODUCT_PRICE}' => $productData['price'],
             '{PLATFORM}' => 'prestashop',
             '{PLATFORM_VERSION}' => _PS_VERSION_,
             '{PLATFORM_DOMAIN}' => \Tools::getShopDomain(),
             '{PLUGIN_VERSION}' => COMFINO_VERSION,
-            '{AVAILABLE_OFFER_TYPES}' => $product_data['avail_offers_url'],
+            '{AVAILABLE_OFFER_TYPES}' => $productData['avail_offers_url'],
         ];
     }
 
-    public static function getConfigurationValues(string $options_group, array $options_to_return = []): array
+    public static function getConfigurationValues(string $optionsGroup, array $optionsToReturn = []): array
     {
-        if (!array_key_exists($options_group, self::CONFIG_OPTIONS)) {
+        if (!array_key_exists($optionsGroup, self::CONFIG_OPTIONS)) {
             return [];
         }
 
-        return count($options_to_return)
-            ? self::getInstance()->getConfigurationValues($options_to_return)
-            : self::getInstance()->getConfigurationValues(self::CONFIG_OPTIONS[$options_group]);
+        return count($optionsToReturn)
+            ? self::getInstance()->getConfigurationValues($optionsToReturn)
+            : self::getInstance()->getConfigurationValues(self::CONFIG_OPTIONS[$optionsGroup]);
     }
 
     public static function initConfigurationValues(): void
@@ -357,7 +357,7 @@ final class ConfigManager
             return;
         }
 
-        $initial_config_values = [
+        $initialConfigValues = [
             'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
@@ -379,37 +379,37 @@ final class ConfigManager
             'COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP),
         ];
 
-        foreach ($initial_config_values as $opt_name => $opt_value) {
-            \Configuration::updateValue($opt_name, $opt_value);
+        foreach ($initialConfigValues as $optName => $optValue) {
+            \Configuration::updateValue($optName, $optValue);
         }
     }
 
     /**
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    private static function getProductData(\PaymentModule $module, $product_id): array
+    private static function getProductData(\PaymentModule $module, $productId): array
     {
         $context = \Context::getContext();
-        $avail_offers_url = ApiService::getControllerUrl($module, 'availableoffertypes', [], false);
+        $availOffersUrl = ApiService::getControllerUrl($module, 'availableoffertypes', [], false);
 
         $price = 'null';
 
-        if ($product_id !== null) {
-            $avail_offers_url .= ((strpos($avail_offers_url, '?') === false ? '?' : '&') . "product_id=$product_id");
+        if ($productId !== null) {
+            $availOffersUrl .= ((strpos($availOffersUrl, '?') === false ? '?' : '&') . "product_id=$productId");
 
-            if (($price = \Product::getPriceStatic($product_id)) === null) {
+            if (($price = \Product::getPriceStatic($productId)) === null) {
                 $price = 'null';
             } else {
                 $price = (new Tools($context))->getFormattedPrice($price);
             }
         } else {
-            $product_id = 'null';
+            $productId = 'null';
         }
 
         return [
-            'product_id' => $product_id,
+            'product_id' => $productId,
             'price' => $price,
-            'avail_offers_url' => $avail_offers_url,
+            'avail_offers_url' => $availOffersUrl,
         ];
     }
 

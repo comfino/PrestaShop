@@ -45,17 +45,17 @@ class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontControl
         header('Content-Type: application/json');
 
         $serializer = new JsonSerializer();
-        $available_product_types = SettingsManager::getProductTypesStrings(ProductTypesListTypeEnum::LIST_TYPE_WIDGET);
+        $availableProductTypes = SettingsManager::getProductTypesStrings(ProductTypesListTypeEnum::LIST_TYPE_WIDGET);
 
         if (!Tools::getIsset('product_id')) {
-            echo $serializer->serialize($available_product_types);
+            echo $serializer->serialize($availableProductTypes);
             exit;
         }
 
         $product = new Product(Tools::getValue('product_id'));
 
         if (!Validate::isLoadedObject($product)) {
-            echo $serializer->serialize($available_product_types);
+            echo $serializer->serialize($availableProductTypes);
             exit;
         }
 

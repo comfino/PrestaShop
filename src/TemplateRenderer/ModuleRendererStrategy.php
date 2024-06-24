@@ -61,32 +61,32 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             || $exception instanceof ServiceUnavailable
         ) {
             $url = $exception->getUrl();
-            $request_body = $exception->getRequestBody();
+            $requestBody = $exception->getRequestBody();
 
             if ($exception instanceof ResponseValidationError || $exception instanceof ServiceUnavailable) {
-                $response_body = $exception->getResponseBody();
+                $responseBody = $exception->getResponseBody();
             } else {
-                $response_body = '';
+                $responseBody = '';
             }
 
-            $template_name = 'api_error';
+            $templateName = 'api_error';
         } elseif ($exception instanceof NetworkExceptionInterface) {
             $exception->getRequest()->getBody()->rewind();
 
             $url = $exception->getRequest()->getRequestTarget();
-            $request_body = $exception->getRequest()->getBody()->getContents();
-            $response_body = '';
-            $template_name = 'api_error';
+            $requestBody = $exception->getRequest()->getBody()->getContents();
+            $responseBody = '';
+            $templateName = 'api_error';
         } else {
             $url = '';
-            $request_body = '';
-            $response_body = '';
-            $template_name = 'error';
+            $requestBody = '';
+            $responseBody = '';
+            $templateName = 'error';
         }
 
         return TemplateManager::renderModuleView(
             $this->module,
-            $template_name,
+            $templateName,
             'front',
             [
                 'exception_class' => get_class($exception),
@@ -96,8 +96,8 @@ class ModuleRendererStrategy implements RendererStrategyInterface
                 'error_line' => $exception->getLine(),
                 'error_trace' => $exception->getTraceAsString(),
                 'url' => $url,
-                'request_body' => $request_body,
-                'response_body' => $response_body,
+                'request_body' => $requestBody,
+                'response_body' => $responseBody,
             ]
         );
     }

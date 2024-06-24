@@ -40,15 +40,15 @@ final class FormManager
 
     public static function getSettingsForm(\PaymentModule $module, array $params): string
     {
-        $config_tab = $params['config_tab'] ?? '';
-        $form_name = $params['form_name'] ?? 'submit_configuration';
+        $configTab = $params['config_tab'] ?? '';
+        $formName = $params['form_name'] ?? 'submit_configuration';
 
-        $helper = self::getHelperForm($module, $form_name);
-        $helper->fields_value['active_tab'] = $config_tab;
+        $helper = self::getHelperForm($module, $formName);
+        $helper->fields_value['active_tab'] = $configTab;
 
         foreach (ConfigManager::CONFIG_OPTIONS as $options) {
-            foreach ($options as $option_name => $option_type) {
-                $helper->fields_value[$option_name] = ConfigManager::getConfigurationValue($option_name);
+            foreach ($options as $optionName => $optionType) {
+                $helper->fields_value[$optionName] = ConfigManager::getConfigurationValue($optionName);
             }
         }
 
@@ -56,7 +56,7 @@ final class FormManager
 
         $messages = [];
 
-        switch ($config_tab) {
+        switch ($configTab) {
             case 'payment_settings':
                 if (ConfigManager::isSandboxMode()) {
                     $messages['warning'] = $module->l('Developer mode is active. You are using test environment.');
@@ -66,9 +66,9 @@ final class FormManager
 
             case 'sale_settings':
             case 'widget_settings':
-                if (!isset($params['offer_types'][$config_tab])) {
-                    $params['offer_types'][$config_tab] = SettingsManager::getProductTypesSelectList(
-                        $config_tab === 'sale_settings'
+                if (!isset($params['offer_types'][$configTab])) {
+                    $params['offer_types'][$configTab] = SettingsManager::getProductTypesSelectList(
+                        $configTab === 'sale_settings'
                             ? ProductTypesListTypeEnum::LIST_TYPE_PAYWALL
                             : ProductTypesListTypeEnum::LIST_TYPE_WIDGET
                     );
@@ -80,12 +80,12 @@ final class FormManager
                 break;
 
             case 'plugin_diagnostics':
-                $info_messages = [];
-                $success_messages = [];
-                $warning_messages = [];
-                $error_messages = [];
+                $infoMessages = [];
+                $successMessages = [];
+                $warningMessages = [];
+                $errorMessages = [];
 
-                $info_messages[] = sprintf(
+                $infoMessages[] = sprintf(
                     'PrestaShop Comfino %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
                     ...array_values(ConfigManager::getEnvironmentInfo([
                         'plugin_version',
@@ -97,53 +97,53 @@ final class FormManager
                     ]))
                 );
 
-                if ($sandbox_mode = ConfigManager::isSandboxMode()) {
-                    $warning_messages[] = $module->l('Developer mode is active. You are using test environment.');
+                if ($sandboxMode = ConfigManager::isSandboxMode()) {
+                    $warningMessages[] = $module->l('Developer mode is active. You are using test environment.');
                 } else {
-                    $success_messages[] = $module->l('Production mode is active.');
+                    $successMessages[] = $module->l('Production mode is active.');
                 }
 
                 if (!empty(ConfigManager::getApiKey())) {
                     try {
                         if (ApiClient::getInstance()->isShopAccountActive()) {
-                            $success_messages[] = $module->l(sprintf(
+                            $successMessages[] = $module->l(sprintf(
                                 '%s account is active.',
-                                $sandbox_mode ? 'Test' : 'Production'
+                                $sandboxMode ? 'Test' : 'Production'
                             ));
                         } else {
-                            $warning_messages[] = $module->l(sprintf(
+                            $warningMessages[] = $module->l(sprintf(
                                 '%s account is not active.',
-                                $sandbox_mode ? 'Test' : 'Production'
+                                $sandboxMode ? 'Test' : 'Production'
                             ));
                         }
                     } catch (\Throwable $e) {
-                        $error_messages[] = $e->getMessage();
+                        $errorMessages[] = $e->getMessage();
 
                         if ($e instanceof AuthorizationError || $e instanceof AccessDenied) {
-                            $error_messages[] = $module->l(sprintf(
+                            $errorMessages[] = $module->l(sprintf(
                                 'Invalid %s API key.',
-                                $sandbox_mode ? 'test' : 'production'
+                                $sandboxMode ? 'test' : 'production'
                             ));
                         }
                     }
                 } else {
-                    $error_messages[] = $module->l(sprintf(
+                    $errorMessages[] = $module->l(sprintf(
                         '%s API key not present.',
-                        $sandbox_mode ? 'Test' : 'Production'
+                        $sandboxMode ? 'Test' : 'Production'
                     ));
                 }
 
-                if (count($info_messages)) {
-                    $messages['description'] = implode('<br />', $info_messages);
+                if (count($infoMessages)) {
+                    $messages['description'] = implode('<br />', $infoMessages);
                 }
-                if (count($success_messages)) {
-                    $messages['success'] = implode('<br />', $success_messages);
+                if (count($successMessages)) {
+                    $messages['success'] = implode('<br />', $successMessages);
                 }
-                if (count($warning_messages)) {
-                    $messages['warning'] = implode('<br />', $warning_messages);
+                if (count($warningMessages)) {
+                    $messages['warning'] = implode('<br />', $warningMessages);
                 }
-                if (count($error_messages)) {
-                    $messages['error'] = implode('<br />', $error_messages);
+                if (count($errorMessages)) {
+                    $messages['error'] = implode('<br />', $errorMessages);
                 }
 
                 break;
@@ -158,9 +158,9 @@ final class FormManager
 
     private static function getHelperForm(
         \PaymentModule $module,
-        string $submit_action,
-        ?string $form_template_dir = null,
-        ?string $form_template = null
+        string $submitAction,
+        ?string $formTemplateDir = null,
+        ?string $formTemplate = null
     ): \HelperForm {
         $helper = new \HelperForm();
         $language = (int) \Configuration::get('PS_LANG_DEFAULT');
@@ -178,7 +178,7 @@ final class FormManager
         $helper->title = $module->displayName;
         $helper->show_toolbar = true; // false -> Remove toolbar.
         $helper->toolbar_scroll = true; // yes - > Toolbar is always visible at the top of the screen.
-        $helper->submit_action = $submit_action;
+        $helper->submit_action = $submitAction;
         $helper->toolbar_btn = [
             'save' => [
                 'desc' => $module->l('Save'),
@@ -191,9 +191,9 @@ final class FormManager
             ],
         ];
 
-        if ($form_template !== null && $form_template_dir !== null) {
-            $helper->base_folder = $form_template_dir;
-            $helper->base_tpl = $form_template;
+        if ($formTemplate !== null && $formTemplateDir !== null) {
+            $helper->base_folder = $formTemplateDir;
+            $helper->base_tpl = $formTemplate;
         }
 
         return $helper;

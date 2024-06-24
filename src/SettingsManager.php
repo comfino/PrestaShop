@@ -43,67 +43,67 @@ if (!defined('_PS_VERSION_')) {
 final class SettingsManager
 {
     /** @var ProductTypeFilterManager */
-    private static $filter_manager;
+    private static $filterManager;
 
-    public static function getProductTypesSelectList(string $list_type): array
+    public static function getProductTypesSelectList(string $listType): array
     {
-        $product_types = self::getProductTypes($list_type, true);
+        $productTypes = self::getProductTypes($listType, true);
 
-        if (isset($product_types['error'])) {
-            $product_types_list = [['key' => 'error', 'name' => $product_types['error']]];
+        if (isset($productTypes['error'])) {
+            $productTypesList = [['key' => 'error', 'name' => $productTypes['error']]];
         } else {
-            $product_types_list = [];
+            $productTypesList = [];
 
-            foreach ($product_types as $product_type_code => $product_type_name) {
-                $product_types_list[] = ['key' => $product_type_code, 'name' => $product_type_name];
+            foreach ($productTypes as $productTypeCode => $productTypeName) {
+                $productTypesList[] = ['key' => $productTypeCode, 'name' => $productTypeName];
             }
         }
 
-        return $product_types_list;
+        return $productTypesList;
     }
 
     public static function getWidgetTypesSelectList(): array
     {
-        $widget_types = self::getWidgetTypes(true);
+        $widgetTypes = self::getWidgetTypes(true);
 
-        if (isset($widget_types['error'])) {
-            $widget_types_list = [['key' => 'error', 'name' => $widget_types['error']]];
+        if (isset($widgetTypes['error'])) {
+            $widgetTypesList = [['key' => 'error', 'name' => $widgetTypes['error']]];
         } else {
-            $widget_types_list = [];
+            $widgetTypesList = [];
 
-            foreach ($widget_types as $widget_type_code => $widget_type_name) {
-                $widget_types_list[] = ['key' => $widget_type_code, 'name' => $widget_type_name];
+            foreach ($widgetTypes as $widgetTypeCode => $widgetTypeName) {
+                $widgetTypesList[] = ['key' => $widgetTypeCode, 'name' => $widgetTypeName];
             }
         }
 
-        return $widget_types_list;
+        return $widgetTypesList;
     }
 
     /**
      * @return string[]
      */
-    public static function getProductTypes(string $list_type, bool $return_errors = false): array
+    public static function getProductTypes(string $listType, bool $returnErrors = false): array
     {
         $language = \Context::getContext()->language->iso_code;
-        $cache_key = "product_types.$list_type.$language";
-        $list_type_enum = new ProductTypesListTypeEnum($list_type);
+        $cacheKey = "product_types.$listType.$language";
+        $listTypeEnum = new ProductTypesListTypeEnum($listType);
 
-        if (($product_types = CacheManager::get($cache_key)) !== null) {
-            return $product_types;
+        if (($productTypes = CacheManager::get($cacheKey)) !== null) {
+            return $productTypes;
         }
 
         try {
-            $product_types = ApiClient::getInstance()->getProductTypes($list_type_enum);
-            $product_types_list = $product_types->productTypesWithNames;
-            $cache_ttl = (int) $product_types->getHeader('Cache-TTL', '0');
+            $productTypes = ApiClient::getInstance()->getProductTypes($listTypeEnum);
+            $productTypesList = $productTypes->productTypesWithNames;
+            $cacheTtl = (int) $productTypes->getHeader('Cache-TTL', '0');
 
-            CacheManager::set($cache_key, $product_types_list, $cache_ttl, ['admin_product_types']);
+            CacheManager::set($cacheKey, $productTypesList, $cacheTtl, ['admin_product_types']);
 
-            return $product_types_list;
+            return $productTypesList;
         } catch (\Throwable $e) {
             ApiClient::processApiError('Settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
 
-            if ($return_errors) {
+            if ($returnErrors) {
                 return ['error' => $e->getMessage()];
             }
         }
@@ -114,46 +114,46 @@ final class SettingsManager
     /**
      * @return string[]
      */
-    public static function getProductTypesStrings(string $list_type): array
+    public static function getProductTypesStrings(string $listType): array
     {
-        return array_keys(self::getProductTypes($list_type));
+        return array_keys(self::getProductTypes($listType));
     }
 
     /**
      * @return LoanTypeEnum[]
      */
-    public static function getProductTypesEnums(string $list_type): array
+    public static function getProductTypesEnums(string $listType): array
     {
         return array_map(
-            static function (string $product_type): LoanTypeEnum { return new LoanTypeEnum($product_type); },
-            array_keys(self::getProductTypes($list_type))
+            static function (string $productType): LoanTypeEnum { return new LoanTypeEnum($productType); },
+            array_keys(self::getProductTypes($listType))
         );
     }
 
     /**
      * @return string[]
      */
-    public static function getWidgetTypes(bool $return_errors = false): array
+    public static function getWidgetTypes(bool $returnErrors = false): array
     {
         $language = \Context::getContext()->language->iso_code;
-        $cache_key = "widget_types.$language";
+        $cacheKey = "widget_types.$language";
 
-        if (($widget_types = CacheManager::get($cache_key)) !== null) {
-            return $widget_types;
+        if (($widgetTypes = CacheManager::get($cacheKey)) !== null) {
+            return $widgetTypes;
         }
 
         try {
-            $widget_types = ApiClient::getInstance()->getWidgetTypes();
-            $widget_types_list = $widget_types->widgetTypesWithNames;
-            $cache_ttl = (int) $widget_types->getHeader('Cache-TTL', '0');
+            $widgetTypes = ApiClient::getInstance()->getWidgetTypes();
+            $widgetTypesList = $widgetTypes->widgetTypesWithNames;
+            $cacheTtl = (int) $widgetTypes->getHeader('Cache-TTL', '0');
 
-            CacheManager::set($cache_key, $widget_types_list, $cache_ttl, ['admin_widget_types']);
+            CacheManager::set($cacheKey, $widgetTypesList, $cacheTtl, ['admin_widget_types']);
 
-            return $widget_types_list;
+            return $widgetTypesList;
         } catch (\Throwable $e) {
             ApiClient::processApiError('Settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
 
-            if ($return_errors) {
+            if ($returnErrors) {
                 return ['error' => $e->getMessage()];
             }
         }
@@ -161,34 +161,34 @@ final class SettingsManager
         return [];
     }
 
-    public static function isProductTypeAllowed(string $list_type, LoanTypeEnum $product_type, Cart $cart): bool
+    public static function isProductTypeAllowed(string $listType, LoanTypeEnum $productType, Cart $cart): bool
     {
-        if (($allowed_product_types = self::getAllowedProductTypes($list_type, $cart)) === null) {
+        if (($allowedProductTypes = self::getAllowedProductTypes($listType, $cart)) === null) {
             return true;
         }
 
-        return in_array($product_type, $allowed_product_types, true);
+        return in_array($productType, $allowedProductTypes, true);
     }
 
     /**
      * @return LoanTypeEnum[]|null
      */
-    public static function getAllowedProductTypes(string $list_type, Cart $cart, bool $ret_only_array = false): ?array
+    public static function getAllowedProductTypes(string $listType, Cart $cart, bool $returnOnlyArray = false): ?array
     {
-        $filter_manager = self::getFilterManager($list_type);
+        $filterManager = self::getFilterManager($listType);
 
-        if (!$filter_manager->filtersActive()) {
+        if (!$filterManager->filtersActive()) {
             return null;
         }
 
-        $available_product_types = self::getProductTypesEnums($list_type);
-        $allowed_product_types = $filter_manager->getAllowedProductTypes($available_product_types, $cart);
+        $availableProductTypes = self::getProductTypesEnums($listType);
+        $allowedProductTypes = $filterManager->getAllowedProductTypes($availableProductTypes, $cart);
 
-        if ($ret_only_array) {
-            return $allowed_product_types;
+        if ($returnOnlyArray) {
+            return $allowedProductTypes;
         }
 
-        return count($available_product_types) !== count($allowed_product_types) ? $allowed_product_types : null;
+        return count($availableProductTypes) !== count($allowedProductTypes) ? $allowedProductTypes : null;
     }
 
     public static function getProductCategoryFilters(): array
@@ -196,14 +196,14 @@ final class SettingsManager
         return ConfigManager::getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS') ?? [];
     }
 
-    public static function productCategoryFiltersActive(array $product_category_filters): bool
+    public static function productCategoryFiltersActive(array $productCategoryFilters): bool
     {
-        if (empty($product_category_filters)) {
+        if (empty($productCategoryFilters)) {
             return false;
         }
 
-        foreach ($product_category_filters as $excluded_category_ids) {
-            if (!empty($excluded_category_ids)) {
+        foreach ($productCategoryFilters as $excludedCategoryIds) {
+            if (!empty($excludedCategoryIds)) {
                 return true;
             }
         }
@@ -216,58 +216,58 @@ final class SettingsManager
      */
     public static function getCatFilterAvailProdTypes(): array
     {
-        $prod_types = self::getProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL);
-        $cat_filter_avail_prod_types = [];
+        $productTypes = self::getProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL);
+        $categoryFilterAvailProductTypes = [];
 
         foreach (ConfigManager::getConfigurationValue('COMFINO_CAT_FILTER_AVAIL_PROD_TYPES') as $prod_type) {
-            $cat_filter_avail_prod_types[$prod_type] = null;
+            $categoryFilterAvailProductTypes[$prod_type] = null;
         }
 
-        if (empty($avail_prod_types = array_intersect_key($prod_types, $cat_filter_avail_prod_types))) {
-            $avail_prod_types = $prod_types;
+        if (empty($availProductTypes = array_intersect_key($productTypes, $categoryFilterAvailProductTypes))) {
+            $availProductTypes = $productTypes;
         }
 
-        return $avail_prod_types;
+        return $availProductTypes;
     }
 
-    private static function getFilterManager(string $list_type): ProductTypeFilterManager
+    private static function getFilterManager(string $listType): ProductTypeFilterManager
     {
-        if (self::$filter_manager === null) {
-            self::$filter_manager = ProductTypeFilterManager::getInstance();
+        if (self::$filterManager === null) {
+            self::$filterManager = ProductTypeFilterManager::getInstance();
 
-            foreach (self::buildFiltersList($list_type) as $filter) {
-                self::$filter_manager->addFilter($filter);
+            foreach (self::buildFiltersList($listType) as $filter) {
+                self::$filterManager->addFilter($filter);
             }
         }
 
-        return self::$filter_manager;
+        return self::$filterManager;
     }
 
     /**
      * @return ProductTypeFilterInterface[]
      */
-    private static function buildFiltersList(string $list_type): array
+    private static function buildFiltersList(string $listType): array
     {
         $filters = [];
 
-        if (($min_amount = ConfigManager::getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT')) > 0) {
-            $available_product_types = self::getProductTypesStrings($list_type);
+        if (($minAmount = ConfigManager::getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT')) > 0) {
+            $availableProductTypes = self::getProductTypesStrings($listType);
             $filters[] = new FilterByCartValueLowerLimit(
-                array_combine($available_product_types, array_fill(0, count($available_product_types), $min_amount))
+                array_combine($availableProductTypes, array_fill(0, count($availableProductTypes), $minAmount))
             );
         }
 
-        if ($list_type === ProductTypesListTypeEnum::LIST_TYPE_WIDGET
+        if ($listType === ProductTypesListTypeEnum::LIST_TYPE_WIDGET
             && ConfigManager::getConfigurationValue('COMFINO_WIDGET_TYPE') === 'with-modal'
-            && !empty($widget_product_type = ConfigManager::getConfigurationValue('COMFINO_WIDGET_OFFER_TYPE'))
+            && !empty($widgetProductType = ConfigManager::getConfigurationValue('COMFINO_WIDGET_OFFER_TYPE'))
         ) {
-            $filters[] = new FilterByProductType([new LoanTypeEnum($widget_product_type)]);
+            $filters[] = new FilterByProductType([new LoanTypeEnum($widgetProductType)]);
         }
 
-        if (self::productCategoryFiltersActive($product_category_filters = self::getProductCategoryFilters())) {
+        if (self::productCategoryFiltersActive($productCategoryFilters = self::getProductCategoryFilters())) {
             $filters[] = new FilterByExcludedCategory(
                 new CategoryFilter(ConfigManager::getCategoriesTree()),
-                $product_category_filters
+                $productCategoryFilters
             );
         }
 

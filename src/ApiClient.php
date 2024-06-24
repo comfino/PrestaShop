@@ -42,25 +42,25 @@ if (!defined('_PS_VERSION_')) {
 final class ApiClient
 {
     /** @var Client */
-    private static $api_client;
+    private static $apiClient;
 
-    public static function getInstance(?bool $sandbox_mode = null, ?string $api_key = null): Client
+    public static function getInstance(?bool $sandboxMode = null, ?string $apiKey = null): Client
     {
-        if ($sandbox_mode === null) {
-            $sandbox_mode = ConfigManager::isSandboxMode();
+        if ($sandboxMode === null) {
+            $sandboxMode = ConfigManager::isSandboxMode();
         }
 
-        if ($api_key === null) {
-            if ($sandbox_mode) {
-                $api_key = ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY');
+        if ($apiKey === null) {
+            if ($sandboxMode) {
+                $apiKey = ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY');
             } else {
-                $api_key = ConfigManager::getConfigurationValue('COMFINO_API_KEY');
+                $apiKey = ConfigManager::getConfigurationValue('COMFINO_API_KEY');
             }
         }
 
-        if (self::$api_client === null) {
-            self::$api_client = (new ApiClientFactory())->createClient(
-                $api_key,
+        if (self::$apiClient === null) {
+            self::$apiClient = (new ApiClientFactory())->createClient(
+                $apiKey,
                 sprintf(
                     'PS Comfino [%s], PS [%s], SF [%s], PHP [%s], %s',
                     ...array_merge(
@@ -78,11 +78,11 @@ final class ApiClient
                 [CURLOPT_CONNECTTIMEOUT => 1, CURLOPT_TIMEOUT => 3]
             );
         } else {
-            self::$api_client->setApiKey($api_key);
-            self::$api_client->setApiLanguage(\Context::getContext()->language->iso_code);
+            self::$apiClient->setApiKey($apiKey);
+            self::$apiClient->setApiLanguage(\Context::getContext()->language->iso_code);
         }
 
-        return self::$api_client;
+        return self::$apiClient;
     }
 
     public static function processApiError(string $errorPrefix, \Throwable $exception): void
@@ -92,23 +92,23 @@ final class ApiClient
             || $exception instanceof ServiceUnavailable
         ) {
             $url = $exception->getUrl();
-            $request_body = $exception->getRequestBody();
+            $requestBody = $exception->getRequestBody();
 
             if ($exception instanceof ResponseValidationError || $exception instanceof ServiceUnavailable) {
-                $response_body = $exception->getResponseBody();
+                $responseBody = $exception->getResponseBody();
             } else {
-                $response_body = null;
+                $responseBody = null;
             }
         } elseif ($exception instanceof NetworkExceptionInterface) {
             $exception->getRequest()->getBody()->rewind();
 
             $url = $exception->getRequest()->getRequestTarget();
-            $request_body = $exception->getRequest()->getBody()->getContents();
-            $response_body = null;
+            $requestBody = $exception->getRequest()->getBody()->getContents();
+            $responseBody = null;
         } else {
             $url = null;
-            $request_body = null;
-            $response_body = null;
+            $requestBody = null;
+            $responseBody = null;
         }
 
         ErrorLogger::sendError(
@@ -116,22 +116,22 @@ final class ApiClient
             $exception->getCode(),
             $exception->getMessage(),
             $url !== '' ? $url : null,
-            $request_body !== '' ? $request_body : null,
-            $response_body !== '' ? $response_body : null,
+            $requestBody !== '' ? $requestBody : null,
+            $responseBody !== '' ? $responseBody : null,
             $exception->getTraceAsString()
         );
     }
 
     public static function getLogoUrl(\PaymentModule $module): string
     {
-        return self::getApiHost(true, self::getInstance()->getApiHost())
+        return self::getApiHost(self::getInstance()->getApiHost())
             . '/v1/get-logo-url?auth='
             . FrontendManager::getPaywallRenderer($module)->getLogoAuthHash('PS', _PS_VERSION_, COMFINO_VERSION);
     }
 
     public static function getPaywallLogoUrl(\PaymentModule $module): string
     {
-        return self::getApiHost(true, self::getInstance()->getApiHost())
+        return self::getApiHost(self::getInstance()->getApiHost())
             . '/v1/get-paywall-logo?auth='
             . FrontendManager::getPaywallRenderer($module)->getPaywallLogoAuthHash(
                 'PS', _PS_VERSION_, COMFINO_VERSION, self::getInstance()->getApiKey(), ConfigManager::getWidgetKey()
@@ -144,25 +144,25 @@ final class ApiClient
             return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
         }
 
-        $widget_script_url = ConfigManager::isSandboxMode() ? 'https://widget.craty.pl' : 'https://widget.comfino.pl';
-        $widget_prod_script_version = ConfigManager::getConfigurationValue('COMFINO_WIDGET_PROD_SCRIPT_VERSION');
+        $widgetScriptUrl = ConfigManager::isSandboxMode() ? 'https://widget.craty.pl' : 'https://widget.comfino.pl';
+        $widgetProdScriptVersion = ConfigManager::getConfigurationValue('COMFINO_WIDGET_PROD_SCRIPT_VERSION');
 
-        if (empty($widget_prod_script_version)) {
-            $widget_script_url .= '/comfino.min.js';
+        if (empty($widgetProdScriptVersion)) {
+            $widgetScriptUrl .= '/comfino.min.js';
         } else {
-            $widget_script_url .= ('/' . trim($widget_prod_script_version, '/'));
+            $widgetScriptUrl .= ('/' . trim($widgetProdScriptVersion, '/'));
         }
 
-        return $widget_script_url;
+        return $widgetScriptUrl;
     }
 
-    private static function getApiHost(bool $frontend_host = false, ?string $api_host = null): ?string
+    private static function getApiHost(?string $apiHost = null): ?string
     {
         if (self::isDevEnv() && getenv('COMFINO_DEV_API_HOST')) {
             return getenv('COMFINO_DEV_API_HOST');
         }
 
-        return $api_host;
+        return $apiHost;
     }
 
     private static function isDevEnv(): bool

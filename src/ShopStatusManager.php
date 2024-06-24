@@ -75,44 +75,44 @@ final class ShopStatusManager
     {
         $languages = \Language::getLanguages(false);
 
-        foreach (self::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
-            $comfino_status_id = \Configuration::get($status_code);
+        foreach (self::CUSTOM_ORDER_STATUSES as $statusCode => $statusDetails) {
+            $comfinoStatusId = \Configuration::get($statusCode);
 
-            if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
-                $order_status = new \OrderState($comfino_status_id);
+            if (!empty($comfinoStatusId) && \Validate::isInt($comfinoStatusId)) {
+                $orderStatus = new \OrderState($comfinoStatusId);
 
-                if (\Validate::isLoadedObject($order_status)) {
+                if (\Validate::isLoadedObject($orderStatus)) {
                     // Update existing status definition.
-                    $order_status->color = $status_details['color'];
-                    $order_status->paid = $status_details['paid'];
-                    $order_status->deleted = $status_details['deleted'];
+                    $orderStatus->color = $statusDetails['color'];
+                    $orderStatus->paid = $statusDetails['paid'];
+                    $orderStatus->deleted = $statusDetails['deleted'];
 
-                    $order_status->update();
+                    $orderStatus->update();
 
                     continue;
                 }
-            } elseif ($status_details['deleted']) {
+            } elseif ($statusDetails['deleted']) {
                 // Ignore deleted statuses in first time plugin installations.
                 continue;
             }
 
             // Add a new status definition.
-            $order_status = new \OrderState();
-            $order_status->send_email = false;
-            $order_status->invoice = false;
-            $order_status->color = $status_details['color'];
-            $order_status->unremovable = false;
-            $order_status->logable = false;
-            $order_status->module_name = 'comfino';
-            $order_status->paid = $status_details['paid'];
+            $orderStatus = new \OrderState();
+            $orderStatus->send_email = false;
+            $orderStatus->invoice = false;
+            $orderStatus->color = $statusDetails['color'];
+            $orderStatus->unremovable = false;
+            $orderStatus->logable = false;
+            $orderStatus->module_name = 'comfino';
+            $orderStatus->paid = $statusDetails['paid'];
 
             foreach ($languages as $language) {
-                $status_name = $language['iso_code'] === 'pl' ? $status_details['name_pl'] : $status_details['name'];
-                $order_status->name[$language['id_lang']] = $status_name;
+                $status_name = $language['iso_code'] === 'pl' ? $statusDetails['name_pl'] : $statusDetails['name'];
+                $orderStatus->name[$language['id_lang']] = $status_name;
             }
 
-            if ($order_status->add()) {
-                \Configuration::updateValue($status_code, $order_status->id);
+            if ($orderStatus->add()) {
+                \Configuration::updateValue($statusCode, $orderStatus->id);
             }
         }
     }
@@ -121,27 +121,27 @@ final class ShopStatusManager
     {
         $languages = \Language::getLanguages(false);
 
-        foreach (self::CUSTOM_ORDER_STATUSES as $status_code => $status_details) {
-            $comfino_status_id = \Configuration::get($status_code);
+        foreach (self::CUSTOM_ORDER_STATUSES as $statusCode => $statusDetails) {
+            $comfinoStatusId = \Configuration::get($statusCode);
 
-            if (!empty($comfino_status_id) && \Validate::isInt($comfino_status_id)) {
-                $order_status = new \OrderState($comfino_status_id);
+            if (!empty($comfinoStatusId) && \Validate::isInt($comfinoStatusId)) {
+                $orderStatus = new \OrderState($comfinoStatusId);
 
-                if (\Validate::isLoadedObject($order_status)) {
+                if (\Validate::isLoadedObject($orderStatus)) {
                     // Update existing status definition.
                     foreach ($languages as $language) {
                         if ($language['iso_code'] === 'pl') {
-                            $order_status->name[$language['id_lang']] = $status_details['name_pl'];
+                            $orderStatus->name[$language['id_lang']] = $statusDetails['name_pl'];
                         } else {
-                            $order_status->name[$language['id_lang']] = $status_details['name'];
+                            $orderStatus->name[$language['id_lang']] = $statusDetails['name'];
                         }
                     }
 
-                    $order_status->color = $status_details['color'];
-                    $order_status->paid = $status_details['paid'];
-                    $order_status->deleted = $status_details['deleted'];
+                    $orderStatus->color = $statusDetails['color'];
+                    $orderStatus->paid = $statusDetails['paid'];
+                    $orderStatus->deleted = $statusDetails['deleted'];
 
-                    $order_status->save();
+                    $orderStatus->save();
                 }
             }
         }
@@ -154,13 +154,13 @@ final class ShopStatusManager
         if (stripos($order->payment, 'comfino') !== false) {
             // Process orders paid by Comfino only.
 
-            /** @var \OrderState $new_order_state */
-            $new_order_state = $params['newOrderStatus'];
+            /** @var \OrderState $newOrderState */
+            $newOrderState = $params['newOrderStatus'];
 
-            $new_order_state_id = (int) $new_order_state->id;
-            $canceled_order_state_id = (int) \Configuration::get('PS_OS_CANCELED');
+            $newOrderStateId = (int) $newOrderState->id;
+            $canceledOrderStateId = (int) \Configuration::get('PS_OS_CANCELED');
 
-            if ($new_order_state_id === $canceled_order_state_id) {
+            if ($newOrderStateId === $canceledOrderStateId) {
                 // Send notification about cancelled order paid by Comfino.
                 ErrorLogger::init($module);
 

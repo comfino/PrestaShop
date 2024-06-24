@@ -56,23 +56,23 @@ class Tools
      *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function formatPrice(float $price, int $id_currency)
+    public function formatPrice(float $price, int $currencyId)
     {
         return COMFINO_PS_17 && $this->locale !== null
-            ? $this->locale->formatPrice($price, $this->getCurrencyIsoCode($id_currency))
+            ? $this->locale->formatPrice($price, $this->getCurrencyIsoCode($currencyId))
             : \Tools::displayPrice($price);
     }
 
-    public function getCurrencyIsoCode(int $id_currency): string
+    public function getCurrencyIsoCode(int $currencyId): string
     {
         return COMFINO_PS_17 && method_exists(\Currency::class, 'getIsoCodeById')
-            ? \Currency::getIsoCodeById($id_currency)
-            : \Currency::getCurrencyInstance($id_currency)->iso_code;
+            ? \Currency::getIsoCodeById($currencyId)
+            : \Currency::getCurrencyInstance($currencyId)->iso_code;
     }
 
-    public function getLanguageIsoCode(int $id_lang): string
+    public function getLanguageIsoCode(int $langId): string
     {
-        return \Language::getIsoById($id_lang);
+        return \Language::getIsoById($langId);
     }
 
     public function getCookie(): \Cookie
@@ -97,21 +97,21 @@ class Tools
         );
     }
 
-    public function isValidTaxId(string $tax_id): bool
+    public function isValidTaxId(string $taxId): bool
     {
-        if (empty($tax_id) || strlen($tax_id) !== 10 || !preg_match('/^\d+$/', $tax_id)) {
+        if (empty($taxId) || strlen($taxId) !== 10 || !preg_match('/^\d+$/', $taxId)) {
             return false;
         }
 
-        $arr_steps = [6, 5, 7, 2, 3, 4, 5, 6, 7];
-        $int_sum = 0;
+        $arrSteps = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+        $intSum = 0;
 
         for ($i = 0; $i < 9; ++$i) {
-            $int_sum += $arr_steps[$i] * $tax_id[$i];
+            $intSum += $arrSteps[$i] * $taxId[$i];
         }
 
-        $int = $int_sum % 11;
+        $int = $intSum % 11;
 
-        return ($int === 10 ? 0 : $int) === (int) $tax_id[9];
+        return ($int === 10 ? 0 : $int) === (int) $taxId[9];
     }
 }

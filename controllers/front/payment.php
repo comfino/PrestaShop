@@ -87,17 +87,17 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         /* Check that this payment option is still available in case the customer changed his address just before
            the end of the checkout process. */
-        $comfino_is_available = false;
+        $comfinoIsAvailable = false;
 
         foreach (Module::getPaymentModules() as $module) {
             if ($module['name'] === 'comfino') {
-                $comfino_is_available = true;
+                $comfinoIsAvailable = true;
 
                 break;
             }
         }
 
-        if (!$comfino_is_available) {
+        if (!$comfinoIsAvailable) {
             exit($this->module->l('This payment method is not available.'));
         }
 
@@ -109,12 +109,12 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $shop_cart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount);
+        $shopCart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount);
 
         $this->module->validateOrder(
             (int) $cart->id,
             (int) Configuration::get('COMFINO_CREATED'),
-            (float) ($shop_cart->getTotalValue() / 100),
+            (float) ($shopCart->getTotalValue() / 100),
             $this->module->displayName,
             null,
             '',
@@ -123,53 +123,53 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $customer->secure_key
         );
 
-        $order_id = (string) $this->module->currentOrder;
+        $orderId = (string) $this->module->currentOrder;
         $addresses = $cart->getAddressCollection();
-        $address_parts = explode(' ', $addresses[$cart->id_address_delivery]->address1);
-        $building_number = '';
+        $addressParts = explode(' ', $addresses[$cart->id_address_delivery]->address1);
+        $buildingNumber = '';
 
-        if (count($address_parts) === 2) {
-            $building_number = $address_parts[1];
+        if (count($addressParts) === 2) {
+            $buildingNumber = $addressParts[1];
         }
 
-        $customer_tax_id = trim(str_replace('-', '', $addresses[$cart->id_address_delivery]->vat_number));
-        $phone_number = trim($addresses[$cart->id_address_delivery]->phone);
+        $customerTaxId = trim(str_replace('-', '', $addresses[$cart->id_address_delivery]->vat_number));
+        $phoneNumber = trim($addresses[$cart->id_address_delivery]->phone);
 
-        if (empty($phone_number)) {
-            $phone_number = trim($addresses[$cart->id_address_delivery]->phone_mobile);
+        if (empty($phoneNumber)) {
+            $phoneNumber = trim($addresses[$cart->id_address_delivery]->phone_mobile);
         }
 
-        $return_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
-            "$cart->id&id_module={$this->module->id}&id_order=$order_id&key={$customer->secure_key}";
+        $returnUrl = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
+            "$cart->id&id_module={$this->module->id}&id_order=$orderId&key={$customer->secure_key}";
 
         $order = (new OrderFactory())->createOrder(
-            $order_id,
-            $shop_cart->getTotalValue(),
-            $shop_cart->getDeliveryCost(),
+            $orderId,
+            $shopCart->getTotalValue(),
+            $shopCart->getDeliveryCost(),
             (int) $cookie->loan_term,
             new LoanTypeEnum($cookie->loan_type),
-            $shop_cart->getCartItems(),
+            $shopCart->getCartItems(),
             new Customer(
                 $addresses[$cart->id_address_delivery]->firstname,
                 $addresses[$cart->id_address_delivery]->lastname,
                 $customer->email,
-                $phone_number,
+                $phoneNumber,
                 Tools::getRemoteAddr(),
-                preg_match('/^[A-Z]{0,3}\d{7,}$/', $customer_tax_id) ? $customer_tax_id : null,
+                preg_match('/^[A-Z]{0,3}\d{7,}$/', $customerTaxId) ? $customerTaxId : null,
                 !$customer->is_guest,
                 $customer->isLogged(),
                 new Address(
-                    $address_parts[0],
-                    $building_number,
+                    $addressParts[0],
+                    $buildingNumber,
                     null,
                     $addresses[$cart->id_address_delivery]->postcode,
                     $addresses[$cart->id_address_delivery]->city,
                     'PL'
                 )
             ),
-            $return_url,
+            $returnUrl,
             ApiService::getEndpointUrl('transactionStatus'),
-            SettingsManager::getAllowedProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL, $shop_cart)
+            SettingsManager::getAllowedProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL, $shopCart)
         );
 
         try {

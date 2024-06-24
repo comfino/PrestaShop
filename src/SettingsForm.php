@@ -42,135 +42,135 @@ final class SettingsForm
     {
         ErrorLogger::init($module);
 
-        $active_tab = 'payment_settings';
-        $output_type = 'success';
+        $activeTab = 'payment_settings';
+        $outputType = 'success';
         $output = [];
-        $widget_key_error = false;
-        $widget_key = '';
+        $widgetKeyError = false;
+        $widgetKey = '';
 
-        $error_empty_msg = $module->l("Field '%s' can not be empty.");
-        $error_numeric_format_msg = $module->l("Field '%s' has wrong numeric format.");
+        $errorEmptyMsg = $module->l("Field '%s' can not be empty.");
+        $errorNumericFormatMsg = $module->l("Field '%s' has wrong numeric format.");
 
-        $configuration_options = [];
+        $configurationOptions = [];
 
         if (\Tools::isSubmit('submit_configuration')) {
-            $active_tab = \Tools::getValue('active_tab');
+            $activeTab = \Tools::getValue('active_tab');
 
-            foreach (ConfigManager::CONFIG_OPTIONS[$active_tab] as $option_name => $option_type) {
-                if ($option_name !== 'COMFINO_WIDGET_KEY') {
-                    $configuration_options[$option_name] = \Tools::getValue($option_name);
+            foreach (ConfigManager::CONFIG_OPTIONS[$activeTab] as $optionName => $optionType) {
+                if ($optionName !== 'COMFINO_WIDGET_KEY') {
+                    $configurationOptions[$optionName] = \Tools::getValue($optionName);
                 }
             }
 
-            switch ($active_tab) {
+            switch ($activeTab) {
                 case 'payment_settings':
                 case 'developer_settings':
-                    if ($active_tab === 'payment_settings') {
-                        $sandbox_mode = ConfigManager::isSandboxMode();
-                        $api_key = $sandbox_mode
+                    if ($activeTab === 'payment_settings') {
+                        $sandboxMode = ConfigManager::isSandboxMode();
+                        $apiKey = $sandboxMode
                             ? ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY')
                             : \Tools::getValue('COMFINO_API_KEY');
 
                         if (\Tools::isEmpty(\Tools::getValue('COMFINO_API_KEY'))) {
-                            $output[] = sprintf($error_empty_msg, $module->l('Production environment API key'));
+                            $output[] = sprintf($errorEmptyMsg, $module->l('Production environment API key'));
                         }
                         if (\Tools::isEmpty(\Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
-                            $output[] = sprintf($error_empty_msg, $module->l('Payment text'));
+                            $output[] = sprintf($errorEmptyMsg, $module->l('Payment text'));
                         }
                         if (\Tools::isEmpty(\Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
-                            $output[] = sprintf($error_empty_msg, $module->l('Minimal amount in cart'));
+                            $output[] = sprintf($errorEmptyMsg, $module->l('Minimal amount in cart'));
                         } elseif (!is_numeric(\Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
-                            $output[] = sprintf($error_numeric_format_msg, $module->l('Minimal amount in cart'));
+                            $output[] = sprintf($errorNumericFormatMsg, $module->l('Minimal amount in cart'));
                         }
                     } else {
-                        $sandbox_mode = (bool) \Tools::getValue('COMFINO_IS_SANDBOX');
-                        $api_key = $sandbox_mode
+                        $sandboxMode = (bool) \Tools::getValue('COMFINO_IS_SANDBOX');
+                        $apiKey = $sandboxMode
                             ? \Tools::getValue('COMFINO_SANDBOX_API_KEY')
                             : ConfigManager::getConfigurationValue('COMFINO_API_KEY');
                     }
 
-                    if (!empty($api_key) && !count($output)) {
+                    if (!empty($apiKey) && !count($output)) {
                         try {
                             // Check if passed API key is valid.
-                            ApiClient::getInstance($sandbox_mode, $api_key)->isShopAccountActive();
+                            ApiClient::getInstance($sandboxMode, $apiKey)->isShopAccountActive();
 
                             try {
                                 // If API key is valid fetch widget key from API endpoint.
-                                $widget_key = ApiClient::getInstance($sandbox_mode, $api_key)->getWidgetKey();
+                                $widgetKey = ApiClient::getInstance($sandboxMode, $apiKey)->getWidgetKey();
                             } catch (\Throwable $e) {
                                 ApiClient::processApiError(
-                                    ($active_tab === 'payment_settings' ? 'Payment' : 'Developer') .
+                                    ($activeTab === 'payment_settings' ? 'Payment' : 'Developer') .
                                     ' settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
                                     $e
                                 );
 
                                 $output[] = $e->getMessage();
-                                $output_type = 'error';
-                                $widget_key_error = true;
+                                $outputType = 'error';
+                                $widgetKeyError = true;
                             }
                         } catch (AuthorizationError|AccessDenied $e) {
-                            $output_type = 'warning';
-                            $output[] = sprintf($module->l('API key %s is not valid.'), $api_key);
+                            $outputType = 'warning';
+                            $output[] = sprintf($module->l('API key %s is not valid.'), $apiKey);
                         } catch (\Throwable $e) {
                             ApiClient::processApiError(
-                                ($active_tab === 'payment_settings' ? 'Payment' : 'Developer') .
+                                ($activeTab === 'payment_settings' ? 'Payment' : 'Developer') .
                                 ' settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
                                 $e
                             );
 
-                            $output_type = 'error';
+                            $outputType = 'error';
                             $output[] = $e->getMessage();
                         }
                     }
 
-                    $configuration_options['COMFINO_WIDGET_KEY'] = $widget_key;
+                    $configurationOptions['COMFINO_WIDGET_KEY'] = $widgetKey;
                     break;
 
                 case 'sale_settings':
-                    $categories_tree = ConfigManager::getCategoriesTree();
-                    $product_categories = array_keys(ConfigManager::getAllProductCategories());
-                    $product_category_filters = [];
+                    $categoriesTree = ConfigManager::getCategoriesTree();
+                    $productCategories = array_keys(ConfigManager::getAllProductCategories());
+                    $productCategoryFilters = [];
 
-                    foreach (\Tools::getValue('product_categories') as $product_type => $category_ids) {
-                        $node_ids = [];
+                    foreach (\Tools::getValue('product_categories') as $productType => $categoryIds) {
+                        $nodeIds = [];
 
-                        foreach (explode(',', $category_ids) as $category_id) {
-                            if (($category_node = $categories_tree->getNodeById((int) $category_id)) !== null
-                                && count($path_nodes = $category_node->getPathToRoot()) > 0
+                        foreach (explode(',', $categoryIds) as $categoryId) {
+                            if (($categoryNode = $categoriesTree->getNodeById((int) $categoryId)) !== null
+                                && count($pathNodes = $categoryNode->getPathToRoot()) > 0
                             ) {
-                                $node_ids[] = $categories_tree->getPathNodeIds($path_nodes);
+                                $nodeIds[] = $categoriesTree->getPathNodeIds($pathNodes);
                             }
                         }
 
-                        if (count($node_ids) > 0) {
-                            $product_category_filters[$product_type] = array_values(array_diff(
-                                $product_categories,
-                                ...$node_ids
+                        if (count($nodeIds) > 0) {
+                            $productCategoryFilters[$productType] = array_values(array_diff(
+                                $productCategories,
+                                ...$nodeIds
                             ));
                         } else {
-                            $product_category_filters[$product_type] = $product_categories;
+                            $productCategoryFilters[$productType] = $productCategories;
                         }
                     }
 
-                    $configuration_options['COMFINO_PRODUCT_CATEGORY_FILTERS'] = $product_category_filters;
+                    $configurationOptions['COMFINO_PRODUCT_CATEGORY_FILTERS'] = $productCategoryFilters;
                     break;
 
                 case 'widget_settings':
                     if (!is_numeric(\Tools::getValue('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL'))) {
                         $output[] = sprintf(
-                            $error_numeric_format_msg,
+                            $errorNumericFormatMsg,
                             $module->l('Price change detection - container hierarchy level')
                         );
                     }
 
-                    if (!count($output) && !empty($api_key = ConfigManager::getApiKey())) {
+                    if (!count($output) && !empty($apiKey = ConfigManager::getApiKey())) {
                         // Update widget key.
                         try {
                             // Check if passed API key is valid.
                             ApiClient::getInstance()->isShopAccountActive();
 
                             try {
-                                $widget_key = ApiClient::getInstance()->getWidgetKey();
+                                $widgetKey = ApiClient::getInstance()->getWidgetKey();
                             } catch (\Throwable $e) {
                                 ApiClient::processApiError(
                                     'Widget settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
@@ -178,33 +178,33 @@ final class SettingsForm
                                 );
 
                                 $output[] = $e->getMessage();
-                                $output_type = 'error';
-                                $widget_key_error = true;
+                                $outputType = 'error';
+                                $widgetKeyError = true;
                             }
                         } catch (AuthorizationError|AccessDenied $e) {
-                            $output_type = 'warning';
-                            $output[] = sprintf($module->l('API key %s is not valid.'), $api_key);
+                            $outputType = 'warning';
+                            $output[] = sprintf($module->l('API key %s is not valid.'), $apiKey);
                         } catch (\Throwable $e) {
                             ApiClient::processApiError(
                                 'Widget settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
                                 $e
                             );
 
-                            $output_type = 'error';
+                            $outputType = 'error';
                             $output[] = $e->getMessage();
                         }
                     }
 
-                    $configuration_options['COMFINO_WIDGET_KEY'] = $widget_key;
+                    $configurationOptions['COMFINO_WIDGET_KEY'] = $widgetKey;
                     break;
             }
 
-            if (!$widget_key_error && count($output)) {
-                $output_type = 'warning';
+            if (!$widgetKeyError && count($output)) {
+                $outputType = 'warning';
                 $output[] = $module->l('Settings not updated.');
             } else {
                 // Update plugin configuration.
-                ConfigManager::updateConfiguration($configuration_options, false);
+                ConfigManager::updateConfiguration($configurationOptions, false);
 
                 $output[] = $module->l('Settings updated.');
             }
@@ -214,9 +214,9 @@ final class SettingsForm
         }
 
         return [
-            'active_tab' => $active_tab,
+            'active_tab' => $activeTab,
             'output' => $output,
-            'output_type' => $output_type,
+            'output_type' => $outputType,
             'logo_url' => ApiClient::getLogoUrl($module),
             'support_email_address' => self::COMFINO_SUPPORT_EMAIL,
             'support_email_subject' => sprintf(
@@ -244,10 +244,10 @@ final class SettingsForm
     public static function getFormFields(\PaymentModule $module, array $params): array
     {
         $fields = [];
-        $config_tab = $params['config_tab'] ?? '';
-        $form_name = $params['form_name'] ?? 'submit_configuration';
+        $configTab = $params['config_tab'] ?? '';
+        $formName = $params['form_name'] ?? 'submit_configuration';
 
-        switch ($config_tab) {
+        switch ($configTab) {
             case 'payment_settings':
                 $fields['payment_settings']['form'] = [];
 
@@ -291,17 +291,17 @@ final class SettingsForm
                         'submit' => [
                             'title' => $module->l('Save'),
                             'class' => 'btn btn-default pull-right',
-                            'name' => $form_name,
+                            'name' => $formName,
                         ],
                     ]
                 );
                 break;
 
             case 'sale_settings':
-                $product_categories = ConfigManager::getAllProductCategories();
-                $product_category_filters = SettingsManager::getProductCategoryFilters();
+                $productCategories = ConfigManager::getAllProductCategories();
+                $productCategoryFilters = SettingsManager::getProductCategoryFilters();
 
-                $product_category_filter_inputs = [
+                $productCategoryFilterInputs = [
                     [
                         'type' => 'hidden',
                         'name' => 'active_tab',
@@ -309,43 +309,43 @@ final class SettingsForm
                     ],
                 ];
 
-                foreach (SettingsManager::getCatFilterAvailProdTypes() as $prod_type_code => $prod_type_name) {
-                    $product_category_filter_inputs[] = [
+                foreach (SettingsManager::getCatFilterAvailProdTypes() as $prodTypeCode => $prodTypeName) {
+                    $productCategoryFilterInputs[] = [
                         'type' => 'html',
-                        'name' => $prod_type_code . '_label',
+                        'name' => $prodTypeCode . '_label',
                         'required' => false,
-                        'html_content' => '<h3>' . $prod_type_name . '</h3>',
+                        'html_content' => '<h3>' . $prodTypeName . '</h3>',
                     ];
 
-                    if (isset($product_category_filters[$prod_type_code])) {
-                        $selected_categories = array_diff(
-                            array_keys($product_categories),
-                            $product_category_filters[$prod_type_code]
+                    if (isset($productCategoryFilters[$prodTypeCode])) {
+                        $selectedCategories = array_diff(
+                            array_keys($productCategories),
+                            $productCategoryFilters[$prodTypeCode]
                         );
                     } else {
-                        $selected_categories = array_keys($product_categories);
+                        $selectedCategories = array_keys($productCategories);
                     }
 
-                    $product_category_filter_inputs[] = [
+                    $productCategoryFilterInputs[] = [
                         'type' => 'html',
-                        'name' => 'product_category_filter[' . $prod_type_code . ']',
+                        'name' => 'product_category_filter[' . $prodTypeCode . ']',
                         'required' => false,
                         'html_content' => self::renderCategoryTree(
                             $module,
                             'product_categories',
-                            $prod_type_code,
-                            $selected_categories
+                            $prodTypeCode,
+                            $selectedCategories
                         ),
                     ];
                 }
 
                 $fields['sale_settings_category_filter']['form'] = [
                     'legend' => ['title' => $module->l('Rules for the availability of financial products')],
-                    'input' => $product_category_filter_inputs,
+                    'input' => $productCategoryFilterInputs,
                     'submit' => [
                         'title' => $module->l('Save'),
                         'class' => 'btn btn-default pull-right',
-                        'name' => $form_name,
+                        'name' => $formName,
                     ],
                 ];
                 break;
@@ -423,7 +423,7 @@ final class SettingsForm
                         'submit' => [
                             'title' => $module->l('Save'),
                             'class' => 'btn btn-default pull-right',
-                            'name' => $form_name,
+                            'name' => $formName,
                         ],
                     ]
                 );
@@ -489,7 +489,7 @@ final class SettingsForm
                     'submit' => [
                         'title' => $module->l('Save'),
                         'class' => 'btn btn-default pull-right',
-                        'name' => $form_name,
+                        'name' => $formName,
                     ],
                 ];
                 break;
@@ -551,7 +551,7 @@ final class SettingsForm
                         'submit' => [
                             'title' => $module->l('Save'),
                             'class' => 'btn btn-default pull-right',
-                            'name' => $form_name,
+                            'name' => $formName,
                         ],
                     ]
                 );
@@ -593,54 +593,54 @@ final class SettingsForm
     }
 
     /**
-     * @param int[] $selected_categories
+     * @param int[] $selectedCategories
      */
     private static function renderCategoryTree(
         \PaymentModule $module,
-        string $tree_id,
-        string $product_type,
-        array $selected_categories
+        string $treeId,
+        string $productType,
+        array $selectedCategories
     ): string {
         return TemplateManager::renderModuleView(
             $module,
             'product_category_filter',
             'admin/_configure',
             [
-                'tree_id' => $tree_id,
+                'tree_id' => $treeId,
                 'tree_nodes' => json_encode(
-                    self::buildCategoriesTree(self::getNestedCategories(), $selected_categories)
+                    self::buildCategoriesTree(self::getNestedCategories(), $selectedCategories)
                 ),
                 'close_depth' => 3,
-                'product_type' => $product_type,
+                'product_type' => $productType,
             ]
         );
     }
 
     /**
-     * @param int[] $selected_categories
+     * @param int[] $selectedCategories
      */
-    private static function buildCategoriesTree(array $categories, array $selected_categories): array
+    private static function buildCategoriesTree(array $categories, array $selectedCategories): array
     {
-        $cat_tree = [];
+        $categoryTree = [];
 
         foreach ($categories as $category) {
-            $tree_node = ['id' => (int) $category['id_category'], 'text' => $category['name']];
+            $treeNode = ['id' => (int) $category['id_category'], 'text' => $category['name']];
 
             if (isset($category['children'])) {
-                $tree_node['children'] = self::buildCategoriesTree($category['children'], $selected_categories);
-            } elseif (in_array($tree_node['id'], $selected_categories, true)) {
-                $tree_node['checked'] = true;
+                $treeNode['children'] = self::buildCategoriesTree($category['children'], $selectedCategories);
+            } elseif (in_array($treeNode['id'], $selectedCategories, true)) {
+                $treeNode['checked'] = true;
             }
 
-            $cat_tree[] = $tree_node;
+            $categoryTree[] = $treeNode;
         }
 
-        return $cat_tree;
+        return $categoryTree;
     }
 
     private static function getNestedCategories(
-        bool $leafs_only = false,
-        array $sub_categories = [],
+        bool $leavesOnly = false,
+        array $subCategories = [],
         int $position = 0
     ): ?array {
         static $categories = null;
@@ -649,30 +649,30 @@ final class SettingsForm
             $categories = \Category::getNestedCategories();
         }
 
-        if ($leafs_only) {
-            $filtered_categories = [];
-            $child_categories = [];
+        if ($leavesOnly) {
+            $filteredCategories = [];
+            $childCategories = [];
 
-            foreach (count($sub_categories) ? $sub_categories : $categories as $category) {
+            foreach (count($subCategories) ? $subCategories : $categories as $category) {
                 if (isset($category['children'])) {
-                    $child_categories[] = self::getNestedCategories(
-                        true, $category['children'], count($filtered_categories) + $position
+                    $childCategories[] = self::getNestedCategories(
+                        true, $category['children'], count($filteredCategories) + $position
                     );
-                    $position += count($child_categories[count($child_categories) - 1]);
+                    $position += count($childCategories[count($childCategories) - 1]);
                 } else {
                     $category['position'] += $position;
-                    $filtered_categories[] = $category;
+                    $filteredCategories[] = $category;
                 }
             }
 
-            $filtered_categories = array_merge($filtered_categories, ...$child_categories);
+            $filteredCategories = array_merge($filteredCategories, ...$childCategories);
 
             usort(
-                $filtered_categories,
+                $filteredCategories,
                 static function ($val1, $val2) { return $val1['position'] - $val2['position']; }
             );
 
-            return $filtered_categories;
+            return $filteredCategories;
         }
 
         return $categories;

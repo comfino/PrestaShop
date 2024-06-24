@@ -40,13 +40,13 @@ if (!defined('_PS_VERSION_')) {
 class CacheManager
 {
     /** @var string */
-    private static $cache_root_path;
+    private static $cacheRootPath;
     /** @var FilesystemCachePool|ArrayCachePool */
     private static $cache;
 
     public static function init(\PaymentModule $module): void
     {
-        self::$cache_root_path = _PS_MODULE_DIR_ . $module->name . '/var';
+        self::$cacheRootPath = _PS_MODULE_DIR_ . $module->name . '/var';
     }
 
     public static function get(string $key, $default = null)
@@ -81,7 +81,7 @@ class CacheManager
     {
         if (self::$cache === null) {
             try {
-                self::$cache = new FilesystemCachePool(new Filesystem(new Local(self::$cache_root_path)));
+                self::$cache = new FilesystemCachePool(new Filesystem(new Local(self::$cacheRootPath)));
             } catch (\Throwable $e) {
                 self::$cache = new ArrayCachePool();
             }

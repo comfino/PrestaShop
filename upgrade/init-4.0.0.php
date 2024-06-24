@@ -40,10 +40,10 @@ function upgrade_module_4_0_0(Comfino $module): bool
     Configuration::updateValue('COMFINO_FORBIDDEN_STATUSES', implode(',', StatusManager::DEFAULT_FORBIDDEN_STATUSES));
     Configuration::updateValue('COMFINO_STATUS_MAP', json_encode(ShopStatusManager::DEFAULT_STATUS_MAP));
 
-    $log_file_path = _PS_MODULE_DIR_ . $module->name . '/payment_log.log';
+    $logFilePath = _PS_MODULE_DIR_ . $module->name . '/payment_log.log';
 
-    if (file_exists($log_file_path)) {
-        @rename($log_file_path, _PS_MODULE_DIR_ . $module->name . '/var/log/errors.log');
+    if (file_exists($logFilePath)) {
+        @rename($logFilePath, _PS_MODULE_DIR_ . $module->name . '/var/log/errors.log');
     }
 
     return true;

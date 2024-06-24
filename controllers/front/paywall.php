@@ -50,13 +50,13 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $loan_amount = (int) ($this->context->cart->getOrderTotal() * 100);
-        $allowed_product_types = SettingsManager::getAllowedProductTypes(
+        $loanAmount = (int) ($this->context->cart->getOrderTotal() * 100);
+        $allowedProductTypes = SettingsManager::getAllowedProductTypes(
             ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
-            OrderManager::getShopCart($this->context->cart, $loan_amount)
+            OrderManager::getShopCart($this->context->cart, $loanAmount)
         );
 
-        if ($allowed_product_types === []) {
+        if ($allowedProductTypes === []) {
             // Filters active - all product types disabled.
             TemplateManager::renderControllerView($this, 'paywall_disabled', 'front');
 
@@ -64,15 +64,15 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
         }
 
         if (!Tools::isEmpty('priceModifier') && is_numeric(Tools::getValue('priceModifier'))) {
-            $price_modifier = (float) Tools::getValue('priceModifier');
+            $priceModifier = (float) Tools::getValue('priceModifier');
 
-            if ($price_modifier > 0) {
-                $loan_amount += ((int) ($price_modifier * 100));
+            if ($priceModifier > 0) {
+                $loanAmount += ((int) ($priceModifier * 100));
             }
         }
 
         echo FrontendManager::getPaywallRenderer($this->module)
-            ->renderPaywall(new LoanQueryCriteria($loan_amount, null, null, $allowed_product_types));
+            ->renderPaywall(new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes));
 
         exit;
     }

@@ -37,7 +37,7 @@ final class ErrorLogger
     /** @var Common\Backend\ErrorLogger */
     private static $errorLogger;
     /** @var string */
-    private static $log_file_path;
+    private static $logFilePath;
 
     public static function init(\PaymentModule $module): void
     {
@@ -55,37 +55,37 @@ final class ErrorLogger
 
             self::$errorLogger->init();
 
-            self::$log_file_path = _PS_MODULE_DIR_ . $module->name . '/var/log/errors.log';
+            self::$logFilePath = _PS_MODULE_DIR_ . $module->name . '/var/log/errors.log';
 
             $initialized = true;
         }
     }
 
     public static function sendError(
-        string $error_prefix,
-        string $error_code,
-        string $error_message,
-        ?string $api_request_url = null,
-        ?string $api_request = null,
-        ?string $api_response = null,
-        ?string $stack_trace = null
+        string  $errorPrefix,
+        string  $errorCode,
+        string  $errorMessage,
+        ?string $apiRequestUrl = null,
+        ?string $apiRequest = null,
+        ?string $apiResponse = null,
+        ?string $stackTrace = null
     ): void {
         self::$errorLogger->sendError(
-            $error_prefix, $error_code, $error_message, $api_request_url, $api_request, $api_response, $stack_trace
+            $errorPrefix, $errorCode, $errorMessage, $apiRequestUrl, $apiRequest, $apiResponse, $stackTrace
         );
     }
 
-    public static function logError(string $error_prefix, string $error_message): void
+    public static function logError(string $errorPrefix, string $errorMessage): void
     {
         @file_put_contents(
-            self::$log_file_path,
-            '[' . date('Y-m-d H:i:s') . "] $error_prefix: $error_message\n",
+            self::$logFilePath,
+            '[' . date('Y-m-d H:i:s') . "] $errorPrefix: $errorMessage\n",
             FILE_APPEND
         );
     }
 
-    public static function getErrorLog(int $num_lines): string
+    public static function getErrorLog(int $numLines): string
     {
-        return self::$errorLogger->getErrorLog(self::$log_file_path, $num_lines);
+        return self::$errorLogger->getErrorLog(self::$logFilePath, $numLines);
     }
 }

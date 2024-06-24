@@ -37,13 +37,13 @@ if (!defined('_PS_VERSION_')) {
 
 final class OrderManager
 {
-    public static function getShopCart(\Cart $cart, int $loan_amount): Cart
+    public static function getShopCart(\Cart $cart, int $loanAmount): Cart
     {
         $total = (int) ($cart->getOrderTotal(true) * 100);
 
-        if ($loan_amount > $total) {
+        if ($loanAmount > $total) {
             // Loan amount with price modifier (e.g. custom commission).
-            $total = $loan_amount;
+            $total = $loanAmount;
         }
 
         return new Cart(
@@ -92,12 +92,12 @@ final class OrderManager
 
     public static function checkCartCurrency(\PaymentModule $module, \Cart $cart): bool
     {
-        $currency_order = new \Currency($cart->id_currency);
-        $currencies_module = $module->getCurrency($cart->id_currency);
+        $currencyOrder = new \Currency($cart->id_currency);
+        $currenciesModule = $module->getCurrency($cart->id_currency);
 
-        if (is_array($currencies_module)) {
-            foreach ($currencies_module as $currency_module) {
-                if ((int) $currency_order->id === (int) $currency_module['id_currency']) {
+        if (is_array($currenciesModule)) {
+            foreach ($currenciesModule as $currencyModule) {
+                if ((int) $currencyOrder->id === (int) $currencyModule['id_currency']) {
                     return true;
                 }
             }
@@ -108,11 +108,11 @@ final class OrderManager
 
     public static function validateCustomerData(\PaymentModule $module, array $params): string
     {
-        $vat_number = $params['form']->getField('vat_number');
+        $vatNumber = $params['form']->getField('vat_number');
         $tools = new Tools(\Context::getContext());
 
-        if (!empty($vat_number->getValue()) && !$tools->isValidTaxId($vat_number->getValue())) {
-            $vat_number->addError($module->l('Invalid VAT number.'));
+        if (!empty($vatNumber->getValue()) && !$tools->isValidTaxId($vatNumber->getValue())) {
+            $vatNumber->addError($module->l('Invalid VAT number.'));
 
             return '0';
         }
@@ -122,9 +122,9 @@ final class OrderManager
 
     private static function getProductImageUrl(array $product): string
     {
-        $link_rewrite = is_array($product['link_rewrite']) ? end($product['link_rewrite']) : $product['link_rewrite'];
+        $linkRewrite = is_array($product['link_rewrite']) ? end($product['link_rewrite']) : $product['link_rewrite'];
 
-        if ($link_rewrite === false) {
+        if ($linkRewrite === false) {
             return '';
         }
 
@@ -134,8 +134,8 @@ final class OrderManager
             return '';
         }
 
-        $image_url = (new \Link())->getImageLink($link_rewrite, $image['id_image']);
+        $imageUrl = (new \Link())->getImageLink($linkRewrite, $image['id_image']);
 
-        return strpos($image_url, 'http') === false ? "https://$image_url" : $image_url;
+        return strpos($imageUrl, 'http') === false ? "https://$imageUrl" : $imageUrl;
     }
 }

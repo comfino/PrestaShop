@@ -181,12 +181,12 @@ class Comfino extends PaymentModule
         if (($controller === 'product') && Comfino\ConfigManager::isWidgetEnabled()) {
             // Widget initialization script
             $product = $this->context->controller->getProduct();
-            $allowed_product_types = Comfino\SettingsManager::getAllowedProductTypes(
+            $allowedProductTypes = Comfino\SettingsManager::getAllowedProductTypes(
                 Comfino\FinancialProduct\ProductTypesListTypeEnum::LIST_TYPE_WIDGET,
                 Comfino\OrderManager::getShopCartFromProduct($product)
             );
 
-            if ($allowed_product_types === []) {
+            if ($allowedProductTypes === []) {
                 // Filters active - all product types disabled.
                 return;
             }
@@ -210,21 +210,21 @@ class Comfino extends PaymentModule
 
     private function addScriptLink(
         string $id,
-        string $script_url,
+        string $scriptUrl,
         string $position = 'bottom',
-        $load_strategy = null
+        ?string $loadStrategy = null
     ): void {
         if (COMFINO_PS_17) {
             $this->context->controller->registerJavascript(
                 $id,
-                $script_url,
+                $scriptUrl,
                 array_merge(
                     ['server' => 'remote', 'position' => $position],
-                    $load_strategy !== null ? ['attributes' => $load_strategy] : []
+                    $loadStrategy !== null ? ['attributes' => $loadStrategy] : []
                 )
             );
         } else {
-            $this->context->controller->addJS($script_url, false);
+            $this->context->controller->addJS($scriptUrl, false);
         }
     }
 }

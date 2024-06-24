@@ -44,35 +44,35 @@ class StatusAdapter implements OrderStatusAdapterInterface
             throw new \RuntimeException(sprintf('Order not found by id: %s', $orderId));
         }
 
-        $input_status = \Tools::strtoupper($status);
+        $inputStatus = \Tools::strtoupper($status);
 
-        if (in_array($input_status, StatusManager::STATUSES, true)) {
-            $custom_status_new = "COMFINO_$input_status";
+        if (in_array($inputStatus, StatusManager::STATUSES, true)) {
+            $custom_status_new = "COMFINO_$inputStatus";
         } else {
             return;
         }
 
-        $current_internal_status_id = (int) $order->getCurrentState();
-        $new_custom_status_id = (int) \Configuration::get($custom_status_new);
+        $currentInternalStatusId = (int) $order->getCurrentState();
+        $newCustomStatusId = (int) \Configuration::get($custom_status_new);
 
-        if ($new_custom_status_id !== $current_internal_status_id) {
-            $order->setCurrentState($new_custom_status_id);
+        if ($newCustomStatusId !== $currentInternalStatusId) {
+            $order->setCurrentState($newCustomStatusId);
 
-            $status_map = ConfigManager::getStatusMap();
+            $statusMap = ConfigManager::getStatusMap();
 
-            if (!array_key_exists($input_status, $status_map)) {
+            if (!array_key_exists($inputStatus, $statusMap)) {
                 return;
             }
 
-            $new_internal_status_id = (int) \Configuration::get($status_map[$input_status]);
+            $newInternalStatusId = (int) \Configuration::get($statusMap[$inputStatus]);
 
-            foreach ($order->getHistory(0) as $history_entry) {
-                if ($history_entry['id_order_state'] === $new_internal_status_id) {
+            foreach ($order->getHistory(0) as $historyEntry) {
+                if ($historyEntry['id_order_state'] === $newInternalStatusId) {
                     return;
                 }
             }
 
-            $order->setCurrentState($new_internal_status_id);
+            $order->setCurrentState($newInternalStatusId);
         }
     }
 }

@@ -42,10 +42,10 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
         header('Content-Type: application/javascript');
 
         if (ConfigManager::getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
-            $product_id = Tools::getValue('product_id', null);
+            $productId = Tools::getValue('product_id', null);
 
             try {
-                $widget_variables = ConfigManager::getWidgetVariables($this->module, $product_id);
+                $widgetVariables = ConfigManager::getWidgetVariables($this->module, $productId);
 
                 echo str_replace(
                     array_merge(
@@ -59,7 +59,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                             '{OFFER_TYPE}',
                             '{EMBED_METHOD}',
                         ],
-                        array_keys($widget_variables)
+                        array_keys($widgetVariables)
                     ),
                     array_merge(
                         ConfigManager::getConfigurationValues(
@@ -75,9 +75,9 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                                 'COMFINO_WIDGET_EMBED_METHOD',
                             ]
                         ),
-                        array_values($widget_variables)
+                        array_values($widgetVariables)
                     ),
-                    ConfigManager::getCurrentWidgetCode($this->module, $product_id)
+                    ConfigManager::getCurrentWidgetCode($this->module, $productId)
                 );
             } catch (Throwable $e) {
                 ErrorLogger::sendError(

@@ -105,23 +105,23 @@ final class Main
         $cart = $params['cart'];
 
         if (!self::paymentIsAvailable($module, $cart)
-            || ($paywall_iframe = self::preparePaywallIframe($module, $cart)) === null
+            || ($paywallIframe = self::preparePaywallIframe($module, $cart)) === null
         ) {
             return;
         }
 
         if (COMFINO_PS_17) {
-            $comfino_payment_option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
-            $comfino_payment_option->setModuleName($module->name)
+            $comfinoPaymentOption = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
+            $comfinoPaymentOption->setModuleName($module->name)
                 ->setAction(ApiService::getControllerUrl($module, 'payment'))
                 ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
                 ->setLogo(ApiClient::getPaywallLogoUrl($module))
-                ->setAdditionalInformation($paywall_iframe);
+                ->setAdditionalInformation($paywallIframe);
 
-            return [$comfino_payment_option];
+            return [$comfinoPaymentOption];
         }
 
-        return $paywall_iframe;
+        return $paywallIframe;
     }
 
     public static function processFinishedPaymentTransaction(\PaymentModule $module, array $params): string
@@ -137,20 +137,20 @@ final class Main
             (int) \Configuration::get('PS_OS_OUTOFSTOCK'),
             (int) \Configuration::get('PS_OS_OUTOFSTOCK_UNPAID'),
         ], true)) {
-            $tpl_variables = [
+            $tplVariables = [
                 'shop_name' => \Context::getContext()->shop->name,
                 'status' => 'ok',
                 'id_order' => $params['order']->id,
             ];
 
             if (isset($params['order']->reference) && !empty($params['order']->reference)) {
-                $tpl_variables['reference'] = $params['order']->reference;
+                $tplVariables['reference'] = $params['order']->reference;
             }
         } else {
-            $tpl_variables['status'] = 'failed';
+            $tplVariables['status'] = 'failed';
         }
 
-        return TemplateManager::renderModuleView($module, 'payment_return', 'front', $tpl_variables);
+        return TemplateManager::renderModuleView($module, 'payment_return', 'front', $tplVariables);
     }
 
     private static function paymentIsAvailable(\PaymentModule $module, \Cart $cart): bool
