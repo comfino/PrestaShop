@@ -75,7 +75,9 @@ class Comfino extends PaymentModule
             'payments available on one platform with the help of quick integration. Grow your business with Comfino!'
         );
 
-        require_once __DIR__ . '/vendor/autoload.php';
+        if (is_readable(__DIR__ . '/vendor/autoload.php')) {
+            require_once __DIR__ . '/vendor/autoload.php';
+        }
 
         // Initialize Comfino plugin.
         Comfino\Main::init($this);
