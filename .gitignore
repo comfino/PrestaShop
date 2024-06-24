@@ -3,6 +3,7 @@ config.xml
 /.php-cs-fixer.dist.php
 /.php-cs-fixer.cache
 /vendor/*
+!/vendor/autoload.php
 !/vendor/cache/
 !/vendor/comfino/
 !/vendor/composer/
