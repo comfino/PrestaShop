@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.5.5](https://github.com/comfino/PrestaShop/tree/3.5.5) (2024-06-26)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.4...3.5.5)
+
+**Merged pull requests:**
+
+- FN-12012 Fix bug with empty host in API calls from widget logic. [\#91](https://github.com/comfino/PrestaShop/pull/91) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [3.5.4](https://github.com/comfino/PrestaShop/tree/3.5.4) (2024-05-07)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.3...3.5.4)
