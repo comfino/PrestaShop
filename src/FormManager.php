@@ -95,7 +95,26 @@ final class FormManager
                         'server_software',
                         'database_version',
                     ]))
-                );
+                ) . '<hr>' . sprintf('<b>Comfino API host:</b> %s', ApiClient::getInstance()->getApiHost());
+
+                if (!empty(getenv('COMFINO_DEBUG')) || !empty(getenv('COMFINO_DEV'))) {
+                    $devEnvVariables = [
+                        'DEBUG', 'DEV', 'DEV_API_HOST', 'DEV_API_HOST_FRONTEND', 'DEV_API_HOST_BACKEND',
+                        'DEV_API_PAYWALL_HOST', 'DEV_FRONTEND_SCRIPT_URL', 'DEV_WIDGET_SCRIPT_URL',
+                        'DEV_PAYWALL_FRONTEND_SCRIPT_URL', 'DEV_PAYWALL_FRONTEND_STYLE_URL',
+                    ];
+
+                    $infoMessages[] = sprintf(
+                        "<b>Development environment variables:</b><ul>%s</ul>",
+                        implode('', array_map(
+                            static function (string $envVariable): string {
+                                $varName = "COMFINO_$envVariable";
+                                return "<li><b>$varName</b> = " . getenv($varName) . '</li>';
+                            },
+                            $devEnvVariables
+                        ))
+                    );
+                }
 
                 if ($sandboxMode = ConfigManager::isSandboxMode()) {
                     $warningMessages[] = $module->l('Developer mode is active. You are using test environment.');

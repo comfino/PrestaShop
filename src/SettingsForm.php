@@ -107,10 +107,18 @@ final class SettingsForm
                                 $output[] = $e->getMessage();
                                 $outputType = 'error';
                                 $widgetKeyError = true;
+
+                                if (!empty(getenv('COMFINO_DEV'))) {
+                                    $output[] = sprintf('Comfino API host: %s', ApiClient::getInstance()->getApiHost());
+                                }
                             }
                         } catch (AuthorizationError|AccessDenied $e) {
                             $outputType = 'warning';
                             $output[] = sprintf($module->l('API key %s is not valid.'), $apiKey);
+
+                            if (!empty(getenv('COMFINO_DEV'))) {
+                                $output[] = sprintf('Comfino API host: %s', ApiClient::getInstance()->getApiHost());
+                            }
                         } catch (\Throwable $e) {
                             ApiClient::processApiError(
                                 ($activeTab === 'payment_settings' ? 'Payment' : 'Developer') .
@@ -120,6 +128,10 @@ final class SettingsForm
 
                             $outputType = 'error';
                             $output[] = $e->getMessage();
+
+                            if (!empty(getenv('COMFINO_DEV'))) {
+                                $output[] = sprintf('Comfino API host: %s', ApiClient::getInstance()->getApiHost());
+                            }
                         }
                     }
 
