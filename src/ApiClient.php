@@ -75,7 +75,10 @@ final class ApiClient
                 ),
                 self::getApiHost(),
                 \Context::getContext()->language->iso_code,
-                [CURLOPT_CONNECTTIMEOUT => 1, CURLOPT_TIMEOUT => 3]
+                [
+                    CURLOPT_CONNECTTIMEOUT => ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_TIMEOUT', 1),
+                    CURLOPT_TIMEOUT => ConfigManager::getConfigurationValue('COMFINO_API_TIMEOUT', 3),
+                ]
             );
         } else {
             self::$apiClient->setApiKey($apiKey);

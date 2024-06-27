@@ -25,6 +25,7 @@
  */
 
 use Comfino\Common\Shop\Order\StatusManager;
+use Comfino\ConfigManager;
 use Comfino\ShopStatusManager;
 
 if (!defined('_PS_VERSION_')) {
@@ -33,12 +34,16 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_4_0_0(Comfino $module): bool
 {
-    Configuration::deleteByName('COMFINO_REGISTERED_AT');
-    Configuration::deleteByName('COMFINO_SANDBOX_REGISTERED_AT');
+    ConfigManager::deleteConfigurationValues(['COMFINO_REGISTERED_AT', 'COMFINO_SANDBOX_REGISTERED_AT']);
 
-    Configuration::updateValue('COMFINO_IGNORED_STATUSES', implode(',', StatusManager::DEFAULT_IGNORED_STATUSES));
-    Configuration::updateValue('COMFINO_FORBIDDEN_STATUSES', implode(',', StatusManager::DEFAULT_FORBIDDEN_STATUSES));
-    Configuration::updateValue('COMFINO_STATUS_MAP', json_encode(ShopStatusManager::DEFAULT_STATUS_MAP));
+    // Initialize new configuration options
+    ConfigManager::updateConfiguration([
+        'COMFINO_IGNORED_STATUSES' => implode(',', StatusManager::DEFAULT_IGNORED_STATUSES),
+        'COMFINO_FORBIDDEN_STATUSES' => implode(',', StatusManager::DEFAULT_FORBIDDEN_STATUSES),
+        'COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP),
+        'COMFINO_API_CONNECT_TIMEOUT' => 1,
+        'COMFINO_API_TIMEOUT' => 3,
+    ]);
 
     $logFilePath = _PS_MODULE_DIR_ . $module->name . '/payment_log.log';
 

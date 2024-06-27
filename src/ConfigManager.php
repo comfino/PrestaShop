@@ -194,19 +194,19 @@ final class ConfigManager
         return $categoriesTree;
     }
 
-    public static function getConfigurationValue(string $optionName)
+    public static function getConfigurationValue(string $optionName, $defaultValue = null)
     {
-        return self::getInstance()->getConfigurationValue($optionName);
+        return self::getInstance()->getConfigurationValue($optionName) ?? $defaultValue;
     }
 
     public static function isSandboxMode(): bool
     {
-        return self::getInstance()->getConfigurationValue('COMFINO_IS_SANDBOX');
+        return self::getInstance()->getConfigurationValue('COMFINO_IS_SANDBOX') ?? false;
     }
 
     public static function isWidgetEnabled(): bool
     {
-        return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_ENABLED');
+        return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_ENABLED') ?? false;
     }
 
     public static function getApiKey(): ?string
@@ -256,13 +256,19 @@ final class ConfigManager
         self::getInstance()->persist();
     }
 
-    public static function deleteConfigurationValues(): bool
+    public static function deleteConfigurationValues(?array $configurationOptions = null): bool
     {
         $result = true;
 
-        foreach (self::CONFIG_OPTIONS as $options) {
-            foreach ($options as $optionName) {
+        if ($configurationOptions !== null) {
+            foreach ($configurationOptions as $optionName) {
                 $result &= \Configuration::deleteByName($optionName);
+            }
+        } else {
+            foreach (self::CONFIG_OPTIONS as $options) {
+                foreach ($options as $optionName) {
+                    $result &= \Configuration::deleteByName($optionName);
+                }
             }
         }
 
@@ -377,6 +383,8 @@ final class ConfigManager
             'COMFINO_IGNORED_STATUSES' => implode(',', StatusManager::DEFAULT_IGNORED_STATUSES),
             'COMFINO_FORBIDDEN_STATUSES' => implode(',', StatusManager::DEFAULT_FORBIDDEN_STATUSES),
             'COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP),
+            'COMFINO_API_CONNECT_TIMEOUT' => 1,
+            'COMFINO_API_TIMEOUT' => 3,
         ];
 
         foreach ($initialConfigValues as $optName => $optValue) {
