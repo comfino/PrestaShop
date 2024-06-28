@@ -51,7 +51,7 @@ final class StatusNotification extends RestEndpoint
             throw new InvalidEndpoint('Endpoint path does not match request path.');
         }
 
-        if (!is_array($requestPayload = $serverRequest->getParsedBody())) {
+        if (!is_array($requestPayload = $this->getParsedRequestBody($serverRequest))) {
             throw new InvalidRequest('Invalid request payload.');
         }
 

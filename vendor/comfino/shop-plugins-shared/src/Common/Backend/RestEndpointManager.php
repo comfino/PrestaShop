@@ -67,7 +67,7 @@ final class RestEndpointManager
     private static $instance;
 
     /** @var RestEndpointInterface[] */
-    protected $registeredEndpoints = [];
+    private $registeredEndpoints = [];
 
     /**
      * @param string[] $apiKeys
@@ -119,6 +119,7 @@ final class RestEndpointManager
     public function registerEndpoint(RestEndpointInterface $endpoint): void
     {
         $this->registeredEndpoints[$endpoint->getName()] = $endpoint;
+        $this->registeredEndpoints[$endpoint->getName()]->setSerializer($this->serializer);
     }
 
     public function getEndpointByName(string $name): ?RestEndpointInterface
@@ -268,7 +269,7 @@ final class RestEndpointManager
 
         $requestAuthorized = false;
 
-        if ($request->getMethod() === 'GET') {
+        if (strtoupper($request->getMethod()) === 'GET') {
             if (!isset($request->getQueryParams()['vkey'])) {
                 throw new AuthorizationError('Unauthorized request.');
             }
@@ -303,7 +304,7 @@ final class RestEndpointManager
 
     protected function prepareResponse(ServerRequestInterface $serverRequest, ?array $responseBody): ResponseInterface
     {
-        switch ($serverRequest->getMethod()) {
+        switch (strtoupper($serverRequest->getMethod())) {
             case 'GET':
                 return $this->getPreparedResponse(
                     $this->responseFactory->createResponse(200, 'OK'),

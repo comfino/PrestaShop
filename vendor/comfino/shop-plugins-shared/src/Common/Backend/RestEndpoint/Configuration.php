@@ -5,6 +5,7 @@ namespace Comfino\Common\Backend\RestEndpoint;
 use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Backend\RestEndpoint;
 use Comfino\Common\Exception\InvalidEndpoint;
+use Comfino\Common\Exception\InvalidRequest;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class Configuration extends RestEndpoint
@@ -63,7 +64,7 @@ final class Configuration extends RestEndpoint
             throw new InvalidEndpoint('Endpoint path does not match request path.');
         }
 
-        if ($serverRequest->getMethod() === 'GET') {
+        if (strtoupper($serverRequest->getMethod()) === 'GET') {
             return [
                 'shop_info' => [
                     'platform' => $this->platformName,
@@ -82,7 +83,11 @@ final class Configuration extends RestEndpoint
             ];
         }
 
-        $this->configurationManager->updateConfigurationOptions($serverRequest->getParsedBody());
+        if (!is_array($requestPayload = $this->getParsedRequestBody($serverRequest))) {
+            throw new InvalidRequest('Invalid request payload.');
+        }
+
+        $this->configurationManager->updateConfigurationOptions($requestPayload);
         $this->configurationManager->persist();
 
         return null;

@@ -2,6 +2,7 @@
 
 namespace Comfino\Common\Backend;
 
+use Comfino\Api\SerializerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 abstract class RestEndpoint implements RestEndpointInterface
@@ -20,6 +21,10 @@ abstract class RestEndpoint implements RestEndpointInterface
      * @var mixed[]
      */
     protected $methods;
+    /**
+     * @var \Comfino\Api\SerializerInterface|null
+     */
+    protected $serializer;
 
     public function __construct(string $name, string $endpointUrl)
     {
@@ -43,15 +48,51 @@ abstract class RestEndpoint implements RestEndpointInterface
     }
 
     /**
+     * @param \Comfino\Api\SerializerInterface $serializer
+     */
+    public function setSerializer($serializer): void
+    {
+        $this->serializer = $serializer;
+    }
+
+    /**
      * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
      * @param string|null $endpointName
      */
     protected function endpointPathMatch($serverRequest, $endpointName = null): bool
     {
-        if ($endpointName !== null && $endpointName === $this->name && in_array($serverRequest->getMethod(), $this->methods, true)) {
+        $requestMethod = strtoupper($serverRequest->getMethod());
+
+        if ($endpointName !== null && $endpointName === $this->name && in_array($requestMethod, $this->methods, true)) {
             return true;
         }
 
-        return (string) $serverRequest->getUri() === $this->endpointUrl && in_array($serverRequest->getMethod(), $this->methods, true);
+        return (string) $serverRequest->getUri() === $this->endpointUrl && in_array($requestMethod, $this->methods, true);
+    }
+
+    /**
+     * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
+     * @return mixed[]|string|null
+     */
+    protected function getParsedRequestBody($serverRequest)
+    {
+        $contentType = $serverRequest->hasHeader('Content-Type') ? $serverRequest->getHeader('Content-Type')[0] : '';
+        $requestPayload = $serverRequest->getBody()->getContents();
+
+        $serverRequest->getBody()->rewind();
+
+        if ($contentType === 'application/json') {
+            if ($this->serializer !== null) {
+                return $this->serializer->unserialize($requestPayload);
+            }
+
+            return json_decode($requestPayload, true);
+        }
+
+        if (strtoupper($serverRequest->getMethod()) === 'POST') {
+            return $serverRequest->getParsedBody();
+        }
+
+        return $requestPayload;
     }
 }
