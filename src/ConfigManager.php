@@ -93,11 +93,8 @@ final class ConfigManager
         'COMFINO_IGNORED_STATUSES',
         'COMFINO_FORBIDDEN_STATUSES',
         'COMFINO_STATUS_MAP',
-        'COMFINO_IGNORED_STATUSES',
-        'COMFINO_FORBIDDEN_STATUSES',
-        'COMFINO_STATUS_MAP',
-        'COMFINO_API_CONNECT_TIMEOUT' => 1,
-        'COMFINO_API_TIMEOUT' => 3,
+        'COMFINO_API_CONNECT_TIMEOUT',
+        'COMFINO_API_TIMEOUT',
     ];
 
     /** @var ConfigurationManager */
