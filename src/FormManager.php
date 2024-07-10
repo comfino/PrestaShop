@@ -36,8 +36,6 @@ if (!defined('_PS_VERSION_')) {
 
 final class FormManager
 {
-    private const ERROR_LOG_NUM_LINES = 100;
-
     public static function getSettingsForm(\PaymentModule $module, array $params): string
     {
         $configTab = $params['config_tab'] ?? '';
@@ -51,8 +49,6 @@ final class FormManager
                 $helper->fields_value[$optionName] = ConfigManager::getConfigurationValue($optionName);
             }
         }
-
-        $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES);
 
         $messages = [];
 

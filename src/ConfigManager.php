@@ -63,6 +63,7 @@ final class ConfigManager
         'developer_settings' => [
             'COMFINO_IS_SANDBOX' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_SANDBOX_API_KEY' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_DEBUG' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
         ],
         'hidden_settings' => [
             'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
@@ -80,6 +81,7 @@ final class ConfigManager
         'COMFINO_PAYMENT_TEXT',
         'COMFINO_MINIMAL_CART_AMOUNT',
         'COMFINO_IS_SANDBOX',
+        'COMFINO_DEBUG',
         'COMFINO_PRODUCT_CATEGORY_FILTERS',
         'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES',
         'COMFINO_WIDGET_ENABLED',
@@ -213,6 +215,11 @@ final class ConfigManager
     public static function isWidgetEnabled(): bool
     {
         return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_ENABLED') ?? false;
+    }
+
+    public static function isDebugMode(): bool
+    {
+        return self::getInstance()->getConfigurationValue('COMFINO_DEBUG') ?? false;
     }
 
     public static function getApiKey(): ?string
@@ -374,6 +381,7 @@ final class ConfigManager
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
+            'COMFINO_DEBUG' => false,
             'COMFINO_WIDGET_ENABLED' => false,
             'COMFINO_WIDGET_KEY' => '',
             'COMFINO_WIDGET_PRICE_SELECTOR' => COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]',

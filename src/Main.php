@@ -34,8 +34,16 @@ if (!defined('_PS_VERSION_')) {
 
 final class Main
 {
+    /** @var Common\Backend\ErrorLogger */
+    private static $errorLogger;
+    /** @var string */
+    private static $debugLogFilePath;
+
     public static function init(\PaymentModule $module): void
     {
+        self::$errorLogger = ErrorLogger::getLoggerInstance($module);
+        self::$debugLogFilePath = _PS_MODULE_DIR_ . $module->name . '/var/log/debug.log';
+
         // Initialize cache system.
         CacheManager::init($module);
         // Register module API endpoints.
@@ -107,6 +115,8 @@ final class Main
         if (!self::paymentIsAvailable($module, $cart)
             || ($paywallIframe = self::preparePaywallIframe($module, $cart)) === null
         ) {
+            self::debugLog('[PAYWALL]', 'renderPaywallIframe - paymentIsAvailable=FALSE or preparePaywallIframe=NULL');
+
             return;
         }
 
@@ -153,9 +163,27 @@ final class Main
         return TemplateManager::renderModuleView($module, 'payment_return', 'front', $tplVariables);
     }
 
+    public static function debugLog(string $debugPrefix, string $debugMessage): void
+    {
+        if (ConfigManager::isDebugMode()) {
+            @file_put_contents(
+                self::$debugLogFilePath,
+                '[' . date('Y-m-d H:i:s') . "] $debugPrefix: $debugMessage\n",
+                FILE_APPEND
+            );
+        }
+    }
+
+    public static function getDebugLog(int $numLines): string
+    {
+        return self::$errorLogger->getErrorLog(self::$debugLogFilePath, $numLines);
+    }
+
     private static function paymentIsAvailable(\PaymentModule $module, \Cart $cart): bool
     {
         if (!$module->active || !OrderManager::checkCartCurrency($module, $cart) || empty(ConfigManager::getApiKey())) {
+            self::debugLog('[PAYWALL]', 'paymentIsAvailable - plugin disabled or incomplete configuration.');
+
             return false;
         }
 

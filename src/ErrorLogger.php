@@ -44,21 +44,25 @@ final class ErrorLogger
         static $initialized = false;
 
         if (!$initialized) {
-            self::$errorLogger = Common\Backend\ErrorLogger::getInstance(
-                \Tools::getShopDomain(),
-                'PrestaShop',
-                'modules/' . $module->name,
-                ConfigManager::getEnvironmentInfo(),
-                ApiClient::getInstance(),
-                new StorageAdapter()
-            );
-
+            self::$errorLogger = self::getLoggerInstance($module);
             self::$errorLogger->init();
 
             self::$logFilePath = _PS_MODULE_DIR_ . $module->name . '/var/log/errors.log';
 
             $initialized = true;
         }
+    }
+
+    public static function getLoggerInstance(\PaymentModule $module): Common\Backend\ErrorLogger
+    {
+        return Common\Backend\ErrorLogger::getInstance(
+            \Tools::getShopDomain(),
+            'PrestaShop',
+            'modules/' . $module->name,
+            ConfigManager::getEnvironmentInfo(),
+            ApiClient::getInstance(),
+            new StorageAdapter()
+        );
     }
 
     public static function sendError(

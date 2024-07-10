@@ -188,6 +188,8 @@ class Comfino extends PaymentModule
 
             if ($allowedProductTypes === []) {
                 // Filters active - all product types disabled.
+                Comfino\Main::debugLog('[WIDGET]', 'Filters active - all product types disabled.');
+
                 return;
             }
 

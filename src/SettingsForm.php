@@ -35,6 +35,8 @@ if (!defined('_PS_VERSION_')) {
 
 final class SettingsForm
 {
+    private const ERROR_LOG_NUM_LINES = 100;
+    private const DEBUG_LOG_NUM_LINES = 200;
     private const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     private const COMFINO_SUPPORT_PHONE = '887-106-027';
 
@@ -559,6 +561,28 @@ final class SettingsForm
                                     'link). Remember, the test key is different from the production key.'
                                 ),
                             ],
+                            [
+                                'type' => 'switch',
+                                'label' => $module->l('Debug mode'),
+                                'name' => 'COMFINO_DEBUG',
+                                'values' => [
+                                    [
+                                        'id' => 'debug_enabled',
+                                        'value' => true,
+                                        'label' => $module->l('Enabled'),
+                                    ],
+                                    [
+                                        'id' => 'debug_disabled',
+                                        'value' => false,
+                                        'label' => $module->l('Disabled'),
+                                    ],
+                                ],
+                                'desc' => $module->l(
+                                    'Debug mode is useful in case of problems with Comfino payment availability. ' .
+                                    'In this mode module logs details of internal process responsible for ' .
+                                    'displaying of Comfino payment option at the payment methods list.'
+                                ),
+                            ],
                         ],
                         'submit' => [
                             'title' => $module->l('Save'),
@@ -585,13 +609,24 @@ final class SettingsForm
                     [
                         'input' => [
                             [
-                                'type' => 'textarea',
+                                'type' => 'html',
                                 'label' => $module->l('Errors log'),
                                 'name' => 'COMFINO_WIDGET_ERRORS_LOG',
+                                'html_content' =>
+                                    '<textarea rows="20" cols="60" readonly="readonly">' .
+                                    ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES) .
+                                    '</textarea>',
+                            ],
+                            [
+                                'type' => 'html',
+                                'label' => $module->l('Debug log'),
+                                'name' => 'COMFINO_DEBUG_LOG',
                                 'required' => false,
                                 'readonly' => true,
-                                'rows' => 20,
-                                'cols' => 60,
+                                'html_content' =>
+                                    '<textarea rows="40" cols="60" readonly="readonly">' .
+                                    Main::getDebugLog(self::DEBUG_LOG_NUM_LINES) .
+                                    '</textarea>',
                             ],
                         ],
                     ]

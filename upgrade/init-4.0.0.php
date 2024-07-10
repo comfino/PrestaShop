@@ -38,6 +38,7 @@ function upgrade_module_4_0_0(Comfino $module): bool
 
     // Initialize new configuration options
     ConfigManager::updateConfiguration([
+        'COMFINO_DEBUG' => false,
         'COMFINO_IGNORED_STATUSES' => implode(',', StatusManager::DEFAULT_IGNORED_STATUSES),
         'COMFINO_FORBIDDEN_STATUSES' => implode(',', StatusManager::DEFAULT_FORBIDDEN_STATUSES),
         'COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP),
