@@ -193,7 +193,7 @@ class Comfino extends PaymentModule
                 return;
             }
 
-            $this->addScriptLink(
+            Comfino\Main::addScriptLink(
                 'comfino-widget',
                 Comfino\Api\ApiService::getControllerUrl($this, 'script', ['product_id' => $product->id]),
                 'bottom',
@@ -208,25 +208,5 @@ class Comfino extends PaymentModule
     public function hookActionAdminControllerSetMedia(array $params): void
     {
         $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/tree.min.js');
-    }
-
-    private function addScriptLink(
-        string $id,
-        string $scriptUrl,
-        string $position = 'bottom',
-        $loadStrategy = null
-    ): void {
-        if (COMFINO_PS_17) {
-            $this->context->controller->registerJavascript(
-                $id,
-                $scriptUrl,
-                array_merge(
-                    ['server' => 'remote', 'position' => $position],
-                    $loadStrategy !== null ? ['attributes' => $loadStrategy] : []
-                )
-            );
-        } else {
-            $this->context->controller->addJS($scriptUrl, false);
-        }
     }
 }

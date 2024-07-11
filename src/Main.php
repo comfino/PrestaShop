@@ -172,6 +172,26 @@ final class Main
         return TemplateManager::renderModuleView($module, 'payment_return', 'front', $tplVariables);
     }
 
+    public static function addScriptLink(
+        string $id,
+        string $scriptUrl,
+        string $position = 'bottom',
+        ?string $loadStrategy = null
+    ): void {
+        if (COMFINO_PS_17) {
+            \Context::getContext()->controller->registerJavascript(
+                $id,
+                $scriptUrl,
+                array_merge(
+                    ['server' => 'remote', 'position' => $position],
+                    $loadStrategy !== null ? ['attributes' => $loadStrategy] : []
+                )
+            );
+        } else {
+            \Context::getContext()->controller->addJS($scriptUrl, false);
+        }
+    }
+
     public static function debugLog(string $debugPrefix, string $debugMessage): void
     {
         if (ConfigManager::isDebugMode()) {
