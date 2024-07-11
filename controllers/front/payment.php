@@ -24,14 +24,14 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+use Comfino\Api\ApiClient;
+use Comfino\Api\ApiService;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
-use Comfino\ApiClient;
-use Comfino\ApiService;
 use Comfino\Common\Backend\Factory\OrderFactory;
+use Comfino\Configuration\SettingsManager;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
-use Comfino\OrderManager;
-use Comfino\SettingsManager;
+use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Customer;
 use Comfino\Shop\Order\Customer\Address;
 

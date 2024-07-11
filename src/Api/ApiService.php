@@ -24,14 +24,16 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-namespace Comfino;
+namespace Comfino\Api;
 
+use Comfino\CacheManager;
 use Comfino\Common\Backend\Factory\ApiServiceFactory;
 use Comfino\Common\Backend\RestEndpoint\CacheInvalidate;
 use Comfino\Common\Backend\RestEndpoint\Configuration;
 use Comfino\Common\Backend\RestEndpoint\StatusNotification;
 use Comfino\Common\Backend\RestEndpointManager;
 use Comfino\Common\Shop\Order\StatusManager;
+use Comfino\Configuration\ConfigManager;
 use Comfino\Order\StatusAdapter;
 
 if (!defined('_PS_VERSION_')) {

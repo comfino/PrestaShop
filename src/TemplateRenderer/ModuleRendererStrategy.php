@@ -32,7 +32,7 @@ use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
-use Comfino\TemplateManager;
+use Comfino\View\TemplateManager;
 use Psr\Http\Client\NetworkExceptionInterface;
 
 if (!defined('_PS_VERSION_')) {

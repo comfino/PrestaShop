@@ -28,7 +28,7 @@ namespace Comfino\Order;
 
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Common\Shop\OrderStatusAdapterInterface;
-use Comfino\ConfigManager;
+use Comfino\Configuration\ConfigManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;

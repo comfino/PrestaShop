@@ -24,9 +24,11 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-namespace Comfino;
+namespace Comfino\Configuration;
 
+use Comfino\Api\ApiClient;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
+use Comfino\CacheManager;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByCartValueLowerLimit;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByExcludedCategory;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByProductType;
@@ -35,6 +37,7 @@ use Comfino\Common\Backend\Payment\ProductTypeFilterManager;
 use Comfino\Common\Shop\Cart;
 use Comfino\Common\Shop\Product\CategoryFilter;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\Main;
 
 if (!defined('_PS_VERSION_')) {
     exit;

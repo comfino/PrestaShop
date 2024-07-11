@@ -24,9 +24,11 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-namespace Comfino;
+namespace Comfino\Order;
 
+use Comfino\Api\ApiClient;
 use Comfino\Common\Shop\Order\StatusManager;
+use Comfino\ErrorLogger;
 
 if (!defined('_PS_VERSION_')) {
     exit;

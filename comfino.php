@@ -144,7 +144,7 @@ class Comfino extends PaymentModule
      */
     public function hookDisplayBackofficeComfinoForm(array $params): string
     {
-        return Comfino\FormManager::getSettingsForm($this, $params);
+        return Comfino\View\FormManager::getSettingsForm($this, $params);
     }
 
     /**
@@ -152,7 +152,7 @@ class Comfino extends PaymentModule
      */
     public function hookActionOrderStatusPostUpdate(array $params): void
     {
-        Comfino\ShopStatusManager::orderStatusUpdateEventHandler($this, $params);
+        Comfino\Order\ShopStatusManager::orderStatusUpdateEventHandler($this, $params);
     }
 
     /**
@@ -160,7 +160,7 @@ class Comfino extends PaymentModule
      */
     public function hookActionValidateCustomerAddressForm(array $params): string
     {
-        return Comfino\OrderManager::validateCustomerData($this, $params);
+        return Comfino\Order\OrderManager::validateCustomerData($this, $params);
     }
 
     /**
@@ -178,12 +178,12 @@ class Comfino extends PaymentModule
             return;
         }
 
-        if (($controller === 'product') && Comfino\ConfigManager::isWidgetEnabled()) {
+        if (($controller === 'product') && Comfino\Configuration\ConfigManager::isWidgetEnabled()) {
             // Widget initialization script
             $product = $this->context->controller->getProduct();
-            $allowedProductTypes = Comfino\SettingsManager::getAllowedProductTypes(
+            $allowedProductTypes = Comfino\Configuration\SettingsManager::getAllowedProductTypes(
                 Comfino\FinancialProduct\ProductTypesListTypeEnum::LIST_TYPE_WIDGET,
-                Comfino\OrderManager::getShopCartFromProduct($product)
+                Comfino\Order\OrderManager::getShopCartFromProduct($product)
             );
 
             if ($allowedProductTypes === []) {
@@ -195,7 +195,7 @@ class Comfino extends PaymentModule
 
             $this->addScriptLink(
                 'comfino-widget',
-                Comfino\ApiService::getControllerUrl($this, 'script', ['product_id' => $product->id]),
+                Comfino\Api\ApiService::getControllerUrl($this, 'script', ['product_id' => $product->id]),
                 'bottom',
                 'defer'
             );

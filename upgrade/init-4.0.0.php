@@ -25,8 +25,8 @@
  */
 
 use Comfino\Common\Shop\Order\StatusManager;
-use Comfino\ConfigManager;
-use Comfino\ShopStatusManager;
+use Comfino\Configuration\ConfigManager;
+use Comfino\Order\ShopStatusManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;

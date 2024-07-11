@@ -24,12 +24,13 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-namespace Comfino;
+namespace Comfino\Order;
 
 use Comfino\Common\Shop\Cart;
 use Comfino\Shop\Order\Cart\CartItem;
 use Comfino\Shop\Order\Cart\CartItemInterface;
 use Comfino\Shop\Order\Cart\Product;
+use Comfino\Tools;
 
 if (!defined('_PS_VERSION_')) {
     exit;

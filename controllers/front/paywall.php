@@ -25,12 +25,12 @@
  */
 
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
+use Comfino\Configuration\SettingsManager;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
-use Comfino\FrontendManager;
-use Comfino\OrderManager;
-use Comfino\SettingsManager;
-use Comfino\TemplateManager;
+use Comfino\Order\OrderManager;
+use Comfino\View\FrontendManager;
+use Comfino\View\TemplateManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;

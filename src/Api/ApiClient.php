@@ -24,7 +24,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-namespace Comfino;
+namespace Comfino\Api;
 
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
@@ -32,7 +32,10 @@ use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Common\Backend\Factory\ApiClientFactory;
+use Comfino\Configuration\ConfigManager;
+use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Client;
+use Comfino\View\FrontendManager;
 use Psr\Http\Client\NetworkExceptionInterface;
 
 if (!defined('_PS_VERSION_')) {

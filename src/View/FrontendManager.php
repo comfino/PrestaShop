@@ -24,8 +24,11 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-namespace Comfino;
+namespace Comfino\View;
 
+use Comfino\Api\ApiClient;
+use Comfino\Api\ApiService;
+use Comfino\CacheManager;
 use Comfino\Common\Frontend\PaywallIframeRenderer;
 use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\TemplateRenderer\ModuleRendererStrategy;

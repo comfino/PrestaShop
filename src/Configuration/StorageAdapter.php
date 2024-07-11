@@ -27,7 +27,6 @@
 namespace Comfino\Configuration;
 
 use Comfino\Common\Backend\Configuration\StorageAdapterInterface;
-use Comfino\ConfigManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;

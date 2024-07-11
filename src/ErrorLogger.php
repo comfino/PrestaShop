@@ -26,6 +26,8 @@
 
 namespace Comfino;
 
+use Comfino\Api\ApiClient;
+use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger\StorageAdapter;
 
 if (!defined('_PS_VERSION_')) {

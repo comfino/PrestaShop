@@ -24,14 +24,18 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-namespace Comfino;
+namespace Comfino\Configuration;
 
+use Comfino\Api\ApiClient;
+use Comfino\Api\ApiService;
 use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Common\Shop\Product\CategoryTree;
-use Comfino\Configuration\StorageAdapter;
+use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
+use Comfino\Order\ShopStatusManager;
+use Comfino\Tools;
 
 if (!defined('_PS_VERSION_')) {
     exit;
