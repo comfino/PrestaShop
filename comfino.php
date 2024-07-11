@@ -214,7 +214,7 @@ class Comfino extends PaymentModule
         string $id,
         string $scriptUrl,
         string $position = 'bottom',
-        ?string $loadStrategy = null
+        $loadStrategy = null
     ): void {
         if (COMFINO_PS_17) {
             $this->context->controller->registerJavascript(
