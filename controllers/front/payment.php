@@ -69,9 +69,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $addresses = $cart->getAddressCollection();
+        $deliveryAddress = $cart->getAddressCollection()[$cart->id_address_delivery];
 
-        if (!$addresses[$cart->id_address_delivery]->phone && !$addresses[$cart->id_address_delivery]->phone_mobile) {
+        if (!$deliveryAddress->phone && !$deliveryAddress->phone_mobile) {
             $this->errors[] = $this->module->l(
                 'No phone number in addresses found. Please fill value before choosing comfino payment option.'
             );
@@ -124,19 +124,30 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         );
 
         $orderId = (string) $this->module->currentOrder;
-        $addresses = $cart->getAddressCollection();
-        $addressParts = explode(' ', $addresses[$cart->id_address_delivery]->address1);
-        $buildingNumber = '';
+        $deliveryAddressLines = $deliveryAddress->address1;
 
-        if (count($addressParts) === 2) {
-            $buildingNumber = $addressParts[1];
+        if (!empty($deliveryAddress->address2)) {
+            $deliveryAddressLines .= " $deliveryAddress->address2";
         }
 
-        $customerTaxId = trim(str_replace('-', '', $addresses[$cart->id_address_delivery]->vat_number));
-        $phoneNumber = trim($addresses[$cart->id_address_delivery]->phone);
+        $street = trim($deliveryAddressLines);
+        $addressParts = explode(' ', $street);
+        $buildingNumber = '';
+
+        if (count($addressParts) > 1) {
+            foreach ($addressParts as $idx => $addressPart) {
+                if (preg_match('/^\d+[a-zA-Z]?$/', trim($addressPart))) {
+                    $street = implode(' ', array_slice($addressParts, 0, $idx));
+                    $buildingNumber = trim($addressPart);
+                }
+            }
+        }
+
+        $customerTaxId = trim(str_replace('-', '', $deliveryAddress->vat_number));
+        $phoneNumber = trim($deliveryAddress->phone);
 
         if (empty($phoneNumber)) {
-            $phoneNumber = trim($addresses[$cart->id_address_delivery]->phone_mobile);
+            $phoneNumber = trim($deliveryAddress->phone_mobile);
         }
 
         $returnUrl = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
@@ -150,8 +161,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             new LoanTypeEnum($cookie->loan_type),
             $shopCart->getCartItems(),
             new Customer(
-                $addresses[$cart->id_address_delivery]->firstname,
-                $addresses[$cart->id_address_delivery]->lastname,
+                $deliveryAddress->firstname,
+                $deliveryAddress->lastname,
                 $customer->email,
                 $phoneNumber,
                 Tools::getRemoteAddr(),
@@ -159,11 +170,11 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 !$customer->is_guest,
                 $customer->isLogged(),
                 new Address(
-                    $addressParts[0],
+                    $street,
                     $buildingNumber,
                     null,
-                    $addresses[$cart->id_address_delivery]->postcode,
-                    $addresses[$cart->id_address_delivery]->city,
+                    $deliveryAddress->postcode,
+                    $deliveryAddress->city,
                     'PL'
                 )
             ),
