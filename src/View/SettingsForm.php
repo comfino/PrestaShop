@@ -617,10 +617,8 @@ final class SettingsForm
                                 'type' => 'html',
                                 'label' => $module->l('Errors log'),
                                 'name' => 'COMFINO_WIDGET_ERRORS_LOG',
-                                'html_content' =>
-                                    '<textarea rows="20" cols="60" readonly="readonly">' .
-                                    ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES) .
-                                    '</textarea>',
+                                'html_content' => '<textarea rows="20" cols="60" readonly="readonly">' .
+                                    ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES) . '</textarea>',
                             ],
                             [
                                 'type' => 'html',
@@ -628,10 +626,8 @@ final class SettingsForm
                                 'name' => 'COMFINO_DEBUG_LOG',
                                 'required' => false,
                                 'readonly' => true,
-                                'html_content' =>
-                                    '<textarea rows="40" cols="60" readonly="readonly">' .
-                                    Main::getDebugLog(self::DEBUG_LOG_NUM_LINES) .
-                                    '</textarea>',
+                                'html_content' => '<textarea rows="40" cols="60" readonly="readonly">' .
+                                    Main::getDebugLog(self::DEBUG_LOG_NUM_LINES) . '</textarea>',
                             ],
                         ],
                     ]

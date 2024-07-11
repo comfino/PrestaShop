@@ -104,7 +104,7 @@ final class FormManager
                     ];
 
                     $infoMessages[] = sprintf(
-                        "<b>Development environment variables:</b><ul>%s</ul>",
+                        '<b>Development environment variables:</b><ul>%s</ul>',
                         implode('', array_map(
                             static function (string $envVariable): string {
                                 $varName = "COMFINO_$envVariable";

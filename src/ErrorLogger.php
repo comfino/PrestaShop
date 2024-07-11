@@ -68,9 +68,9 @@ final class ErrorLogger
     }
 
     public static function sendError(
-        string  $errorPrefix,
-        string  $errorCode,
-        string  $errorMessage,
+        string $errorPrefix,
+        string $errorCode,
+        string $errorMessage,
         ?string $apiRequestUrl = null,
         ?string $apiRequest = null,
         ?string $apiResponse = null,
