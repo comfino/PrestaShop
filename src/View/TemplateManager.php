@@ -51,6 +51,10 @@ final class TemplateManager
         }
 
         if (method_exists($module, 'fetch')) {
+            if (version_compare(_PS_VERSION_, '1.7.7.0', '<')) {
+                return $module->fetch(_PS_MODULE_DIR_ . "$module->name/$templatePath");
+            }
+
             return $module->fetch("module:$module->name/$templatePath");
         }
 
