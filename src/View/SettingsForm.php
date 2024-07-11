@@ -33,6 +33,7 @@ use Comfino\CacheManager;
 use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
 use Comfino\ErrorLogger;
+use Comfino\Main;
 
 if (!defined('_PS_VERSION_')) {
     exit;
