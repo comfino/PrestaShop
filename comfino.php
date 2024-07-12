@@ -47,7 +47,7 @@ class Comfino extends PaymentModule
 
         $this->bootstrap = true;
         $this->need_instance = 0;
-        $this->ps_versions_compliancy = ['min' => '1.6', 'max' => _PS_VERSION_];
+        $this->ps_versions_compliancy = ['min' => '1.6.1.11', 'max' => _PS_VERSION_];
 
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
