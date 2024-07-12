@@ -28,6 +28,13 @@
     a.comfino-payment-method {
         padding: 25px 20px !important;
         cursor: pointer;
+        border: 1px solid #d6d4d4;
+        background-color: #FFFFFF;
+        color: #000000;
+    }
+
+    a.comfino-payment-method:hover {
+        background-color: #f6f6f6;
     }
 
     a.comfino-payment-method:after {
@@ -43,12 +50,18 @@
         margin-top: -11px;
         top: 50%;
     }
+
+    a.comfino-payment-method:has(:before) .comfino-image {
+        padding-left: 93px;
+        padding-top: 8px;
+    }
+
 </style>
 <div class="row">
     <div class="col-xs-12 col-md-12">
         <p class="payment_module">
             <a id="pay-with-comfino" class="comfino-payment-method">
-                <img style="height: 49px" src="{$comfino_logo_url|escape:"htmlall":"UTF-8"}" alt="{l s="Pay with comfino" mod="comfino"}" loading="lazy" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')" />
+                <img class="comfino-image" style="height: 49px" src="{$comfino_logo_url|escape:"htmlall":"UTF-8"}" alt="{l s="Pay with comfino" mod="comfino"}" loading="lazy" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')" />
                 {$comfino_label|escape:"htmlall":"UTF-8"}
             </a>
         </p>
