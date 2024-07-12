@@ -13,6 +13,12 @@
         }
     ],
     "config": {
+        "preferred-install": "dist",
+        "platform": {
+            "php": "7.1"
+        },
+        "classmap-authoritative": true,
+        "optimize-autoloader": true,
         "prepend-autoloader": false,
         "allow-plugins": {
             "php-http/discovery": true
@@ -23,11 +29,7 @@
             "Comfino\\": "src/"
         },
         "classmap": [
-        ],
-        "config": {
-            "preferred-install": "dist",
-            "prepend-autoloader": false
-        }
+        ]
     },
     "require": {
         "php": ">=7.1",
