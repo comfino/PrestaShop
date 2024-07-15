@@ -46,7 +46,7 @@ class Tools
     {
         $this->context = $context;
 
-        if (COMFINO_PS_17) {
+        if (COMFINO_PS_17 && isset($this->context->currentLocale)) {
             $this->locale = $this->context->currentLocale;
         }
     }
