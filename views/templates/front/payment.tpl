@@ -27,10 +27,10 @@
 <style>
     a.comfino-payment-method {
         padding: 25px 20px !important;
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
         cursor: pointer;
         border: 1px solid #d6d4d4;
-        background-color: #FFFFFF;
-        color: #000000;
     }
 
     a.comfino-payment-method:hover {
@@ -51,9 +51,10 @@
         top: 50%;
     }
 
-    a.comfino-payment-method:has(:before) .comfino-image {
-        padding-left: 93px;
-        padding-top: 8px;
+    a.comfino-payment-method::before {
+        position: static !important;
+        display: inline !important;
+        margin-right: 10px;
     }
 
 </style>
