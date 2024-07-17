@@ -27,14 +27,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_3_0_0($module)
+function upgrade_module_3_0_0(Comfino $module): bool
 {
     if (file_exists(_PS_MODULE_DIR_ . 'comfino/override')) {
         // Remove admin controller override from older versions.

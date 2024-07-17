@@ -23,25 +23,20 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+use Comfino\Configuration\ConfigManager;
+use Comfino\Order\ShopStatusManager;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_2_4_0($module)
+function upgrade_module_2_4_0(Comfino $module): bool
 {
-    $config_manager = new \Comfino\ConfigManager($module);
-
     // Update code of widget initialization script.
-    $config_manager->updateWidgetCode('bde49851ffc0fd8239eb5d086c8165d4');
+    ConfigManager::updateWidgetCode($module, 'bde49851ffc0fd8239eb5d086c8165d4');
     // Update custom order statuses.
-    $config_manager->updateOrderStatuses();
+    ShopStatusManager::updateOrderStatuses();
 
     return true;
 }

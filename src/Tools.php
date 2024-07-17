@@ -46,73 +46,72 @@ class Tools
     {
         $this->context = $context;
 
-        if (COMFINO_PS_17) {
+        if (COMFINO_PS_17 && isset($this->context->currentLocale)) {
             $this->locale = $this->context->currentLocale;
         }
     }
 
     /**
-     * @param float $price
-     * @param int $id_currency
      * @return float|string
+     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function formatPrice($price, $id_currency)
+    public function formatPrice(float $price, int $currencyId)
     {
         return COMFINO_PS_17 && $this->locale !== null
-            ? $this->locale->formatPrice($price, $this->getCurrencyIsoCode($id_currency))
+            ? $this->locale->formatPrice($price, $this->getCurrencyIsoCode($currencyId))
             : \Tools::displayPrice($price);
     }
 
-    /**
-     * @param int $id_currency
-     * @return string
-     */
-    public function getCurrencyIsoCode($id_currency)
+    public function getCurrencyIsoCode(int $currencyId): string
     {
         return COMFINO_PS_17 && method_exists(\Currency::class, 'getIsoCodeById')
-            ? \Currency::getIsoCodeById($id_currency)
-            : \Currency::getCurrencyInstance($id_currency)->iso_code;
+            ? \Currency::getIsoCodeById($currencyId)
+            : \Currency::getCurrencyInstance($currencyId)->iso_code;
     }
 
-    /**
-     * @param int $id_lang
-     * @return string
-     */
-    public function getLanguageIsoCode($id_lang)
+    public function getLanguageIsoCode(int $langId): string
     {
-        return \Language::getIsoById($id_lang);
+        return \Language::getIsoById($langId);
     }
 
-    /**
-     * @return \Cookie
-     */
-    public function getCookie()
+    public function getCookie(): \Cookie
     {
         return $this->context->cookie;
     }
 
-    /**
-     * @return int
-     */
-    public function getCurrentCurrencyId()
+    public function getCurrentCurrencyId(): int
     {
-        global $currency, $cookie;
-
-        return $currency !== null ? $currency->id : $cookie->id_currency;
+        return $this->context->cookie->id_currency;
     }
 
     /**
-     * @param float $price
-     *
-     * @return float
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function getFormattedPrice($price)
+    public function getFormattedPrice(float $price): float
     {
         return (float) preg_replace(
             ['/[^\d,.]/', '/,/'],
             ['', '.'],
             $this->formatPrice($price, $this->getCurrentCurrencyId())
         );
+    }
+
+    public function isValidTaxId(string $taxId): bool
+    {
+        if (empty($taxId) || strlen($taxId) !== 10 || !preg_match('/^\d+$/', $taxId)) {
+            return false;
+        }
+
+        $arrSteps = [6, 5, 7, 2, 3, 4, 5, 6, 7];
+        $intSum = 0;
+
+        for ($i = 0; $i < 9; ++$i) {
+            $intSum += $arrSteps[$i] * $taxId[$i];
+        }
+
+        $int = $intSum % 11;
+
+        return ($int === 10 ? 0 : $int) === (int) $taxId[9];
     }
 }

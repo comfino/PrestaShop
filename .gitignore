@@ -2,4 +2,12 @@
 config.xml
 /.php-cs-fixer.dist.php
 /.php-cs-fixer.cache
-/vendor/
+/vendor/*
+!/vendor/autoload.php
+!/vendor/cache/
+!/vendor/comfino/
+!/vendor/composer/
+!/vendor/fig/
+!/vendor/league/
+!/vendor/psr/
+!/vendor/sunrise/

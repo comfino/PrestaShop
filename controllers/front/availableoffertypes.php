@@ -24,52 +24,44 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-use Comfino\Api;
+use Comfino\Configuration\SettingsManager;
 use Comfino\ErrorLogger;
+use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
+use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\Order\OrderManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
-
 class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontController
 {
     public function postProcess()
     {
-        Api::init($this->module);
-        ErrorLogger::init();
+        ErrorLogger::init($this->module);
 
         parent::postProcess();
 
-        $config_manager = new \Comfino\ConfigManager($this->module);
-        $available_product_types = array_map(
-            static function (array $offer_type) { return $offer_type['key']; },
-            $config_manager->getOfferTypes()
-        );
+        header('Content-Type: application/json');
+
+        $serializer = new JsonSerializer();
+        $availableProductTypes = SettingsManager::getProductTypesStrings(ProductTypesListTypeEnum::LIST_TYPE_WIDGET);
 
         if (!Tools::getIsset('product_id')) {
-            echo json_encode($available_product_types);
+            echo $serializer->serialize($availableProductTypes);
             exit;
         }
 
-        $product = new \Product(Tools::getValue('product_id'));
+        $product = new Product(Tools::getValue('product_id'));
 
-        if (!\Validate::isLoadedObject($product)) {
-            echo json_encode($available_product_types);
+        if (!Validate::isLoadedObject($product)) {
+            echo $serializer->serialize($availableProductTypes);
             exit;
         }
 
-        $filtered_product_types = [];
-
-        foreach ($available_product_types as $product_type) {
-            if ($config_manager->isFinancialProductAvailable($product_type, [$product->getFields()])) {
-                $filtered_product_types[] = $product_type;
-            }
-        }
-
-        echo json_encode($filtered_product_types);
+        echo $serializer->serialize(
+            SettingsManager::getAllowedProductTypes('widget', OrderManager::getShopCartFromProduct($product), true)
+        );
 
         exit;
     }

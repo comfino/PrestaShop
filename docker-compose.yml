@@ -1,0 +1,11 @@
+version: '3.5'
+services:
+    comfino-prestashop-php:
+        build:
+            context: ./
+            dockerfile: docker/Dockerfile
+        working_dir: /comfino-prestashop
+        tty: true
+        volumes:
+            - ./:/comfino-prestashop
+            - ~/.composer:/home/vagrant/.composer

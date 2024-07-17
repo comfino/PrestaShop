@@ -48,23 +48,18 @@
     <div class="col-md-12">
         <div class="panel">
             <div class="panel-body">
-                <img style="width: 300px" src="{$logo_url|escape:"htmlall":"UTF-8"}" alt="Comfino logo"> <span style="font-weight: bold; font-size: 16px; vertical-align: bottom">{$plugin_version}</span>
+                <img style="width: 300px" src="{$logo_url|escape:"htmlall":"UTF-8"}" alt="Comfino logo"> <span style="font-weight: bold; font-size: 16px; vertical-align: bottom">{$plugin_version|escape:"htmlall":"UTF-8"}</span>
             </div>
             <div class="panel-body">
                 {$contact_msg1|escape:"htmlall":"UTF-8"}
-                <a href="mailto:{$support_email_address}?subject={$support_email_subject}&body={$support_email_body}">
-                    {$support_email_address}
+                <a href="mailto:{$support_email_address|escape:"htmlall":"UTF-8"}?subject={$support_email_subject|escape:"htmlall":"UTF-8"}&body={$support_email_body|escape:"htmlall":"UTF-8"}">
+                    {$support_email_address|escape:"htmlall":"UTF-8"}
                 </a>
                 {$contact_msg2|escape:"htmlall":"UTF-8"}
             </div>
             <div class="panel-body">
                 <div class="panel">
                     <ul class="nav nav-tabs" id="comfino_settings_tabs" role="tablist">
-                        {*<li class="nav-item{if $active_tab == "registration"} active{/if}">
-                            <a class="nav-link" id="comfino_registration" data-toggle="tab" href="#registration" role="tab" aria-controls="comfino_registration" aria-selected="true">
-                                {l s="Registration in Comfino" mod="comfino"}
-                            </a>
-                        </li>*}
                         <li class="nav-item{if $active_tab == "payment_settings"} active{/if}">
                             <a class="nav-link" id="comfino_payment_settings" data-toggle="tab" href="#payment_settings" role="tab" aria-controls="comfino_payment_settings" aria-selected="true">
                                 {l s="Payment settings" mod="comfino"}
@@ -92,9 +87,6 @@
                         </li>
                     </ul>
                     <div class="tab-content">
-                        {*<div class="tab-pane {if $active_tab == "registration"}active{else}fade{/if}" id="registration" role="tabpanel" aria-labelledby="registration-tab">
-                            {include file="./registration.tpl"}
-                        </div>*}
                         <div class="tab-pane {if $active_tab == "payment_settings"}active{else}fade{/if}" id="payment_settings" role="tabpanel" aria-labelledby="payment_settings-tab">
                             {hook h="displayBackofficeComfinoForm" config_tab="payment_settings" form_name="submit_configuration"}
                         </div>
