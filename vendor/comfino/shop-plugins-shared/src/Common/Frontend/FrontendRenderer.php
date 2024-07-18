@@ -75,10 +75,8 @@ abstract class FrontendRenderer
             $fragments = $paywallFragments->paywallFragments;
             $fragmentsCacheTtl = [];
 
-            if ($paywallFragments->hasHeader('Cache-TTL')) {
-                if (($fragmentsCacheTtl = json_decode($paywallFragments->getHeader('Cache-TTL'), true)) === null) {
-                    $fragmentsCacheTtl = [];
-                }
+            if ($paywallFragments->hasHeader('Cache-TTL') && ($fragmentsCacheTtl = json_decode($paywallFragments->getHeader('Cache-TTL'), true)) === null) {
+                $fragmentsCacheTtl = [];
             }
 
             $this->savePaywallFragments($fragments, $fragmentsCacheTtl, $language);
@@ -108,6 +106,20 @@ abstract class FrontendRenderer
         ];
 
         return implode($authKeyParts);
+    }
+
+    /**
+     * @param string[] $cacheKeysToDelete
+     * @param string $language
+     */
+    protected function deleteFragmentsCacheEntries($cacheKeysToDelete, $language): void
+    {
+        try {
+            $this->cache->deleteItems(array_map(static function (string $fragmentName) use ($language) : string {
+                return $this->getItemKey($fragmentName, $language);
+            }, $cacheKeysToDelete));
+        } catch (InvalidArgumentException $exception) {
+        }
     }
 
     /**

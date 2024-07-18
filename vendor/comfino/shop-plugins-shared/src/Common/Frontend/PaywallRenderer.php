@@ -40,10 +40,43 @@ final class PaywallRenderer extends FrontendRenderer
         }
 
         try {
-            $paywallProductsList = $this->client->getPaywall(
-                $queryCriteria,
-                new PaywallViewTypeEnum(PaywallViewTypeEnum::PAYWALL_VIEW_LIST)
-            )->paywallPage;
+            $paywallResponse = $this->client->getPaywall($queryCriteria, new PaywallViewTypeEnum(PaywallViewTypeEnum::PAYWALL_VIEW_LIST));
+            $paywallProductsList = $paywallResponse->paywallPage;
+            $fragmentsCacheMTime = [];
+
+            if ($paywallResponse->hasHeader('Cache-MTime') && ($fragmentsCacheMTime = json_decode($paywallResponse->getHeader('Cache-MTime'), true)) === null) {
+                $fragmentsCacheMTime = [];
+            }
+
+            if (count($fragmentsCacheMTime) > 0) {
+                $fragmentsCacheKeysToDelete = [];
+
+                foreach ($fragments as $fragmentName => $fragmentContents) {
+                    $matches = [];
+                    $regExpPattern = '';
+
+                    switch ($fragmentName) {
+                        case 'template':
+                            $regExpPattern = '/<!--\[rendered:(\d+)\]-->/';
+                            break;
+
+                        case 'style':
+                        case 'script':
+                            $regExpPattern = '/\/\*\[cached:(\d+)\]\*\//';
+                            break;
+                    }
+
+                    if ($regExpPattern !== '' && preg_match($regExpPattern, $fragmentContents, $matches)) {
+                        $storedCacheMTime = (int) $matches[1];
+
+                        if (isset($fragmentsCacheMTime[$fragmentName]) && $storedCacheMTime < $fragmentsCacheMTime[$fragmentName]) {
+                            $fragmentsCacheKeysToDelete[] = $fragmentName;
+                        }
+                    }
+                }
+
+                $this->deleteFragmentsCacheEntries($fragmentsCacheKeysToDelete, $this->client->getApiLanguage());
+            }
 
             return $this->rendererStrategy->renderPaywallTemplate(
                 str_replace(
