@@ -75,7 +75,9 @@ final class PaywallRenderer extends FrontendRenderer
                     }
                 }
 
-                $this->deleteFragmentsCacheEntries($fragmentsCacheKeysToDelete, $this->client->getApiLanguage());
+                if (count($fragmentsCacheKeysToDelete) > 0) {
+                    $this->deleteFragmentsCacheEntries($fragmentsCacheKeysToDelete, $this->client->getApiLanguage());
+                }
             }
 
             return $this->rendererStrategy->renderPaywallTemplate(

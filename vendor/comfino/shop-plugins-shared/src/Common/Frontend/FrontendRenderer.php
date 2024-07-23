@@ -115,7 +115,7 @@ abstract class FrontendRenderer
     protected function deleteFragmentsCacheEntries($cacheKeysToDelete, $language): void
     {
         try {
-            $this->cache->deleteItems(array_map(static function (string $fragmentName) use ($language) : string {
+            $this->cache->deleteItems(array_map(function (string $fragmentName) use ($language) : string {
                 return $this->getItemKey($fragmentName, $language);
             }, $cacheKeysToDelete));
         } catch (InvalidArgumentException $exception) {
