@@ -32,8 +32,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_4_0_0(Comfino $module): bool
+/**
+ * @return bool
+ */
+function upgrade_module_4_0_0(Comfino $module)
 {
+    if (!$module->checkEnvironment()) {
+        return false;
+    }
+
     ConfigManager::deleteConfigurationValues(['COMFINO_REGISTERED_AT', 'COMFINO_SANDBOX_REGISTERED_AT']);
 
     // Initialize new configuration options

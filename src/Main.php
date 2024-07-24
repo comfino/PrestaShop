@@ -86,19 +86,6 @@ final class Main
     {
         ConfigManager::deleteConfigurationValues();
 
-        if (!COMFINO_PS_17) {
-            $module->unregisterHook('payment');
-            $module->unregisterHook('displayPaymentEU');
-        }
-
-        $module->unregisterHook('paymentOptions');
-        $module->unregisterHook('paymentReturn');
-        $module->unregisterHook('displayBackofficeComfinoForm');
-        $module->unregisterHook('actionOrderStatusPostUpdate');
-        $module->unregisterHook('actionValidateCustomerAddressForm');
-        $module->unregisterHook('header');
-        $module->unregisterHook('actionAdminControllerSetMedia');
-
         ErrorLogger::init($module);
         ApiClient::getInstance()->notifyPluginRemoval();
 

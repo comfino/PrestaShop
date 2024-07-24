@@ -30,8 +30,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_3_4_1(Comfino $module): bool
+/**
+ * @return bool
+ */
+function upgrade_module_3_4_1(Comfino $module)
 {
+    if (!$module->checkEnvironment()) {
+        return false;
+    }
+
     // Initialize new configuration options
     ConfigManager::updateConfiguration([
         'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',

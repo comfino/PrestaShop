@@ -37,6 +37,9 @@ if (!defined('COMFINO_VERSION')) {
 
 class Comfino extends PaymentModule
 {
+    const MIN_PHP_VERSION_ID = 70100;
+    const MIN_PHP_VERSION = '7.1.0';
+
     public function __construct()
     {
         $this->name = 'comfino';
@@ -75,6 +78,12 @@ class Comfino extends PaymentModule
             'payments available on one platform with the help of quick integration. Grow your business with Comfino!'
         );
 
+        if (!$this->checkEnvironment(true)) {
+            $this->description .= (' ' . $this->_errors[count($this->_errors) - 1]);
+
+            return;
+        }
+
         if (is_readable(__DIR__ . '/vendor/autoload.php')) {
             require_once __DIR__ . '/vendor/autoload.php';
         }
@@ -83,8 +92,15 @@ class Comfino extends PaymentModule
         Comfino\Main::init($this);
     }
 
-    public function install(): bool
+    /**
+     * @return bool
+     */
+    public function install()
     {
+        if (!$this->checkEnvironment(true)) {
+            return false;
+        }
+
         if (!parent::install()) {
             return false;
         }
@@ -92,10 +108,26 @@ class Comfino extends PaymentModule
         return Comfino\Main::install($this);
     }
 
-    public function uninstall(): bool
+    /**
+     * @return bool
+     */
+    public function uninstall()
     {
         if (parent::uninstall()) {
-            return Comfino\Main::uninstall($this);
+            if (!COMFINO_PS_17) {
+                $this->unregisterHook('payment');
+                $this->unregisterHook('displayPaymentEU');
+            }
+
+            $this->unregisterHook('paymentOptions');
+            $this->unregisterHook('paymentReturn');
+            $this->unregisterHook('displayBackofficeComfinoForm');
+            $this->unregisterHook('actionOrderStatusPostUpdate');
+            $this->unregisterHook('actionValidateCustomerAddressForm');
+            $this->unregisterHook('header');
+            $this->unregisterHook('actionAdminControllerSetMedia');
+
+            return !class_exists('\Comfino\Main') || Comfino\Main::uninstall($this);
         }
 
         return false;
@@ -103,9 +135,15 @@ class Comfino extends PaymentModule
 
     /**
      * Renders configuration form.
+     *
+     * @return string
      */
-    public function getContent(): string
+    public function getContent()
     {
+        if (!$this->checkEnvironment(true)) {
+            return '<p style="font-weight: bold; color: red">' . $this->_errors[count($this->_errors) - 1] . '</p>';
+        }
+
         return Comfino\Main::getContent($this);
     }
 
@@ -132,46 +170,56 @@ class Comfino extends PaymentModule
     }
 
     /**
+     * @return string
+     *
      * @throws PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function hookPaymentReturn(array $params): string
+    public function hookPaymentReturn(array $params)
     {
         return Comfino\Main::processFinishedPaymentTransaction($this, $params);
     }
 
     /**
      * Renders settings form in administration panel.
+     *
+     * @return string
      */
-    public function hookDisplayBackofficeComfinoForm(array $params): string
+    public function hookDisplayBackofficeComfinoForm(array $params)
     {
         return Comfino\View\FormManager::getSettingsForm($this, $params);
     }
 
     /**
      * Order status update event handler.
+     *
+     * @return void
      */
-    public function hookActionOrderStatusPostUpdate(array $params): void
+    public function hookActionOrderStatusPostUpdate(array $params)
     {
         Comfino\Order\ShopStatusManager::orderStatusUpdateEventHandler($this, $params);
     }
 
     /**
      * Customer address validation event handler for order placement process.
+     *
+     * @return string
      */
-    public function hookActionValidateCustomerAddressForm(array $params): string
+    public function hookActionValidateCustomerAddressForm(array $params)
     {
         return Comfino\Order\OrderManager::validateCustomerData($this, $params);
     }
 
     /**
      * Page header section renderer for cart and product pages.
+     *
+     * @return void
      */
-    public function hookHeader(): void
+    public function hookHeader()
     {
         if (stripos(get_class($this->context->controller), 'cart') !== false) {
             $controller = 'cart';
         } elseif (empty($controller = $this->context->controller->php_self)) {
-            $controller = $this->context->controller->name ?? '';
+            $controller = !empty($this->context->controller->name) ? $this->context->controller->name : '';
         }
 
         if (empty($controller)) {
@@ -204,9 +252,37 @@ class Comfino extends PaymentModule
 
     /**
      * Page header script/style section renderer for backoffice admin pages.
+     *
+     * @return void
      */
-    public function hookActionAdminControllerSetMedia(array $params): void
+    public function hookActionAdminControllerSetMedia(array $params)
     {
         $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/tree.min.js');
+    }
+
+    /**
+     * @param bool $useTranslations
+     * @return bool
+     */
+    public function checkEnvironment($useTranslations = false)
+    {
+        if (PHP_VERSION_ID < self::MIN_PHP_VERSION_ID) {
+            $errorMessage = 'The Comfino module could not be installed. ' .
+                            'The minimum PHP version required for Comfino is %s. You are running %s.';
+
+            if ($useTranslations) {
+                $errorMessage = $this->l($errorMessage);
+            }
+
+            $errorMessage = sprintf($errorMessage, self::MIN_PHP_VERSION, PHP_VERSION);
+
+            if (!in_array($errorMessage, $this->_errors, true)) {
+                $this->_errors[] = Tools::displayError($errorMessage);
+            }
+
+            return false;
+        }
+
+        return true;
     }
 }

@@ -27,8 +27,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_3_0_0(Comfino $module): bool
+/**
+ * @return bool
+ */
+function upgrade_module_3_0_0(Comfino $module)
 {
+    if (!$module->checkEnvironment()) {
+        return false;
+    }
+
     if (file_exists(_PS_MODULE_DIR_ . 'comfino/override')) {
         // Remove admin controller override from older versions.
         unlink(_PS_MODULE_DIR_ . 'comfino/override/index.php');

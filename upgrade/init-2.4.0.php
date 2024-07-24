@@ -31,8 +31,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_2_4_0(Comfino $module): bool
+/**
+ * @return bool
+ */
+function upgrade_module_2_4_0(Comfino $module)
 {
+    if (!$module->checkEnvironment()) {
+        return false;
+    }
+
     // Update code of widget initialization script.
     ConfigManager::updateWidgetCode($module, 'bde49851ffc0fd8239eb5d086c8165d4');
     // Update custom order statuses.

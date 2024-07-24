@@ -30,8 +30,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_2_5_0(Comfino $module): bool
+/**
+ * @return bool
+ */
+function upgrade_module_2_5_0(Comfino $module)
 {
+    if (!$module->checkEnvironment()) {
+        return false;
+    }
+
     // Initialize new configuration options
     ConfigManager::updateConfiguration([
         'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR' => '',

@@ -27,8 +27,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_3_4_0(Comfino $module): bool
+/**
+ * @return bool
+ */
+function upgrade_module_3_4_0(Comfino $module)
 {
+    if (!$module->checkEnvironment()) {
+        return false;
+    }
+
     $module->registerHook('actionAdminControllerSetMedia');
 
     return true;

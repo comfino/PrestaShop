@@ -30,8 +30,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_3_3_2(Comfino $module): bool
+/**
+ * @return bool
+ */
+function upgrade_module_3_3_2(Comfino $module)
 {
+    if (!$module->checkEnvironment()) {
+        return false;
+    }
+
     // Update code of widget initialization script.
     ConfigManager::updateWidgetCode($module, '85f1eef41bca54205a10d1e2ae5318a5');
 
