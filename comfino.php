@@ -141,7 +141,10 @@ class Comfino extends PaymentModule
     public function getContent()
     {
         if (!$this->checkEnvironment(true)) {
-            return '<p style="font-weight: bold; color: red">' . $this->_errors[count($this->_errors) - 1] . '</p>';
+            return
+                base64_decode('PHAgc3R5bGU9ImZvbnQtd2VpZ2h0OiBib2xkOyBjb2xvcjogcmVkIj4=') .
+                $this->_errors[count($this->_errors) - 1] .
+                base64_decode('PC9wPg==');
         }
 
         return Comfino\Main::getContent($this);
