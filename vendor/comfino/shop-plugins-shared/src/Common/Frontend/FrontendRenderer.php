@@ -2,15 +2,15 @@
 
 namespace Comfino\Common\Frontend;
 
-use Cache\TagInterop\TaggableCacheItemPoolInterface;
+use ComfinoExternal\Cache\TagInterop\TaggableCacheItemPoolInterface;
 use Comfino\Api\Client;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
-use Psr\Cache\InvalidArgumentException;
-use Psr\Http\Client\ClientExceptionInterface;
+use ComfinoExternal\Psr\Cache\InvalidArgumentException;
+use ComfinoExternal\Psr\Http\Client\ClientExceptionInterface;
 
 abstract class FrontendRenderer
 {
@@ -21,7 +21,7 @@ abstract class FrontendRenderer
     protected $client;
     /**
      * @readonly
-     * @var \Cache\TagInterop\TaggableCacheItemPoolInterface
+     * @var \ComfinoExternal\Cache\TagInterop\TaggableCacheItemPoolInterface
      */
     protected $cache;
     /**

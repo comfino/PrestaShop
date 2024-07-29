@@ -6,7 +6,7 @@ use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Backend\RestEndpoint;
 use Comfino\Common\Exception\InvalidEndpoint;
 use Comfino\Common\Exception\InvalidRequest;
-use Psr\Http\Message\ServerRequestInterface;
+use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
 
 final class Configuration extends RestEndpoint
 {
@@ -55,7 +55,7 @@ final class Configuration extends RestEndpoint
     }
 
     /**
-     * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
+     * @param \ComfinoExternal\Psr\Http\Message\ServerRequestInterface $serverRequest
      * @param string|null $endpointName
      */
     public function processRequest($serverRequest, $endpointName = null): ?array

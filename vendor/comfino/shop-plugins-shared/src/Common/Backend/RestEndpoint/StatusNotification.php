@@ -6,7 +6,7 @@ use Comfino\Common\Backend\RestEndpoint;
 use Comfino\Common\Exception\InvalidEndpoint;
 use Comfino\Common\Exception\InvalidRequest;
 use Comfino\Common\Shop\Order\StatusManager;
-use Psr\Http\Message\ServerRequestInterface;
+use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
 
 final class StatusNotification extends RestEndpoint
 {

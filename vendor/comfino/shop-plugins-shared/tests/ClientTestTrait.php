@@ -18,14 +18,14 @@ use Comfino\Shop\Order\Seller;
 use Comfino\Widget\WidgetTypeEnum;
 use Http\Message\RequestMatcher\RequestMatcher;
 use PHPUnit\Framework\MockObject\Exception;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamFactoryInterface;
-use Sunrise\Http\Factory\ResponseFactory;
-use Sunrise\Http\Factory\StreamFactory;
-use Sunrise\Http\Factory\RequestFactory;
+use ComfinoExternal\Psr\Http\Client\ClientInterface;
+use ComfinoExternal\Psr\Http\Message\RequestFactoryInterface;
+use ComfinoExternal\Psr\Http\Message\RequestInterface;
+use ComfinoExternal\Psr\Http\Message\ResponseInterface;
+use ComfinoExternal\Psr\Http\Message\StreamFactoryInterface;
+use ComfinoExternal\Sunrise\Http\Factory\ResponseFactory;
+use ComfinoExternal\Sunrise\Http\Factory\StreamFactory;
+use ComfinoExternal\Sunrise\Http\Factory\RequestFactory;
 
 trait ClientTestTrait
 {

@@ -36,7 +36,7 @@ use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Client;
 use Comfino\View\FrontendManager;
-use Psr\Http\Client\NetworkExceptionInterface;
+use ComfinoExternal\Psr\Http\Client\NetworkExceptionInterface;
 
 if (!defined('_PS_VERSION_')) {
     exit;

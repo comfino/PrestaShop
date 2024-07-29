@@ -26,12 +26,12 @@
 
 namespace Comfino;
 
-use Cache\Adapter\Common\AbstractCachePool;
-use Cache\Adapter\Filesystem\FilesystemCachePool;
-use Cache\Adapter\PHPArray\ArrayCachePool;
-use League\Flysystem\Adapter\Local;
-use League\Flysystem\Filesystem;
-use Psr\Cache\InvalidArgumentException;
+use ComfinoExternal\Cache\Adapter\Common\AbstractCachePool;
+use ComfinoExternal\Cache\Adapter\Filesystem\FilesystemCachePool;
+use ComfinoExternal\Cache\Adapter\PHPArray\ArrayCachePool;
+use ComfinoExternal\League\Flysystem\Adapter\Local;
+use ComfinoExternal\League\Flysystem\Filesystem;
+use ComfinoExternal\Psr\Cache\InvalidArgumentException;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -53,7 +53,7 @@ class CacheManager
     {
         try {
             return self::getCachePool()->get($key, $default);
-        } catch (\Psr\SimpleCache\InvalidArgumentException $e) {
+        } catch (\ComfinoExternal\Psr\SimpleCache\InvalidArgumentException $e) {
         }
 
         return $default;

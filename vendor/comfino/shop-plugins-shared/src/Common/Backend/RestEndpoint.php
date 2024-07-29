@@ -3,7 +3,7 @@
 namespace Comfino\Common\Backend;
 
 use Comfino\Api\SerializerInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
 
 abstract class RestEndpoint implements RestEndpointInterface
 {
@@ -56,7 +56,7 @@ abstract class RestEndpoint implements RestEndpointInterface
     }
 
     /**
-     * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
+     * @param \ComfinoExternal\Psr\Http\Message\ServerRequestInterface $serverRequest
      * @param string|null $endpointName
      */
     protected function endpointPathMatch($serverRequest, $endpointName = null): bool
@@ -71,7 +71,7 @@ abstract class RestEndpoint implements RestEndpointInterface
     }
 
     /**
-     * @param \Psr\Http\Message\ServerRequestInterface $serverRequest
+     * @param \ComfinoExternal\Psr\Http\Message\ServerRequestInterface $serverRequest
      * @return mixed[]|string|null
      */
     protected function getParsedRequestBody($serverRequest)

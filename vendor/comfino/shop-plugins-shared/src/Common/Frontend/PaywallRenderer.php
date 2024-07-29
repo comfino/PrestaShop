@@ -2,7 +2,7 @@
 
 namespace Comfino\Common\Frontend;
 
-use Cache\TagInterop\TaggableCacheItemPoolInterface;
+use ComfinoExternal\Cache\TagInterop\TaggableCacheItemPoolInterface;
 use Comfino\Api\Client;
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;

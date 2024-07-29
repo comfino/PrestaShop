@@ -32,11 +32,11 @@ use Comfino\Api\Serializer\Json as JsonSerializer;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Paywall\PaywallViewTypeEnum;
 use Comfino\Shop\Order\OrderInterface;
-use Psr\Http\Client\ClientExceptionInterface;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamFactoryInterface;
+use ComfinoExternal\Psr\Http\Client\ClientExceptionInterface;
+use ComfinoExternal\Psr\Http\Client\ClientInterface;
+use ComfinoExternal\Psr\Http\Message\RequestFactoryInterface;
+use ComfinoExternal\Psr\Http\Message\ResponseInterface;
+use ComfinoExternal\Psr\Http\Message\StreamFactoryInterface;
 
 /**
  * Comfino API client.
