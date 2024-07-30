@@ -286,6 +286,21 @@ class Comfino extends PaymentModule
             return false;
         }
 
+        if (!extension_loaded('curl')) {
+            $errorMessage = 'The Comfino module could not be installed. It requires PHP cURL extension which is not ' .
+                            'installed. More details: https://www.php.net/manual/en/book.curl.php';
+
+            if ($useTranslations) {
+                $errorMessage = $this->l($errorMessage);
+            }
+
+            if (!in_array($errorMessage, $this->_errors, true)) {
+                $this->_errors[] = Tools::displayError($errorMessage);
+            }
+
+            return false;
+        }
+
         return true;
     }
 }
