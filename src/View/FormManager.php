@@ -97,12 +97,7 @@ final class FormManager
                 ) . '<hr>' . sprintf('<b>Comfino API host:</b> %s', ApiClient::getInstance()->getApiHost());
 
                 $infoMessages[] = sprintf('<b>Shop domain:</b> %s', \Tools::getShopDomain());
-
-                $infoMessages[] = sprintf(
-                    '<b>Widget key:</b> %s (%s)',
-                    ApiClient::getInstance()->getWidgetKey(),
-                    ConfigManager::getWidgetKey()
-                );
+                $infoMessages[] = sprintf('<b>Widget key:</b> %s', ConfigManager::getWidgetKey());
 
                 if (!empty(getenv('COMFINO_DEBUG')) || !empty(getenv('COMFINO_DEV'))) {
                     $devEnvVariables = [
