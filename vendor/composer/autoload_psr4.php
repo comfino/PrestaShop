@@ -31,7 +31,7 @@ return array(
     'ComfinoExternal\\Sunrise\\Http\\Client\\Curl\\' => array($vendorDir . '/sunrise/http-client-curl/src'),
     'ComfinoExternal\\Psr\\SimpleCache\\' => array($vendorDir . '/psr/simple-cache/src'),
     'ComfinoExternal\\Psr\\Log\\' => array($vendorDir . '/psr/log/Psr/Log'),
-    'ComfinoExternal\\Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src', $vendorDir . '/psr/http-factory/src'),
+    'ComfinoExternal\\Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-factory/src', $vendorDir . '/psr/http-message/src'),
     'ComfinoExternal\\Psr\\Http\\Client\\' => array($vendorDir . '/psr/http-client/src'),
     'ComfinoExternal\\Psr\\Cache\\' => array($vendorDir . '/psr/cache/src'),
     'ComfinoExternal\\League\\MimeTypeDetection\\' => array($vendorDir . '/league/mime-type-detection/src'),

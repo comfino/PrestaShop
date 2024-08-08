@@ -1,10 +1,11 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem\Util;
+namespace League\Flysystem\Util;
 
-use ComfinoExternal\League\MimeTypeDetection\FinfoMimeTypeDetector;
-use ComfinoExternal\League\MimeTypeDetection\GeneratedExtensionToMimeTypeMap;
-use ComfinoExternal\League\MimeTypeDetection\MimeTypeDetector;
+use League\MimeTypeDetection\FinfoMimeTypeDetector;
+use League\MimeTypeDetection\GeneratedExtensionToMimeTypeMap;
+use League\MimeTypeDetection\MimeTypeDetector;
+
 /**
  * @internal
  */
@@ -12,20 +13,25 @@ class MimeType
 {
     protected static $extensionToMimeTypeMap = GeneratedExtensionToMimeTypeMap::MIME_TYPES_FOR_EXTENSIONS;
     protected static $detector;
+
     public static function useDetector(MimeTypeDetector $detector)
     {
         static::$detector = $detector;
     }
+
     /**
      * @return MimeTypeDetector
      */
     protected static function detector()
     {
-        if (!static::$detector instanceof MimeTypeDetector) {
+        if ( ! static::$detector instanceof MimeTypeDetector) {
             static::$detector = new FinfoMimeTypeDetector();
         }
+
         return static::$detector;
     }
+
+
     /**
      * Detects MIME Type based on given content.
      *
@@ -38,8 +44,10 @@ class MimeType
         if (is_string($content)) {
             return static::detector()->detectMimeTypeFromBuffer($content);
         }
+
         return 'text/plain';
     }
+
     /**
      * Detects MIME Type based on file extension.
      *
@@ -51,6 +59,7 @@ class MimeType
     {
         return static::detector()->detectMimeTypeFromPath('artificial.' . $extension) ?: 'text/plain';
     }
+
     /**
      * @param string $filename
      *
@@ -60,6 +69,7 @@ class MimeType
     {
         return static::detector()->detectMimeTypeFromPath($filename) ?: 'text/plain';
     }
+
     /**
      * @return array Map of file extension to MIME Type
      */

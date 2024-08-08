@@ -1,9 +1,10 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem\Plugin;
+namespace League\Flysystem\Plugin;
 
-use ComfinoExternal\League\Flysystem\FileExistsException;
-use ComfinoExternal\League\Flysystem\FileNotFoundException;
+use League\Flysystem\FileExistsException;
+use League\Flysystem\FileNotFoundException;
+
 class ForcedRename extends AbstractPlugin
 {
     /**
@@ -13,6 +14,7 @@ class ForcedRename extends AbstractPlugin
     {
         return 'forceRename';
     }
+
     /**
      * Renames a file, overwriting the destination if it exists.
      *
@@ -30,11 +32,13 @@ class ForcedRename extends AbstractPlugin
             $deleted = $this->filesystem->delete($newpath);
         } catch (FileNotFoundException $e) {
             // The destination path does not exist. That's ok.
-            $deleted = \true;
+            $deleted = true;
         }
+
         if ($deleted) {
             return $this->filesystem->rename($path, $newpath);
         }
-        return \false;
+
+        return false;
     }
 }

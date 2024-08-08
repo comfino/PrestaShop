@@ -8,10 +8,12 @@
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
-namespace ComfinoExternal\Cache\TagInterop;
 
-use ComfinoExternal\Psr\Cache\CacheItemPoolInterface;
-use ComfinoExternal\Psr\Cache\InvalidArgumentException;
+namespace Cache\TagInterop;
+
+use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
+
 /**
  * Interface for invalidating cached items using tags. This interface is a soon-to-be-PSR.
  *
@@ -30,6 +32,7 @@ interface TaggableCacheItemPoolInterface extends CacheItemPoolInterface
      * @return bool True on success
      */
     public function invalidateTag($tag);
+
     /**
      * Invalidates cached items using tags.
      *
@@ -40,12 +43,14 @@ interface TaggableCacheItemPoolInterface extends CacheItemPoolInterface
      * @return bool True on success
      */
     public function invalidateTags(array $tags);
+
     /**
      * {@inheritdoc}
      *
      * @return TaggableCacheItemInterface
      */
     public function getItem($key);
+
     /**
      * {@inheritdoc}
      *

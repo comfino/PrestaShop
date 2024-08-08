@@ -1,6 +1,6 @@
 <?php
 
-namespace ComfinoExternal\League\MimeTypeDetection;
+namespace League\MimeTypeDetection;
 
 class OverridingExtensionToMimeTypeMap implements ExtensionToMimeTypeMap
 {
@@ -8,10 +8,12 @@ class OverridingExtensionToMimeTypeMap implements ExtensionToMimeTypeMap
      * @var ExtensionToMimeTypeMap
      */
     private $innerMap;
+
     /**
      * @var string[]
      */
     private $overrides;
+
     /**
      * @param array<string, string>  $overrides
      */
@@ -20,6 +22,7 @@ class OverridingExtensionToMimeTypeMap implements ExtensionToMimeTypeMap
         $this->innerMap = $innerMap;
         $this->overrides = $overrides;
     }
+
     public function lookupMimeType(string $extension): ?string
     {
         return $this->overrides[$extension] ?? $this->innerMap->lookupMimeType($extension);

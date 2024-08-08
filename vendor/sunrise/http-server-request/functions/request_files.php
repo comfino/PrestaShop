@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /**
  * It's free open-source software released under the MIT License.
  *
@@ -9,16 +8,19 @@ declare (strict_types=1);
  * @license https://github.com/sunrise-php/http-server-request/blob/master/LICENSE
  * @link https://github.com/sunrise-php/http-server-request
  */
-namespace ComfinoExternal\Sunrise\Http\ServerRequest;
+
+namespace Sunrise\Http\ServerRequest;
 
 /**
  * Import functions
  */
 use function is_array;
+
 /**
  * Import constants
  */
 use const UPLOAD_ERR_NO_FILE;
+
 /**
  * Normalizes the given uploaded files
  *
@@ -33,25 +35,47 @@ use const UPLOAD_ERR_NO_FILE;
  * @link https://www.php.net/manual/ru/features.file-upload.multiple.php
  * @link https://github.com/php/php-src/blob/8c5b41cefb88b753c630b731956ede8d9da30c5d/main/rfc1867.c
  */
-function request_files(array $files): array
+function request_files(array $files) : array
 {
     $walker = function ($path, $size, $error, $name, $type) use (&$walker) {
-        if (!is_array($path)) {
-            return new UploadedFile($path, $size, $error, $name, $type);
+        if (! is_array($path)) {
+            return new UploadedFile(
+                $path,
+                $size,
+                $error,
+                $name,
+                $type
+            );
         }
+
         $result = [];
         foreach ($path as $key => $_) {
-            if (UPLOAD_ERR_NO_FILE != $error[$key]) {
-                $result[$key] = $walker($path[$key], $size[$key], $error[$key], $name[$key], $type[$key]);
+            if (UPLOAD_ERR_NO_FILE <> $error[$key]) {
+                $result[$key] = $walker(
+                    $path[$key],
+                    $size[$key],
+                    $error[$key],
+                    $name[$key],
+                    $type[$key]
+                );
             }
         }
+
         return $result;
     };
+
     $result = [];
     foreach ($files as $key => $file) {
-        if (UPLOAD_ERR_NO_FILE != $file['error']) {
-            $result[$key] = $walker($file['tmp_name'], $file['size'], $file['error'], $file['name'], $file['type']);
+        if (UPLOAD_ERR_NO_FILE <> $file['error']) {
+            $result[$key] = $walker(
+                $file['tmp_name'],
+                $file['size'],
+                $file['error'],
+                $file['name'],
+                $file['type']
+            );
         }
     }
+
     return $result;
 }

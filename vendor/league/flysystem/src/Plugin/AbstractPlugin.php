@@ -1,15 +1,17 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem\Plugin;
+namespace League\Flysystem\Plugin;
 
-use ComfinoExternal\League\Flysystem\FilesystemInterface;
-use ComfinoExternal\League\Flysystem\PluginInterface;
+use League\Flysystem\FilesystemInterface;
+use League\Flysystem\PluginInterface;
+
 abstract class AbstractPlugin implements PluginInterface
 {
     /**
      * @var FilesystemInterface
      */
     protected $filesystem;
+
     /**
      * Set the Filesystem object.
      *

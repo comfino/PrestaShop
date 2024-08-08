@@ -1,6 +1,6 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem\Adapter\Polyfill;
+namespace League\Flysystem\Adapter\Polyfill;
 
 trait StreamedTrait
 {

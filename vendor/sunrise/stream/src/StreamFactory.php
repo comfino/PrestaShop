@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /**
  * It's free open-source software released under the MIT License.
  *
@@ -9,20 +8,23 @@ declare (strict_types=1);
  * @license https://github.com/sunrise-php/stream/blob/master/LICENSE
  * @link https://github.com/sunrise-php/stream
  */
-namespace ComfinoExternal\Sunrise\Stream;
+
+namespace Sunrise\Stream;
 
 /**
  * Import classes
  */
-use ComfinoExternal\Psr\Http\Message\StreamFactoryInterface;
-use ComfinoExternal\Psr\Http\Message\StreamInterface;
-use ComfinoExternal\Sunrise\Stream\Exception\UnopenableStreamException;
+use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\StreamInterface;
+use Sunrise\Stream\Exception\UnopenableStreamException;
+
 /**
  * Import functions
  */
 use function fopen;
 use function sprintf;
 use function tmpfile;
+
 /**
  * StreamFactory
  *
@@ -30,27 +32,35 @@ use function tmpfile;
  */
 class StreamFactory implements StreamFactoryInterface
 {
+
     /**
      * {@inheritdoc}
      */
-    public function createStreamFromResource($resource): StreamInterface
+    public function createStreamFromResource($resource) : StreamInterface
     {
         return new Stream($resource);
     }
+
     /**
      * {@inheritdoc}
      *
      * @throws UnopenableStreamException
      *         If the file cannot be open.
      */
-    public function createStreamFromFile(string $filename, string $mode = 'r'): StreamInterface
+    public function createStreamFromFile(string $filename, string $mode = 'r') : StreamInterface
     {
         $resource = @fopen($filename, $mode);
-        if ($resource === \false) {
-            throw new UnopenableStreamException(sprintf('Unable to open file "%s" in mode "%s"', $filename, $mode));
+        if ($resource === false) {
+            throw new UnopenableStreamException(sprintf(
+                'Unable to open file "%s" in mode "%s"',
+                $filename,
+                $mode
+            ));
         }
+
         return $this->createStreamFromResource($resource);
     }
+
     /**
      * Creates a temporary file
      *
@@ -65,31 +75,37 @@ class StreamFactory implements StreamFactoryInterface
      *
      * @link https://www.php.net/manual/en/function.tmpfile.php
      */
-    public function createStreamFromTemporaryFile(?string $content = null): StreamInterface
+    public function createStreamFromTemporaryFile(?string $content = null) : StreamInterface
     {
         $resource = tmpfile();
-        if ($resource === \false) {
+        if ($resource === false) {
             throw new UnopenableStreamException('Unable to create temporary file');
         }
+
         $stream = $this->createStreamFromResource($resource);
         if ($content === null) {
             return $stream;
         }
+
         $stream->write($content);
         $stream->rewind();
+
         return $stream;
     }
+
     /**
      * {@inheritdoc}
      */
-    public function createStream(string $content = ''): StreamInterface
+    public function createStream(string $content = '') : StreamInterface
     {
         $stream = $this->createStreamFromFile('php://temp', 'r+b');
         if ($content === '') {
             return $stream;
         }
+
         $stream->write($content);
         $stream->rewind();
+
         return $stream;
     }
 }

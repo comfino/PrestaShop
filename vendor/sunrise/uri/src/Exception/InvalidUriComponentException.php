@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /**
  * It's free open-source software released under the MIT License.
  *
@@ -9,12 +8,14 @@ declare (strict_types=1);
  * @license https://github.com/sunrise-php/uri/blob/master/LICENSE
  * @link https://github.com/sunrise-php/uri
  */
-namespace ComfinoExternal\Sunrise\Uri\Exception;
+
+namespace Sunrise\Uri\Exception;
 
 /**
  * Import classes
  */
 use InvalidArgumentException;
+
 /**
  * InvalidUriComponentException
  */

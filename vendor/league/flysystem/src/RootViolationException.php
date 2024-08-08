@@ -1,8 +1,9 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem;
+namespace League\Flysystem;
 
 use LogicException;
+
 class RootViolationException extends LogicException implements FilesystemException
 {
     //

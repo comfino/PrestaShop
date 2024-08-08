@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /**
  * It's free open-source software released under the MIT License.
  *
@@ -9,19 +8,22 @@ declare (strict_types=1);
  * @license https://github.com/sunrise-php/http-server-request/blob/master/LICENSE
  * @link https://github.com/sunrise-php/http-server-request
  */
-namespace ComfinoExternal\Sunrise\Http\ServerRequest;
+
+namespace Sunrise\Http\ServerRequest;
 
 /**
  * Import classes
  */
-use ComfinoExternal\Psr\Http\Message\StreamInterface;
-use ComfinoExternal\Sunrise\Stream\StreamFactory;
+use Psr\Http\Message\StreamInterface;
+use Sunrise\Stream\StreamFactory;
+
 /**
  * Import functions
  */
 use function fopen;
 use function rewind;
 use function stream_copy_to_stream;
+
 /**
  * Gets the request body
  *
@@ -29,11 +31,14 @@ use function stream_copy_to_stream;
  *
  * @link http://php.net/manual/en/wrappers.php.php
  */
-function request_body(): StreamInterface
+function request_body() : StreamInterface
 {
     $input = fopen('php://input', 'rb');
     $resource = fopen('php://temp', 'r+b');
+
     stream_copy_to_stream($input, $resource);
+
     rewind($resource);
-    return (new StreamFactory())->createStreamFromResource($resource);
+
+    return (new StreamFactory)->createStreamFromResource($resource);
 }

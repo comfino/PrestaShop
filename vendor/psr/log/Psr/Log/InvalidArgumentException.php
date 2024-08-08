@@ -1,6 +1,6 @@
 <?php
 
-namespace ComfinoExternal\Psr\Log;
+namespace Psr\Log;
 
 class InvalidArgumentException extends \InvalidArgumentException
 {

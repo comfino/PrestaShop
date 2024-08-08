@@ -1,6 +1,6 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem;
+namespace League\Flysystem;
 
 interface ReadInterface
 {
@@ -12,6 +12,7 @@ interface ReadInterface
      * @return array|bool|null
      */
     public function has($path);
+
     /**
      * Read a file.
      *
@@ -20,6 +21,7 @@ interface ReadInterface
      * @return array|false
      */
     public function read($path);
+
     /**
      * Read a file as a stream.
      *
@@ -28,6 +30,7 @@ interface ReadInterface
      * @return array|false
      */
     public function readStream($path);
+
     /**
      * List contents of a directory.
      *
@@ -36,7 +39,8 @@ interface ReadInterface
      *
      * @return array
      */
-    public function listContents($directory = '', $recursive = \false);
+    public function listContents($directory = '', $recursive = false);
+
     /**
      * Get all the meta data of a file or directory.
      *
@@ -45,6 +49,7 @@ interface ReadInterface
      * @return array|false
      */
     public function getMetadata($path);
+
     /**
      * Get the size of a file.
      *
@@ -53,6 +58,7 @@ interface ReadInterface
      * @return array|false
      */
     public function getSize($path);
+
     /**
      * Get the mimetype of a file.
      *
@@ -61,6 +67,7 @@ interface ReadInterface
      * @return array|false
      */
     public function getMimetype($path);
+
     /**
      * Get the last modified time of a file as a timestamp.
      *
@@ -69,6 +76,7 @@ interface ReadInterface
      * @return array|false
      */
     public function getTimestamp($path);
+
     /**
      * Get the visibility of a file.
      *

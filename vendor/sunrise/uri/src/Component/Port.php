@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /**
  * It's free open-source software released under the MIT License.
  *
@@ -9,16 +8,19 @@ declare (strict_types=1);
  * @license https://github.com/sunrise-php/uri/blob/master/LICENSE
  * @link https://github.com/sunrise-php/uri
  */
-namespace ComfinoExternal\Sunrise\Uri\Component;
+
+namespace Sunrise\Uri\Component;
 
 /**
  * Import classes
  */
-use ComfinoExternal\Sunrise\Uri\Exception\InvalidUriComponentException;
+use Sunrise\Uri\Exception\InvalidUriComponentException;
+
 /**
  * Import functions
  */
 use function is_int;
+
 /**
  * URI component "port"
  *
@@ -26,12 +28,14 @@ use function is_int;
  */
 class Port implements ComponentInterface
 {
+
     /**
      * The component value
      *
      * @var int|null
      */
     protected $value;
+
     /**
      * Constructor of the class
      *
@@ -43,21 +47,26 @@ class Port implements ComponentInterface
     {
         $min = 1;
         $max = 2 ** 16;
+
         if ($value === null) {
             return;
         }
+
         if (!is_int($value)) {
             throw new InvalidUriComponentException('URI component "port" must be an integer');
         }
+
         if (!($value >= $min && $value <= $max)) {
             throw new InvalidUriComponentException('Invalid URI component "port"');
         }
+
         $this->value = $value;
     }
+
     /**
      * @return int|null
      */
-    public function present(): ?int
+    public function present() : ?int
     {
         return $this->value;
     }

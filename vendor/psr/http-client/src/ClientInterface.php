@@ -1,9 +1,10 @@
 <?php
 
-namespace ComfinoExternal\Psr\Http\Client;
+namespace Psr\Http\Client;
 
-use ComfinoExternal\Psr\Http\Message\RequestInterface;
-use ComfinoExternal\Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
+
 interface ClientInterface
 {
     /**

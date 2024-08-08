@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /**
  * It's free open-source software released under the MIT License.
  *
@@ -9,12 +8,14 @@ declare (strict_types=1);
  * @license https://github.com/sunrise-php/http-factory/blob/master/LICENSE
  * @link https://github.com/sunrise-php/http-factory
  */
-namespace ComfinoExternal\Sunrise\Http\Factory;
+
+namespace Sunrise\Http\Factory;
 
 /**
  * Import classes
  */
-use ComfinoExternal\Sunrise\Http\Message\ResponseFactory as BaseResponseFactory;
+use Sunrise\Http\Message\ResponseFactory as BaseResponseFactory;
+
 /**
  * ResponseFactory
  */

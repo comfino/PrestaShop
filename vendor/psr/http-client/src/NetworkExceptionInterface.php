@@ -1,8 +1,9 @@
 <?php
 
-namespace ComfinoExternal\Psr\Http\Client;
+namespace Psr\Http\Client;
 
-use ComfinoExternal\Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\RequestInterface;
+
 /**
  * Thrown when the request cannot be completed because of network issues.
  *

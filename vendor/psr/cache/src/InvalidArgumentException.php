@@ -1,6 +1,6 @@
 <?php
 
-namespace ComfinoExternal\Psr\Cache;
+namespace Psr\Cache;
 
 /**
  * Exception interface for invalid cache arguments.

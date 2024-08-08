@@ -1,6 +1,5 @@
-<?php
+<?php declare(strict_types=1);
 
-declare (strict_types=1);
 /**
  * It's free open-source software released under the MIT License.
  *
@@ -9,13 +8,15 @@ declare (strict_types=1);
  * @license https://github.com/sunrise-php/http-server-request/blob/master/LICENSE
  * @link https://github.com/sunrise-php/http-server-request
  */
-namespace ComfinoExternal\Sunrise\Http\ServerRequest;
+
+namespace Sunrise\Http\ServerRequest;
 
 /**
  * Import classes
  */
-use ComfinoExternal\Psr\Http\Message\ServerRequestFactoryInterface;
-use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ServerRequestFactoryInterface;
+use Psr\Http\Message\ServerRequestInterface;
+
 /**
  * ServerRequestFactory
  *
@@ -23,6 +24,7 @@ use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
  */
 class ServerRequestFactory implements ServerRequestFactoryInterface
 {
+
     /**
      * Creates a new request from superglobals variables
      *
@@ -37,20 +39,25 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
      * @link http://php.net/manual/en/language.variables.superglobals.php
      * @link https://www.php-fig.org/psr/psr-15/meta/
      */
-    public static function fromGlobals(?array $serverParams = null, ?array $queryParams = null, ?array $cookieParams = null, ?array $uploadedFiles = null, ?array $parsedBody = null): ServerRequestInterface
-    {
-        $serverParams = $serverParams ?? $_SERVER;
-        $queryParams = $queryParams ?? $_GET;
-        $cookieParams = $cookieParams ?? $_COOKIE;
+    public static function fromGlobals(
+        ?array $serverParams = null,
+        ?array $queryParams = null,
+        ?array $cookieParams = null,
+        ?array $uploadedFiles = null,
+        ?array $parsedBody = null
+    ) : ServerRequestInterface {
+        $serverParams  = $serverParams  ?? $_SERVER;
+        $queryParams   = $queryParams   ?? $_GET;
+        $cookieParams  = $cookieParams  ?? $_COOKIE;
         $uploadedFiles = $uploadedFiles ?? $_FILES;
-        $parsedBody = $parsedBody ?? $_POST;
+        $parsedBody    = $parsedBody    ?? $_POST;
+
         return new ServerRequest(
             request_method($serverParams),
             request_uri($serverParams),
             request_headers($serverParams),
             request_body(),
-            null,
-            // request target
+            null, // request target
             request_protocol($serverParams),
             $serverParams,
             $queryParams,
@@ -59,19 +66,18 @@ class ServerRequestFactory implements ServerRequestFactoryInterface
             $parsedBody
         );
     }
+
     /**
      * {@inheritdoc}
      */
-    public function createServerRequest(string $method, $uri, array $serverParams = []): ServerRequestInterface
+    public function createServerRequest(string $method, $uri, array $serverParams = []) : ServerRequestInterface
     {
         return new ServerRequest(
             $method,
             $uri,
             request_headers($serverParams),
-            null,
-            // body
-            null,
-            // request target
+            null, // body
+            null, // request target
             request_protocol($serverParams),
             $serverParams
         );

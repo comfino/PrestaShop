@@ -1,8 +1,9 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem\Adapter\Polyfill;
+namespace League\Flysystem\Adapter\Polyfill;
 
 use LogicException;
+
 trait NotSupportingVisibilityTrait
 {
     /**
@@ -16,6 +17,7 @@ trait NotSupportingVisibilityTrait
     {
         throw new LogicException(get_class($this) . ' does not support visibility. Path: ' . $path);
     }
+
     /**
      * Set the visibility for a file.
      *

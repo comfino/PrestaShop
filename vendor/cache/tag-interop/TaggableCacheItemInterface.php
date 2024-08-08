@@ -8,10 +8,12 @@
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
-namespace ComfinoExternal\Cache\TagInterop;
 
-use ComfinoExternal\Psr\Cache\CacheItemInterface;
-use ComfinoExternal\Psr\Cache\InvalidArgumentException;
+namespace Cache\TagInterop;
+
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\InvalidArgumentException;
+
 /**
  * An item that supports tags. This interface is a soon-to-be-PSR.
  *
@@ -27,6 +29,7 @@ interface TaggableCacheItemInterface extends CacheItemInterface
      * @return array
      */
     public function getPreviousTags();
+
     /**
      * Overwrite all tags with a new set of tags.
      *

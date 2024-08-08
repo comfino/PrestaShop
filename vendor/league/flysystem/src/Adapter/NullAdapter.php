@@ -1,14 +1,16 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem\Adapter;
+namespace League\Flysystem\Adapter;
 
-use ComfinoExternal\League\Flysystem\Adapter\Polyfill\StreamedCopyTrait;
-use ComfinoExternal\League\Flysystem\Adapter\Polyfill\StreamedTrait;
-use ComfinoExternal\League\Flysystem\Config;
+use League\Flysystem\Adapter\Polyfill\StreamedCopyTrait;
+use League\Flysystem\Adapter\Polyfill\StreamedTrait;
+use League\Flysystem\Config;
+
 class NullAdapter extends AbstractAdapter
 {
     use StreamedTrait;
     use StreamedCopyTrait;
+
     /**
      * Check whether a file is present.
      *
@@ -18,8 +20,9 @@ class NullAdapter extends AbstractAdapter
      */
     public function has($path)
     {
-        return \false;
+        return false;
     }
+
     /**
      * @inheritdoc
      */
@@ -27,81 +30,94 @@ class NullAdapter extends AbstractAdapter
     {
         $type = 'file';
         $result = compact('contents', 'type', 'path');
+
         if ($visibility = $config->get('visibility')) {
             $result['visibility'] = $visibility;
         }
+
         return $result;
     }
+
     /**
      * @inheritdoc
      */
     public function update($path, $contents, Config $config)
     {
-        return \false;
+        return false;
     }
+
     /**
      * @inheritdoc
      */
     public function read($path)
     {
-        return \false;
+        return false;
     }
+
     /**
      * @inheritdoc
      */
     public function rename($path, $newpath)
     {
-        return \false;
+        return false;
     }
+
     /**
      * @inheritdoc
      */
     public function delete($path)
     {
-        return \false;
+        return false;
     }
+
     /**
      * @inheritdoc
      */
-    public function listContents($directory = '', $recursive = \false)
+    public function listContents($directory = '', $recursive = false)
     {
         return [];
     }
+
     /**
      * @inheritdoc
      */
     public function getMetadata($path)
     {
-        return \false;
+        return false;
     }
+
     /**
      * @inheritdoc
      */
     public function getSize($path)
     {
-        return \false;
+        return false;
     }
+
     /**
      * @inheritdoc
      */
     public function getMimetype($path)
     {
-        return \false;
+        return false;
     }
+
     /**
      * @inheritdoc
      */
     public function getTimestamp($path)
     {
-        return \false;
+        return false;
     }
+
     /**
      * @inheritdoc
      */
     public function getVisibility($path)
     {
-        return \false;
+        return false;
     }
+
     /**
      * @inheritdoc
      */
@@ -109,6 +125,7 @@ class NullAdapter extends AbstractAdapter
     {
         return compact('visibility');
     }
+
     /**
      * @inheritdoc
      */
@@ -116,11 +133,12 @@ class NullAdapter extends AbstractAdapter
     {
         return ['path' => $dirname, 'type' => 'dir'];
     }
+
     /**
      * @inheritdoc
      */
     public function deleteDir($dirname)
     {
-        return \false;
+        return false;
     }
 }

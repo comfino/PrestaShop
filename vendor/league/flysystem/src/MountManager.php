@@ -1,10 +1,11 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem;
+namespace League\Flysystem;
 
 use InvalidArgumentException;
-use ComfinoExternal\League\Flysystem\Plugin\PluggableTrait;
-use ComfinoExternal\League\Flysystem\Plugin\PluginNotFoundException;
+use League\Flysystem\Plugin\PluggableTrait;
+use League\Flysystem\Plugin\PluginNotFoundException;
+
 /**
  * Class MountManager.
  *
@@ -23,10 +24,12 @@ use ComfinoExternal\League\Flysystem\Plugin\PluginNotFoundException;
 class MountManager implements FilesystemInterface
 {
     use PluggableTrait;
+
     /**
      * @var FilesystemInterface[]
      */
     protected $filesystems = [];
+
     /**
      * Constructor.
      *
@@ -38,6 +41,7 @@ class MountManager implements FilesystemInterface
     {
         $this->mountFilesystems($filesystems);
     }
+
     /**
      * Mount filesystems.
      *
@@ -52,8 +56,10 @@ class MountManager implements FilesystemInterface
         foreach ($filesystems as $prefix => $filesystem) {
             $this->mountFilesystem($prefix, $filesystem);
         }
+
         return $this;
     }
+
     /**
      * Mount filesystems.
      *
@@ -66,12 +72,15 @@ class MountManager implements FilesystemInterface
      */
     public function mountFilesystem($prefix, FilesystemInterface $filesystem)
     {
-        if (!is_string($prefix)) {
+        if ( ! is_string($prefix)) {
             throw new InvalidArgumentException(__METHOD__ . ' expects argument #1 to be a string.');
         }
+
         $this->filesystems[$prefix] = $filesystem;
+
         return $this;
     }
+
     /**
      * Get the filesystem with the corresponding prefix.
      *
@@ -83,11 +92,13 @@ class MountManager implements FilesystemInterface
      */
     public function getFilesystem($prefix)
     {
-        if (!isset($this->filesystems[$prefix])) {
+        if ( ! isset($this->filesystems[$prefix])) {
             throw new FilesystemNotFoundException('No filesystem mounted with prefix ' . $prefix);
         }
+
         return $this->filesystems[$prefix];
     }
+
     /**
      * Retrieve the prefix from an arguments array.
      *
@@ -102,14 +113,19 @@ class MountManager implements FilesystemInterface
         if (empty($arguments)) {
             throw new InvalidArgumentException('At least one argument needed');
         }
+
         $path = array_shift($arguments);
-        if (!is_string($path)) {
+
+        if ( ! is_string($path)) {
             throw new InvalidArgumentException('First argument should be a string');
         }
+
         list($prefix, $path) = $this->getPrefixAndPath($path);
         array_unshift($arguments, $path);
+
         return [$prefix, $arguments];
     }
+
     /**
      * @param string $directory
      * @param bool   $recursive
@@ -119,16 +135,19 @@ class MountManager implements FilesystemInterface
      *
      * @return array
      */
-    public function listContents($directory = '', $recursive = \false)
+    public function listContents($directory = '', $recursive = false)
     {
         list($prefix, $directory) = $this->getPrefixAndPath($directory);
         $filesystem = $this->getFilesystem($prefix);
         $result = $filesystem->listContents($directory, $recursive);
+
         foreach ($result as &$file) {
             $file['filesystem'] = $prefix;
         }
+
         return $result;
     }
+
     /**
      * Call forwarder.
      *
@@ -143,8 +162,10 @@ class MountManager implements FilesystemInterface
     public function __call($method, $arguments)
     {
         list($prefix, $arguments) = $this->filterPrefix($arguments);
+
         return $this->invokePluginOnFilesystem($method, $arguments, $prefix);
     }
+
     /**
      * @param string $from
      * @param string $to
@@ -159,17 +180,24 @@ class MountManager implements FilesystemInterface
     public function copy($from, $to, array $config = [])
     {
         list($prefixFrom, $from) = $this->getPrefixAndPath($from);
+
         $buffer = $this->getFilesystem($prefixFrom)->readStream($from);
-        if ($buffer === \false) {
-            return \false;
+
+        if ($buffer === false) {
+            return false;
         }
+
         list($prefixTo, $to) = $this->getPrefixAndPath($to);
+
         $result = $this->getFilesystem($prefixTo)->writeStream($to, $buffer, $config);
+
         if (is_resource($buffer)) {
             fclose($buffer);
         }
+
         return $result;
     }
+
     /**
      * List with plugin adapter.
      *
@@ -182,12 +210,14 @@ class MountManager implements FilesystemInterface
      *
      * @return array
      */
-    public function listWith(array $keys = [], $directory = '', $recursive = \false)
+    public function listWith(array $keys = [], $directory = '', $recursive = false)
     {
         list($prefix, $directory) = $this->getPrefixAndPath($directory);
         $arguments = [$keys, $directory, $recursive];
+
         return $this->invokePluginOnFilesystem('listWith', $arguments, $prefix);
     }
+
     /**
      * Move a file.
      *
@@ -204,20 +234,27 @@ class MountManager implements FilesystemInterface
     {
         list($prefixFrom, $pathFrom) = $this->getPrefixAndPath($from);
         list($prefixTo, $pathTo) = $this->getPrefixAndPath($to);
+
         if ($prefixFrom === $prefixTo) {
             $filesystem = $this->getFilesystem($prefixFrom);
             $renamed = $filesystem->rename($pathFrom, $pathTo);
+
             if ($renamed && isset($config['visibility'])) {
                 return $filesystem->setVisibility($pathTo, $config['visibility']);
             }
+
             return $renamed;
         }
+
         $copied = $this->copy($from, $to, $config);
+
         if ($copied) {
             return $this->delete($from);
         }
-        return \false;
+
+        return false;
     }
+
     /**
      * Invoke a plugin on a filesystem mounted on a given prefix.
      *
@@ -232,14 +269,18 @@ class MountManager implements FilesystemInterface
     public function invokePluginOnFilesystem($method, $arguments, $prefix)
     {
         $filesystem = $this->getFilesystem($prefix);
+
         try {
             return $this->invokePlugin($method, $arguments, $filesystem);
         } catch (PluginNotFoundException $e) {
             // Let it pass, it's ok, don't panic.
         }
+
         $callback = [$filesystem, $method];
+
         return call_user_func_array($callback, $arguments);
     }
+
     /**
      * @param string $path
      *
@@ -252,8 +293,10 @@ class MountManager implements FilesystemInterface
         if (strpos($path, '://') < 1) {
             throw new InvalidArgumentException('No prefix detected in path: ' . $path);
         }
+
         return explode('://', $path, 2);
     }
+
     /**
      * Check whether a file exists.
      *
@@ -264,8 +307,10 @@ class MountManager implements FilesystemInterface
     public function has($path)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->has($path);
     }
+
     /**
      * Read a file.
      *
@@ -278,8 +323,10 @@ class MountManager implements FilesystemInterface
     public function read($path)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->read($path);
     }
+
     /**
      * Retrieves a read-stream for a path.
      *
@@ -292,8 +339,10 @@ class MountManager implements FilesystemInterface
     public function readStream($path)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->readStream($path);
     }
+
     /**
      * Get a file's metadata.
      *
@@ -306,8 +355,10 @@ class MountManager implements FilesystemInterface
     public function getMetadata($path)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->getMetadata($path);
     }
+
     /**
      * Get a file's size.
      *
@@ -320,8 +371,10 @@ class MountManager implements FilesystemInterface
     public function getSize($path)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->getSize($path);
     }
+
     /**
      * Get a file's mime-type.
      *
@@ -334,8 +387,10 @@ class MountManager implements FilesystemInterface
     public function getMimetype($path)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->getMimetype($path);
     }
+
     /**
      * Get a file's timestamp.
      *
@@ -348,8 +403,10 @@ class MountManager implements FilesystemInterface
     public function getTimestamp($path)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->getTimestamp($path);
     }
+
     /**
      * Get a file's visibility.
      *
@@ -362,8 +419,10 @@ class MountManager implements FilesystemInterface
     public function getVisibility($path)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->getVisibility($path);
     }
+
     /**
      * Write a new file.
      *
@@ -378,8 +437,10 @@ class MountManager implements FilesystemInterface
     public function write($path, $contents, array $config = [])
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->write($path, $contents, $config);
     }
+
     /**
      * Write a new file using a stream.
      *
@@ -395,8 +456,10 @@ class MountManager implements FilesystemInterface
     public function writeStream($path, $resource, array $config = [])
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->writeStream($path, $resource, $config);
     }
+
     /**
      * Update an existing file.
      *
@@ -411,8 +474,10 @@ class MountManager implements FilesystemInterface
     public function update($path, $contents, array $config = [])
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->update($path, $contents, $config);
     }
+
     /**
      * Update an existing file using a stream.
      *
@@ -428,8 +493,10 @@ class MountManager implements FilesystemInterface
     public function updateStream($path, $resource, array $config = [])
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->updateStream($path, $resource, $config);
     }
+
     /**
      * Rename a file.
      *
@@ -444,8 +511,10 @@ class MountManager implements FilesystemInterface
     public function rename($path, $newpath)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->rename($path, $newpath);
     }
+
     /**
      * Delete a file.
      *
@@ -458,8 +527,10 @@ class MountManager implements FilesystemInterface
     public function delete($path)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->delete($path);
     }
+
     /**
      * Delete a directory.
      *
@@ -472,8 +543,10 @@ class MountManager implements FilesystemInterface
     public function deleteDir($dirname)
     {
         list($prefix, $dirname) = $this->getPrefixAndPath($dirname);
+
         return $this->getFilesystem($prefix)->deleteDir($dirname);
     }
+
     /**
      * Create a directory.
      *
@@ -485,8 +558,10 @@ class MountManager implements FilesystemInterface
     public function createDir($dirname, array $config = [])
     {
         list($prefix, $dirname) = $this->getPrefixAndPath($dirname);
+
         return $this->getFilesystem($prefix)->createDir($dirname);
     }
+
     /**
      * Set the visibility for a file.
      *
@@ -500,8 +575,10 @@ class MountManager implements FilesystemInterface
     public function setVisibility($path, $visibility)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->setVisibility($path, $visibility);
     }
+
     /**
      * Create a file or update if exists.
      *
@@ -514,8 +591,10 @@ class MountManager implements FilesystemInterface
     public function put($path, $contents, array $config = [])
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->put($path, $contents, $config);
     }
+
     /**
      * Create a file or update if exists.
      *
@@ -530,8 +609,10 @@ class MountManager implements FilesystemInterface
     public function putStream($path, $resource, array $config = [])
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->putStream($path, $resource, $config);
     }
+
     /**
      * Read and delete a file.
      *
@@ -544,8 +625,10 @@ class MountManager implements FilesystemInterface
     public function readAndDelete($path)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->readAndDelete($path);
     }
+
     /**
      * Get a file/directory handler.
      *
@@ -559,6 +642,7 @@ class MountManager implements FilesystemInterface
     public function get($path, Handler $handler = null)
     {
         list($prefix, $path) = $this->getPrefixAndPath($path);
+
         return $this->getFilesystem($prefix)->get($path);
     }
 }

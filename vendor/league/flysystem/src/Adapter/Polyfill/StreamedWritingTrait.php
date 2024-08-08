@@ -1,9 +1,10 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem\Adapter\Polyfill;
+namespace League\Flysystem\Adapter\Polyfill;
 
-use ComfinoExternal\League\Flysystem\Config;
-use ComfinoExternal\League\Flysystem\Util;
+use League\Flysystem\Config;
+use League\Flysystem\Util;
+
 trait StreamedWritingTrait
 {
     /**
@@ -21,8 +22,10 @@ trait StreamedWritingTrait
         Util::rewindStream($resource);
         $contents = stream_get_contents($resource);
         $fallbackCall = [$this, $fallback];
+
         return call_user_func($fallbackCall, $path, $contents, $config);
     }
+
     /**
      * Write using a stream.
      *
@@ -36,6 +39,7 @@ trait StreamedWritingTrait
     {
         return $this->stream($path, $resource, $config, 'write');
     }
+
     /**
      * Update a file using a stream.
      *
@@ -49,6 +53,7 @@ trait StreamedWritingTrait
     {
         return $this->stream($path, $resource, $config, 'update');
     }
+
     // Required abstract methods
     abstract public function write($pash, $contents, Config $config);
     abstract public function update($pash, $contents, Config $config);

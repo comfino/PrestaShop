@@ -1,6 +1,6 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem;
+namespace League\Flysystem;
 
 /**
  * @deprecated
@@ -16,6 +16,7 @@ class Directory extends Handler
     {
         return $this->filesystem->deleteDir($this->path);
     }
+
     /**
      * List the directory contents.
      *
@@ -23,7 +24,7 @@ class Directory extends Handler
      *
      * @return array|bool directory contents or false
      */
-    public function getContents($recursive = \false)
+    public function getContents($recursive = false)
     {
         return $this->filesystem->listContents($this->path, $recursive);
     }

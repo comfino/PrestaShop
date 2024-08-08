@@ -1,73 +1,88 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem\Adapter;
+namespace League\Flysystem\Adapter;
 
 use DateTime;
-use ComfinoExternal\League\Flysystem\AdapterInterface;
-use ComfinoExternal\League\Flysystem\Config;
-use ComfinoExternal\League\Flysystem\NotSupportedException;
-use ComfinoExternal\League\Flysystem\SafeStorage;
+use League\Flysystem\AdapterInterface;
+use League\Flysystem\Config;
+use League\Flysystem\NotSupportedException;
+use League\Flysystem\SafeStorage;
 use RuntimeException;
+
 abstract class AbstractFtpAdapter extends AbstractAdapter
 {
     /**
      * @var mixed
      */
     protected $connection;
+
     /**
      * @var string
      */
     protected $host;
+
     /**
      * @var int
      */
     protected $port = 21;
+
     /**
      * @var bool
      */
-    protected $ssl = \false;
+    protected $ssl = false;
+
     /**
      * @var int
      */
     protected $timeout = 90;
+
     /**
      * @var bool
      */
-    protected $passive = \true;
+    protected $passive = true;
+
     /**
      * @var string
      */
     protected $separator = '/';
+
     /**
      * @var string|null
      */
     protected $root;
+
     /**
      * @var int
      */
     protected $permPublic = 0744;
+
     /**
      * @var int
      */
     protected $permPrivate = 0700;
+
     /**
      * @var array
      */
     protected $configurable = [];
+
     /**
      * @var string
      */
     protected $systemType;
+
     /**
      * @var SafeStorage
      */
     protected $safeStorage;
+
     /**
      * True to enable timestamps for FTP servers that return unix-style listings.
      *
      * @var bool
      */
-    protected $enableTimestampsOnUnixListings = \false;
+    protected $enableTimestampsOnUnixListings = false;
+
     /**
      * Constructor.
      *
@@ -78,6 +93,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
         $this->safeStorage = new SafeStorage();
         $this->setConfig($config);
     }
+
     /**
      * Set the config.
      *
@@ -88,16 +104,20 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function setConfig(array $config)
     {
         foreach ($this->configurable as $setting) {
-            if (!isset($config[$setting])) {
+            if ( ! isset($config[$setting])) {
                 continue;
             }
+
             $method = 'set' . ucfirst($setting);
+
             if (method_exists($this, $method)) {
-                $this->{$method}($config[$setting]);
+                $this->$method($config[$setting]);
             }
         }
+
         return $this;
     }
+
     /**
      * Returns the host.
      *
@@ -107,6 +127,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return $this->host;
     }
+
     /**
      * Set the host.
      *
@@ -117,8 +138,10 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function setHost($host)
     {
         $this->host = $host;
+
         return $this;
     }
+
     /**
      * Set the public permission value.
      *
@@ -129,8 +152,10 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function setPermPublic($permPublic)
     {
         $this->permPublic = $permPublic;
+
         return $this;
     }
+
     /**
      * Set the private permission value.
      *
@@ -141,8 +166,10 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function setPermPrivate($permPrivate)
     {
         $this->permPrivate = $permPrivate;
+
         return $this;
     }
+
     /**
      * Returns the ftp port.
      *
@@ -152,6 +179,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return $this->port;
     }
+
     /**
      * Returns the root folder to work from.
      *
@@ -161,6 +189,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return $this->root;
     }
+
     /**
      * Set the ftp port.
      *
@@ -171,8 +200,10 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function setPort($port)
     {
         $this->port = (int) $port;
+
         return $this;
     }
+
     /**
      * Set the root folder to work from.
      *
@@ -182,9 +213,11 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
      */
     public function setRoot($root)
     {
-        $this->root = rtrim($root, '\/') . $this->separator;
+        $this->root = rtrim($root, '\\/') . $this->separator;
+
         return $this;
     }
+
     /**
      * Returns the ftp username.
      *
@@ -193,8 +226,10 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function getUsername()
     {
         $username = $this->safeStorage->retrieveSafely('username');
+
         return $username !== null ? $username : 'anonymous';
     }
+
     /**
      * Set ftp username.
      *
@@ -205,8 +240,10 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function setUsername($username)
     {
         $this->safeStorage->storeSafely('username', $username);
+
         return $this;
     }
+
     /**
      * Returns the password.
      *
@@ -216,6 +253,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return $this->safeStorage->retrieveSafely('password');
     }
+
     /**
      * Set the ftp password.
      *
@@ -226,8 +264,10 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function setPassword($password)
     {
         $this->safeStorage->storeSafely('password', $password);
+
         return $this;
     }
+
     /**
      * Returns the amount of seconds before the connection will timeout.
      *
@@ -237,6 +277,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return $this->timeout;
     }
+
     /**
      * Set the amount of seconds before the connection should timeout.
      *
@@ -247,8 +288,10 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function setTimeout($timeout)
     {
         $this->timeout = (int) $timeout;
+
         return $this;
     }
+
     /**
      * Return the FTP system type.
      *
@@ -258,6 +301,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return $this->systemType;
     }
+
     /**
      * Set the FTP system type (windows or unix).
      *
@@ -268,8 +312,10 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function setSystemType($systemType)
     {
         $this->systemType = strtolower($systemType);
+
         return $this;
     }
+
     /**
      * True to enable timestamps for FTP servers that return unix-style listings.
      *
@@ -277,19 +323,23 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
      *
      * @return $this
      */
-    public function setEnableTimestampsOnUnixListings($bool = \false)
+    public function setEnableTimestampsOnUnixListings($bool = false)
     {
         $this->enableTimestampsOnUnixListings = $bool;
+
         return $this;
     }
+
     /**
      * @inheritdoc
      */
-    public function listContents($directory = '', $recursive = \false)
+    public function listContents($directory = '', $recursive = false)
     {
         return $this->listDirectoryContents($directory, $recursive);
     }
-    abstract protected function listDirectoryContents($directory, $recursive = \false);
+
+    abstract protected function listDirectoryContents($directory, $recursive = false);
+
     /**
      * Normalize a directory listing.
      *
@@ -303,15 +353,19 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
         $base = $prefix;
         $result = [];
         $listing = $this->removeDotDirectories($listing);
+
         while ($item = array_shift($listing)) {
             if (preg_match('#^.*:$#', $item)) {
                 $base = preg_replace('~^\./*|:$~', '', $item);
                 continue;
             }
+
             $result[] = $this->normalizeObject($item, $base);
         }
+
         return $this->sortListing($result);
     }
+
     /**
      * Sort a directory listing.
      *
@@ -324,9 +378,12 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
         $compare = function ($one, $two) {
             return strnatcmp($one['path'], $two['path']);
         };
+
         usort($result, $compare);
+
         return $result;
     }
+
     /**
      * Normalize a file entry.
      *
@@ -340,13 +397,16 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     protected function normalizeObject($item, $base)
     {
         $systemType = $this->systemType ?: $this->detectSystemType($item);
+
         if ($systemType === 'unix') {
             return $this->normalizeUnixObject($item, $base);
         } elseif ($systemType === 'windows') {
             return $this->normalizeWindowsObject($item, $base);
         }
+
         throw NotSupportedException::forFtpSystemType($systemType);
     }
+
     /**
      * Normalize a Unix file entry.
      *
@@ -370,30 +430,38 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     protected function normalizeUnixObject($item, $base)
     {
         $item = preg_replace('#\s+#', ' ', trim($item), 7);
+
         if (count(explode(' ', $item, 9)) !== 9) {
-            throw new RuntimeException("Metadata can't be parsed from item '{$item}' , not enough parts.");
+            throw new RuntimeException("Metadata can't be parsed from item '$item' , not enough parts.");
         }
-        list($permissions, , , , $size, $month, $day, $timeOrYear, $name) = explode(' ', $item, 9);
+
+        list($permissions, /* $number */, /* $owner */, /* $group */, $size, $month, $day, $timeOrYear, $name) = explode(' ', $item, 9);
         $type = $this->detectType($permissions);
         $path = $base === '' ? $name : $base . $this->separator . $name;
+
         if ($type === 'dir') {
             $result = compact('type', 'path');
             if ($this->enableTimestampsOnUnixListings) {
                 $timestamp = $this->normalizeUnixTimestamp($month, $day, $timeOrYear);
                 $result += compact('timestamp');
             }
+
             return $result;
         }
+
         $permissions = $this->normalizePermissions($permissions);
-        $visibility = $permissions & 044 ? AdapterInterface::VISIBILITY_PUBLIC : AdapterInterface::VISIBILITY_PRIVATE;
+        $visibility = $permissions & 0044 ? AdapterInterface::VISIBILITY_PUBLIC : AdapterInterface::VISIBILITY_PRIVATE;
         $size = (int) $size;
+
         $result = compact('type', 'path', 'visibility', 'size');
         if ($this->enableTimestampsOnUnixListings) {
             $timestamp = $this->normalizeUnixTimestamp($month, $day, $timeOrYear);
             $result += compact('timestamp');
         }
+
         return $result;
     }
+
     /**
      * Only accurate to the minute (current year), or to the day.
      *
@@ -421,8 +489,10 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
             $seconds = '00';
         }
         $dateTime = DateTime::createFromFormat('Y-M-j-G:i:s', "{$year}-{$month}-{$day}-{$hour}:{$minute}:{$seconds}");
+
         return $dateTime->getTimestamp();
     }
+
     /**
      * Normalize a Windows/DOS file entry.
      *
@@ -434,24 +504,32 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     protected function normalizeWindowsObject($item, $base)
     {
         $item = preg_replace('#\s+#', ' ', trim($item), 3);
+
         if (count(explode(' ', $item, 4)) !== 4) {
-            throw new RuntimeException("Metadata can't be parsed from item '{$item}' , not enough parts.");
+            throw new RuntimeException("Metadata can't be parsed from item '$item' , not enough parts.");
         }
+
         list($date, $time, $size, $name) = explode(' ', $item, 4);
         $path = $base === '' ? $name : $base . $this->separator . $name;
+
         // Check for the correct date/time format
         $format = strlen($date) === 8 ? 'm-d-yH:iA' : 'Y-m-dH:i';
         $dt = DateTime::createFromFormat($format, $date . $time);
-        $timestamp = $dt ? $dt->getTimestamp() : (int) strtotime("{$date} {$time}");
+        $timestamp = $dt ? $dt->getTimestamp() : (int) strtotime("$date $time");
+
         if ($size === '<DIR>') {
             $type = 'dir';
+
             return compact('type', 'path', 'timestamp');
         }
+
         $type = 'file';
         $visibility = AdapterInterface::VISIBILITY_PUBLIC;
         $size = (int) $size;
+
         return compact('type', 'path', 'visibility', 'size', 'timestamp');
     }
+
     /**
      * Get the system type from a listing item.
      *
@@ -463,6 +541,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return preg_match('/^[0-9]{2,4}-[0-9]{2}-[0-9]{2}/', trim($item)) ? 'windows' : 'unix';
     }
+
     /**
      * Get the file type from the permissions.
      *
@@ -474,6 +553,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return substr($permissions, 0, 1) === 'd' ? 'dir' : 'file';
     }
+
     /**
      * Normalize a permissions string.
      *
@@ -484,22 +564,28 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     protected function normalizePermissions($permissions)
     {
         if (is_numeric($permissions)) {
-            return (int) $permissions & 0777;
+            return ((int) $permissions) & 0777;
         }
+
         // remove the type identifier
         $permissions = substr($permissions, 1);
+
         // map the string rights to the numeric counterparts
         $map = ['-' => '0', 'r' => '4', 'w' => '2', 'x' => '1'];
         $permissions = strtr($permissions, $map);
+
         // split up the permission groups
         $parts = str_split($permissions, 3);
+
         // convert the groups
         $mapper = function ($part) {
             return array_sum(str_split($part));
         };
+
         // converts to decimal number
         return octdec(implode('', array_map($mapper, $parts)));
     }
+
     /**
      * Filter out dot-directories.
      *
@@ -510,10 +596,12 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function removeDotDirectories(array $list)
     {
         $filter = function ($line) {
-            return $line !== '' && !preg_match('#.* \.(\.)?$|^total#', $line);
+            return $line !== '' && ! preg_match('#.* \.(\.)?$|^total#', $line);
         };
+
         return array_filter($list, $filter);
     }
+
     /**
      * @inheritdoc
      */
@@ -521,6 +609,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return $this->getMetadata($path);
     }
+
     /**
      * @inheritdoc
      */
@@ -528,6 +617,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return $this->getMetadata($path);
     }
+
     /**
      * @inheritdoc
      */
@@ -535,6 +625,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return $this->getMetadata($path);
     }
+
     /**
      * Ensure a directory exists.
      *
@@ -543,21 +634,25 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     public function ensureDirectory($dirname)
     {
         $dirname = (string) $dirname;
-        if ($dirname !== '' && !$this->has($dirname)) {
+
+        if ($dirname !== '' && ! $this->has($dirname)) {
             $this->createDir($dirname, new Config());
         }
     }
+
     /**
      * @return mixed
      */
     public function getConnection()
     {
-        if (!$this->isConnected()) {
+        if ( ! $this->isConnected()) {
             $this->disconnect();
             $this->connect();
         }
+
         return $this->connection;
     }
+
     /**
      * Get the public permission value.
      *
@@ -567,6 +662,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return $this->permPublic;
     }
+
     /**
      * Get the private permission value.
      *
@@ -576,6 +672,7 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         return $this->permPrivate;
     }
+
     /**
      * Disconnect on destruction.
      */
@@ -583,22 +680,26 @@ abstract class AbstractFtpAdapter extends AbstractAdapter
     {
         $this->disconnect();
     }
+
     /**
      * Establish a connection.
      */
     abstract public function connect();
+
     /**
      * Close the connection.
      */
     abstract public function disconnect();
+
     /**
      * Check if a connection is active.
      *
      * @return bool
      */
     abstract public function isConnected();
+
     protected function escapePath($path)
     {
-        return str_replace(['*', '[', ']'], ['\*', '\[', '\]'], $path);
+        return str_replace(['*', '[', ']'], ['\\*', '\\[', '\\]'], $path);
     }
 }

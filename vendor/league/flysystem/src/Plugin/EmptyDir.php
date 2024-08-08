@@ -1,6 +1,6 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem\Plugin;
+namespace League\Flysystem\Plugin;
 
 class EmptyDir extends AbstractPlugin
 {
@@ -13,6 +13,7 @@ class EmptyDir extends AbstractPlugin
     {
         return 'emptyDir';
     }
+
     /**
      * Empty a directory's contents.
      *
@@ -20,7 +21,8 @@ class EmptyDir extends AbstractPlugin
      */
     public function handle($dirname)
     {
-        $listing = $this->filesystem->listContents($dirname, \false);
+        $listing = $this->filesystem->listContents($dirname, false);
+
         foreach ($listing as $item) {
             if ($item['type'] === 'dir') {
                 $this->filesystem->deleteDir($item['path']);

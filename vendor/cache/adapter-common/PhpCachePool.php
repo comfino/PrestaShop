@@ -8,9 +8,11 @@
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
-namespace ComfinoExternal\Cache\Adapter\Common;
 
-use ComfinoExternal\Cache\TagInterop\TaggableCacheItemPoolInterface;
+namespace Cache\Adapter\Common;
+
+use Cache\TagInterop\TaggableCacheItemPoolInterface;
+
 /**
  * @author Tobias Nyholm <tobias.nyholm@gmail.com>
  */
@@ -22,6 +24,7 @@ interface PhpCachePool extends TaggableCacheItemPoolInterface
      * @return PhpCacheItem
      */
     public function getItem($key);
+
     /**
      * {@inheritdoc}
      *

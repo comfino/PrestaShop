@@ -1,6 +1,6 @@
 <?php
 
-namespace ComfinoExternal\League\Flysystem\Plugin;
+namespace League\Flysystem\Plugin;
 
 class ListWith extends AbstractPlugin
 {
@@ -13,6 +13,7 @@ class ListWith extends AbstractPlugin
     {
         return 'listWith';
     }
+
     /**
      * List contents with metadata.
      *
@@ -22,17 +23,20 @@ class ListWith extends AbstractPlugin
      *
      * @return array listing with metadata
      */
-    public function handle(array $keys = [], $directory = '', $recursive = \false)
+    public function handle(array $keys = [], $directory = '', $recursive = false)
     {
         $contents = $this->filesystem->listContents($directory, $recursive);
+
         foreach ($contents as $index => $object) {
             if ($object['type'] === 'file') {
                 $missingKeys = array_diff($keys, array_keys($object));
                 $contents[$index] = array_reduce($missingKeys, [$this, 'getMetadataByName'], $object);
             }
         }
+
         return $contents;
     }
+
     /**
      * Get a meta-data value by key name.
      *
@@ -44,10 +48,13 @@ class ListWith extends AbstractPlugin
     protected function getMetadataByName(array $object, $key)
     {
         $method = 'get' . ucfirst($key);
-        if (!method_exists($this->filesystem, $method)) {
+
+        if ( ! method_exists($this->filesystem, $method)) {
             throw new \InvalidArgumentException('Could not get meta-data for key: ' . $key);
         }
+
         $object[$key] = $this->filesystem->{$method}($object['path']);
+
         return $object;
     }
 }

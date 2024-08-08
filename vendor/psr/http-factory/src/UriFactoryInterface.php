@@ -1,6 +1,6 @@
 <?php
 
-namespace ComfinoExternal\Psr\Http\Message;
+namespace Psr\Http\Message;
 
 interface UriFactoryInterface
 {

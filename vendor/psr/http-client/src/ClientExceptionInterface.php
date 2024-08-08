@@ -1,6 +1,6 @@
 <?php
 
-namespace ComfinoExternal\Psr\Http\Client;
+namespace Psr\Http\Client;
 
 /**
  * Every HTTP client related exception MUST implement this interface.
