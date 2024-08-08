@@ -100,6 +100,20 @@ final class FormManager
                 $infoMessages[] = sprintf('<b>Widget key:</b> %s', ConfigManager::getWidgetKey());
 
                 if (!empty(getenv('COMFINO_DEBUG')) || !empty(getenv('COMFINO_DEV'))) {
+                    $infoMessages[] = sprintf('<b>Plugin dev-debug mode:</b> %s', ApiClient::isDevEnv() ? 'Yes' : 'No');
+
+                    $psEnvVariables = ['PS_LANGUAGE', 'PS_COUNTRY', 'PS_DOMAIN', 'PS_VERSION', 'PS_DEV_MODE'];
+
+                    $infoMessages[] = sprintf(
+                        '<b>PrestaShop environment variables:</b><ul>%s</ul>',
+                        implode('', array_map(
+                            static function (string $envVariable): string {
+                                return "<li><b>$envVariable</b> = \"" . getenv($envVariable) . '"</li>';
+                            },
+                            $psEnvVariables
+                        ))
+                    );
+
                     $devEnvVariables = [
                         'DEBUG', 'DEV', 'DEV_API_HOST', 'DEV_API_HOST_FRONTEND', 'DEV_API_HOST_BACKEND',
                         'DEV_API_PAYWALL_HOST', 'DEV_FRONTEND_SCRIPT_URL', 'DEV_WIDGET_SCRIPT_URL',
@@ -111,7 +125,7 @@ final class FormManager
                         implode('', array_map(
                             static function (string $envVariable): string {
                                 $varName = "COMFINO_$envVariable";
-                                return "<li><b>$varName</b> = " . getenv($varName) . '</li>';
+                                return "<li><b>$varName</b> = \"" . getenv($varName) . '"</li>';
                             },
                             $devEnvVariables
                         ))
