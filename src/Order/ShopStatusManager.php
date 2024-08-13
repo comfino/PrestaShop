@@ -167,7 +167,7 @@ final class ShopStatusManager
                 ErrorLogger::init($module);
 
                 try {
-                    ApiClient::getInstance()->cancelOrder($params['id_order']);
+                    ApiClient::getInstance()->cancelOrder((string) $params['id_order']);
                 } catch (\Throwable $e) {
                     ApiClient::processApiError(
                         'Order cancellation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e
