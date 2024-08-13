@@ -141,9 +141,11 @@ final class RestEndpointManager
         return $endpoints;
     }
 
-    public function processRequest(?string $endpointName = null): ResponseInterface
+    public function processRequest(?string $endpointName = null, ?ServerRequestInterface $serverRequest = null): ResponseInterface
     {
-        $serverRequest = $this->getServerRequest();
+        if ($serverRequest === null) {
+            $serverRequest = $this->getServerRequest();
+        }
 
         try {
             $this->verifyRequest($serverRequest);
