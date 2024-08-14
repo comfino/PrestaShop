@@ -37,7 +37,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class CacheManager
+final class CacheManager
 {
     /** @var string */
     private static $cacheRootPath;
