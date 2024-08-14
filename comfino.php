@@ -35,6 +35,8 @@ if (!defined('COMFINO_VERSION')) {
     define('COMFINO_VERSION', '4.0.0');
 }
 
+/* Notice: source code of this module MUST be compatible with PHP 5.6 syntax. */
+
 class Comfino extends PaymentModule
 {
     const MIN_PHP_VERSION_ID = 70100;
