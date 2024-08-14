@@ -92,11 +92,7 @@
                 }
             }
 
-            ComfinoPaywallFrontend.init(
-                frontendInitElement,
-                document.getElementById('comfino-paywall-container'),
-                Comfino.paywallOptions
-            );
+            ComfinoPaywallFrontend.init(frontendInitElement, iframe, Comfino.paywallOptions);
         }
     }
 
