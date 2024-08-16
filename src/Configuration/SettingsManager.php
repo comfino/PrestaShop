@@ -207,7 +207,7 @@ final class SettingsManager
 
     public static function getProductCategoryFilters(): array
     {
-        return ConfigManager::getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS') ?? [];
+        return ConfigManager::getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS', []);
     }
 
     public static function productCategoryFiltersActive(array $productCategoryFilters): bool

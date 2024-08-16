@@ -75,6 +75,11 @@ class Tools
         return \Language::getIsoById($langId);
     }
 
+    public function getCountryIsoCode(int $countryId): string
+    {
+        return \Country::getIsoById($countryId);
+    }
+
     public function getCookie(): \Cookie
     {
         return $this->context->cookie;

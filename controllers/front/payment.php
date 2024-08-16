@@ -34,6 +34,7 @@ use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Customer;
 use Comfino\Shop\Order\Customer\Address;
+use Comfino\Tools;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -69,6 +70,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
+        $tools = new Tools(\Context::getContext());
+
+        $billingAddress = $cart->getAddressCollection()[$cart->id_address_invoice];
         $deliveryAddress = $cart->getAddressCollection()[$cart->id_address_delivery];
 
         if (!$deliveryAddress->phone && !$deliveryAddress->phone_mobile) {
@@ -175,7 +179,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                     null,
                     $deliveryAddress->postcode,
                     $deliveryAddress->city,
-                    'PL'
+                    $tools->getCountryIsoCode($deliveryAddress->id_country)
                 )
             ),
             $returnUrl,
