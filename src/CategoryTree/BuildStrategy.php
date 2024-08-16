@@ -26,10 +26,10 @@
 
 namespace Comfino\CategoryTree;
 
+use Comfino\Common\Shop\Product\Category;
+use Comfino\Common\Shop\Product\CategoryManager;
 use Comfino\Common\Shop\Product\CategoryTree\BuildStrategyInterface;
 use Comfino\Common\Shop\Product\CategoryTree\Descriptor;
-use Comfino\Common\Shop\Product\CategoryTree\Node;
-use Comfino\Common\Shop\Product\CategoryTree\NodeIterator;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -42,53 +42,40 @@ class BuildStrategy implements BuildStrategyInterface
 
     public function build(): Descriptor
     {
-        if ($this->descriptor !== null) {
-            return $this->descriptor;
+        if ($this->descriptor === null) {
+            $this->descriptor = CategoryManager::buildCategoryTree($this->getNestedCategories());
         }
-
-        $this->descriptor = new Descriptor();
-        $this->descriptor->index = [];
-
-        $nodes = [];
-
-        foreach (\Category::getNestedCategories() as $category) {
-            $node = new Node($category['id_category'], $category['name']);
-
-            if (!empty($category['children'])) {
-                $childNodes = [];
-
-                foreach ($category['children'] as $childCategory) {
-                    $childNodes[] = $this->processCategory($node, $childCategory);
-                }
-
-                $node->setChildren(new NodeIterator($childNodes));
-            }
-
-            $nodes[] = $node;
-            $this->descriptor->index[$node->getId()] = $node;
-        }
-
-        $this->descriptor->nodes = new NodeIterator($nodes);
 
         return $this->descriptor;
     }
 
-    private function processCategory(Node $parentNode, array $category): Node
+    /**
+     * @return Category[]
+     */
+    private function getNestedCategories(): array
     {
-        $node = new Node($category['id_category'], $category['name'], $parentNode);
+        static $categories = null;
 
-        if (!empty($category['children'])) {
-            $childNodes = [];
-
-            foreach ($category['children'] as $childCategory) {
-                $childNodes[] = $this->processCategory($node, $childCategory);
-            }
-
-            $node->setChildren(new NodeIterator($childNodes));
+        if ($categories === null) {
+            $categories = $this->processTreeNodes(\Category::getNestedCategories());
         }
 
-        $this->descriptor->index[$node->getId()] = $node;
+        return $categories;
+    }
 
-        return $node;
+    private function processTreeNodes(array $treeNodes): array
+    {
+        $categoryTree = [];
+
+        foreach ($treeNodes as $node) {
+            $categoryTree[] = new Category(
+                $node['id_category'],
+                $node['name'],
+                $node['position'],
+                !empty($node['children']) ? $this->processTreeNodes($node['children']) : []
+            );
+        }
+
+        return $categoryTree;
     }
 }
