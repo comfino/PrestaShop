@@ -264,7 +264,7 @@ final class SettingsManager
     {
         $filters = [];
 
-        if (($minAmount = ConfigManager::getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT')) > 0) {
+        if (($minAmount = ConfigManager::getConfigurationValue('COMFINO_MINIMAL_CART_AMOUNT', 0)) > 0) {
             $availableProductTypes = self::getProductTypesStrings($listType);
             $filters[] = new FilterByCartValueLowerLimit(
                 array_combine($availableProductTypes, array_fill(0, count($availableProductTypes), $minAmount))
