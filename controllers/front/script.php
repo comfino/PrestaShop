@@ -42,7 +42,9 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
         header('Content-Type: application/javascript');
 
         if (ConfigManager::getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
-            $productId = Tools::getValue('product_id', null);
+            if (($productId = Tools::getValue('product_id', null)) !== null) {
+                $productId = (int) $productId;
+            }
 
             try {
                 $widgetVariables = ConfigManager::getWidgetVariables($this->module, $productId);

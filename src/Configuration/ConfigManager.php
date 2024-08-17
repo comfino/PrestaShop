@@ -320,7 +320,7 @@ final class ConfigManager
     /**
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public static function getCurrentWidgetCode(\PaymentModule $module, $productId = null): string
+    public static function getCurrentWidgetCode(\PaymentModule $module, ?int $productId = null): string
     {
         $widgetCode = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
         $productData = self::getProductData($module, $productId);
@@ -346,7 +346,7 @@ final class ConfigManager
     /**
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public static function getWidgetVariables(\PaymentModule $module, $productId = null): array
+    public static function getWidgetVariables(\PaymentModule $module, ?int $productId = null): array
     {
         $productData = self::getProductData($module, $productId);
 
@@ -413,7 +413,7 @@ final class ConfigManager
     /**
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    private static function getProductData(\PaymentModule $module, $productId): array
+    private static function getProductData(\PaymentModule $module, ?int $productId): array
     {
         $context = \Context::getContext();
         $availOffersUrl = ApiService::getControllerUrl($module, 'availableoffertypes', [], false);
