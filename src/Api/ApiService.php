@@ -47,17 +47,7 @@ final class ApiService
 
     public static function init(\PaymentModule $module): void
     {
-        self::$endpointManager = (new ApiServiceFactory())->createService(
-            'PrestaShop',
-            _PS_VERSION_,
-            COMFINO_VERSION,
-            [
-                ConfigManager::getConfigurationValue('COMFINO_API_KEY'),
-                ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY'),
-            ]
-        );
-
-        self::$endpointManager->registerEndpoint(
+        self::getEndpointManager()->registerEndpoint(
             new StatusNotification(
                 'transactionStatus',
                 self::getControllerUrl($module, 'transactionstatus', [], false),
@@ -67,7 +57,7 @@ final class ApiService
             )
         );
 
-        self::$endpointManager->registerEndpoint(
+        self::getEndpointManager()->registerEndpoint(
             new Configuration(
                 'configuration',
                 self::getControllerUrl($module, 'configuration', [], false),
@@ -79,7 +69,7 @@ final class ApiService
             )
         );
 
-        self::$endpointManager->registerEndpoint(
+        self::getEndpointManager()->registerEndpoint(
             new CacheInvalidate(
                 'cacheInvalidate',
                 self::getControllerUrl($module, 'cacheinvalidate', [], false),
@@ -101,7 +91,7 @@ final class ApiService
 
     public static function getEndpointUrl(string $endpointName): string
     {
-        if (($endpoint = self::$endpointManager->getEndpointByName($endpointName)) !== null) {
+        if (($endpoint = self::getEndpointManager()->getEndpointByName($endpointName)) !== null) {
             return $endpoint->getEndpointUrl();
         }
 
@@ -110,13 +100,13 @@ final class ApiService
 
     public static function processRequest(string $endpointName): string
     {
-        if (self::$endpointManager === null || empty(self::$endpointManager->getRegisteredEndpoints())) {
+        if (empty(self::getEndpointManager()->getRegisteredEndpoints())) {
             http_response_code(503);
 
             return 'Endpoint manager not initialized.';
         }
 
-        $response = self::$endpointManager->processRequest($endpointName);
+        $response = self::getEndpointManager()->processRequest($endpointName);
 
         foreach ($response->getHeaders() as $headerName => $headerValues) {
             foreach ($headerValues as $headerValue) {
@@ -129,5 +119,22 @@ final class ApiService
         http_response_code($response->getStatusCode());
 
         return !empty($responseBody) ? $responseBody : $response->getReasonPhrase();
+    }
+
+    private static function getEndpointManager(): RestEndpointManager
+    {
+        if (self::$endpointManager === null) {
+            self::$endpointManager = (new ApiServiceFactory())->createService(
+                'PrestaShop',
+                _PS_VERSION_,
+                COMFINO_VERSION,
+                [
+                    ConfigManager::getConfigurationValue('COMFINO_API_KEY'),
+                    ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY'),
+                ]
+            );
+        }
+
+        return self::$endpointManager;
     }
 }
