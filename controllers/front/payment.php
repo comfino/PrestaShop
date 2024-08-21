@@ -34,7 +34,6 @@ use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Customer;
 use Comfino\Shop\Order\Customer\Address;
-use Comfino\Tools;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -70,7 +69,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $tools = new Tools(\Context::getContext());
+        $tools = new Comfino\Tools(\Context::getContext());
 
         $billingAddress = $cart->getAddressCollection()[$cart->id_address_invoice];
         $deliveryAddress = $cart->getAddressCollection()[$cart->id_address_delivery];
