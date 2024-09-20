@@ -29,11 +29,11 @@ namespace Comfino\View;
 use Comfino\Api\ApiClient;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
-use Comfino\CacheManager;
 use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
 use Comfino\ErrorLogger;
 use Comfino\Main;
+use Comfino\PluginShared\CacheManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;

@@ -28,7 +28,6 @@ namespace Comfino\Configuration;
 
 use Comfino\Api\ApiClient;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
-use Comfino\CacheManager;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByCartValueLowerLimit;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByExcludedCategory;
 use Comfino\Common\Backend\Payment\ProductTypeFilter\FilterByProductType;
@@ -38,6 +37,7 @@ use Comfino\Common\Shop\Cart;
 use Comfino\Common\Shop\Product\CategoryFilter;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Main;
+use Comfino\PluginShared\CacheManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;

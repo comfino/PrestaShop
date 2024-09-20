@@ -28,9 +28,9 @@ namespace Comfino\View;
 
 use Comfino\Api\ApiClient;
 use Comfino\Api\ApiService;
-use Comfino\CacheManager;
 use Comfino\Common\Frontend\PaywallIframeRenderer;
 use Comfino\Common\Frontend\PaywallRenderer;
+use Comfino\PluginShared\CacheManager;
 use Comfino\TemplateRenderer\ModuleRendererStrategy;
 
 if (!defined('_PS_VERSION_')) {

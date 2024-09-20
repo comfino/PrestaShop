@@ -33,6 +33,7 @@ use Comfino\Configuration\SettingsManager;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
 use Comfino\Order\ShopStatusManager;
+use Comfino\PluginShared\CacheManager;
 use Comfino\View\FrontendManager;
 use Comfino\View\SettingsForm;
 use Comfino\View\TemplateManager;

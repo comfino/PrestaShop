@@ -26,7 +26,6 @@
 
 namespace Comfino\Api;
 
-use Comfino\CacheManager;
 use Comfino\Common\Backend\Factory\ApiServiceFactory;
 use Comfino\Common\Backend\RestEndpoint\CacheInvalidate;
 use Comfino\Common\Backend\RestEndpoint\Configuration;
@@ -35,6 +34,7 @@ use Comfino\Common\Backend\RestEndpointManager;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Configuration\ConfigManager;
 use Comfino\Order\StatusAdapter;
+use Comfino\PluginShared\CacheManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
