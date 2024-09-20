@@ -69,12 +69,26 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $tools = new Comfino\Tools(\Context::getContext());
+        $tools = new Comfino\Tools(Context::getContext());
 
         $billingAddress = $cart->getAddressCollection()[$cart->id_address_invoice];
         $deliveryAddress = $cart->getAddressCollection()[$cart->id_address_delivery];
 
-        if (!$deliveryAddress->phone && !$deliveryAddress->phone_mobile) {
+        $phoneNumber = trim($billingAddress->phone);
+
+        if (empty($phoneNumber)) {
+            $phoneNumber = trim($billingAddress->phone_mobile);
+        }
+
+        if (!empty($deliveryAddress->phone)) {
+            $phoneNumber = trim($deliveryAddress->phone);
+        }
+
+        if (!empty($deliveryAddress->phone_mobile)) {
+            $phoneNumber = trim($deliveryAddress->phone_mobile);
+        }
+
+        if (empty($phoneNumber)) {
             $this->errors[] = $this->module->l(
                 'No phone number in addresses found. Please fill value before choosing comfino payment option.'
             );
@@ -127,13 +141,13 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         );
 
         $orderId = (string) $this->module->currentOrder;
-        $deliveryAddressLines = $deliveryAddress->address1;
+        $billingAddressLines = $billingAddress->address1;
 
-        if (!empty($deliveryAddress->address2)) {
-            $deliveryAddressLines .= " $deliveryAddress->address2";
+        if (!empty($billingAddress->address2)) {
+            $billingAddressLines .= " $billingAddress->address2";
         }
 
-        $street = trim($deliveryAddressLines);
+        $street = trim($billingAddressLines);
         $addressParts = explode(' ', $street);
         $buildingNumber = '';
 
@@ -146,12 +160,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             }
         }
 
-        $customerTaxId = trim(str_replace('-', '', $deliveryAddress->vat_number));
-        $phoneNumber = trim($deliveryAddress->phone);
-
-        if (empty($phoneNumber)) {
-            $phoneNumber = trim($deliveryAddress->phone_mobile);
-        }
+        $customerTaxId = trim(str_replace('-', '', $billingAddress->vat_number));
 
         $returnUrl = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
             "$cart->id&id_module={$this->module->id}&id_order=$orderId&key={$customer->secure_key}";
