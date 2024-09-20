@@ -33,6 +33,7 @@ use Comfino\Common\Backend\RestEndpoint\StatusNotification;
 use Comfino\Common\Backend\RestEndpointManager;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Configuration\ConfigManager;
+use Comfino\Main;
 use Comfino\Order\StatusAdapter;
 use Comfino\PluginShared\CacheManager;
 
@@ -100,6 +101,22 @@ final class ApiService
 
     public static function processRequest(string $endpointName): string
     {
+        if (ConfigManager::isDebugMode()) {
+            $request = self::getEndpointManager()->getServerRequest();
+
+            Main::debugLog(
+                '[REST API]',
+                'processRequest',
+                [
+                    '$endpointName' => $endpointName,
+                    'METHOD' => $request->getMethod(),
+                    'PARAMS' => $request->getQueryParams(),
+                    'HEADERS' => $request->getHeaders(),
+                    'BODY' => $request->getBody()->getContents(),
+                ]
+            );
+        }
+
         if (empty(self::getEndpointManager()->getRegisteredEndpoints())) {
             http_response_code(503);
 

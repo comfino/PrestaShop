@@ -46,7 +46,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
         parent::postProcess();
 
         if (!($this->module instanceof Comfino) || !$this->module->active) {
-            TemplateManager::renderControllerView($this, 'module_disabled', 'front');
+            TemplateManager::renderControllerView($this, 'module-disabled', 'front');
 
             return;
         }
@@ -59,7 +59,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
 
         if ($allowedProductTypes === []) {
             // Filters active - all product types disabled.
-            TemplateManager::renderControllerView($this, 'paywall_disabled', 'front');
+            TemplateManager::renderControllerView($this, 'paywall-disabled', 'front');
 
             return;
         }
@@ -74,7 +74,8 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
 
         Main::debugLog(
             '[PAYWALL]',
-            'renderPaywall - $loanAmount=' . $loanAmount . ', $allowedProductTypes=' . json_encode($allowedProductTypes)
+            'renderPaywall',
+            ['$loanAmount' => $loanAmount, '$allowedProductTypes' => $allowedProductTypes]
         );
 
         echo FrontendManager::getPaywallRenderer($this->module)

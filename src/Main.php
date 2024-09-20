@@ -158,7 +158,7 @@ final class Main
             $tplVariables['status'] = 'failed';
         }
 
-        return TemplateManager::renderModuleView($module, 'payment_return', 'front', $tplVariables);
+        return TemplateManager::renderModuleView($module, 'payment-return', 'front', $tplVariables);
     }
 
     public static function addScriptLink(
@@ -181,9 +181,25 @@ final class Main
         }
     }
 
-    public static function debugLog(string $debugPrefix, string $debugMessage): void
+    public static function debugLog(string $debugPrefix, string $debugMessage, ?array $parameters = null): void
     {
         if (ConfigManager::isDebugMode()) {
+            if (!empty($parameters)) {
+                $preparedParameters = [];
+
+                foreach ($parameters as $name => $value) {
+                    if (is_array($value)) {
+                        $value = json_encode($value);
+                    } elseif (is_bool($value)) {
+                        $value = ($value ? 'true' : 'false');
+                    }
+
+                    $preparedParameters[] = "$name=$value";
+                }
+
+                $debugMessage .= (($debugMessage !== '' ? ': ' : '') . implode(', ', $preparedParameters));
+            }
+
             @file_put_contents(
                 self::$debugLogFilePath,
                 '[' . date('Y-m-d H:i:s') . "] $debugPrefix: $debugMessage\n",

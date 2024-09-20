@@ -38,7 +38,7 @@ final class TemplateManager
         string $path,
         array $variables = []
     ): string {
-        $templatePath = 'views/templates';
+        $templatePath = 'views';
 
         if (!empty($path)) {
             $templatePath .= ('/' . trim($path, ' /'));
@@ -67,7 +67,7 @@ final class TemplateManager
         string $path,
         array $variables = []
     ): void {
-        $templatePath = 'views/templates';
+        $templatePath = 'views';
 
         if (!empty($path)) {
             $templatePath .= ('/' . trim($path, ' /'));
