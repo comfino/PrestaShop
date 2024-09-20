@@ -262,7 +262,7 @@ class Comfino extends PaymentModule
      */
     public function hookActionAdminControllerSetMedia(array $params)
     {
-        $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/resources/js/admin/tree.min.js');
+        $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/admin/tree.min.js');
     }
 
     /**
