@@ -28,6 +28,7 @@ use Comfino\Api\Dto\Payment\LoanQueryCriteria;
 use Comfino\Configuration\SettingsManager;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\Main;
 use Comfino\Order\OrderManager;
 use Comfino\View\FrontendManager;
 use Comfino\View\TemplateManager;
@@ -70,6 +71,11 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
                 $loanAmount += ((int) ($priceModifier * 100));
             }
         }
+
+        Main::debugLog(
+            '[PAYWALL]',
+            'renderPaywall - $loanAmount=' . $loanAmount . ', $allowedProductTypes=' . json_encode($allowedProductTypes)
+        );
 
         echo FrontendManager::getPaywallRenderer($this->module)
             ->renderPaywall(new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes));

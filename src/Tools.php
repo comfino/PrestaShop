@@ -65,6 +65,10 @@ class Tools
 
     public function getCurrencyIsoCode(int $currencyId): string
     {
+        if ($currencyId === 0) {
+            return 'PLN';
+        }
+
         return COMFINO_PS_17 && method_exists(\Currency::class, 'getIsoCodeById')
             ? \Currency::getIsoCodeById($currencyId)
             : \Currency::getCurrencyInstance($currencyId)->iso_code;

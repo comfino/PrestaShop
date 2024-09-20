@@ -80,14 +80,14 @@ class Comfino extends PaymentModule
             'payments available on one platform with the help of quick integration. Grow your business with Comfino!'
         );
 
+        if (is_readable(__DIR__ . '/vendor/autoload.php')) {
+            require_once __DIR__ . '/vendor/autoload.php';
+        }
+
         if (!$this->checkEnvironment(true)) {
             $this->description .= (' ' . $this->_errors[count($this->_errors) - 1]);
 
             return;
-        }
-
-        if (is_readable(__DIR__ . '/vendor/autoload.php')) {
-            require_once __DIR__ . '/vendor/autoload.php';
         }
 
         // Initialize Comfino plugin.
@@ -262,7 +262,7 @@ class Comfino extends PaymentModule
      */
     public function hookActionAdminControllerSetMedia(array $params)
     {
-        $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/tree.min.js');
+        $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/resources/js/admin/tree.min.js');
     }
 
     /**

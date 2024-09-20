@@ -55,6 +55,7 @@ final class Main
 
         // Initialize cache system.
         CacheManager::init($module);
+
         // Register module API endpoints.
         ApiService::init($module);
     }
@@ -195,7 +196,7 @@ final class Main
         return self::$errorLogger->getErrorLog(self::$debugLogFilePath, $numLines);
     }
 
-    private static function paymentIsAvailable(\PaymentModule $module, \Cart $cart): bool
+    public static function paymentIsAvailable(\PaymentModule $module, \Cart $cart): bool
     {
         if (!$module->active || !OrderManager::checkCartCurrency($module, $cart) || empty(ConfigManager::getApiKey())) {
             self::debugLog('[PAYWALL]', 'paymentIsAvailable - plugin disabled or incomplete configuration.');
