@@ -56,7 +56,6 @@
         display: inline !important;
         margin-right: 10px;
     }
-
 </style>
 <div class="row">
     <div class="col-xs-12 col-md-12">
@@ -102,14 +101,18 @@
         Comfino.paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
             ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
 
-            let paymentStateUrl = '{$payment_state_url nofilter}';
-            let urlParams = new URLSearchParams({
+            const url = new URL('{$payment_state_url nofilter}');
+            const urlParams = {
                 loan_amount: loanParams.loanAmount,
                 loan_type: loanParams.loanType,
                 loan_term: loanParams.loanTerm
-            });
+            };
 
-            paymentStateUrl += (paymentStateUrl.indexOf('?') > 0 ? '&' : '?') + urlParams.toString();
+            for (let paramName in urlParams) {
+                url.searchParams.append(paramName, urlParams[paramName]);
+            }
+
+            const paymentStateUrl = url.toString();
 
             fetch(paymentStateUrl, { method: 'POST' }).then(response => {
                 ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', paymentStateUrl, response);
