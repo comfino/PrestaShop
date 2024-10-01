@@ -589,6 +589,28 @@ final class SettingsForm
                                     'displaying of Comfino payment option at the payment methods list.'
                                 ),
                             ],
+                            [
+                                'type' => 'switch',
+                                'label' => $module->l('Service mode'),
+                                'name' => 'COMFINO_SERVICE_MODE',
+                                'values' => [
+                                    [
+                                        'id' => 'service_mode_enabled',
+                                        'value' => true,
+                                        'label' => $module->l('Enabled'),
+                                    ],
+                                    [
+                                        'id' => 'service_mode_disabled',
+                                        'value' => false,
+                                        'label' => $module->l('Disabled'),
+                                    ],
+                                ],
+                                'desc' => $module->l(
+                                    'Service mode is useful in testing Comfino payment gateway without sharing ' .
+                                    'it with customers. In this mode Comfino payment method is visible only for ' .
+                                    'selected sessions and debug logs are collected only for these sessions.'
+                                ),
+                            ],
                         ],
                         'submit' => [
                             'title' => $module->l('Save'),

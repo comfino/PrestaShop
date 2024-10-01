@@ -183,6 +183,10 @@ final class Main
 
     public static function debugLog(string $debugPrefix, string $debugMessage, ?array $parameters = null): void
     {
+        if ((!isset($_COOKIE['COMFINO_SERVICE_SESSION']) || $_COOKIE['COMFINO_SERVICE_SESSION'] !== 'ACTIVE') && ConfigManager::isServiceMode()) {
+            return;
+        }
+
         if (ConfigManager::isDebugMode()) {
             if (!empty($parameters)) {
                 $preparedParameters = [];
@@ -215,6 +219,14 @@ final class Main
 
     public static function paymentIsAvailable(\PaymentModule $module, \Cart $cart): bool
     {
+        if (ConfigManager::isServiceMode()) {
+            if (isset($_COOKIE['COMFINO_SERVICE_SESSION']) && $_COOKIE['COMFINO_SERVICE_SESSION'] === 'ACTIVE') {
+                self::debugLog('[PAYWALL]', 'paymentIsAvailable: service mode is active.');
+            } else {
+                return false;
+            }
+        }
+
         if (!$module->active || !OrderManager::checkCartCurrency($module, $cart) || empty(ConfigManager::getApiKey())) {
             self::debugLog('[PAYWALL]', 'paymentIsAvailable - plugin disabled or incomplete configuration.');
 
