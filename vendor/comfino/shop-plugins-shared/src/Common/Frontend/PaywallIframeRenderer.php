@@ -71,4 +71,51 @@ final class PaywallIframeRenderer extends FrontendRenderer
             $this->getFrontendFragments(self::PAYWALL_IFRAME_FRAGMENTS)
         );
     }
+
+    /**
+     * @throws ClientExceptionInterface
+     * @throws InvalidArgumentException
+     */
+    public function getPaywallFrontendStyle(): string
+    {
+        return $this->getFrontendFragments(self::PAYWALL_IFRAME_FRAGMENTS)['frontend_style'] ?? '';
+    }
+
+    /**
+     * @throws ClientExceptionInterface
+     * @throws InvalidArgumentException
+     */
+    public function getPaywallFrontendScript(): string
+    {
+        return $this->getFrontendFragments(self::PAYWALL_IFRAME_FRAGMENTS)['frontend_script'] ?? '';
+    }
+
+    public function getPaywallFrontendStyleTimestamp(): int
+    {
+        try {
+            return $this->extractCacheTimestamp($this->getPaywallFrontendStyle());
+        } catch (InvalidArgumentException|\Throwable $exception) {
+            return 0;
+        }
+    }
+
+    public function getPaywallFrontendScriptTimestamp(): int
+    {
+        try {
+            return $this->extractCacheTimestamp($this->getPaywallFrontendScript());
+        } catch (InvalidArgumentException|\Throwable $exception) {
+            return 0;
+        }
+    }
+
+    private function extractCacheTimestamp(string $contents): int
+    {
+        $matches = [];
+
+        if (preg_match('/\/\*\[cached:(\d+)\]\*\//', $contents, $matches)) {
+            return (int) $matches[1];
+        }
+
+        return 0;
+    }
 }
