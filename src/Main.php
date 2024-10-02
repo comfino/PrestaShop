@@ -55,7 +55,7 @@ final class Main
         self::$debugLogFilePath = _PS_MODULE_DIR_ . $module->name . '/var/log/debug.log';
 
         // Initialize cache system.
-        CacheManager::init($module);
+        CacheManager::init(_PS_MODULE_DIR_ . $module->name . '/var');
 
         // Register module API endpoints.
         ApiService::init($module);
