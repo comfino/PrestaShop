@@ -41,6 +41,8 @@ function upgrade_module_4_0_0(Comfino $module)
         return false;
     }
 
+    $module->unregisterHook('actionValidateCustomerAddressForm');
+
     ConfigManager::deleteConfigurationValues(['COMFINO_REGISTERED_AT', 'COMFINO_SANDBOX_REGISTERED_AT']);
 
     // Initialize new configuration options

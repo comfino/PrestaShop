@@ -205,16 +205,6 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * Customer address validation event handler for order placement process.
-     *
-     * @return string
-     */
-    public function hookActionValidateCustomerAddressForm(array $params)
-    {
-        return Comfino\Order\OrderManager::validateCustomerData($this, $params);
-    }
-
-    /**
      * Page header section renderer for cart and product pages.
      *
      * @return void

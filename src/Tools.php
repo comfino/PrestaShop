@@ -105,22 +105,4 @@ class Tools
             $this->formatPrice($price, $this->getCurrentCurrencyId())
         );
     }
-
-    public function isValidTaxId(string $taxId): bool
-    {
-        if (empty($taxId) || strlen($taxId) !== 10 || !preg_match('/^\d+$/', $taxId)) {
-            return false;
-        }
-
-        $arrSteps = [6, 5, 7, 2, 3, 4, 5, 6, 7];
-        $intSum = 0;
-
-        for ($i = 0; $i < 9; ++$i) {
-            $intSum += $arrSteps[$i] * $taxId[$i];
-        }
-
-        $int = $intSum % 11;
-
-        return ($int === 10 ? 0 : $int) === (int) $taxId[9];
-    }
 }
