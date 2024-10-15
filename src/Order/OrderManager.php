@@ -52,16 +52,22 @@ final class OrderManager
             (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100),
             array_map(static function (array $product): CartItemInterface {
                 $quantity = (int) $product['cart_quantity'];
+                $taxRulesGroupId = \Product:: getIdTaxRulesGroupByIdProduct($product['id_product']);
+                $grossPrice = (int) ($product['total_wt'] / $quantity * 100);
+                $netPrice = (int) ($product['total'] / $quantity * 100);
 
                 return new CartItem(
                     new Product(
                         $product['name'],
-                        (int) ($product['total_wt'] / $quantity * 100),
+                        $grossPrice,
                         (string) $product['id_product'],
                         $product['category'],
                         $product['ean13'],
                         self::getProductImageUrl($product),
-                        \Product::getProductCategories($product['id_product'])
+                        \Product::getProductCategories($product['id_product']),
+                        $taxRulesGroupId !== 0 ? $netPrice : null,
+                        $taxRulesGroupId !== 0 ? (int) ((new \Product($product['id_product']))->getTaxesRate()) : null,
+                        $taxRulesGroupId !== 0 ? $grossPrice - $netPrice : null
                     ),
                     $quantity
                 );
@@ -83,7 +89,10 @@ final class OrderManager
                         null,
                         null,
                         null,
-                        array_map('intval', $product->getCategories())
+                        array_map('intval', $product->getCategories()),
+                        $product->getIdTaxRulesGroup() !== 0 ? (int) ($product->getPrice(false) * 100) : null,
+                        $product->getIdTaxRulesGroup() !== 0 ? (int) ($product->getTaxesRate() * 100) : null,
+                        $product->getIdTaxRulesGroup() !== 0 ? (int) (($product->getPrice() - $product->getPrice(false)) * 100) : null
                     ),
                     1
                 ),

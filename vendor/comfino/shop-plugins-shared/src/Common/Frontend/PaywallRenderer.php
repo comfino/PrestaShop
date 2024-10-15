@@ -10,28 +10,19 @@ use Comfino\Paywall\PaywallViewTypeEnum;
 
 final class PaywallRenderer extends FrontendRenderer
 {
-    /**
-     * @readonly
-     * @var \Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface
-     */
-    private $rendererStrategy;
     private const PAYWALL_FRAGMENTS = ['template', 'style', 'script'];
 
     public function __construct(
         Client $client,
         TaggableCacheItemPoolInterface $cache,
-        RendererStrategyInterface $rendererStrategy,
+        private readonly RendererStrategyInterface $rendererStrategy,
         ?string $cacheInvalidateUrl = null,
         ?string $configurationUrl = null
     ) {
-        $this->rendererStrategy = $rendererStrategy;
         parent::__construct($client, $cache, $cacheInvalidateUrl, $configurationUrl);
     }
 
-    /**
-     * @param \Comfino\Api\Dto\Payment\LoanQueryCriteria $queryCriteria
-     */
-    public function renderPaywall($queryCriteria): string
+    public function renderPaywall(LoanQueryCriteria $queryCriteria): string
     {
         try {
             $fragments = $this->getFrontendFragments(self::PAYWALL_FRAGMENTS);
