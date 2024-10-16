@@ -45,6 +45,9 @@ class CreateOrder extends Request
                 'ean' => $cartItem->getProduct()->getEan(),
                 'externalId' => $cartItem->getProduct()->getId(),
                 'category' => $cartItem->getProduct()->getCategory(),
+                'netPrice' => $cartItem->getProduct()->getNetPrice(),
+                'vatRate' => $cartItem->getProduct()->getTaxRate(),
+                'vatAmount' => $cartItem->getProduct()->getTaxValue(),
             ], static function ($value) : bool {
                 return $value !== null;
             });

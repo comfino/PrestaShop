@@ -79,6 +79,7 @@
 <script>
     window.Comfino = {
         paywallOptions: {$paywall_options|@json_encode nofilter},
+        cart: {$cart|@json_encode nofilter},
         init: () => {
             let iframe = document.getElementById('comfino-paywall-container');
             let frontendInitElement = {if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if};
@@ -92,6 +93,23 @@
             }
 
             ComfinoPaywallFrontend.init(frontendInitElement, iframe, Comfino.paywallOptions);
+            ComfinoPaywallFrontend.cartUpdate(Comfino.cart);
+
+            ComfinoPaywallFrontend.cartUpdate({
+                totalAmount: <?php echo $cartTotal * 100; ?>,
+            deliveryCost: <?php echo $deliveryCost * 100; ?>,
+            category: 'Test category',
+                products: [{
+                name: 'Test product',
+                quantity: <?php echo $productQuantity; ?>,
+            price: <?php echo $productUnitPrice * 100; ?>,
+            netPrice: <?php echo $productUnitNetPrice * 100; ?>,
+            vatRate: <?php echo $vatRate * 100; ?>,
+            vatAmount: <?php echo $vatValue * 100; ?>,
+            category: 'Test product category'
+        }]
+        });
+
         }
     }
 

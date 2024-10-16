@@ -266,6 +266,7 @@ final class Main
                         'cartTotal' => (float) $total,
                         'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
                     ],
+                    'cart' => [],
                     'is_ps_16' => !COMFINO_PS_17,
                     'comfino_logo_url' => ApiClient::getPaywallLogoUrl($module),
                     'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
