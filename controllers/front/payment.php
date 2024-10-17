@@ -126,6 +126,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
+        $orderId = (string) $this->module->currentOrder;
         $shopCart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount);
 
         $this->module->validateOrder(
@@ -140,7 +141,14 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $customer->secure_key
         );
 
-        $orderId = (string) $this->module->currentOrder;
+        if (!empty($billingAddress->firstname)) {
+            // Use billing address to get customer names.
+            [$firstName, $lastName] = $this->prepareCustomerNames($billingAddress);
+        } else {
+            // Use delivery address to get customer names.
+            [$firstName, $lastName] = $this->prepareCustomerNames($deliveryAddress);
+        }
+
         $billingAddressLines = $billingAddress->address1;
 
         if (!empty($billingAddress->address2)) {
@@ -173,8 +181,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             new LoanTypeEnum($cookie->loan_type),
             $shopCart->getCartItems(),
             new Customer(
-                $deliveryAddress->firstname,
-                $deliveryAddress->lastname,
+                $firstName,
+                $lastName,
                 $customer->email,
                 $phoneNumber,
                 Tools::getRemoteAddr(),
@@ -185,7 +193,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                     $street,
                     $buildingNumber,
                     null,
-                    $deliveryAddress->postcode,
+                    !empty($deliveryAddress->postcode),
                     $deliveryAddress->city,
                     $tools->getCountryIsoCode($deliveryAddress->id_country)
                 )
@@ -222,5 +230,21 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         call_user_func_array(['Tools', 'redirect'], func_get_args());
+    }
+
+    private function prepareCustomerNames(\Address $address): array
+    {
+        $firstName = trim($address->firstname);
+        $lastName = trim($address->lastname);
+
+        if (empty($lastName)) {
+            $nameParts = explode(' ', $firstName);
+
+            if (count($nameParts) > 1) {
+                [$firstName, $lastName] = $nameParts;
+            }
+        }
+
+        return [$firstName, $lastName];
     }
 }

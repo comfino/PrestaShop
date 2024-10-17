@@ -25,11 +25,14 @@
  */
 
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
+use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\Configuration\SettingsManager;
 use Comfino\ErrorLogger;
+use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Main;
 use Comfino\Order\OrderManager;
+use Comfino\Shop\Order\Cart;
 use Comfino\View\FrontendManager;
 use Comfino\View\TemplateManager;
 
@@ -52,9 +55,10 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
         }
 
         $loanAmount = (int) ($this->context->cart->getOrderTotal() * 100);
+        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount);
         $allowedProductTypes = SettingsManager::getAllowedProductTypes(
             ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
-            OrderManager::getShopCart($this->context->cart, $loanAmount)
+            $shopCart
         );
 
         if ($allowedProductTypes === []) {
@@ -77,6 +81,21 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
                 '[PAYWALL]',
                 'renderPaywall',
                 ['$loanAmount' => $loanAmount, '$allowedProductTypes' => $allowedProductTypes]
+            );
+
+            header('Content-Type: application/json');
+
+            $serializer = new JsonSerializer();
+
+            $response = FrontendManager::getPaywallRenderer($this->module)
+                ->getPaywallItemDetails(
+                    $loanAmount,
+                    LoanTypeEnum::from(Tools::getValue('loanTypeSelected')),
+                    new Cart($shopCart->getCartItems(), $shopCart->getTotalValue(), $shopCart->getDeliveryCost())
+                );
+
+            echo $serializer->serialize(
+                ['listItemData' => $response->listItemData, 'productDetails' => $response->productDetails]
             );
 
             exit;
