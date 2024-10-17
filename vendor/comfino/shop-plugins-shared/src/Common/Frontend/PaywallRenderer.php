@@ -5,8 +5,10 @@ namespace Comfino\Common\Frontend;
 use ComfinoExternal\Cache\TagInterop\TaggableCacheItemPoolInterface;
 use Comfino\Api\Client;
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
+use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
 use Comfino\Paywall\PaywallViewTypeEnum;
+use Comfino\Shop\Order\CartInterface;
 
 final class PaywallRenderer extends FrontendRenderer
 {
@@ -93,6 +95,22 @@ final class PaywallRenderer extends FrontendRenderer
             );
         } catch (\Throwable $e) {
             return $this->rendererStrategy->renderErrorTemplate($e);
+        }
+    }
+
+    /**
+     * @param int $loanAmount
+     * @param \Comfino\Api\Dto\Payment\LoanTypeEnum $loanType
+     * @param \Comfino\Shop\Order\CartInterface $cart
+     */
+    public function getPaywallItemDetails($loanAmount, $loanType, $cart): PaywallItemDetails
+    {
+        try {
+            $response = $this->client->getPaywallItemDetails($loanAmount, $loanType, $cart);
+
+            return new PaywallItemDetails($response->productDetails, $response->listItemData);
+        } catch (\Throwable $e) {
+            return new PaywallItemDetails($this->rendererStrategy->renderErrorTemplate($e), '');
         }
     }
 }

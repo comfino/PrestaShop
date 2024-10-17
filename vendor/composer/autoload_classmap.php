@@ -230,6 +230,7 @@ return array(
     'Comfino\\Common\\Frontend\\FrontendHelper' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/FrontendHelper.php',
     'Comfino\\Common\\Frontend\\FrontendRenderer' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/FrontendRenderer.php',
     'Comfino\\Common\\Frontend\\PaywallIframeRenderer' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/PaywallIframeRenderer.php',
+    'Comfino\\Common\\Frontend\\PaywallItemDetails' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/PaywallItemDetails.php',
     'Comfino\\Common\\Frontend\\PaywallRenderer' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/PaywallRenderer.php',
     'Comfino\\Common\\Frontend\\TemplateRenderer\\RendererStrategyInterface' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/TemplateRenderer/RendererStrategyInterface.php',
     'Comfino\\Common\\Frontend\\WidgetIframeRenderer' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/WidgetIframeRenderer.php',

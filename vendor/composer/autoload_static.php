@@ -471,6 +471,7 @@ class ComposerStaticInit5e5e13ca96d415984d7630948afc095f
         'Comfino\\Common\\Frontend\\FrontendHelper' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/FrontendHelper.php',
         'Comfino\\Common\\Frontend\\FrontendRenderer' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/FrontendRenderer.php',
         'Comfino\\Common\\Frontend\\PaywallIframeRenderer' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/PaywallIframeRenderer.php',
+        'Comfino\\Common\\Frontend\\PaywallItemDetails' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/PaywallItemDetails.php',
         'Comfino\\Common\\Frontend\\PaywallRenderer' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/PaywallRenderer.php',
         'Comfino\\Common\\Frontend\\TemplateRenderer\\RendererStrategyInterface' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/TemplateRenderer/RendererStrategyInterface.php',
         'Comfino\\Common\\Frontend\\WidgetIframeRenderer' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/WidgetIframeRenderer.php',
