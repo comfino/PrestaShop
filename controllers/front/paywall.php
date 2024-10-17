@@ -72,6 +72,16 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             }
         }
 
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            Main::debugLog(
+                '[PAYWALL]',
+                'renderPaywall',
+                ['$loanAmount' => $loanAmount, '$allowedProductTypes' => $allowedProductTypes]
+            );
+
+            exit;
+        }
+
         Main::debugLog(
             '[PAYWALL]',
             'renderPaywall',

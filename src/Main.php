@@ -265,8 +265,10 @@ final class Main
                         'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
                         'cartTotal' => (float) $total,
                         'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
+                        'productDetailsApiPath' => ApiService::getControllerUrl($module, 'paywall'),
                     ],
-                    'cart' => [],
+                    'cart' => OrderManager::getShopCart($cart, (int) \Context::getContext()->cookie->loan_amount)
+                        ->getAsArray(),
                     'is_ps_16' => !COMFINO_PS_17,
                     'comfino_logo_url' => ApiClient::getPaywallLogoUrl($module),
                     'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),

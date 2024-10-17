@@ -94,22 +94,6 @@
 
             ComfinoPaywallFrontend.init(frontendInitElement, iframe, Comfino.paywallOptions);
             ComfinoPaywallFrontend.cartUpdate(Comfino.cart);
-
-            ComfinoPaywallFrontend.cartUpdate({
-                totalAmount: <?php echo $cartTotal * 100; ?>,
-            deliveryCost: <?php echo $deliveryCost * 100; ?>,
-            category: 'Test category',
-                products: [{
-                name: 'Test product',
-                quantity: <?php echo $productQuantity; ?>,
-            price: <?php echo $productUnitPrice * 100; ?>,
-            netPrice: <?php echo $productUnitNetPrice * 100; ?>,
-            vatRate: <?php echo $vatRate * 100; ?>,
-            vatAmount: <?php echo $vatValue * 100; ?>,
-            category: 'Test product category'
-        }]
-        });
-
         }
     }
 
