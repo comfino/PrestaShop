@@ -90,6 +90,15 @@ final class ApiService
         return $withLangId ? $url : preg_replace('/&?id_lang=\d+&?/', '', $url);
     }
 
+    public static function getControllerPath(
+        \PaymentModule $module,
+        string $controllerName,
+        array $params = [],
+        bool $withLangId = true
+    ): string {
+        return parse_url(self::getControllerUrl($module, $controllerName, $params, $withLangId), PHP_URL_PATH);
+    }
+
     public static function getEndpointUrl(string $endpointName): string
     {
         if (($endpoint = self::getEndpointManager()->getEndpointByName($endpointName)) !== null) {

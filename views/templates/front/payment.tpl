@@ -79,7 +79,6 @@
 <script>
     window.Comfino = {
         paywallOptions: {$paywall_options|@json_encode nofilter},
-        cart: {$cart|@json_encode nofilter},
         init: () => {
             const iframe = document.getElementById('comfino-paywall-container');
             const frontendInitElement = {if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if};
@@ -93,7 +92,6 @@
             }
 
             ComfinoPaywallFrontend.init(frontendInitElement, iframe, Comfino.paywallOptions);
-            ComfinoPaywallFrontend.cartUpdate(Comfino.cart);
         }
     }
 
