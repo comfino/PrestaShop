@@ -2,38 +2,28 @@
 
 namespace Comfino\Api\Dto\Order\Cart;
 
-class CartItem
+readonly class CartItem
 {
-    /** @var string
-     * @readonly */
-    public $name;
-    /** @var int
-     * @readonly */
-    public $price;
-    /** @var int|null
-     * @readonly */
-    public $netPrice;
-    /** @var int|null
-     * @readonly */
-    public $vatRate;
-    /** @var int|null
-     * @readonly */
-    public $vatAmount;
-    /** @var int
-     * @readonly */
-    public $quantity;
-    /** @var string|null
-     * @readonly */
-    public $externalId;
-    /** @var string|null
-     * @readonly */
-    public $photoUrl;
-    /** @var string|null
-     * @readonly */
-    public $ean;
-    /** @var string|null
-     * @readonly */
-    public $category;
+    /** @var string */
+    public string $name;
+    /** @var int */
+    public int $price;
+    /** @var int|null */
+    public ?int $netPrice;
+    /** @var int|null */
+    public ?int $vatRate;
+    /** @var int|null */
+    public ?int $vatAmount;
+    /** @var int */
+    public int $quantity;
+    /** @var string|null */
+    public ?string $externalId;
+    /** @var string|null */
+    public ?string $photoUrl;
+    /** @var string|null */
+    public ?string $ean;
+    /** @var string|null */
+    public ?string $category;
 
     /**
      * @param string $name

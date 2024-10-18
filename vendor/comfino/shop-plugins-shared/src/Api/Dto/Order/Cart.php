@@ -4,20 +4,16 @@ namespace Comfino\Api\Dto\Order;
 
 use Comfino\Api\Dto\Order\Cart\CartItem;
 
-class Cart
+readonly class Cart
 {
-    /** @var int
-     * @readonly */
-    public $totalAmount;
-    /** @var int
-     * @readonly */
-    public $deliveryCost;
-    /** @var string|null
-     * @readonly */
-    public $category;
-    /** @var CartItem[]
-     * @readonly */
-    public $products;
+    /** @var int */
+    public int $totalAmount;
+    /** @var int */
+    public int $deliveryCost;
+    /** @var string|null */
+    public ?string $category;
+    /** @var CartItem[] */
+    public array $products;
 
     /**
      * @param int $totalAmount

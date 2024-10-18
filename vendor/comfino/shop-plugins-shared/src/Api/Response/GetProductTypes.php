@@ -7,18 +7,15 @@ use Comfino\Api\Exception\ResponseValidationError;
 
 class GetProductTypes extends Base
 {
-    /** @var LoanTypeEnum[]
-     * @readonly */
-    public $productTypes;
-    /** @var string[]
-     * @readonly */
-    public $productTypesWithNames;
+    /** @var LoanTypeEnum[] */
+    public readonly array $productTypes;
+    /** @var string[] */
+    public readonly array $productTypesWithNames;
 
     /**
      * @inheritDoc
-     * @param mixed[]|string|bool|null $deserializedResponseBody
      */
-    protected function processResponseBody($deserializedResponseBody): void
+    protected function processResponseBody(array|string|bool|null $deserializedResponseBody): void
     {
         if (!is_array($deserializedResponseBody)) {
             throw new ResponseValidationError('Invalid response data: array expected.');
@@ -26,9 +23,7 @@ class GetProductTypes extends Base
 
         $this->productTypesWithNames = $deserializedResponseBody;
         $this->productTypes = array_map(
-            static function (string $productType) : LoanTypeEnum {
-                return LoanTypeEnum::from($productType, false);
-            },
+            static fn (string $productType): LoanTypeEnum => LoanTypeEnum::from($productType, false),
             array_keys($deserializedResponseBody)
         );
     }

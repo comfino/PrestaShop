@@ -35,7 +35,7 @@ class Client extends \Comfino\Api\Client
      * @param ShopPluginError $shopPluginError
      * @return bool
      */
-    public function sendLoggedError($shopPluginError): bool
+    public function sendLoggedError(ShopPluginError $shopPluginError): bool
     {
         try {
             $request = new ReportShopPluginError($shopPluginError, $this->getUserAgent());
@@ -45,7 +45,7 @@ class Client extends \Comfino\Api\Client
                 $this->sendRequest($request->setSerializer($this->serializer)),
                 $this->serializer
             );
-        } catch (\Throwable $exception) {
+        } catch (\Throwable) {
             return false;
         }
 
@@ -61,7 +61,7 @@ class Client extends \Comfino\Api\Client
     {
         try {
             $this->sendRequest((new NotifyShopPluginRemoval())->setSerializer($this->serializer));
-        } catch (\Throwable $exception) {
+        } catch (\Throwable) {
             return false;
         }
 
@@ -74,11 +74,11 @@ class Client extends \Comfino\Api\Client
      * @param string $type
      * @return bool
      */
-    public function notifyAbandonedCart($type): bool
+    public function notifyAbandonedCart(string $type): bool
     {
         try {
             $this->sendRequest((new NotifyAbandonedCart($type))->setSerializer($this->serializer));
-        } catch (\Throwable $exception) {
+        } catch (\Throwable) {
             return false;
         }
 

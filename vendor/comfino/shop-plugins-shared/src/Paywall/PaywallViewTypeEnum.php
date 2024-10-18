@@ -4,17 +4,12 @@ namespace Comfino\Paywall;
 
 use Comfino\Enum;
 
-class PaywallViewTypeEnum extends Enum
+readonly class PaywallViewTypeEnum extends Enum
 {
     public const PAYWALL_VIEW_FULL = 'full';
     public const PAYWALL_VIEW_LIST = 'list';
 
-    /**
-     * @param string $value
-     * @param bool $strict
-     * @return $this
-     */
-    public static function from($value, $strict = true): \Comfino\Enum
+    public static function from(string $value, bool $strict = true): self
     {
         return new self($value, $strict);
     }

@@ -15,16 +15,11 @@ interface RestEndpointInterface
 
     public function getEndpointUrl(): string;
 
-    /**
-     * @param \Comfino\Api\SerializerInterface $serializer
-     */
-    public function setSerializer($serializer): void;
+    public function setSerializer(SerializerInterface $serializer): void;
 
     /**
      * @throws InvalidEndpoint
      * @throws InvalidRequest
-     * @param \ComfinoExternal\Psr\Http\Message\ServerRequestInterface $serverRequest
-     * @param string|null $endpointName
      */
-    public function processRequest($serverRequest, $endpointName = null): ?array;
+    public function processRequest(ServerRequestInterface $serverRequest, ?string $endpointName = null): ?array;
 }

@@ -5,11 +5,11 @@ namespace Comfino\Api\Exception;
 class ResponseValidationError extends \RuntimeException
 {
     /** @var string */
-    private $url;
+    private string $url;
     /** @var string */
-    private $requestBody;
+    private string $requestBody;
     /** @var string */
-    private $responseBody;
+    private string $responseBody;
 
     public function __construct(string $message = '', int $code = 0, ?\Throwable $previous = null, string $url = '', string $requestBody = '', string $responseBody = '')
     {
@@ -25,10 +25,7 @@ class ResponseValidationError extends \RuntimeException
         return $this->url;
     }
 
-    /**
-     * @param string $url
-     */
-    public function setUrl($url): void
+    public function setUrl(string $url): void
     {
         $this->url = $url;
     }
@@ -38,10 +35,7 @@ class ResponseValidationError extends \RuntimeException
         return $this->requestBody;
     }
 
-    /**
-     * @param string $requestBody
-     */
-    public function setRequestBody($requestBody): void
+    public function setRequestBody(string $requestBody): void
     {
         $this->requestBody = $requestBody;
     }
@@ -51,10 +45,7 @@ class ResponseValidationError extends \RuntimeException
         return $this->responseBody;
     }
 
-    /**
-     * @param string $responseBody
-     */
-    public function setResponseBody($responseBody): void
+    public function setResponseBody(string $responseBody): void
     {
         $this->responseBody = $responseBody;
     }

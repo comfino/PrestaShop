@@ -6,11 +6,6 @@ use Comfino\Common\Shop\OrderStatusAdapterInterface;
 
 final class StatusManager
 {
-    /**
-     * @readonly
-     * @var \Comfino\Common\Shop\OrderStatusAdapterInterface
-     */
-    private $orderStatusAdapter;
     public const STATUS_CREATED = 'CREATED';
     public const STATUS_WAITING_FOR_FILLING = 'WAITING_FOR_FILLING';
     public const STATUS_WAITING_FOR_CONFIRMATION = 'WAITING_FOR_CONFIRMATION';
@@ -45,10 +40,7 @@ final class StatusManager
 
     public const DEFAULT_FORBIDDEN_STATUSES = [self::STATUS_RESIGN];
 
-    /**
-     * @var $this|null
-     */
-    private static $instance;
+    private static ?self $instance = null;
 
     public static function getInstance(OrderStatusAdapterInterface $orderStatusAdapter): self
     {
@@ -59,9 +51,8 @@ final class StatusManager
         return self::$instance;
     }
 
-    private function __construct(OrderStatusAdapterInterface $orderStatusAdapter)
+    private function __construct(private readonly OrderStatusAdapterInterface $orderStatusAdapter)
     {
-        $this->orderStatusAdapter = $orderStatusAdapter;
     }
 
     public function setOrderStatus(string $externalId, string $status): void

@@ -4,17 +4,12 @@ namespace Comfino\FinancialProduct;
 
 use Comfino\Enum;
 
-class ProductTypesListTypeEnum extends Enum
+readonly class ProductTypesListTypeEnum extends Enum
 {
     public const LIST_TYPE_PAYWALL = 'paywall';
     public const LIST_TYPE_WIDGET = 'widget';
 
-    /**
-     * @param string $value
-     * @param bool $strict
-     * @return $this
-     */
-    public static function from($value, $strict = true): \Comfino\Enum
+    public static function from(string $value, bool $strict = true): self
     {
         return new self($value, $strict);
     }

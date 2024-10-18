@@ -7,29 +7,11 @@ use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
 
 abstract class RestEndpoint implements RestEndpointInterface
 {
-    /**
-     * @readonly
-     * @var string
-     */
-    private $name;
-    /**
-     * @readonly
-     * @var string
-     */
-    private $endpointUrl;
-    /**
-     * @var mixed[]
-     */
-    protected $methods;
-    /**
-     * @var \Comfino\Api\SerializerInterface|null
-     */
-    protected $serializer;
+    protected array $methods;
+    protected ?SerializerInterface $serializer = null;
 
-    public function __construct(string $name, string $endpointUrl)
+    public function __construct(private readonly string $name, private readonly string $endpointUrl)
     {
-        $this->name = $name;
-        $this->endpointUrl = $endpointUrl;
     }
 
     public function getName(): string
@@ -47,19 +29,12 @@ abstract class RestEndpoint implements RestEndpointInterface
         return $this->endpointUrl;
     }
 
-    /**
-     * @param \Comfino\Api\SerializerInterface $serializer
-     */
-    public function setSerializer($serializer): void
+    public function setSerializer(SerializerInterface $serializer): void
     {
         $this->serializer = $serializer;
     }
 
-    /**
-     * @param \ComfinoExternal\Psr\Http\Message\ServerRequestInterface $serverRequest
-     * @param string|null $endpointName
-     */
-    protected function endpointPathMatch($serverRequest, $endpointName = null): bool
+    protected function endpointPathMatch(ServerRequestInterface $serverRequest, ?string $endpointName = null): bool
     {
         $requestMethod = strtoupper($serverRequest->getMethod());
 
@@ -70,11 +45,7 @@ abstract class RestEndpoint implements RestEndpointInterface
         return (string) $serverRequest->getUri() === $this->endpointUrl && in_array($requestMethod, $this->methods, true);
     }
 
-    /**
-     * @param \ComfinoExternal\Psr\Http\Message\ServerRequestInterface $serverRequest
-     * @return mixed[]|string|null
-     */
-    protected function getParsedRequestBody($serverRequest)
+    protected function getParsedRequestBody(ServerRequestInterface $serverRequest): array|string|null
     {
         $contentType = $serverRequest->hasHeader('Content-Type') ? $serverRequest->getHeader('Content-Type')[0] : '';
         $requestPayload = $serverRequest->getBody()->getContents();

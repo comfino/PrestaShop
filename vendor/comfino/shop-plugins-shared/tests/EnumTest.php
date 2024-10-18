@@ -4,17 +4,13 @@ namespace Comfino;
 
 use PHPUnit\Framework\TestCase;
 
-class TestedEnum extends Enum
+readonly class TestedEnum extends Enum
 {
     public const ONE = '1';
     public const TWO = '2';
     public const THREE = '3';
 
-    /**
-     * @param string $value
-     * @param bool $strict
-     */
-    public static function from($value, $strict = true): \Comfino\Enum
+    public static function from(string $value, bool $strict = true): TestedEnum
     {
         return new self($value, $strict);
     }

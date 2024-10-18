@@ -5,25 +5,25 @@ namespace Comfino\Shop\Order\Cart;
 class Product implements ProductInterface
 {
     /** @var string */
-    private $name;
+    private string $name;
     /** @var int */
-    private $price;
+    private int $price;
     /** @var int|null */
-    private $netPrice;
+    private ?int $netPrice;
     /** @var int|null */
-    private $taxRate;
+    private ?int $taxRate;
     /** @var int|null */
-    private $taxValue;
+    private ?int $taxValue;
     /** @var string|null */
-    private $id;
+    private ?string $id;
     /** @var string|null */
-    private $category;
+    private ?string $category;
     /** @var string|null */
-    private $ean;
+    private ?string $ean;
     /** @var string|null */
-    private $photoUrl;
+    private ?string $photoUrl;
     /** @var int[]|null */
-    private $categoryIds;
+    private ?array $categoryIds;
 
     /**
      * @param string $name

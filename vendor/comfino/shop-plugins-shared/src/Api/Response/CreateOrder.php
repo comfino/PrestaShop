@@ -6,20 +6,14 @@ use Comfino\Api\Exception\ResponseValidationError;
 
 class CreateOrder extends Base
 {
-    /** @var string
-     * @readonly */
-    public $status;
-    /** @var string
-     * @readonly */
-    public $externalId;
-    /** @var string
-     * @readonly */
-    public $applicationUrl;
+    /** @var string */
+    public readonly string $status;
+    /** @var string */
+    public readonly string $externalId;
+    /** @var string */
+    public readonly string $applicationUrl;
 
-    /**
-     * @param mixed[]|string|bool|null $deserializedResponseBody
-     */
-    protected function processResponseBody($deserializedResponseBody): void
+    protected function processResponseBody(array|string|bool|null $deserializedResponseBody): void
     {
         if (!is_array($deserializedResponseBody)) {
             throw new ResponseValidationError('Invalid response data: array expected.');

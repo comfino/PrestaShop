@@ -2,25 +2,13 @@
 
 namespace Comfino\Common\Frontend;
 
-class PaywallItemDetails
+readonly class PaywallItemDetails
 {
-    /**
-     * @var string
-     * @readonly
-     */
-    public $productDetails;
-    /**
-     * @var string
-     * @readonly
-     */
-    public $listItemData;
     /**
      * @param string $productDetails
      * @param string $listItemData
      */
-    public function __construct(string $productDetails, string $listItemData)
+    public function __construct(public string $productDetails, public string $listItemData)
     {
-        $this->productDetails = $productDetails;
-        $this->listItemData = $listItemData;
     }
 }

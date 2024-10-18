@@ -31,9 +31,8 @@ class Base extends Response
 
     /**
      * @inheritDoc
-     * @param mixed[]|string|bool|null $deserializedResponseBody
      */
-    protected function processResponseBody($deserializedResponseBody): void
+    protected function processResponseBody(array|string|bool|null $deserializedResponseBody): void
     {
     }
 }

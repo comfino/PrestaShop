@@ -6,18 +6,15 @@ use Comfino\Api\Exception\ResponseValidationError;
 
 class GetPaywallItemDetails extends Base
 {
-    /** @var string
-     * @readonly */
-    public $productDetails;
-    /** @var string
-     * @readonly */
-    public $listItemData;
+    /** @var string */
+    public readonly string $productDetails;
+    /** @var string */
+    public readonly string $listItemData;
 
     /**
      * @inheritDoc
-     * @param mixed[]|string|bool|null $deserializedResponseBody
      */
-    protected function processResponseBody($deserializedResponseBody): void
+    protected function processResponseBody(array|string|bool|null $deserializedResponseBody): void
     {
         if (!is_array($deserializedResponseBody)) {
             throw new ResponseValidationError('Invalid response data: array expected.');

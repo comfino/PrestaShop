@@ -4,23 +4,16 @@ namespace Comfino\Common\Shop\Product;
 
 use Comfino\Common\Shop\Cart;
 
-class CategoryFilter
+readonly class CategoryFilter
 {
-    /**
-     * @readonly
-     * @var \Comfino\Common\Shop\Product\CategoryTree
-     */
-    private $categoryTree;
-    public function __construct(CategoryTree $categoryTree)
+    public function __construct(private CategoryTree $categoryTree)
     {
-        $this->categoryTree = $categoryTree;
     }
 
     /**
      * @param int[] $excludedCategoryIds
-     * @param int $categoryId
      */
-    public function isCategoryAvailable($categoryId, $excludedCategoryIds): bool
+    public function isCategoryAvailable(int $categoryId, array $excludedCategoryIds): bool
     {
         if (in_array($categoryId, $excludedCategoryIds, true)) {
             return false;
@@ -45,9 +38,8 @@ class CategoryFilter
 
     /**
      * @param int[] $excludedCategoryIds
-     * @param \Comfino\Common\Shop\Cart $cart
      */
-    public function isCartValid($cart, $excludedCategoryIds): bool
+    public function isCartValid(Cart $cart, array $excludedCategoryIds): bool
     {
         if (empty($excludedCategoryIds || empty($cart->getCartItems()))) {
             return true;

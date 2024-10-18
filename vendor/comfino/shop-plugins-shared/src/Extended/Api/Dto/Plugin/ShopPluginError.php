@@ -4,42 +4,15 @@ namespace Comfino\Extended\Api\Dto\Plugin;
 
 final class ShopPluginError
 {
-    /**
-     * @var string
-     */
-    public $host;
-    /**
-     * @var string
-     */
-    public $platform;
-    /**
-     * @var mixed[]
-     */
-    public $environment;
-    /**
-     * @var string
-     */
-    public $errorCode;
-    /**
-     * @var string
-     */
-    public $errorMessage;
-    /**
-     * @var string|null
-     */
-    public $apiRequestUrl;
-    /**
-     * @var string|null
-     */
-    public $apiRequest;
-    /**
-     * @var string|null
-     */
-    public $apiResponse;
-    /**
-     * @var string|null
-     */
-    public $stackTrace;
+    public string $host;
+    public string $platform;
+    public array $environment;
+    public string $errorCode;
+    public string $errorMessage;
+    public ?string $apiRequestUrl;
+    public ?string $apiRequest;
+    public ?string $apiResponse;
+    public ?string $stackTrace;
 
     public function __construct(
         string $host,

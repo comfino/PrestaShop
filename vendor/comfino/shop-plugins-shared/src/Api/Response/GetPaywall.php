@@ -6,15 +6,13 @@ use Comfino\Api\Exception\ResponseValidationError;
 
 class GetPaywall extends Base
 {
-    /** @var string
-     * @readonly */
-    public $paywallPage;
+    /** @var string */
+    public readonly string $paywallPage;
 
     /**
      * @inheritDoc
-     * @param mixed[]|string|bool|null $deserializedResponseBody
      */
-    protected function processResponseBody($deserializedResponseBody): void
+    protected function processResponseBody(array|string|bool|null $deserializedResponseBody): void
     {
         if (!is_string($deserializedResponseBody)) {
             throw new ResponseValidationError('Invalid response data: string expected.');

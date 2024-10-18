@@ -4,10 +4,7 @@ namespace Comfino\Shop\Order;
 
 trait CartTrait
 {
-    /**
-     * @param \Comfino\Shop\Order\CartInterface $cart
-     */
-    protected function getCartAsArray($cart): array
+    protected function getCartAsArray(CartInterface $cart): array
     {
         $products = [];
         $cartTotal = 0;
@@ -26,9 +23,7 @@ trait CartTrait
                     'vatRate' => $cartItem->getProduct()->getTaxRate(),
                     'vatAmount' => $cartItem->getProduct()->getTaxValue(),
                 ],
-                static function ($value) : bool {
-                    return $value !== null;
-                }
+                static fn ($value): bool => $value !== null
             );
 
             $cartTotal += ($cartItem->getProduct()->getPrice() * $cartItem->getQuantity());
@@ -61,9 +56,7 @@ trait CartTrait
                 'deliveryCost' => $cart->getDeliveryCost(),
                 'category' => $cart->getCategory(),
             ],
-            static function ($value) : bool {
-                return $value !== null;
-            }
+            static fn ($value): bool => $value !== null
         );
     }
 }

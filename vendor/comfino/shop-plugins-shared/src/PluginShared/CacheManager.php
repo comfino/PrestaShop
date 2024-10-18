@@ -11,14 +11,8 @@ use ComfinoExternal\Psr\Cache\InvalidArgumentException;
 
 final class CacheManager
 {
-    /**
-     * @var string
-     */
-    private static $cacheRootPath;
-    /**
-     * @var \ComfinoExternal\Cache\Adapter\Filesystem\FilesystemCachePool|\ComfinoExternal\Cache\Adapter\PHPArray\ArrayCachePool|null
-     */
-    private static $cache;
+    private static string $cacheRootPath;
+    private static FilesystemCachePool|ArrayCachePool|null $cache;
 
     public static function init(string $cacheRootPath): void
     {
@@ -30,7 +24,7 @@ final class CacheManager
     {
         try {
             return self::getCachePool()->get($key, $default);
-        } catch (\ComfinoExternal\Psr\SimpleCache\InvalidArgumentException $exception) {
+        } catch (\ComfinoExternal\Psr\SimpleCache\InvalidArgumentException) {
         }
 
         return $default;
@@ -50,7 +44,7 @@ final class CacheManager
             }
 
             self::getCachePool()->save($item);
-        } catch (InvalidArgumentException $exception) {
+        } catch (InvalidArgumentException) {
         }
     }
 
@@ -63,7 +57,7 @@ final class CacheManager
 
             try {
                 self::$cache = new FilesystemCachePool(new Filesystem(new Local(self::$cacheRootPath)));
-            } catch (\Throwable $exception) {
+            } catch (\Throwable) {
                 self::$cache = new ArrayCachePool();
             }
         }

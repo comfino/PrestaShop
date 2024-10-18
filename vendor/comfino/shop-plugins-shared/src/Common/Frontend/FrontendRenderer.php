@@ -14,37 +14,17 @@ use ComfinoExternal\Psr\Http\Client\ClientExceptionInterface;
 
 abstract class FrontendRenderer
 {
-    /**
-     * @readonly
-     * @var \Comfino\Api\Client
-     */
-    protected $client;
-    /**
-     * @readonly
-     * @var \ComfinoExternal\Cache\TagInterop\TaggableCacheItemPoolInterface
-     */
-    protected $cache;
-    /**
-     * @readonly
-     * @var string|null
-     */
-    private $cacheInvalidateUrl;
-    /**
-     * @readonly
-     * @var string|null
-     */
-    private $configurationUrl;
     private const PAYWALL_GUI_FRAGMENTS = ['template', 'style', 'script', 'frontend_style', 'frontend_script'];
 
     /** @var string[] */
-    private static $fragments = [];
+    private static array $fragments = [];
 
-    public function __construct(Client $client, TaggableCacheItemPoolInterface $cache, ?string $cacheInvalidateUrl = null, ?string $configurationUrl = null)
-    {
-        $this->client = $client;
-        $this->cache = $cache;
-        $this->cacheInvalidateUrl = $cacheInvalidateUrl;
-        $this->configurationUrl = $configurationUrl;
+    public function __construct(
+        protected readonly Client $client,
+        protected readonly TaggableCacheItemPoolInterface $cache,
+        private readonly ?string $cacheInvalidateUrl = null,
+        private readonly ?string $configurationUrl = null
+    ) {
     }
 
     /**
@@ -55,9 +35,8 @@ abstract class FrontendRenderer
      * @throws ServiceUnavailable
      * @throws ClientExceptionInterface
      * @throws InvalidArgumentException
-     * @param mixed[] $fragmentsToGet
      */
-    protected function getFrontendFragments($fragmentsToGet): array
+    protected function getFrontendFragments(array $fragmentsToGet): array
     {
         $language = $this->client->getApiLanguage();
         $fragments = [];
@@ -75,7 +54,7 @@ abstract class FrontendRenderer
                 if ($this->cache->getItem($itemKey)->isHit()) {
                     $fragments[$fragmentName] = $this->cache->getItem($itemKey)->get();
                 }
-            } catch (InvalidArgumentException $exception) {
+            } catch (InvalidArgumentException) {
             }
         }
 
@@ -98,15 +77,12 @@ abstract class FrontendRenderer
 
     /**
      * @param string[] $cacheKeysToDelete
-     * @param string $language
      */
-    protected function deleteFragmentsCacheEntries($cacheKeysToDelete, $language): void
+    protected function deleteFragmentsCacheEntries(array $cacheKeysToDelete, string $language): void
     {
         try {
-            $this->cache->deleteItems(array_map(function (string $fragmentName) use ($language) : string {
-                return $this->getItemKey($fragmentName, $language);
-            }, $cacheKeysToDelete));
-        } catch (InvalidArgumentException $exception) {
+            $this->cache->deleteItems(array_map(fn (string $fragmentName): string => $this->getItemKey($fragmentName, $language), $cacheKeysToDelete));
+        } catch (InvalidArgumentException) {
         }
 
         foreach ($cacheKeysToDelete as $cacheKeyToDelete) {

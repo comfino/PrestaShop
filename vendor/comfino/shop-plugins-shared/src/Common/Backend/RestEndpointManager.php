@@ -16,58 +16,10 @@ use ComfinoExternal\Psr\Http\Message\UriFactoryInterface;
 
 final class RestEndpointManager
 {
-    /**
-     * @readonly
-     * @var string
-     */
-    protected $platformName;
-    /**
-     * @readonly
-     * @var string
-     */
-    protected $platformVersion;
-    /**
-     * @readonly
-     * @var string
-     */
-    protected $pluginVersion;
-    /**
-     * @var string[]
-     * @readonly
-     */
-    protected $apiKeys;
-    /**
-     * @readonly
-     * @var \ComfinoExternal\Psr\Http\Message\ServerRequestFactoryInterface
-     */
-    protected $serverRequestFactory;
-    /**
-     * @readonly
-     * @var \ComfinoExternal\Psr\Http\Message\StreamFactoryInterface
-     */
-    protected $streamFactory;
-    /**
-     * @readonly
-     * @var \ComfinoExternal\Psr\Http\Message\UriFactoryInterface
-     */
-    protected $uriFactory;
-    /**
-     * @readonly
-     * @var \ComfinoExternal\Psr\Http\Message\ResponseFactoryInterface
-     */
-    protected $responseFactory;
-    /**
-     * @readonly
-     * @var \Comfino\Api\SerializerInterface
-     */
-    protected $serializer;
-    /**
-     * @var $this|null
-     */
-    private static $instance;
+    private static ?self $instance = null;
 
     /** @var RestEndpointInterface[] */
-    private $registeredEndpoints = [];
+    private array $registeredEndpoints = [];
 
     /**
      * @param string[] $apiKeys
@@ -103,17 +55,17 @@ final class RestEndpointManager
     /**
      * @param string[] $apiKeys
      */
-    private function __construct(string $platformName, string $platformVersion, string $pluginVersion, array $apiKeys, ServerRequestFactoryInterface $serverRequestFactory, StreamFactoryInterface $streamFactory, UriFactoryInterface $uriFactory, ResponseFactoryInterface $responseFactory, SerializerInterface $serializer)
-    {
-        $this->platformName = $platformName;
-        $this->platformVersion = $platformVersion;
-        $this->pluginVersion = $pluginVersion;
-        $this->apiKeys = $apiKeys;
-        $this->serverRequestFactory = $serverRequestFactory;
-        $this->streamFactory = $streamFactory;
-        $this->uriFactory = $uriFactory;
-        $this->responseFactory = $responseFactory;
-        $this->serializer = $serializer;
+    private function __construct(
+        protected readonly string $platformName,
+        protected readonly string $platformVersion,
+        protected readonly string $pluginVersion,
+        protected readonly array $apiKeys,
+        protected readonly ServerRequestFactoryInterface $serverRequestFactory,
+        protected readonly StreamFactoryInterface $streamFactory,
+        protected readonly UriFactoryInterface $uriFactory,
+        protected readonly ResponseFactoryInterface $responseFactory,
+        protected readonly SerializerInterface $serializer
+    ) {
     }
 
     public function registerEndpoint(RestEndpointInterface $endpoint): void
@@ -169,7 +121,7 @@ final class RestEndpointManager
         foreach ($this->registeredEndpoints as $endpoint) {
             try {
                 return $this->prepareResponse($serverRequest, $endpoint->processRequest($serverRequest));
-            } catch (InvalidEndpoint $exception) {
+            } catch (InvalidEndpoint) {
                 continue;
             } catch (InvalidRequest $e) {
                 return $this->getPreparedResponse(
