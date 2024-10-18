@@ -51,7 +51,7 @@ final class OrderManager
             (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100),
             array_map(static function (array $product): CartItemInterface {
                 $quantity = (int) $product['cart_quantity'];
-                $taxRulesGroupId = \Product:: getIdTaxRulesGroupByIdProduct($product['id_product']);
+                $taxRulesGroupId = \Product::getIdTaxRulesGroupByIdProduct($product['id_product']);
                 $grossPrice = (int) ($product['total_wt'] / $quantity * 100);
                 $netPrice = (int) ($product['total'] / $quantity * 100);
 
