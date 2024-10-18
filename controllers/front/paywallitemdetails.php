@@ -47,9 +47,9 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
         header('Content-Type: application/json');
 
         $serializer = new JsonSerializer();
-        $loanTypeSelected = Tools::getValue('loanTypeSelected');
 
         $loanAmount = (int) ($this->context->cart->getOrderTotal() * 100);
+        $loanTypeSelected = Tools::getValue('loanTypeSelected');
         $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount);
 
         Main::debugLog(
@@ -61,7 +61,7 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
         $response = FrontendManager::getPaywallRenderer($this->module)
             ->getPaywallItemDetails(
                 $loanAmount,
-                LoanTypeEnum::from(Tools::getValue('loanTypeSelected')),
+                LoanTypeEnum::from($loanTypeSelected),
                 new Cart($shopCart->getCartItems(), $shopCart->getTotalValue(), $shopCart->getDeliveryCost())
             );
 
