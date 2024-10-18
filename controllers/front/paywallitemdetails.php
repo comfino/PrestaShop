@@ -24,63 +24,50 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-use Comfino\Api\Dto\Payment\LoanQueryCriteria;
-use Comfino\Configuration\SettingsManager;
+use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\ErrorLogger;
-use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\Main;
 use Comfino\Order\OrderManager;
+use Comfino\Shop\Order\Cart;
 use Comfino\View\FrontendManager;
-use Comfino\View\TemplateManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class ComfinoPaywallModuleFrontController extends ModuleFrontController
+class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontController
 {
-    public function postProcess(): void
+    public function postProcess()
     {
         ErrorLogger::init($this->module);
 
         parent::postProcess();
 
-        if (!($this->module instanceof Comfino) || !$this->module->active) {
-            TemplateManager::renderControllerView($this, 'module-disabled', 'front');
+        header('Content-Type: application/json');
 
-            return;
-        }
+        $serializer = new JsonSerializer();
+        $loanTypeSelected = Tools::getValue('loanTypeSelected');
 
         $loanAmount = (int) ($this->context->cart->getOrderTotal() * 100);
         $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount);
-        $allowedProductTypes = SettingsManager::getAllowedProductTypes(
-            ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
-            $shopCart
-        );
-
-        if ($allowedProductTypes === []) {
-            // Filters active - all product types disabled.
-            TemplateManager::renderControllerView($this, 'paywall-disabled', 'front');
-
-            return;
-        }
-
-        if (!Tools::isEmpty('priceModifier') && is_numeric(Tools::getValue('priceModifier'))) {
-            $priceModifier = (float) Tools::getValue('priceModifier');
-
-            if ($priceModifier > 0) {
-                $loanAmount += ((int) ($priceModifier * 100));
-            }
-        }
 
         Main::debugLog(
-            '[PAYWALL]',
-            'renderPaywall',
-            ['$loanAmount' => $loanAmount, '$allowedProductTypes' => $allowedProductTypes]
+            '[PAYWALL_ITEM_DETAILS]',
+            'getPaywallItemDetails',
+            ['$loanTypeSelected' => $loanTypeSelected]
         );
 
-        echo FrontendManager::getPaywallRenderer($this->module)
-            ->renderPaywall(new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes));
+        $response = FrontendManager::getPaywallRenderer($this->module)
+            ->getPaywallItemDetails(
+                $loanAmount,
+                LoanTypeEnum::from(Tools::getValue('loanTypeSelected')),
+                new Cart($shopCart->getCartItems(), $shopCart->getTotalValue(), $shopCart->getDeliveryCost())
+            );
+
+        echo $serializer->serialize(
+            ['listItemData' => $response->listItemData, 'productDetails' => $response->productDetails]
+        );
 
         exit;
     }

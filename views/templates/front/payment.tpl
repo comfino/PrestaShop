@@ -81,8 +81,8 @@
         paywallOptions: {$paywall_options|@json_encode nofilter},
         cart: {$cart|@json_encode nofilter},
         init: () => {
-            let iframe = document.getElementById('comfino-paywall-container');
-            let frontendInitElement = {if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if};
+            const iframe = document.getElementById('comfino-paywall-container');
+            const frontendInitElement = {if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if};
 
             if ('priceModifier' in frontendInitElement.dataset) {
                 let priceModifier = parseInt(frontendInitElement.dataset.priceModifier);
@@ -104,6 +104,7 @@
             ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
 
             const url = new URL('{$payment_state_url nofilter}');
+            const urlSearchParams = new FormData();
             const urlParams = {
                 loan_amount: loanParams.loanAmount,
                 loan_type: loanParams.loanType,
@@ -111,12 +112,12 @@
             };
 
             for (let paramName in urlParams) {
-                url.searchParams.append(paramName, urlParams[paramName]);
+                urlSearchParams.append(paramName, urlParams[paramName]);
             }
 
             const paymentStateUrl = url.toString();
 
-            fetch(paymentStateUrl, { method: 'POST' }).then(response => {
+            fetch(paymentStateUrl, { method: 'POST', body: urlSearchParams }).then(response => {
                 ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', paymentStateUrl, response);
             });
         }

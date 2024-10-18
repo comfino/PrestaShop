@@ -61,6 +61,7 @@ class Comfino extends PaymentModule
             'payment',
             'paymentstate',
             'paywall',
+            'paywallitemdetails',
             'cacheinvalidate',
             'error',
             'script',
