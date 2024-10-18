@@ -7,23 +7,23 @@ use Comfino\Shop\Order\Customer\AddressInterface;
 class Customer implements CustomerInterface
 {
     /** @var string */
-    private string $firstName;
+    private $firstName;
     /** @var string */
-    private string $lastName;
+    private $lastName;
     /** @var string */
-    private string $email;
+    private $email;
     /** @var string */
-    private string $phoneNumber;
+    private $phoneNumber;
     /** @var string */
-    private string $ip;
+    private $ip;
     /** @var string|null */
-    private ?string $taxId;
+    private $taxId;
     /** @var bool|null */
-    private ?bool $isRegular;
+    private $isRegular;
     /** @var bool|null */
-    private ?bool $isLogged;
+    private $isLogged;
     /** @var AddressInterface|null */
-    private ?AddressInterface $address;
+    private $address;
 
     /**
      * @param string $firstName

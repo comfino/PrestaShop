@@ -4,18 +4,23 @@ namespace Comfino\Api\Dto\Order;
 
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
 
-readonly class LoanParameters
+class LoanParameters
 {
-    /** @var int */
-    public int $amount;
-    /** @var int|null */
-    public ?int $maxAmount;
-    /** @var int */
-    public int $term;
-    /** @var LoanTypeEnum */
-    public LoanTypeEnum $type;
-    /** @var LoanTypeEnum[]|null */
-    public ?array $allowedProductTypes;
+    /** @var int
+     * @readonly */
+    public $amount;
+    /** @var int|null
+     * @readonly */
+    public $maxAmount;
+    /** @var int
+     * @readonly */
+    public $term;
+    /** @var LoanTypeEnum
+     * @readonly */
+    public $type;
+    /** @var LoanTypeEnum[]|null
+     * @readonly */
+    public $allowedProductTypes;
 
     /**
      * @param int $amount

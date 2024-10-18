@@ -9,8 +9,14 @@ use Comfino\Api\Request;
  */
 class NotifyAbandonedCart extends Request
 {
-    public function __construct(private readonly string $type)
+    /**
+     * @readonly
+     * @var string
+     */
+    private $type;
+    public function __construct(string $type)
     {
+        $this->type = $type;
         $this->setRequestMethod('POST');
         $this->setApiEndpointPath('abandoned_cart');
     }

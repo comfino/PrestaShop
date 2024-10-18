@@ -22,7 +22,9 @@ class GetPaywall extends Request
                     'taxId' => $queryCriteria->taxId,
                     'viewType' => ($viewType !== null ? (string) $viewType : null),
                 ],
-                static fn ($value): bool => $value !== null
+                static function ($value) : bool {
+                    return $value !== null;
+                }
             )
         );
     }

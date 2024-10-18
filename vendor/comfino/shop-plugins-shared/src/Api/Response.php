@@ -12,7 +12,7 @@ use ComfinoExternal\Psr\Http\Message\ResponseInterface;
 abstract class Response
 {
     /** @var string[] */
-    protected array $headers = [];
+    protected $headers = [];
 
     /**
      * Extracts API response data from input PSR-7 compatible HTTP response object.
@@ -27,7 +27,7 @@ abstract class Response
      * @throws AccessDenied
      * @throws ServiceUnavailable
      */
-    final public function initFromPsrResponse(Request $request, ResponseInterface $response, SerializerInterface $serializer): self
+    final public function initFromPsrResponse($request, $response, $serializer): self
     {
         $response->getBody()->rewind();
         $responseBody = $response->getBody()->getContents();
@@ -77,10 +77,7 @@ abstract class Response
 
                 case 401:
                     throw new AuthorizationError(
-                        $this->getErrorMessage(
-                            $deserializedResponseBody,
-                            "Invalid credentials: {$response->getReasonPhrase()} [{$response->getStatusCode()}]",
-                        ),
+                        $this->getErrorMessage($deserializedResponseBody, "Invalid credentials: {$response->getReasonPhrase()} [{$response->getStatusCode()}]"),
                         0,
                         null,
                         $request->getRequestUri()
@@ -148,7 +145,7 @@ abstract class Response
      *
      * @return bool
      */
-    final public function hasHeader(string $headerName): bool
+    final public function hasHeader($headerName): bool
     {
         if (isset($this->headers[$headerName])) {
             return true;
@@ -170,7 +167,7 @@ abstract class Response
      * @param string|null $defaultValue
      * @return string|null
      */
-    final public function getHeader(string $headerName, ?string $defaultValue = null): ?string
+    final public function getHeader($headerName, $defaultValue = null): ?string
     {
         if (isset($this->headers[$headerName])) {
             return $this->headers[$headerName];
@@ -189,18 +186,23 @@ abstract class Response
      * Fills response object properties with data from deserialized API response array.
      *
      * @throws ResponseValidationError
+     * @param mixed[]|string|bool|null $deserializedResponseBody
      */
-    abstract protected function processResponseBody(array|string|bool|null $deserializedResponseBody): void;
+    abstract protected function processResponseBody($deserializedResponseBody): void;
 
     /**
      * @throws ResponseValidationError
+     * @return mixed[]|bool|string|null
      */
-    private function deserializeResponseBody(string $responseBody, SerializerInterface $serializer): array|string|bool|null
+    private function deserializeResponseBody(string $responseBody, SerializerInterface $serializer)
     {
         return !empty($responseBody) ? $serializer->unserialize($responseBody) : null;
     }
 
-    private function getErrorMessage(array|string|bool|null $deserializedResponseBody, ?string $defaultMessage = null): ?string
+    /**
+     * @param mixed[]|string|bool|null $deserializedResponseBody
+     */
+    private function getErrorMessage($deserializedResponseBody, ?string $defaultMessage = null): ?string
     {
         if (!is_array($deserializedResponseBody)) {
             return $defaultMessage;
@@ -210,7 +212,9 @@ abstract class Response
 
         if (isset($deserializedResponseBody['errors'])) {
             $errorMessages = array_map(
-                static fn (string $errorFieldName, string $errorMessage) => "$errorFieldName: $errorMessage",
+                static function (string $errorFieldName, string $errorMessage) {
+                    return "$errorFieldName: $errorMessage";
+                },
                 array_keys($deserializedResponseBody['errors']),
                 array_values($deserializedResponseBody['errors'])
             );

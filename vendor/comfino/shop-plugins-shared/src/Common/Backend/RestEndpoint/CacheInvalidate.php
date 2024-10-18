@@ -12,11 +12,17 @@ use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
 
 class CacheInvalidate extends RestEndpoint
 {
+    /**
+     * @readonly
+     * @var \ComfinoExternal\Cache\TagInterop\TaggableCacheItemPoolInterface
+     */
+    private $cache;
     public function __construct(
         string $name,
         string $endpointUrl,
-        private readonly TaggableCacheItemPoolInterface $cache
+        TaggableCacheItemPoolInterface $cache
     ) {
+        $this->cache = $cache;
         parent::__construct($name, $endpointUrl);
 
         $this->methods = ['POST', 'PUT', 'PATCH'];
@@ -24,8 +30,10 @@ class CacheInvalidate extends RestEndpoint
 
     /**
      * @throws InvalidArgumentException
+     * @param \ComfinoExternal\Psr\Http\Message\ServerRequestInterface $serverRequest
+     * @param string|null $endpointName
      */
-    public function processRequest(ServerRequestInterface $serverRequest, ?string $endpointName = null): ?array
+    public function processRequest($serverRequest, $endpointName = null): ?array
     {
         if (!$this->endpointPathMatch($serverRequest, $endpointName)) {
             throw new InvalidEndpoint('Endpoint path does not match request path.');

@@ -5,5 +5,8 @@ namespace Comfino\Common\Backend\Configuration;
 interface StorageAdapterInterface
 {
     public function load(): array;
-    public function save(array $configurationOptions): void;
+    /**
+     * @param mixed[] $configurationOptions
+     */
+    public function save($configurationOptions): void;
 }

@@ -6,14 +6,32 @@ use Comfino\Shop\Order\Cart\CartItemInterface;
 
 class Cart
 {
+    /**
+     * @readonly
+     * @var int
+     */
+    private $totalValue;
+    /**
+     * @readonly
+     * @var int
+     */
+    private $deliveryCost;
+    /**
+     * @var CartItemInterface[]
+     * @readonly
+     */
+    private $cartItems;
     /** @var int[]|null  */
-    private ?array $cartCategoryIds = null;
+    private $cartCategoryIds;
 
     /**
      * @param CartItemInterface[] $cartItems
      */
-    public function __construct(private readonly int $totalValue, private readonly int $deliveryCost, private readonly array $cartItems)
+    public function __construct(int $totalValue, int $deliveryCost, array $cartItems)
     {
+        $this->totalValue = $totalValue;
+        $this->deliveryCost = $deliveryCost;
+        $this->cartItems = $cartItems;
     }
 
     public function getTotalValue(): int
@@ -54,7 +72,10 @@ class Cart
         return ($this->cartCategoryIds = array_unique(array_merge([], ...$categoryIds), SORT_NUMERIC));
     }
 
-    public function getAsArray(bool $withNulls = true): array
+    /**
+     * @param bool $withNulls
+     */
+    public function getAsArray($withNulls = true): array
     {
         return [
             'totalAmount' => $this->totalValue,
@@ -74,7 +95,9 @@ class Cart
                         'photoUrl' => $cartItem->getProduct()->getPhotoUrl(),
                     ];
 
-                    return $withNulls ? $product : array_filter($product, static fn ($productFieldValue): bool => ($productFieldValue !== null));
+                    return $withNulls ? $product : array_filter($product, static function ($productFieldValue) : bool {
+                        return $productFieldValue !== null;
+                    });
                 },
                 $this->cartItems
             ),

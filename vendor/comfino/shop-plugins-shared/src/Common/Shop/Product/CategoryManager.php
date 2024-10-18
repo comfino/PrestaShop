@@ -11,7 +11,7 @@ class CategoryManager
     /**
      * @param Category[] $nestedCategories
      */
-    public static function buildCategoryTree(array $nestedCategories): Descriptor
+    public static function buildCategoryTree($nestedCategories): Descriptor
     {
         $nodes = [];
         $index = [];

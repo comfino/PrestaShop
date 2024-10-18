@@ -12,19 +12,28 @@ use Comfino\Shop\Order\CartInterface;
 
 final class PaywallRenderer extends FrontendRenderer
 {
+    /**
+     * @readonly
+     * @var \Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface
+     */
+    private $rendererStrategy;
     private const PAYWALL_FRAGMENTS = ['template', 'style', 'script'];
 
     public function __construct(
         Client $client,
         TaggableCacheItemPoolInterface $cache,
-        private readonly RendererStrategyInterface $rendererStrategy,
+        RendererStrategyInterface $rendererStrategy,
         ?string $cacheInvalidateUrl = null,
         ?string $configurationUrl = null
     ) {
+        $this->rendererStrategy = $rendererStrategy;
         parent::__construct($client, $cache, $cacheInvalidateUrl, $configurationUrl);
     }
 
-    public function renderPaywall(LoanQueryCriteria $queryCriteria): string
+    /**
+     * @param \Comfino\Api\Dto\Payment\LoanQueryCriteria $queryCriteria
+     */
+    public function renderPaywall($queryCriteria): string
     {
         try {
             $fragments = $this->getFrontendFragments(self::PAYWALL_FRAGMENTS);
@@ -89,7 +98,12 @@ final class PaywallRenderer extends FrontendRenderer
         }
     }
 
-    public function getPaywallItemDetails(int $loanAmount, LoanTypeEnum $loanType, CartInterface $cart): PaywallItemDetails
+    /**
+     * @param int $loanAmount
+     * @param \Comfino\Api\Dto\Payment\LoanTypeEnum $loanType
+     * @param \Comfino\Shop\Order\CartInterface $cart
+     */
+    public function getPaywallItemDetails($loanAmount, $loanType, $cart): PaywallItemDetails
     {
         try {
             $response = $this->client->getPaywallItemDetails($loanAmount, $loanType, $cart);

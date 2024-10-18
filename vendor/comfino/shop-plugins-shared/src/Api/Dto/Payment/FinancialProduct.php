@@ -2,30 +2,41 @@
 
 namespace Comfino\Api\Dto\Payment;
 
-readonly class FinancialProduct
+class FinancialProduct
 {
-    /** @var string */
-    public string $name;
-    /** @var LoanTypeEnum */
-    public LoanTypeEnum $type;
-    /** @var string */
-    public string $description;
-    /** @var string */
-    public string $icon;
-    /** @var int */
-    public int $instalmentAmount;
-    /** @var int */
-    public int $toPay;
-    /** @var int */
-    public int $loanTerm;
-    /** @var float */
-    public float $rrso;
-    /** @var string */
-    public string $representativeExample;
-    /** @var string|null */
-    public ?string $remarks;
-    /** @var LoanParameters[] */
-    public array $loanParameters;
+    /** @var string
+     * @readonly */
+    public $name;
+    /** @var LoanTypeEnum
+     * @readonly */
+    public $type;
+    /** @var string
+     * @readonly */
+    public $description;
+    /** @var string
+     * @readonly */
+    public $icon;
+    /** @var int
+     * @readonly */
+    public $instalmentAmount;
+    /** @var int
+     * @readonly */
+    public $toPay;
+    /** @var int
+     * @readonly */
+    public $loanTerm;
+    /** @var float
+     * @readonly */
+    public $rrso;
+    /** @var string
+     * @readonly */
+    public $representativeExample;
+    /** @var string|null
+     * @readonly */
+    public $remarks;
+    /** @var LoanParameters[]
+     * @readonly */
+    public $loanParameters;
 
     /**
      * @param string $name

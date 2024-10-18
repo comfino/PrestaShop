@@ -7,15 +7,18 @@ use Comfino\Widget\WidgetTypeEnum;
 
 class GetWidgetTypes extends Base
 {
-    /** @var WidgetTypeEnum[] */
-    public readonly array $widgetTypes;
-    /** @var string[] */
-    public readonly array $widgetTypesWithNames;
+    /** @var WidgetTypeEnum[]
+     * @readonly */
+    public $widgetTypes;
+    /** @var string[]
+     * @readonly */
+    public $widgetTypesWithNames;
 
     /**
      * @inheritDoc
+     * @param mixed[]|string|bool|null $deserializedResponseBody
      */
-    protected function processResponseBody(array|string|bool|null $deserializedResponseBody): void
+    protected function processResponseBody($deserializedResponseBody): void
     {
         if (!is_array($deserializedResponseBody)) {
             throw new ResponseValidationError('Invalid response data: array expected.');
@@ -23,7 +26,9 @@ class GetWidgetTypes extends Base
 
         $this->widgetTypesWithNames = $deserializedResponseBody;
         $this->widgetTypes = array_map(
-            static fn (string $widgetType): WidgetTypeEnum => WidgetTypeEnum::from($widgetType, false),
+            static function (string $widgetType) : WidgetTypeEnum {
+                return WidgetTypeEnum::from($widgetType, false);
+            },
             array_keys($deserializedResponseBody)
         );
     }

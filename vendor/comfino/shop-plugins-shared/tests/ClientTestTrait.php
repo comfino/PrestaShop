@@ -31,7 +31,10 @@ trait ClientTestTrait
 {
     use ReflectionTrait;
 
-    protected string $productionApiHost;
+    /**
+     * @var string
+     */
+    protected $productionApiHost;
 
     /**
      * @throws Exception
@@ -350,8 +353,8 @@ trait ClientTestTrait
     {
         $paywallPageContents = 'PAYWALL_PAGE_CONTENTS';
 
-        $apiClient = $this->initApiClient('/v1/shop-plugin-paywall', 'GET', ['loanAmount' => 100_00], null, $paywallPageContents, 'API-KEY', false, 200, 'text/html');
-        $response = $apiClient->getPaywall(new LoanQueryCriteria(100_00));
+        $apiClient = $this->initApiClient('/v1/shop-plugin-paywall', 'GET', ['loanAmount' => 10000], null, $paywallPageContents, 'API-KEY', false, 200, 'text/html');
+        $response = $apiClient->getPaywall(new LoanQueryCriteria(10000));
 
         $this->assertEquals($paywallPageContents, $response->paywallPage);
     }
@@ -380,7 +383,9 @@ trait ClientTestTrait
         $client = new \Http\Mock\Client();
         $client->on(
             new RequestMatcher($endpointPath, $this->productionApiHost, $method, 'https'),
-            fn (RequestInterface $request) => $this->processRequest($request, $queryParameters, $requestBody, $responseData, $apiKey, $isPublicEndpoint, $responseStatus)
+            function (RequestInterface $request) use ($queryParameters, $requestBody, $responseData, $apiKey, $isPublicEndpoint, $responseStatus) {
+                return $this->processRequest($request, $queryParameters, $requestBody, $responseData, $apiKey, $isPublicEndpoint, $responseStatus);
+            }
         );
 
         return new Client(new RequestFactory(), new StreamFactory(), $client, $apiKey);

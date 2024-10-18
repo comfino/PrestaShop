@@ -10,21 +10,35 @@ use ComfinoExternal\Psr\Http\Client\ClientExceptionInterface;
 
 final class PaywallIframeRenderer extends FrontendRenderer
 {
+    /**
+     * @readonly
+     * @var \Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface
+     */
+    private $rendererStrategy;
+    /**
+     * @readonly
+     * @var string
+     */
+    private $platformName;
+    /**
+     * @readonly
+     * @var string
+     */
+    private $platformVersion;
     private const PAYWALL_IFRAME_FRAGMENTS = ['frontend_style', 'frontend_script'];
 
-    public function __construct(
-        Client $client,
-        TaggableCacheItemPoolInterface $cache,
-        private readonly RendererStrategyInterface $rendererStrategy,
-        private readonly string $platformName,
-        private readonly string $platformVersion,
-        ?string $cacheInvalidateUrl = null,
-        ?string $configurationUrl = null,
-    ) {
+    public function __construct(Client $client, TaggableCacheItemPoolInterface $cache, RendererStrategyInterface $rendererStrategy, string $platformName, string $platformVersion, ?string $cacheInvalidateUrl = null, ?string $configurationUrl = null)
+    {
+        $this->rendererStrategy = $rendererStrategy;
+        $this->platformName = $platformName;
+        $this->platformVersion = $platformVersion;
         parent::__construct($client, $cache, $cacheInvalidateUrl, $configurationUrl);
     }
 
-    public function renderPaywallIframe(string $iframeUrl): string
+    /**
+     * @param string $iframeUrl
+     */
+    public function renderPaywallIframe($iframeUrl): string
     {
         try {
             $fragments = $this->getPaywallElements($iframeUrl);
@@ -43,8 +57,9 @@ final class PaywallIframeRenderer extends FrontendRenderer
     /**
      * @throws ClientExceptionInterface
      * @throws InvalidArgumentException
+     * @param string $iframeUrl
      */
-    public function getPaywallElements(string $iframeUrl): array
+    public function getPaywallElements($iframeUrl): array
     {
         return array_merge([
             'iframe' => sprintf(
@@ -79,7 +94,7 @@ final class PaywallIframeRenderer extends FrontendRenderer
     {
         try {
             return $this->extractCacheTimestamp($this->getPaywallFrontendStyle());
-        } catch (InvalidArgumentException|\Throwable) {
+        } catch (InvalidArgumentException|\Throwable $exception) {
             return 0;
         }
     }
@@ -88,7 +103,7 @@ final class PaywallIframeRenderer extends FrontendRenderer
     {
         try {
             return $this->extractCacheTimestamp($this->getPaywallFrontendScript());
-        } catch (InvalidArgumentException|\Throwable) {
+        } catch (InvalidArgumentException|\Throwable $exception) {
             return 0;
         }
     }

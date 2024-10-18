@@ -8,10 +8,13 @@ use Comfino\Api\SerializerInterface;
 
 class Json implements SerializerInterface
 {
-    public function serialize(mixed $requestData): string
+    /**
+     * @param mixed $requestData
+     */
+    public function serialize($requestData): string
     {
         try {
-            $serializedRequestBody = json_encode($requestData, JSON_THROW_ON_ERROR);
+            $serializedRequestBody = json_encode($requestData, 0);
         } catch (\JsonException $e) {
             throw new RequestValidationError("Invalid request data: {$e->getMessage()}", 0, $e);
         }
@@ -19,10 +22,14 @@ class Json implements SerializerInterface
         return $serializedRequestBody;
     }
 
-    public function unserialize(string $responseBody): mixed
+    /**
+     * @param string $responseBody
+     * @return mixed
+     */
+    public function unserialize($responseBody)
     {
         try {
-            $deserializedResponseBody = json_decode($responseBody, true, 512, JSON_THROW_ON_ERROR);
+            $deserializedResponseBody = json_decode($responseBody, true, 512, 0);
         } catch (\JsonException $e) {
             throw new ResponseValidationError("Invalid response data: {$e->getMessage()}", 0, $e);
         }

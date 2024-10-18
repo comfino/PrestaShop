@@ -4,12 +4,30 @@ namespace Comfino\Common\Shop\Product\CategoryTree;
 
 final class Node
 {
-    public function __construct(
-        private readonly int $id,
-        private readonly string $name,
-        private ?Node $parent = null,
-        private ?NodeIterator $children = null
-    ) {
+    /**
+     * @readonly
+     * @var int
+     */
+    private $id;
+    /**
+     * @readonly
+     * @var string
+     */
+    private $name;
+    /**
+     * @var \Comfino\Common\Shop\Product\CategoryTree\Node|null
+     */
+    private $parent;
+    /**
+     * @var \Comfino\Common\Shop\Product\CategoryTree\NodeIterator|null
+     */
+    private $children;
+    public function __construct(int $id, string $name, ?Node $parent = null, ?NodeIterator $children = null)
+    {
+        $this->id = $id;
+        $this->name = $name;
+        $this->parent = $parent;
+        $this->children = $children;
     }
 
     public function getId(): int

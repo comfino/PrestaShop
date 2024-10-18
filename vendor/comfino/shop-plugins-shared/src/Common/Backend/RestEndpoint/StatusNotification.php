@@ -10,13 +10,31 @@ use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
 
 final class StatusNotification extends RestEndpoint
 {
+    /**
+     * @readonly
+     * @var \Comfino\Common\Shop\Order\StatusManager
+     */
+    private $statusManager;
+    /**
+     * @readonly
+     * @var mixed[]
+     */
+    private $forbiddenStatuses;
+    /**
+     * @readonly
+     * @var mixed[]
+     */
+    private $ignoredStatuses;
     public function __construct(
         string $name,
         string $endpointUrl,
-        private readonly StatusManager $statusManager,
-        private readonly array $forbiddenStatuses,
-        private readonly array $ignoredStatuses
+        StatusManager $statusManager,
+        array $forbiddenStatuses,
+        array $ignoredStatuses
     ) {
+        $this->statusManager = $statusManager;
+        $this->forbiddenStatuses = $forbiddenStatuses;
+        $this->ignoredStatuses = $ignoredStatuses;
         parent::__construct($name, $endpointUrl);
 
         $this->methods = ['POST', 'PUT', 'PATCH'];
@@ -27,7 +45,7 @@ final class StatusNotification extends RestEndpoint
      * @param string|null $endpointName
      * @inheritDoc
      */
-    public function processRequest(ServerRequestInterface $serverRequest, ?string $endpointName = null): ?array
+    public function processRequest($serverRequest, $endpointName = null): ?array
     {
         if (!$this->endpointPathMatch($serverRequest, $endpointName)) {
             throw new InvalidEndpoint('Endpoint path does not match request path.');

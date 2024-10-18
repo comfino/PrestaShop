@@ -4,7 +4,7 @@ namespace Comfino\Common\Backend\Cache;
 
 use Comfino\Enum;
 
-readonly class ItemTypeEnum extends Enum
+class ItemTypeEnum extends Enum
 {
     public const PAYWALL_TEMPLATE = 'paywall_template';
     public const PAYWALL_STYLE = 'paywall_style';
@@ -14,7 +14,12 @@ readonly class ItemTypeEnum extends Enum
     public const ADMIN_PRODUCT_TYPES = 'admin_product_types';
     public const ADMIN_WIDGET_TYPES = 'admin_widget_types';
 
-    public static function from(string $value, bool $strict = true): self
+    /**
+     * @param string $value
+     * @param bool $strict
+     * @return $this
+     */
+    public static function from($value, $strict = true): \Comfino\Enum
     {
         return new self($value, $strict);
     }
