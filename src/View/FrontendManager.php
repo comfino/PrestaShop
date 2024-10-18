@@ -46,7 +46,8 @@ final class FrontendManager
             CacheManager::getCachePool(),
             new ModuleRendererStrategy($module),
             ApiService::getEndpointUrl('cacheInvalidate'),
-            ApiService::getEndpointUrl('configuration')
+            ApiService::getEndpointUrl('configuration'),
+            \Tools::getShopDomainSsl(true)
         );
     }
 
