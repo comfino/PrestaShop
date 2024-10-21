@@ -126,7 +126,6 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $orderId = (string) $this->module->currentOrder;
         $shopCart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount);
 
         $this->module->validateOrder(
@@ -140,6 +139,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             false,
             $customer->secure_key
         );
+
+        $orderId = (string) $this->module->currentOrder;
 
         if (!empty($billingAddress->firstname)) {
             // Use billing address to get customer names.
