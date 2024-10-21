@@ -91,7 +91,9 @@ final class OrderManager
                         array_map('intval', $product->getCategories()),
                         $product->getIdTaxRulesGroup() !== 0 ? (int) ($product->getPrice(false) * 100) : null,
                         $product->getIdTaxRulesGroup() !== 0 ? (int) ($product->getTaxesRate() * 100) : null,
-                        $product->getIdTaxRulesGroup() !== 0 ? (int) (($product->getPrice() - $product->getPrice(false)) * 100) : null
+                        $product->getIdTaxRulesGroup() !== 0
+                            ? (int) (($product->getPrice() - $product->getPrice(false)) * 100)
+                            : null
                     ),
                     1
                 ),
