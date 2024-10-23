@@ -81,12 +81,16 @@ class Comfino extends PaymentModule
             'payments available on one platform with the help of quick integration. Grow your business with Comfino!'
         );
 
-        if (is_readable(__DIR__ . '/vendor/autoload.php')) {
-            require_once __DIR__ . '/vendor/autoload.php';
-        }
-
         if (!$this->checkEnvironment(true)) {
             $this->description .= (' ' . $this->_errors[count($this->_errors) - 1]);
+
+            return;
+        }
+
+        if (is_readable(__DIR__ . '/vendor/autoload.php')) {
+            require_once __DIR__ . '/vendor/autoload.php';
+        } else {
+            $this->description .= (' File ' . __DIR__ . '/vendor/autoload.php is not readable.');
 
             return;
         }
