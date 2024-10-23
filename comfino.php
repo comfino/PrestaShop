@@ -36,10 +36,10 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1729686900);
+    define('COMFINO_BUILD_TS', 1729844715);
 }
 
-/* Notice: source code of this module MUST be compatible with PHP 5.6 syntax. */
+/* Notice: source code of this script MUST be compatible with PHP 5.6 syntax. */
 
 class Comfino extends PaymentModule
 {

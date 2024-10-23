@@ -36,7 +36,6 @@ use Comfino\Common\Frontend\FrontendHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Client;
-use Comfino\View\FrontendManager;
 use ComfinoExternal\Psr\Http\Client\NetworkExceptionInterface;
 
 if (!defined('_PS_VERSION_')) {
@@ -84,6 +83,8 @@ final class ApiClient
                     CURLOPT_TIMEOUT => ConfigManager::getConfigurationValue('COMFINO_API_TIMEOUT', 3),
                 ]
             );
+
+            self::$apiClient->addCustomHeader('Comfino-Build-Timestamp', (string) COMFINO_BUILD_TS);
         } else {
             self::$apiClient->setApiKey($apiKey);
             self::$apiClient->setApiLanguage(\Context::getContext()->language->iso_code);
@@ -131,17 +132,22 @@ final class ApiClient
 
     public static function getLogoUrl(\PaymentModule $module): string
     {
-        return self::getApiHost(self::getInstance()->getApiHost())
-            . '/v1/get-logo-url?auth='
-            . FrontendHelper::getLogoAuthHash('PS', _PS_VERSION_, COMFINO_VERSION);
+        return self::getApiHost(
+            self::getInstance()->getApiHost()) . '/v1/get-logo-url?auth=' . FrontendHelper::getLogoAuthHash(
+                'PS', _PS_VERSION_, COMFINO_VERSION, COMFINO_BUILD_TS
+            );
     }
 
     public static function getPaywallLogoUrl(\PaymentModule $module): string
     {
-        return self::getApiHost(self::getInstance()->getApiHost())
-            . '/v1/get-paywall-logo?auth='
-            . FrontendHelper::getPaywallLogoAuthHash(
-                'PS', _PS_VERSION_, COMFINO_VERSION, self::getInstance()->getApiKey(), ConfigManager::getWidgetKey()
+        return self::getApiHost(
+            self::getInstance()->getApiHost()) . '/v1/get-paywall-logo?auth=' . FrontendHelper::getPaywallLogoAuthHash(
+                'PS',
+                _PS_VERSION_,
+                COMFINO_VERSION,
+                self::getInstance()->getApiKey(),
+                ConfigManager::getWidgetKey(),
+                COMFINO_BUILD_TS
             );
     }
 

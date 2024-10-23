@@ -96,6 +96,10 @@ final class FormManager
                     ]))
                 ) . '<hr>' . sprintf('<b>Comfino API host:</b> %s', ApiClient::getInstance()->getApiHost());
 
+                $infoMessages[] = sprintf(
+                    '<b>Plugin build time:</b> %s',
+                    \DateTime::createFromFormat('U', COMFINO_BUILD_TS)->format('Y-m-d H:i:s')
+                );
                 $infoMessages[] = sprintf('<b>Shop domain:</b> %s', \Tools::getShopDomain());
                 $infoMessages[] = sprintf('<b>Widget key:</b> %s', ConfigManager::getWidgetKey());
 

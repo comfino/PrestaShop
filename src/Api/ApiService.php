@@ -65,7 +65,9 @@ final class ApiService
                 ConfigManager::getInstance(),
                 'PrestaShop',
                 ...array_values(
-                    ConfigManager::getEnvironmentInfo(['shop_version', 'plugin_version', 'database_version'])
+                    ConfigManager::getEnvironmentInfo(
+                        ['shop_version', 'plugin_version', 'plugin_build_ts', 'database_version']
+                    )
                 )
             )
         );

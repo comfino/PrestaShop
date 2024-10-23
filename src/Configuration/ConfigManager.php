@@ -152,6 +152,7 @@ final class ConfigManager
     {
         $envFields = [
             'plugin_version' => COMFINO_VERSION,
+            'plugin_build_ts' => COMFINO_BUILD_TS,
             'shop_version' => _PS_VERSION_,
             'symfony_version' => COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')
                 ? \Symfony\Component\HttpKernel\Kernel::VERSION
