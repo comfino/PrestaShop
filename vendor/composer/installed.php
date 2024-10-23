@@ -67,7 +67,7 @@
         'comfino/shop-plugins-shared' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '18cf730fa4db0fa2e794797b92cfb7118e9ca03c',
+            'reference' => '255f925df787496b8770698d07c8c5f3da8b00d1',
             'type' => 'library',
             'install_path' => __DIR__ . '/../comfino/shop-plugins-shared',
             'aliases' => array(

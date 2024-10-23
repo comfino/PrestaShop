@@ -84,6 +84,8 @@ final class ApiClient
                     CURLOPT_TIMEOUT => ConfigManager::getConfigurationValue('COMFINO_API_TIMEOUT', 3),
                 ]
             );
+
+            self::$apiClient->addCustomHeader('Comfino-Build-Timestamp', (string) COMFINO_BUILD_TS);
         } else {
             self::$apiClient->setApiKey($apiKey);
             self::$apiClient->setApiLanguage(\Context::getContext()->language->iso_code);
