@@ -1,4 +1,3 @@
-version: '3.5'
 services:
     comfino-prestashop-php:
         build:
@@ -8,4 +7,4 @@ services:
         tty: true
         volumes:
             - ./:/comfino-prestashop
-            - ~/.composer:/home/vagrant/.composer
+            - ~/.composer:/home/comfino/.composer
