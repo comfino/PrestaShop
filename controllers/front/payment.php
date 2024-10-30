@@ -142,7 +142,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $orderId = (string) $this->module->currentOrder;
 
-        if (!empty($billingAddress->firstname)) {
+        if (!empty(trim($billingAddress->firstname))) {
             // Use billing address to get customer names.
             [$firstName, $lastName] = $this->prepareCustomerNames($billingAddress);
         } else {
@@ -156,7 +156,18 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $billingAddressLines .= " $billingAddress->address2";
         }
 
-        $street = trim($billingAddressLines);
+        if (empty($billingAddressLines)) {
+            $deliveryAddressLines = $deliveryAddress->address1;
+
+            if (!empty($deliveryAddress->address2)) {
+                $deliveryAddressLines .= " {$deliveryAddress->address2}";
+            }
+
+            $street = trim($deliveryAddressLines);
+        } else {
+            $street = trim($billingAddressLines);
+        }
+
         $addressParts = explode(' ', $street);
         $buildingNumber = '';
 
