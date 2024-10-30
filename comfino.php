@@ -251,6 +251,12 @@ class Comfino extends PaymentModule
                 'bottom',
                 'defer'
             );
+        } elseif ($controller === 'cart' || $controller === 'order') {
+            Comfino\Main::addScriptLink(
+                'comfino-paywall',
+                _MODULE_DIR_ . $this->name . '/views/js/front/paywall.min.js',
+                'head'
+            );
         }
     }
 

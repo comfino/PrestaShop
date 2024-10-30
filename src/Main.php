@@ -118,12 +118,6 @@ final class Main
             return;
         }
 
-        self::addScriptLink(
-            'comfino-paywall',
-            _MODULE_DIR_ . $module->name . '/views/js/front/paywall.min.js',
-            'head'
-        );
-
         if (COMFINO_PS_17) {
             $comfinoPaymentOption = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
             $comfinoPaymentOption->setModuleName($module->name)
