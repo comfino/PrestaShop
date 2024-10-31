@@ -344,12 +344,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:comfino/shop-plugins-shared.git",
-                "reference": "e1e43391b356f9b74cc3b544d85c95222f0fb571"
+                "reference": "ce8191ea095fdf6de42d88e422d6c6c757eea75c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/e1e43391b356f9b74cc3b544d85c95222f0fb571",
-                "reference": "e1e43391b356f9b74cc3b544d85c95222f0fb571",
+                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/ce8191ea095fdf6de42d88e422d6c6c757eea75c",
+                "reference": "ce8191ea095fdf6de42d88e422d6c6c757eea75c",
                 "shasum": ""
             },
             "require": {
@@ -397,7 +397,7 @@
                 "source": "https://github.com/comfino/shop-plugins-shared/tree/master",
                 "issues": "https://github.com/comfino/shop-plugins-shared/issues"
             },
-            "time": "2024-10-31T10:00:35+00:00"
+            "time": "2024-10-31T12:30:52+00:00"
         },
         {
             "name": "fig/http-message-util",
@@ -2623,16 +2623,16 @@
         },
         {
             "name": "php-http/mock-client",
-            "version": "1.6.0",
+            "version": "1.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-http/mock-client.git",
-                "reference": "ae5d717334ecd68199667bea6e9db07276e69a2b"
+                "reference": "81f558234421f7da58ed015604a03808996017d0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-http/mock-client/zipball/ae5d717334ecd68199667bea6e9db07276e69a2b",
-                "reference": "ae5d717334ecd68199667bea6e9db07276e69a2b",
+                "url": "https://api.github.com/repos/php-http/mock-client/zipball/81f558234421f7da58ed015604a03808996017d0",
+                "reference": "81f558234421f7da58ed015604a03808996017d0",
                 "shasum": ""
             },
             "require": {
@@ -2679,9 +2679,9 @@
             ],
             "support": {
                 "issues": "https://github.com/php-http/mock-client/issues",
-                "source": "https://github.com/php-http/mock-client/tree/1.6.0"
+                "source": "https://github.com/php-http/mock-client/tree/1.6.1"
             },
-            "time": "2023-05-21T08:31:38+00:00"
+            "time": "2024-10-31T10:30:18+00:00"
         },
         {
             "name": "php-http/promise",
