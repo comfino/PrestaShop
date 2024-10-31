@@ -33,7 +33,6 @@ use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
-use Comfino\View\FrontendManager;
 use Comfino\View\TemplateManager;
 use ComfinoExternal\Psr\Http\Client\NetworkExceptionInterface;
 
@@ -58,6 +57,9 @@ class ModuleRendererStrategy implements RendererStrategyInterface
 
     public function renderErrorTemplate($exception): string
     {
+        $showLoader = false;
+        $showMessage = false;
+
         if ($exception instanceof RequestValidationError || $exception instanceof ResponseValidationError
             || $exception instanceof AuthorizationError || $exception instanceof AccessDenied
             || $exception instanceof ServiceUnavailable
@@ -68,6 +70,10 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             if ($exception instanceof ResponseValidationError || $exception instanceof ServiceUnavailable) {
                 $responseBody = $exception->getResponseBody();
             } else {
+                if ($exception instanceof AccessDenied && $exception->getCode() === 404) {
+                    $showMessage = true;
+                }
+
                 $responseBody = '';
             }
 
@@ -76,7 +82,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             $exception->getRequest()->getBody()->rewind();
 
             if ($exception->getCode() === CURLE_OPERATION_TIMEDOUT) {
-
+                $showLoader = true;
             }
 
             $url = $exception->getRequest()->getRequestTarget();
@@ -95,7 +101,6 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             $templateName,
             'front',
             [
-                'paywall_style' => FrontendManager::getPaywallRenderer($this->module),
                 'exception_class' => get_class($exception),
                 'error_message' => $exception->getMessage(),
                 'error_code' => $exception->getCode(),
@@ -105,6 +110,8 @@ class ModuleRendererStrategy implements RendererStrategyInterface
                 'url' => $url,
                 'request_body' => $requestBody,
                 'response_body' => $responseBody,
+                'show_loader' => $showLoader,
+                'show_message' => $showMessage,
                 'is_debug_mode' => ApiClient::isDevEnv(),
             ]
         );
