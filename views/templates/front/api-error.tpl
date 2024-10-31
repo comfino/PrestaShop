@@ -23,10 +23,29 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
-<h2>API error</h2>
-{$error_message|escape:"htmlall":"UTF-8"}
-<p>URL: {$url|escape:"htmlall":"UTF-8"}</p>
-<p>Request:</p>
-<code>{$request_body|escape:"htmlall":"UTF-8"}</code>
-<p>Response:</p>
-<code>{$response_body|escape:"htmlall":"UTF-8"}</code>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>{$error_message|escape:"htmlall":"UTF-8"} [{$error_code|escape:"htmlall":"UTF-8"}]</title>
+        <style>{$paywall_style}</style>
+    </head>
+    <body>
+        <div class="loadingio-spinner-rolling-comfino">
+            <div class="ldio-comfino"><div></div></div>
+        </div>
+        {if $is_debug_mode}
+            <h2>API error</h2>
+            <p>Error message: {$error_message|escape:"htmlall":"UTF-8"}</p>
+            <p>Error code: {$error_code|escape:"htmlall":"UTF-8"}</p>
+            <p>File: {$error_file|escape:"htmlall":"UTF-8"}</p>
+            <p>Line: {$error_line|escape:"htmlall":"UTF-8"}</p>
+            <p>Trace:</p>
+            <code>{$error_trace|escape:"htmlall":"UTF-8"}</code>
+            <p>URL: {$url|escape:"htmlall":"UTF-8"}</p>
+            <p>Request:</p>
+            <code>{$request_body|escape:"htmlall":"UTF-8"}</code>
+            <p>Response:</p>
+            <code>{$response_body|escape:"htmlall":"UTF-8"}</code>
+        {/if}
+    </body>
+</html>

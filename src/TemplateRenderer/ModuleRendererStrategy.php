@@ -26,12 +26,14 @@
 
 namespace Comfino\TemplateRenderer;
 
+use Comfino\Api\ApiClient;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
+use Comfino\View\FrontendManager;
 use Comfino\View\TemplateManager;
 use ComfinoExternal\Psr\Http\Client\NetworkExceptionInterface;
 
@@ -73,6 +75,10 @@ class ModuleRendererStrategy implements RendererStrategyInterface
         } elseif ($exception instanceof NetworkExceptionInterface) {
             $exception->getRequest()->getBody()->rewind();
 
+            if ($exception->getCode() === CURLE_OPERATION_TIMEDOUT) {
+
+            }
+
             $url = $exception->getRequest()->getRequestTarget();
             $requestBody = $exception->getRequest()->getBody()->getContents();
             $responseBody = '';
@@ -89,6 +95,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             $templateName,
             'front',
             [
+                'paywall_style' => FrontendManager::getPaywallRenderer($this->module),
                 'exception_class' => get_class($exception),
                 'error_message' => $exception->getMessage(),
                 'error_code' => $exception->getCode(),
@@ -98,6 +105,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
                 'url' => $url,
                 'request_body' => $requestBody,
                 'response_body' => $responseBody,
+                'is_debug_mode' => ApiClient::isDevEnv(),
             ]
         );
     }

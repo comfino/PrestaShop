@@ -22,7 +22,11 @@ final class PaywallRenderer extends FrontendRenderer
      * @var string|null
      */
     private $paywallApiOrigin;
-    private const PAYWALL_FRAGMENTS = ['template', 'style', 'script'];
+    public const PAYWALL_FRAGMENT_TEMPLATE = 'template';
+    public const PAYWALL_FRAGMENT_STYLE = 'style';
+    public const PAYWALL_FRAGMENT_SCRIPT = 'script';
+
+    private const PAYWALL_FRAGMENTS = [self::PAYWALL_FRAGMENT_TEMPLATE, self::PAYWALL_FRAGMENT_STYLE, self::PAYWALL_FRAGMENT_SCRIPT];
 
     public function __construct(
         Client $client,
@@ -65,12 +69,12 @@ final class PaywallRenderer extends FrontendRenderer
                     $regExpPattern = '';
 
                     switch ($fragmentName) {
-                        case 'template':
+                        case self::PAYWALL_FRAGMENT_TEMPLATE:
                             $regExpPattern = '/<!--\[rendered:(\d+)\]-->/';
                             break;
 
-                        case 'style':
-                        case 'script':
+                        case self::PAYWALL_FRAGMENT_STYLE:
+                        case self::PAYWALL_FRAGMENT_SCRIPT:
                             $regExpPattern = '/\/\*\[cached:(\d+)\]\*\//';
                             break;
                     }
@@ -102,8 +106,8 @@ final class PaywallRenderer extends FrontendRenderer
             return $this->rendererStrategy->renderPaywallTemplate(
                 str_replace(
                     ['{PAYWALL_STYLE}', '{PAYWALL_API_ORIGIN}', '{LOAN_AMOUNT}', '{PAYWALL_PRODUCTS_LIST}', '{PAYWALL_SCRIPT}'],
-                    [$fragments['style'], $paywallApiOrigin, $queryCriteria->loanAmount, $paywallProductsList, $fragments['script']],
-                    $fragments['template']
+                    [$fragments[self::PAYWALL_FRAGMENT_STYLE], $paywallApiOrigin, $queryCriteria->loanAmount, $paywallProductsList, $fragments[self::PAYWALL_FRAGMENT_SCRIPT]],
+                    $fragments[self::PAYWALL_FRAGMENT_TEMPLATE]
                 )
             );
         } catch (\Throwable $e) {
@@ -124,6 +128,18 @@ final class PaywallRenderer extends FrontendRenderer
             return new PaywallItemDetails($response->productDetails, $response->listItemData);
         } catch (\Throwable $e) {
             return new PaywallItemDetails($this->rendererStrategy->renderErrorTemplate($e), '');
+        }
+    }
+
+    /**
+     * @param string $fragment
+     */
+    public function getFrontendFragment($fragment): string
+    {
+        try {
+            return $this->getFrontendFragments([$fragment])[$fragment] ?? '';
+        } catch (\Throwable $exception) {
+            return '';
         }
     }
 }
