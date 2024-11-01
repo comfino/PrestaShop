@@ -6,7 +6,7 @@
 
 **Merged pull requests:**
 
-- FN-11773 Complete plugin refactoring: redesigned plugin architecture, improved errors handling, stability and reliability, code clean up (lowest supported PHP version is 7.1). [\#92](https://github.com/comfino/PrestaShop/pull/92) ([akozubskicr](https://github.com/akozubskicr))
+- FN-11773 Complete plugin refactoring: redesigned plugin architecture, improved errors handling, stability and reliability, added support for leasing, code clean up (lowest supported PHP version is 7.1). [\#92](https://github.com/comfino/PrestaShop/pull/92) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [3.5.4](https://github.com/comfino/PrestaShop/tree/3.5.4) (2024-05-07)
 
