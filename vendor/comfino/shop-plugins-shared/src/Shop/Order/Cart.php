@@ -25,7 +25,7 @@ class Cart implements CartInterface
      * @var int|null
      * @readonly
      */
-    private $netDeliveryCost;
+    private $deliveryNetCost;
     /**
      * @var int|null
      * @readonly
@@ -45,17 +45,17 @@ class Cart implements CartInterface
      * @param CartItemInterface[] $items
      * @param int $totalAmount
      * @param int|null $deliveryCost
-     * @param int|null $netDeliveryCost
+     * @param int|null $deliveryNetCost
      * @param int|null $deliveryCostTaxRate
      * @param int|null $deliveryCostTaxValue
      * @param string|null $category
      */
-    public function __construct(array $items, int $totalAmount, ?int $deliveryCost = null, ?int $netDeliveryCost = null, ?int $deliveryCostTaxRate = null, ?int $deliveryCostTaxValue = null, ?string $category = null)
+    public function __construct(array $items, int $totalAmount, ?int $deliveryCost = null, ?int $deliveryNetCost = null, ?int $deliveryCostTaxRate = null, ?int $deliveryCostTaxValue = null, ?string $category = null)
     {
         $this->items = $items;
         $this->totalAmount = $totalAmount;
         $this->deliveryCost = $deliveryCost;
-        $this->netDeliveryCost = $netDeliveryCost;
+        $this->deliveryNetCost = $deliveryNetCost;
         $this->deliveryCostTaxRate = $deliveryCostTaxRate;
         $this->deliveryCostTaxValue = $deliveryCostTaxValue;
         $this->category = $category;
@@ -85,9 +85,9 @@ class Cart implements CartInterface
         return $this->deliveryCost;
     }
 
-    public function getNetDeliveryCost(): ?int
+    public function getDeliveryNetCost(): ?int
     {
-        return $this->netDeliveryCost;
+        return $this->deliveryNetCost;
     }
 
     public function getDeliveryCostTaxRate(): ?int

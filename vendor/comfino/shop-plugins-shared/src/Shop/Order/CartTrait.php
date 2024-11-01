@@ -59,7 +59,7 @@ trait CartTrait
                 'products' => $products,
                 'totalAmount' => $cart->getTotalAmount(),
                 'deliveryCost' => $cart->getDeliveryCost(),
-                'deliveryNetCost' => $cart->getNetDeliveryCost(),
+                'deliveryNetCost' => $cart->getDeliveryNetCost(),
                 'deliveryCostVatRate' => $cart->getDeliveryCostTaxRate(),
                 'deliveryCostVatAmount' => $cart->getDeliveryCostTaxValue(),
                 'category' => $cart->getCategory(),

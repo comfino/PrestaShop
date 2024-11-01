@@ -16,7 +16,7 @@ interface CartInterface
     public function getDeliveryCost(): ?int;
 
     /** @return int|null */
-    public function getNetDeliveryCost(): ?int;
+    public function getDeliveryNetCost(): ?int;
 
     /** @return int|null */
     public function getDeliveryCostTaxRate(): ?int;
