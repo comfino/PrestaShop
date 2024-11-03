@@ -122,7 +122,12 @@ final class OrderManager
     {
         return new Cart(
             (int) ($product->getPrice() * 100),
+            null,
+            null,
             0,
+            null,
+            null,
+            null,
             [
                 new CartItem(
                     new Product(
