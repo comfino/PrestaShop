@@ -54,6 +54,7 @@ function upgrade_module_4_0_0(Comfino $module)
         'COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP),
         'COMFINO_API_CONNECT_TIMEOUT' => 1,
         'COMFINO_API_TIMEOUT' => 3,
+        'COMFINO_API_CONNECT_NUM_ATTEMPTS' => 3,
     ]);
 
     $logFilePath = _PS_MODULE_DIR_ . $module->name . '/payment_log.log';

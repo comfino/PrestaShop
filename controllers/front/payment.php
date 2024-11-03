@@ -69,7 +69,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $tools = new Comfino\Tools(Context::getContext());
+        $tools = new Comfino\Tools($this->context);
 
         $billingAddress = $cart->getAddressCollection()[$cart->id_address_invoice];
         $deliveryAddress = $cart->getAddressCollection()[$cart->id_address_delivery];
@@ -218,9 +218,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         try {
             Tools::redirect(ApiClient::getInstance()->createOrder($order)->applicationUrl);
         } catch (Throwable $e) {
-            $order = new Order($this->module->currentOrder);
-            $order->setCurrentState((int) Configuration::get('PS_OS_ERROR'));
-            $order->save();
+            $psOrder = new Order($this->module->currentOrder);
+            $psOrder->setCurrentState((int) Configuration::get('PS_OS_ERROR'));
+            $psOrder->save();
 
             ApiClient::processApiError(
                 'Order creation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',

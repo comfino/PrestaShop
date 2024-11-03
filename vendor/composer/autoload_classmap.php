@@ -204,6 +204,7 @@ return array(
     'Comfino\\Api\\SerializerInterface' => $vendorDir . '/comfino/shop-plugins-shared/src/Api/SerializerInterface.php',
     'Comfino\\Api\\Serializer\\Json' => $vendorDir . '/comfino/shop-plugins-shared/src/Api/Serializer/Json.php',
     'Comfino\\CategoryTree\\BuildStrategy' => $baseDir . '/src/CategoryTree/BuildStrategy.php',
+    'Comfino\\Common\\Api\\Client' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Api/Client.php',
     'Comfino\\Common\\Backend\\Cache\\ItemTypeEnum' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Backend/Cache/ItemTypeEnum.php',
     'Comfino\\Common\\Backend\\ConfigurationManager' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Backend/ConfigurationManager.php',
     'Comfino\\Common\\Backend\\Configuration\\StorageAdapterInterface' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Backend/Configuration/StorageAdapterInterface.php',

@@ -79,6 +79,7 @@ final class ConfigManager
             'COMFINO_STATUS_MAP' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
             'COMFINO_API_CONNECT_TIMEOUT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_API_TIMEOUT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
+            'COMFINO_API_CONNECT_NUM_ATTEMPTS' => ConfigurationManager::OPT_VALUE_TYPE_INT,
         ],
     ];
 
@@ -107,6 +108,7 @@ final class ConfigManager
         'COMFINO_STATUS_MAP',
         'COMFINO_API_CONNECT_TIMEOUT',
         'COMFINO_API_TIMEOUT',
+        'COMFINO_API_CONNECT_NUM_ATTEMPTS',
     ];
 
     /** @var ConfigurationManager */
@@ -412,6 +414,7 @@ final class ConfigManager
             'COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP),
             'COMFINO_API_CONNECT_TIMEOUT' => 1,
             'COMFINO_API_TIMEOUT' => 3,
+            'COMFINO_API_CONNECT_NUM_ATTEMPTS' => 3,
         ];
 
         foreach ($initialConfigValues as $optName => $optValue) {

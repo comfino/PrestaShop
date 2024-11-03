@@ -39,17 +39,15 @@ final class OrderManager
 {
     public static function getShopCart(\Cart $cart, int $loanAmount): Cart
     {
-        $total = (int) ($cart->getOrderTotal(true) * 100);
+        $totalValue = (int) ($cart->getOrderTotal(true) * 100);
 
-        if ($loanAmount > $total) {
+        if ($loanAmount > $totalValue) {
             // Loan amount with price modifier (e.g. custom commission).
-            $total = $loanAmount;
+            $totalValue = $loanAmount;
         }
 
-        return new Cart(
-            $total,
-            (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100),
-            array_map(static function (array $product): CartItemInterface {
+        $cartItems = array_map(
+            static function (array $product): CartItemInterface {
                 $quantity = (int) $product['cart_quantity'];
                 $taxRulesGroupId = \Product::getIdTaxRulesGroupByIdProduct($product['id_product']);
                 $grossPrice = (int) ($product['total_wt'] / $quantity * 100);
@@ -70,7 +68,53 @@ final class OrderManager
                     ),
                     $quantity
                 );
-            }, $cart->getProducts())
+            },
+            $cart->getProducts()
+        );
+
+        $totalNetValue = 0;
+        $totalTaxValue = 0;
+
+        foreach ($cartItems as $cartItem) {
+            if ($cartItem->getProduct()->getNetPrice() !== null) {
+                $totalNetValue += ($cartItem->getProduct()->getNetPrice() * $cartItem->getQuantity());
+            }
+
+            if ($cartItem->getProduct()->getTaxValue() !== null) {
+                $totalTaxValue += ($cartItem->getProduct()->getTaxValue() * $cartItem->getQuantity());
+            }
+        }
+
+        if ($totalNetValue === 0) {
+            $totalNetValue = null;
+        }
+
+        if ($totalTaxValue === 0) {
+            $totalTaxValue = null;
+        }
+
+        $deliveryCost = (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100);
+        $deliveryNetCost = null;
+        $deliveryTaxValue = null;
+        $deliveryTaxRate = null;
+
+        if (\Validate::isLoadedObject($carrier = new \Carrier($cart->id_carrier))
+            && \Carrier::getIdTaxRulesGroupByIdCarrier($cart->id_carrier) !== 0
+        ) {
+            $deliveryNetCost = (int) ($cart->getOrderTotal(false, \Cart::ONLY_SHIPPING) * 100);
+            $deliveryTaxValue = $deliveryCost - $deliveryNetCost;
+            $deliveryTaxRate = (int) $carrier->getTaxesRate();
+        }
+
+        return new Cart(
+            $totalValue,
+            $totalNetValue,
+            $totalTaxValue,
+            $deliveryCost,
+            $deliveryNetCost,
+            $deliveryTaxRate,
+            $deliveryTaxValue,
+            $cartItems
         );
     }
 

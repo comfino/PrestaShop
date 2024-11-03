@@ -35,7 +35,6 @@ use Comfino\Common\Backend\Factory\ApiClientFactory;
 use Comfino\Common\Frontend\FrontendHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger;
-use Comfino\Extended\Api\Client;
 use ComfinoExternal\Psr\Http\Client\NetworkExceptionInterface;
 
 if (!defined('_PS_VERSION_')) {
@@ -44,7 +43,7 @@ if (!defined('_PS_VERSION_')) {
 
 final class ApiClient
 {
-    /** @var Client */
+    /** @var \Comfino\Common\Api\Client */
     private static $apiClient;
 
     public static function getInstance(?bool $sandboxMode = null, ?string $apiKey = null): Client
@@ -78,10 +77,9 @@ final class ApiClient
                 ),
                 self::getApiHost(),
                 \Context::getContext()->language->iso_code,
-                [
-                    CURLOPT_CONNECTTIMEOUT => ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_TIMEOUT', 1),
-                    CURLOPT_TIMEOUT => ConfigManager::getConfigurationValue('COMFINO_API_TIMEOUT', 3),
-                ]
+                ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_TIMEOUT', 1),
+                ConfigManager::getConfigurationValue('COMFINO_API_TIMEOUT', 3),
+                ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_NUM_ATTEMPTS', 3)
             );
 
             self::$apiClient->addCustomHeader('Comfino-Build-Timestamp', (string) COMFINO_BUILD_TS);

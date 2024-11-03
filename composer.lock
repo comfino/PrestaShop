@@ -344,12 +344,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:comfino/shop-plugins-shared.git",
-                "reference": "203090eb7ea5464de7d07fd0f60857e550b18a61"
+                "reference": "02a86e5f4e9a9d39583bc1160b8fd655f10cb191"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/203090eb7ea5464de7d07fd0f60857e550b18a61",
-                "reference": "203090eb7ea5464de7d07fd0f60857e550b18a61",
+                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/02a86e5f4e9a9d39583bc1160b8fd655f10cb191",
+                "reference": "02a86e5f4e9a9d39583bc1160b8fd655f10cb191",
                 "shasum": ""
             },
             "require": {
@@ -397,7 +397,7 @@
                 "source": "https://github.com/comfino/shop-plugins-shared/tree/master",
                 "issues": "https://github.com/comfino/shop-plugins-shared/issues"
             },
-            "time": "2024-11-01T07:44:15+00:00"
+            "time": "2024-11-03T11:46:13+00:00"
         },
         {
             "name": "fig/http-message-util",
