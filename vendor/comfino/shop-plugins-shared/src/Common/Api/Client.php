@@ -56,6 +56,10 @@ class Client extends \Comfino\Extended\Api\Client
             $this->transferTimeout = 3 * $this->connectionTimeout;
         }
 
+        if ($this->connectionMaxNumAttempts === 0) {
+            $this->connectionMaxNumAttempts = 3;
+        }
+
         parent::__construct(
             new RequestFactory(),
             new StreamFactory(),
