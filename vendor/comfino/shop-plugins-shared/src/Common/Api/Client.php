@@ -79,9 +79,17 @@ class Client extends \Comfino\Extended\Api\Client
      */
     public function resetClient($connectionTimeout, $transferTimeout, $connectionMaxNumAttempts, $options = []): void
     {
+        $this->connectionMaxNumAttempts = $connectionMaxNumAttempts;
+
+        sort($this->options);
+        sort($options);
+
+        if ($this->connectionTimeout === $connectionTimeout && $this->transferTimeout === $transferTimeout && $this->options === $options) {
+            return;
+        }
+
         $this->connectionTimeout = $connectionTimeout;
         $this->transferTimeout = $transferTimeout;
-        $this->connectionMaxNumAttempts = $connectionMaxNumAttempts;
         $this->options = $options;
 
         if ($this->connectionTimeout >= $this->transferTimeout) {
