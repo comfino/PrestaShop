@@ -42,9 +42,10 @@ final class PaywallRenderer extends FrontendRenderer
     }
 
     /**
+     * @param HeadMetaTag[]|null $headMetaTags
      * @param \Comfino\Api\Dto\Payment\LoanQueryCriteria $queryCriteria
      */
-    public function renderPaywall($queryCriteria): string
+    public function renderPaywall($queryCriteria, $headMetaTags = null): string
     {
         try {
             $fragments = $this->getFrontendFragments(self::PAYWALL_FRAGMENTS);
@@ -105,8 +106,48 @@ final class PaywallRenderer extends FrontendRenderer
 
             return $this->rendererStrategy->renderPaywallTemplate(
                 str_replace(
-                    ['{PAYWALL_STYLE}', '{PAYWALL_API_ORIGIN}', '{LOAN_AMOUNT}', '{PAYWALL_PRODUCTS_LIST}', '{PAYWALL_SCRIPT}'],
-                    [$fragments[self::PAYWALL_FRAGMENT_STYLE], $paywallApiOrigin, $queryCriteria->loanAmount, $paywallProductsList, $fragments[self::PAYWALL_FRAGMENT_SCRIPT]],
+                    ['{HEAD_META}', '{PAYWALL_STYLE}', '{PAYWALL_API_ORIGIN}', '{LOAN_AMOUNT}', '{PAYWALL_PRODUCTS_LIST}', '{PAYWALL_SCRIPT}'],
+                    [
+                        !empty($headMetaTags)
+                            ? implode("\n", array_filter(
+                                array_map(
+                                    static function ($headMetaTag): ?string {
+                                        if (!($headMetaTag instanceof HeadMetaTag)) {
+                                            return null;
+                                        }
+
+                                        $metaTag = '<meta ';
+
+                                        if ($headMetaTag->name !== null) {
+                                            $metaTag .= 'name="' . htmlentities(strip_tags($headMetaTag->name), ENT_QUOTES) . '" ';
+                                        }
+
+                                        if ($headMetaTag->httpEquiv !== null) {
+                                            $metaTag .= 'http-equiv="' . htmlentities(strip_tags($headMetaTag->httpEquiv), ENT_QUOTES) . '" ';
+                                        }
+
+                                        if ($headMetaTag->content !== null) {
+                                            $metaTag .= ' content="' . htmlentities(strip_tags($headMetaTag->content), ENT_QUOTES) . '" ';
+                                        }
+
+                                        if ($headMetaTag->itemProp !== null) {
+                                            $metaTag .= ' itemprop="' . htmlentities(strip_tags($headMetaTag->itemProp), ENT_QUOTES) . '" ';
+                                        }
+
+                                        $metaTag .= '>';
+
+                                        return $metaTag;
+                                    },
+                                    $headMetaTags
+                                )
+                            ))
+                            : '',
+                        $fragments[self::PAYWALL_FRAGMENT_STYLE],
+                        $paywallApiOrigin,
+                        $queryCriteria->loanAmount,
+                        $paywallProductsList,
+                        $fragments[self::PAYWALL_FRAGMENT_SCRIPT]
+                    ],
                     $fragments[self::PAYWALL_FRAGMENT_TEMPLATE]
                 )
             );
