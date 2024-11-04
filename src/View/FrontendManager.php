@@ -88,6 +88,6 @@ final class FrontendManager
 
     public static function getConnectAttemptIdx(): int
     {
-        return $cookie->comfino_conn_attempt_idx ?? 1;
+        return \Context::getContext()->cookie->comfino_conn_attempt_idx ?? 1;
     }
 }
