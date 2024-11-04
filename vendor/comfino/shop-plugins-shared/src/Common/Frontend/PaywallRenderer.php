@@ -28,6 +28,11 @@ final class PaywallRenderer extends FrontendRenderer
 
     private const PAYWALL_FRAGMENTS = [self::PAYWALL_FRAGMENT_TEMPLATE, self::PAYWALL_FRAGMENT_STYLE, self::PAYWALL_FRAGMENT_SCRIPT];
 
+    /**
+     * @var mixed[]|null
+     */
+    protected $headMetaTags;
+
     public function __construct(
         Client $client,
         TaggableCacheItemPoolInterface $cache,
@@ -47,6 +52,8 @@ final class PaywallRenderer extends FrontendRenderer
      */
     public function renderPaywall($queryCriteria, $headMetaTags = null): string
     {
+        $this->headMetaTags = $headMetaTags;
+
         try {
             $fragments = $this->getFrontendFragments(self::PAYWALL_FRAGMENTS);
         } catch (\Throwable $e) {
@@ -106,42 +113,16 @@ final class PaywallRenderer extends FrontendRenderer
 
             return $this->rendererStrategy->renderPaywallTemplate(
                 str_replace(
-                    ['{HEAD_META}', '{PAYWALL_STYLE}', '{PAYWALL_API_ORIGIN}', '{LOAN_AMOUNT}', '{PAYWALL_PRODUCTS_LIST}', '{PAYWALL_SCRIPT}'],
                     [
-                        !empty($headMetaTags)
-                            ? implode("\n", array_filter(
-                                array_map(
-                                    static function ($headMetaTag): ?string {
-                                        if (!($headMetaTag instanceof HeadMetaTag)) {
-                                            return null;
-                                        }
-
-                                        $metaTag = '<meta ';
-
-                                        if ($headMetaTag->name !== null) {
-                                            $metaTag .= 'name="' . htmlentities(strip_tags($headMetaTag->name), ENT_QUOTES) . '" ';
-                                        }
-
-                                        if ($headMetaTag->httpEquiv !== null) {
-                                            $metaTag .= 'http-equiv="' . htmlentities(strip_tags($headMetaTag->httpEquiv), ENT_QUOTES) . '" ';
-                                        }
-
-                                        if ($headMetaTag->content !== null) {
-                                            $metaTag .= ' content="' . htmlentities(strip_tags($headMetaTag->content), ENT_QUOTES) . '" ';
-                                        }
-
-                                        if ($headMetaTag->itemProp !== null) {
-                                            $metaTag .= ' itemprop="' . htmlentities(strip_tags($headMetaTag->itemProp), ENT_QUOTES) . '" ';
-                                        }
-
-                                        $metaTag .= '>';
-
-                                        return $metaTag;
-                                    },
-                                    $headMetaTags
-                                )
-                            ))
-                            : '',
+                        '{HEAD_META}',
+                        '{PAYWALL_STYLE}',
+                        '{PAYWALL_API_ORIGIN}',
+                        '{LOAN_AMOUNT}',
+                        '{PAYWALL_PRODUCTS_LIST}',
+                        '{PAYWALL_SCRIPT}',
+                    ],
+                    [
+                        $this->renderHeadMetaTags(),
                         $fragments[self::PAYWALL_FRAGMENT_STYLE],
                         $paywallApiOrigin,
                         $queryCriteria->loanAmount,
@@ -182,5 +163,54 @@ final class PaywallRenderer extends FrontendRenderer
         } catch (\Throwable $exception) {
             return '';
         }
+    }
+
+    public function getHeadMetaTags(): ?array
+    {
+        return $this->headMetaTags;
+    }
+
+    public function renderHeadMetaTags(): string
+    {
+        if (empty($this->headMetaTags)) {
+            return '';
+        }
+
+        return
+            implode(
+                "\n",
+                array_filter(
+                    array_map(
+                        static function ($headMetaTag): ?string {
+                            if (!($headMetaTag instanceof HeadMetaTag)) {
+                                return null;
+                            }
+
+                            $metaTag = '<meta ';
+
+                            if ($headMetaTag->name !== null) {
+                                $metaTag .= 'name="' . htmlentities(strip_tags($headMetaTag->name), ENT_QUOTES) . '" ';
+                            }
+
+                            if ($headMetaTag->httpEquiv !== null) {
+                                $metaTag .= 'http-equiv="' . htmlentities(strip_tags($headMetaTag->httpEquiv), ENT_QUOTES) . '" ';
+                            }
+
+                            if ($headMetaTag->content !== null) {
+                                $metaTag .= ' content="' . htmlentities(strip_tags($headMetaTag->content), ENT_QUOTES) . '" ';
+                            }
+
+                            if ($headMetaTag->itemProp !== null) {
+                                $metaTag .= ' itemprop="' . htmlentities(strip_tags($headMetaTag->itemProp), ENT_QUOTES) . '" ';
+                            }
+
+                            $metaTag .= '>';
+
+                            return $metaTag;
+                        },
+                        $this->headMetaTags
+                    )
+                )
+            );
     }
 }
