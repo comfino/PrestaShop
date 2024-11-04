@@ -73,13 +73,15 @@ class Client extends \Comfino\Extended\Api\Client
      *
      * @param int $connectionTimeout API connection timeout in seconds.
      * @param int $transferTimeout Data transfer from API timeout in seconds. Must be greater than connection timeout.
+     * @param int $connectionMaxNumAttempts Maximum number of connection attempts in case of timeout.
      * @param array $options
      * @return void
      */
-    public function resetClient($connectionTimeout, $transferTimeout, $options = []): void
+    public function resetClient($connectionTimeout, $transferTimeout, $connectionMaxNumAttempts, $options = []): void
     {
         $this->connectionTimeout = $connectionTimeout;
         $this->transferTimeout = $transferTimeout;
+        $this->connectionMaxNumAttempts = $connectionMaxNumAttempts;
         $this->options = $options;
 
         if ($this->connectionTimeout >= $this->transferTimeout) {
