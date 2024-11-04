@@ -30,6 +30,11 @@ class Client extends \Comfino\Extended\Api\Client
      */
     protected $options = [];
     /**
+     * @var \ComfinoExternal\Sunrise\Http\Factory\ResponseFactory
+     */
+    protected static $responseFactory;
+
+    /**
      * @param string|null $apiKey Unique authentication key required for access to the Comfino API.
      * @param int $connectionTimeout API connection timeout in seconds.
      * @param int $transferTimeout Data transfer from API timeout in seconds. Must be greater than connection timeout.
@@ -155,7 +160,9 @@ class Client extends \Comfino\Extended\Api\Client
      */
     protected function createClient($connectionTimeout, $transferTimeout, $options = []): \ComfinoExternal\Sunrise\Http\Client\Curl\Client
     {
-        static $responseFactory = new ResponseFactory();
+        if (self::$responseFactory === null) {
+            self::$responseFactory = new ResponseFactory();
+        }
 
         $clientOptions = [CURLOPT_CONNECTTIMEOUT => $connectionTimeout, CURLOPT_TIMEOUT => $transferTimeout];
 
@@ -163,7 +170,7 @@ class Client extends \Comfino\Extended\Api\Client
             $clientOptions[$optionIdx] = $valueValue;
         }
 
-        return new \ComfinoExternal\Sunrise\Http\Client\Curl\Client($responseFactory, $clientOptions);
+        return new \ComfinoExternal\Sunrise\Http\Client\Curl\Client(self::$responseFactory, $clientOptions);
     }
 
     /**
