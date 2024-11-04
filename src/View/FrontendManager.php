@@ -30,6 +30,7 @@ use Comfino\Api\ApiClient;
 use Comfino\Api\ApiService;
 use Comfino\Common\Frontend\PaywallIframeRenderer;
 use Comfino\Common\Frontend\PaywallRenderer;
+use Comfino\Configuration\ConfigManager;
 use Comfino\PluginShared\CacheManager;
 use Comfino\TemplateRenderer\ModuleRendererStrategy;
 
@@ -41,8 +42,24 @@ final class FrontendManager
 {
     public static function getPaywallRenderer(\PaymentModule $module): PaywallRenderer
     {
+        $client = ApiClient::getInstance();
+        $cookie = \Context::getContext()->cookie;
+
+        if (isset($cookie->comfino_conn_attempt_idx)) {
+            $connectAttemptIdx = $cookie->comfino_conn_attempt_idx;
+        } else {
+            $connectAttemptIdx = 1;
+            $cookie->comfino_conn_attempt_idx = 1;
+        }
+
+        $client->resetClient(
+            $client->calculateConnectionTimeout($connectAttemptIdx),
+            $client->calculateTransferTimeout($connectAttemptIdx),
+            1
+        );
+
         return new PaywallRenderer(
-            ApiClient::getInstance(),
+            $client,
             CacheManager::getCachePool(),
             new ModuleRendererStrategy($module),
             ApiService::getEndpointUrl('cacheInvalidate'),
@@ -62,5 +79,15 @@ final class FrontendManager
             ApiService::getEndpointUrl('cacheInvalidate'),
             ApiService::getEndpointUrl('configuration')
         );
+    }
+
+    public static function getConnectMaxNumAttempts(): int
+    {
+        return ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_NUM_ATTEMPTS', 3);
+    }
+
+    public static function getConnectAttemptIdx(): int
+    {
+        return $cookie->comfino_conn_attempt_idx ?? 1;
     }
 }

@@ -33,6 +33,8 @@ use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
+use Comfino\Main;
+use Comfino\View\FrontendManager;
 use Comfino\View\TemplateManager;
 use ComfinoExternal\Psr\Http\Client\NetworkExceptionInterface;
 
@@ -60,6 +62,19 @@ class ModuleRendererStrategy implements RendererStrategyInterface
         $showLoader = false;
         $showMessage = false;
 
+        Main::debugLog(
+            '[API_ERROR]',
+            'renderErrorTemplate',
+            [
+                'exception' => get_class($exception),
+                'error_message' => $exception->getMessage(),
+                'error_code' => $exception->getCode(),
+                'error_file' => $exception->getFile(),
+                'error_line' => $exception->getLine(),
+                'error_trace' => $exception->getTraceAsString(),
+            ]
+        );
+
         if ($exception instanceof RequestValidationError || $exception instanceof ResponseValidationError
             || $exception instanceof AuthorizationError || $exception instanceof AccessDenied
             || $exception instanceof ServiceUnavailable
@@ -82,7 +97,33 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             $exception->getRequest()->getBody()->rewind();
 
             if ($exception->getCode() === CURLE_OPERATION_TIMEDOUT) {
-                $showLoader = true;
+                $cookie = \Context::getContext()->cookie;
+
+                if (isset($cookie->comfino_conn_attempt_idx)) {
+                    $connectAttemptIdx = $cookie->comfino_conn_attempt_idx++;
+                } else {
+                    $connectAttemptIdx = 1;
+                }
+
+                if ($connectAttemptIdx < FrontendManager::getConnectMaxNumAttempts()) {
+                    $showLoader = true;
+                }
+
+                Main::debugLog(
+                    '[API_TIMEOUT]',
+                    'renderErrorTemplate',
+                    [
+                        '$cookie->comfino_conn_attempt_idx' => $cookie->comfino_conn_attempt_idx,
+                        '$connectAttemptIdx' => $connectAttemptIdx,
+                        '$showLoader' => $showLoader,
+                    ]
+                );
+
+                if ($cookie->comfino_conn_attempt_idx >= FrontendManager::getConnectMaxNumAttempts()) {
+                    $cookie->comfino_conn_attempt_idx = 1;
+                }
+
+                $cookie->write();
             }
 
             $url = $exception->getRequest()->getRequestTarget();

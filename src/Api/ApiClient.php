@@ -46,7 +46,7 @@ final class ApiClient
     /** @var \Comfino\Common\Api\Client */
     private static $apiClient;
 
-    public static function getInstance(?bool $sandboxMode = null, ?string $apiKey = null): Client
+    public static function getInstance(?bool $sandboxMode = null, ?string $apiKey = null): \Comfino\Common\Api\Client
     {
         if ($sandboxMode === null) {
             $sandboxMode = ConfigManager::isSandboxMode();
