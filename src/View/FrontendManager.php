@@ -40,7 +40,7 @@ if (!defined('_PS_VERSION_')) {
 
 final class FrontendManager
 {
-    public static function getPaywallRenderer(\PaymentModule $module): PaywallRenderer
+    public static function getPaywallRenderer(\PaymentModule $module, $fullDocumentStructure = false): PaywallRenderer
     {
         $client = ApiClient::getInstance();
         $cookie = \Context::getContext()->cookie;
@@ -61,7 +61,7 @@ final class FrontendManager
         return new PaywallRenderer(
             $client,
             CacheManager::getCachePool(),
-            new ModuleRendererStrategy($module),
+            new ModuleRendererStrategy($module, $fullDocumentStructure),
             ApiService::getEndpointUrl('cacheInvalidate'),
             ApiService::getEndpointUrl('configuration'),
             \Tools::getShopDomainSsl(true)
