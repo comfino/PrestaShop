@@ -27,7 +27,7 @@
     <html>
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-            {$head_meta_tags}
+            {$head_meta_tags nofilter}
             <title>
                 {if $is_debug_mode}
                     {$error_message|escape:"htmlall":"UTF-8"} [{$error_code|escape:"htmlall":"UTF-8"}]
@@ -35,7 +35,7 @@
                     {$user_error_message|escape:"htmlall":"UTF-8"}
                 {/if}
             </title>
-            <style>{$paywall_style}</style>
+            <style>{$paywall_style nofilter}</style>
         </head>
         <body>
 {/if}

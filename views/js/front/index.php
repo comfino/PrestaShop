@@ -1,3 +1,4 @@
+<?php
 /**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
@@ -22,5 +23,12 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
-window.ComfinoPaywall={init:(d,g,h)=>{window.Comfino={paywallOptions:h,init:()=>{const a=document.getElementById("comfino-paywall-container");if("priceModifier"in d.dataset){let b=parseInt(d.dataset.priceModifier);Number.isNaN(b)||(a.src+="&priceModifier="+b)}ComfinoPaywallFrontend.init(d,a,Comfino.paywallOptions)}};ComfinoPaywallFrontend.isInitialized()?Comfino.init():(Comfino.paywallOptions.onUpdateOrderPaymentState=a=>{ComfinoPaywallFrontend.logEvent("updateOrderPaymentState PrestaShop","debug",
-a);const b=new URL(g),e=new FormData;a={loan_amount:a.loanAmount,loan_type:a.loanType,loan_term:a.loanTerm};for(let c in a)e.append(c,a[c]);const f=b.toString();fetch(f,{method:"POST",body:e}).then(c=>{ComfinoPaywallFrontend.logEvent("updateOrderPaymentState PrestaShop","debug",f,c)})},"complete"===document.readyState?Comfino.init():document.addEventListener("readystatechange",()=>{"complete"===document.readyState&&Comfino.init()}))}};
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+
+header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
+
+header('Location: ../');
+exit;
