@@ -32,6 +32,7 @@ use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
+use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
 use Comfino\Main;
 use Comfino\View\FrontendManager;
@@ -46,10 +47,13 @@ class ModuleRendererStrategy implements RendererStrategyInterface
 {
     /** @var \PaymentModule */
     private $module;
+    /** @var bool */
+    private $fullDocumentStructure;
 
-    public function __construct(\PaymentModule $module)
+    public function __construct(\PaymentModule $module, bool $fullDocumentStructure = false)
     {
         $this->module = $module;
+        $this->fullDocumentStructure = $fullDocumentStructure;
     }
 
     public function renderPaywallTemplate($paywallContents): string
@@ -61,6 +65,9 @@ class ModuleRendererStrategy implements RendererStrategyInterface
     {
         $showLoader = false;
         $showMessage = false;
+        $userErrorMessage = $this->module->l(
+            'There was a technical problem. Please try again in a moment and it should work!'
+        );
 
         Main::debugLog(
             '[API_ERROR]',
@@ -72,6 +79,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
                 'error_file' => $exception->getFile(),
                 'error_line' => $exception->getLine(),
                 'error_trace' => $exception->getTraceAsString(),
+                '$fullDocumentStructure' => $this->fullDocumentStructure,
             ]
         );
 
@@ -87,6 +95,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             } else {
                 if ($exception instanceof AccessDenied && $exception->getCode() === 404) {
                     $showMessage = true;
+                    $userErrorMessage = $exception->getMessage();
                 }
 
                 $responseBody = '';
@@ -107,6 +116,8 @@ class ModuleRendererStrategy implements RendererStrategyInterface
 
                 if ($connectAttemptIdx < FrontendManager::getConnectMaxNumAttempts()) {
                     $showLoader = true;
+                } elseif ($connectAttemptIdx === FrontendManager::getConnectMaxNumAttempts()) {
+                    $showMessage = true;
                 }
 
                 Main::debugLog(
@@ -137,6 +148,15 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             $templateName = 'error';
         }
 
+        if ($this->fullDocumentStructure) {
+            $paywallRenderer = FrontendManager::getPaywallRenderer($this->module);
+            $headMetaTags = $paywallRenderer->renderHeadMetaTags();
+            $paywallStyle = $paywallRenderer->getFrontendFragment(PaywallRenderer::PAYWALL_FRAGMENT_STYLE);
+        } else {
+            $headMetaTags = '';
+            $paywallStyle = '';
+        }
+
         return TemplateManager::renderModuleView(
             $this->module,
             $templateName,
@@ -151,8 +171,12 @@ class ModuleRendererStrategy implements RendererStrategyInterface
                 'url' => $url,
                 'request_body' => $requestBody,
                 'response_body' => $responseBody,
+                'head_meta_tags' => $headMetaTags,
+                'paywall_style' => $paywallStyle,
+                'full_document_structure' => $this->fullDocumentStructure,
                 'show_loader' => $showLoader,
                 'show_message' => $showMessage,
+                'user_error_message' => $userErrorMessage,
                 'is_debug_mode' => ApiClient::isDevEnv(),
             ]
         );

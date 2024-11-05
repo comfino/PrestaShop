@@ -168,3 +168,4 @@ $_MODULE['<{comfino}prestashop>comfino_d4aad807f5cb785b565800d6dd1d1221'] = 'Bł
 $_MODULE['<{comfino}prestashop>payment_d8a4cff35b23d669be2e30f7248feac0'] = 'O ile dni chcesz odroczyć płatność?';
 $_MODULE['<{comfino}prestashop>payment_5d121eca7f83ea19196e05f70f393d47'] = 'Prowizja operatora';
 $_MODULE['<{comfino}prestashop>payment_3ab26cb61868b4325b4b142b3d39a25a'] = 'Łączna kwota do spłaty';
+$_MODULE['<{comfino}prestashop>payment_e40b15f6b84ceb12c3e9d33b52e3f123'] = 'Pojawił się problem techniczny. Spróbuj ponownie za chwilę i powinno się udać!';

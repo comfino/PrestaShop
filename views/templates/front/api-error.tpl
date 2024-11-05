@@ -23,8 +23,24 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
+{if $full_document_structure}
+    <html>
+        <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+            {$head_meta_tags}
+            <title>
+                {if $is_debug_mode}
+                    {$error_message|escape:"htmlall":"UTF-8"} [{$error_code|escape:"htmlall":"UTF-8"}]
+                {else}
+                    {$user_error_message|escape:"htmlall":"UTF-8"}
+                {/if}
+            </title>
+            <style>{$paywall_style}</style>
+        </head>
+        <body>
+{/if}
 {if $show_loader}<div class="loadingio-spinner-rolling-comfino"><div class="ldio-comfino"><div></div></div></div>{/if}
-{if $show_message}<div class="error-message">{$error_message|escape:"htmlall":"UTF-8"}</div>{/if}
+{if $show_message}<div class="error-message">{$user_error_message|escape:"htmlall":"UTF-8"}</div>{/if}
 {if $is_debug_mode}
     <div class="debug-messages">
         <h2>API error</h2>
@@ -41,4 +57,8 @@
         <p><strong>Response:</strong></p>
         <pre>{$response_body|escape:"htmlall":"UTF-8"}</pre>
     </div>
+{/if}
+{if $full_document_structure}
+        </body>
+    </html>
 {/if}

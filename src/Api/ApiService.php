@@ -98,7 +98,11 @@ final class ApiService
         array $params = [],
         bool $withLangId = true
     ): string {
-        return parse_url(self::getControllerUrl($module, $controllerName, $params, $withLangId), PHP_URL_PATH);
+        $controllerUrl = self::getControllerUrl($module, $controllerName, $params, $withLangId);
+        $controllerPath = parse_url($controllerUrl, PHP_URL_PATH);
+        $controllerParams = parse_url($controllerUrl, PHP_URL_QUERY);
+
+        return $controllerPath . (!empty($controllerParams) ? '?' . $controllerParams : '');
     }
 
     public static function getEndpointUrl(string $endpointName): string

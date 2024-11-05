@@ -265,7 +265,9 @@ final class Main
                         'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
                         'cartTotal' => (float) $total,
                         'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
-                        'productDetailsApiPath' => ApiService::getControllerPath($module, 'paywallitemdetails'),
+                        'productDetailsApiPath' => ApiService::getControllerPath(
+                            $module, 'paywallitemdetails', [], false
+                        ),
                     ],
                     'is_ps_16' => !COMFINO_PS_17,
                     'comfino_logo_url' => ApiClient::getPaywallLogoUrl($module),
