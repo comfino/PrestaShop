@@ -62,7 +62,14 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
             ->getPaywallItemDetails(
                 $loanAmount,
                 LoanTypeEnum::from($loanTypeSelected),
-                new Cart($shopCart->getCartItems(), $shopCart->getTotalValue(), $shopCart->getDeliveryCost())
+                new Cart(
+                    $shopCart->getCartItems(),
+                    $shopCart->getTotalValue(),
+                    $shopCart->getDeliveryCost(),
+                    $shopCart->getDeliveryNetCost(),
+                    $shopCart->getDeliveryTaxRate(),
+                    $shopCart->getDeliveryTaxValue()
+                )
             );
 
         echo $serializer->serialize(
