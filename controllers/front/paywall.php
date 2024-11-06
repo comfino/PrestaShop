@@ -25,7 +25,6 @@
  */
 
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
-use Comfino\Common\Frontend\HeadMetaTag;
 use Comfino\Configuration\SettingsManager;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
@@ -74,14 +73,14 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             }
         }
 
-        $connectAttemptIdx = FrontendManager::getConnectAttemptIdx();
+        /*$connectAttemptIdx = FrontendManager::getConnectAttemptIdx();
         $connectMaxNumAttempts = FrontendManager::getConnectMaxNumAttempts();
 
         if ($connectAttemptIdx > 1 && $connectAttemptIdx < $connectMaxNumAttempts) {
             $headMetaTags = [new HeadMetaTag(null, 'refresh', '3')];
         } else {
             $headMetaTags = null;
-        }
+        }*/
 
         Main::debugLog(
             '[PAYWALL]',
@@ -89,13 +88,13 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             [
                 '$loanAmount' => $loanAmount,
                 '$allowedProductTypes' => $allowedProductTypes,
-                '$connectAttemptIdx' => $connectAttemptIdx,
-                '$connectMaxNumAttempts' => $connectMaxNumAttempts,
+                //'$connectAttemptIdx' => $connectAttemptIdx,
+                //'$connectMaxNumAttempts' => $connectMaxNumAttempts,
             ]
         );
 
         echo FrontendManager::getPaywallRenderer($this->module)
-            ->renderPaywall(new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes), $headMetaTags);
+            ->renderPaywall(new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes)/*, $headMetaTags*/);
 
         exit;
     }

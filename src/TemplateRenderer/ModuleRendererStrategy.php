@@ -105,7 +105,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
         } elseif ($exception instanceof NetworkExceptionInterface) {
             $exception->getRequest()->getBody()->rewind();
 
-            if ($exception->getCode() === CURLE_OPERATION_TIMEDOUT) {
+            /*if ($exception->getCode() === CURLE_OPERATION_TIMEDOUT) {
                 $cookie = \Context::getContext()->cookie;
 
                 if (isset($cookie->comfino_conn_attempt_idx)) {
@@ -135,7 +135,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
                 }
 
                 $cookie->write();
-            }
+            }*/
 
             $url = $exception->getRequest()->getRequestTarget();
             $requestBody = $exception->getRequest()->getBody()->getContents();
@@ -150,7 +150,8 @@ class ModuleRendererStrategy implements RendererStrategyInterface
 
         if ($this->fullDocumentStructure) {
             $paywallRenderer = FrontendManager::getPaywallRenderer($this->module);
-            $headMetaTags = $paywallRenderer->renderHeadMetaTags();
+            //$headMetaTags = $paywallRenderer->renderHeadMetaTags();
+            $headMetaTags = '';
             $paywallStyle = $paywallRenderer->getFrontendFragment(PaywallRenderer::PAYWALL_FRAGMENT_STYLE);
         } else {
             $headMetaTags = '';

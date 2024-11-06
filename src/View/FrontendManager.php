@@ -43,7 +43,7 @@ final class FrontendManager
     public static function getPaywallRenderer(\PaymentModule $module, $fullDocumentStructure = false): PaywallRenderer
     {
         $client = ApiClient::getInstance();
-        $cookie = \Context::getContext()->cookie;
+        /*$cookie = \Context::getContext()->cookie;
 
         if (isset($cookie->comfino_conn_attempt_idx)) {
             $connectAttemptIdx = $cookie->comfino_conn_attempt_idx;
@@ -56,7 +56,7 @@ final class FrontendManager
             $client->calculateConnectionTimeout($connectAttemptIdx),
             $client->calculateTransferTimeout($connectAttemptIdx),
             1
-        );
+        );*/
 
         return new PaywallRenderer(
             $client,
