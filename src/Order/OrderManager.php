@@ -103,7 +103,7 @@ final class OrderManager
         ) {
             $deliveryNetCost = (int) ($cart->getOrderTotal(false, \Cart::ONLY_SHIPPING) * 100);
             $deliveryTaxValue = $deliveryCost - $deliveryNetCost;
-            $deliveryTaxRate = (int) $carrier->getTaxesRate();
+            $deliveryTaxRate = (int) $carrier->getTaxesRate($cart->getAddressCollection()[$cart->id_address_delivery]);
         }
 
         return new Cart(
