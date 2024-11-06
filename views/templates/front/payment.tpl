@@ -23,80 +23,57 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
-<div id="comfino-iframe-container"></div>
-<script>
-    window.Comfino = {
-        paywallOptions: {$paywall_options|@json_encode nofilter},
-        init: () => {
-            var iframe = document.createElement('iframe');
-            iframe.id = 'comfino-paywall-container';
-            iframe.className = 'comfino-paywall';
-            iframe.onload = function () {
-                ComfinoPaywallFrontend.onload(
-                    this,
-                    '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}',
-                    '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}'
-                );
-            };
-            iframe.src = '{$paywall_api_url}';
-            iframe.referrerPolicy = 'strict-origin';
-            iframe.loading = 'lazy';
-            iframe.scrolling = 'no';
-
-            let frontendInitElement = document.querySelector('input[data-module-name="comfino"]');
-
-            if ('priceModifier' in frontendInitElement.dataset) {
-                let priceModifier = parseFloat(frontendInitElement.dataset.priceModifier);
-
-                if (!Number.isNaN(priceModifier)) {
-                    iframe.src += ('&priceModifier=' + priceModifier);
-                }
-            }
-
-            document.getElementById('comfino-iframe-container').appendChild(iframe);
-
-            ComfinoPaywallFrontend.init(
-                frontendInitElement,
-                document.getElementById('comfino-paywall-container'),
-                Comfino.paywallOptions
-            );
-        }
+{if $is_ps_16}
+<style>
+    a.comfino-payment-method {
+        padding: 25px 20px !important;
+        background-color: #FFFFFF !important;
+        color: #000000 !important;
+        cursor: pointer;
+        border: 1px solid #d6d4d4;
     }
 
-    var script = document.createElement('script');
-    script.onload = function () {
-        if (ComfinoPaywallFrontend.isInitialized()) {
-            Comfino.init();
-        } else {
-            Comfino.paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
-                ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
+    a.comfino-payment-method:hover {
+        background-color: #f6f6f6;
+    }
 
-                let offersUrl = '{$offers_url}'.replace(/&amp;/g, '&');
-                let urlParams = new URLSearchParams({
-                    loan_amount: loanParams.loanAmount,
-                    loan_type: loanParams.loanType,
-                    loan_term: loanParams.loanTerm
-                });
+    a.comfino-payment-method:after {
+        width: 14px;
+        height: 22px;
+        display: block;
+        content: "\f078";
+        font-family: 'FontAwesome';
+        font-size: 25px;
+        color: #777777;
+        position: absolute;
+        right: 25px;
+        margin-top: -11px;
+        top: 50%;
+    }
 
-                offersUrl += (offersUrl.indexOf('?') > 0 ? '&' : '?') + urlParams.toString();
-
-                fetch(offersUrl, { method: 'POST' }).then(response => {
-                    ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', offersUrl, response);
-                });
-            }
-
-            if (document.readyState === 'complete') {
-                Comfino.init();
-            } else {
-                document.addEventListener('readystatechange', () => {
-                    if (document.readyState === 'complete') {
-                        Comfino.init();
-                    }
-                });
-            }
-        }
-    };
-    script.src = '{$paywall_script_url}';
-    script.async = true;
-    document.getElementsByTagName('head')[0].appendChild(script);
-</script>
+    a.comfino-payment-method::before {
+        position: static !important;
+        display: inline !important;
+        margin-right: 10px;
+    }
+</style>
+<div class="row">
+    <div class="col-xs-12 col-md-12">
+        <p class="payment_module">
+            <a id="pay-with-comfino" class="comfino-payment-method">
+                <img class="comfino-image" style="height: 49px" src="{$comfino_logo_url|escape:"htmlall":"UTF-8"}" alt="{l s="Pay with comfino" mod="comfino"}" loading="lazy" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')" />
+                {$comfino_label|escape:"htmlall":"UTF-8"}
+            </a>
+        </p>
+    </div>
+</div>
+{/if}
+<div id="comfino-iframe-container">{$paywall_iframe nofilter}</div>
+{if $is_ps_16}
+<div id="comfino-payment-bar" class="comfino-payment-bar">
+    <a id="comfino-go-to-payment" href="{$comfino_redirect_url|escape:"htmlall":"UTF-8"}" class="comfino-payment-btn">
+        {l s="Go to payment" mod="comfino"}
+    </a>
+</div>
+{/if}
+<script>ComfinoPaywall.init({if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if}, '{$payment_state_url nofilter}', {$paywall_options|@json_encode nofilter});</script>

@@ -23,23 +23,24 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+use Comfino\Configuration\ConfigManager;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-
 /**
- * @param Comfino $module
- *
  * @return bool
  */
-function upgrade_module_3_3_2($module)
+function upgrade_module_3_3_2(Comfino $module)
 {
-    $config_manager = new \Comfino\ConfigManager($module);
+    if (!$module->checkEnvironment()) {
+        return false;
+    }
 
     // Update code of widget initialization script.
-    $config_manager->updateWidgetCode('85f1eef41bca54205a10d1e2ae5318a5');
+    ConfigManager::updateWidgetCode($module, '85f1eef41bca54205a10d1e2ae5318a5');
 
     return true;
 }

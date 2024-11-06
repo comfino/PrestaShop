@@ -27,15 +27,15 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-
 /**
- * @param Comfino $module
- *
  * @return bool
  */
-function upgrade_module_3_4_0($module)
+function upgrade_module_3_4_0(Comfino $module)
 {
+    if (!$module->checkEnvironment()) {
+        return false;
+    }
+
     $module->registerHook('actionAdminControllerSetMedia');
 
     return true;

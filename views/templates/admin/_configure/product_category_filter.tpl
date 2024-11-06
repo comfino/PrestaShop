@@ -22,16 +22,16 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
-<div id="{$tree_id}_{$product_type}"></div>
-<input id="{$tree_id}_{$product_type}_input" name="{$tree_id}[{$product_type}]" type="hidden" />
+<div id="{$tree_id|escape:"htmlall":"UTF-8"}_{$product_type|escape:"htmlall":"UTF-8"}"></div>
+<input id="{$tree_id|escape:"htmlall":"UTF-8"}_{$product_type|escape:"htmlall":"UTF-8"}_input" name="{$tree_id|escape:"htmlall":"UTF-8"}[{$product_type|escape:"htmlall":"UTF-8"}]" type="hidden" />
 <script>
     new Tree(
-        '#{$tree_id}_{$product_type}',
+        '#{$tree_id|escape:"htmlall":"UTF-8"}_{$product_type|escape:"htmlall":"UTF-8"}',
         {ldelim}
             data: {$tree_nodes},
-            closeDepth: {$close_depth},
+            closeDepth: {$close_depth|escape:"htmlall":"UTF-8"},
             onChange: function () {ldelim}
-                document.getElementById('{$tree_id}_{$product_type}_input').value = this.values.join();
+                document.getElementById('{$tree_id|escape:"htmlall":"UTF-8"}_{$product_type|escape:"htmlall":"UTF-8"}_input').value = this.values.join();
             {rdelim}
         {rdelim}
     );
