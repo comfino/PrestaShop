@@ -4,27 +4,38 @@ namespace Comfino\Api\Request;
 
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
 use Comfino\Api\Request;
-use Comfino\Paywall\PaywallViewTypeEnum;
+use Comfino\Shop\Order\CartInterface;
+use Comfino\Shop\Order\CartTrait;
 
-class GetPaywall extends Request
+/**
+ * Financial product details request.
+ */
+class GetFinancialProductDetails extends Request
 {
     /**
-     * @param LoanQueryCriteria $queryCriteria
-     * @param PaywallViewTypeEnum|null $viewType
+     * @var CartInterface
+     * @readonly
      */
-    public function __construct(LoanQueryCriteria $queryCriteria, ?PaywallViewTypeEnum $viewType = null)
+    private $cart;
+    use CartTrait;
+
+    /**
+     * @param LoanQueryCriteria $queryCriteria
+     * @param CartInterface $cart
+     */
+    public function __construct(LoanQueryCriteria $queryCriteria, CartInterface $cart)
     {
-        $this->setRequestMethod('GET');
-        $this->setApiEndpointPath('shop-plugin-paywall');
+        $this->cart = $cart;
+        $this->setRequestMethod('POST');
+        $this->setApiEndpointPath('financial-products');
         $this->setRequestParams(
             array_filter(
                 [
                     'loanAmount' => $queryCriteria->loanAmount,
                     'loanTerm' => $queryCriteria->loanTerm,
                     'loanType' => $queryCriteria->loanType,
-                    'productTypes' => ($queryCriteria->productTypes !== null ? implode(',', $queryCriteria->productTypes) : null),
+                    'productTypes' => $queryCriteria->productTypes,
                     'taxId' => $queryCriteria->taxId,
-                    'viewType' => ($viewType !== null ? (string) $viewType : null),
                 ],
                 static function ($value) : bool {
                     return $value !== null;
@@ -38,6 +49,6 @@ class GetPaywall extends Request
      */
     protected function prepareRequestBody(): ?array
     {
-        return null;
+        return $this->getCartAsArray($this->cart);
     }
 }
