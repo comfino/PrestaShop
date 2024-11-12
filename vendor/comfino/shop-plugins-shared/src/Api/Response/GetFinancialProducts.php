@@ -38,12 +38,17 @@ class GetFinancialProducts extends Base
                 $financialProduct['representativeExample'] ?? '',
                 $financialProduct['remarks'] ?? '',
                 array_map(
-                    static function (array $loanParams) : LoanParameters {
+                    static function (array $loanParams) use ($financialProduct) : LoanParameters {
                         return new LoanParameters(
                             $loanParams['instalmentAmount'],
                             $loanParams['toPay'],
                             $loanParams['loanTerm'],
-                            $loanParams['rrso']
+                            $loanParams['rrso'],
+                            $financialProduct['initialPaymentValue'] ?? null,
+                            $financialProduct['initialPaymentRate'] ?? null,
+                            $financialProduct['redemptionPaymentValue'] ?? null,
+                            $financialProduct['redemptionPaymentRate'] ?? null,
+                            $financialProduct['offerRate'] ?? null
                         );
                     },
                     $financialProduct['loanParameters']
