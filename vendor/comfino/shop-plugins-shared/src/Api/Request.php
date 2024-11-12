@@ -146,7 +146,20 @@ abstract class Request
      */
     final protected function setRequestParams($requestParams): void
     {
-        $this->requestParams = $requestParams;
+        $this->requestParams = array_map(
+            static function ($requestParam): string {
+                if (is_string($requestParam)) {
+                    return $requestParam;
+                }
+
+                if ($requestParam === null) {
+                    return '';
+                }
+
+                return (string) $requestParam;
+            },
+            $requestParams
+        );
     }
 
     /**
