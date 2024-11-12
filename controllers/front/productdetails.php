@@ -50,14 +50,25 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
 
         $serializer = new JsonSerializer();
 
-        $loanAmount = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
+        if (!Tools::getIsset('product_id')) {
+            exit;
+        }
+
+        $productId = Tools::getValue('product_id');
+        $product = new Product($productId);
+
+        if (!Validate::isLoadedObject($product)) {
+            exit;
+        }
+
+        $shopCart = OrderManager::getShopCartFromProduct($product);
+        $loanAmount = $shopCart->getTotalValue();
         $loanTypeSelected = Tools::getValue('loanTypeSelected');
-        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount);
 
         Main::debugLog(
             '[PRODUCT_DETAILS]',
             'getFinancialProductDetails',
-            ['$loanAmount' => $loanAmount, '$loanTypeSelected' => $loanTypeSelected]
+            ['$loanAmount' => $loanAmount, '$productId' => $productId, '$loanTypeSelected' => $loanTypeSelected]
         );
 
         try {

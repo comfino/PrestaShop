@@ -436,6 +436,7 @@ final class ConfigManager
 
         if ($productId !== null) {
             $availOffersUrl .= ((strpos($availOffersUrl, '?') === false ? '?' : '&') . "product_id=$productId");
+            $productDetailsUrl .= ((strpos($productDetailsUrl, '?') === false ? '?' : '&') . "product_id=$productId");
 
             if (($price = \Product::getPriceStatic($productId)) === null) {
                 $price = 'null';
