@@ -39,7 +39,7 @@ final class OrderManager
 {
     public static function getShopCart(\Cart $cart, int $loanAmount): Cart
     {
-        $totalValue = (int) ($cart->getOrderTotal(true) * 100);
+        $totalValue = (int) round(round($cart->getOrderTotal(), 2) * 100);
 
         if ($loanAmount > $totalValue) {
             // Loan amount with price modifier (e.g. custom commission).
@@ -50,8 +50,8 @@ final class OrderManager
             static function (array $product): CartItemInterface {
                 $quantity = (int) $product['cart_quantity'];
                 $taxRulesGroupId = \Product::getIdTaxRulesGroupByIdProduct($product['id_product']);
-                $grossPrice = (int) ($product['total_wt'] / $quantity * 100);
-                $netPrice = (int) ($product['total'] / $quantity * 100);
+                $grossPrice = (int) round(round(\Product::getPriceStatic($product['id_product']), 2) * 100);
+                $netPrice = (int) round(round(\Product::getPriceStatic($product['id_product'], false), 2) * 100);
 
                 return new CartItem(
                     new Product(
@@ -93,7 +93,7 @@ final class OrderManager
             $totalTaxValue = null;
         }
 
-        $deliveryCost = (int) ($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING) * 100);
+        $deliveryCost = (int) round(round($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING), 2) * 100);
         $deliveryNetCost = null;
         $deliveryTaxValue = null;
         $deliveryTaxRate = null;
@@ -101,7 +101,7 @@ final class OrderManager
         if (\Validate::isLoadedObject($carrier = new \Carrier($cart->id_carrier))
             && \Carrier::getIdTaxRulesGroupByIdCarrier($cart->id_carrier) !== 0
         ) {
-            $deliveryNetCost = (int) ($cart->getOrderTotal(false, \Cart::ONLY_SHIPPING) * 100);
+            $deliveryNetCost = (int) round(round($cart->getOrderTotal(false, \Cart::ONLY_SHIPPING), 2) * 100);
             $deliveryTaxValue = $deliveryCost - $deliveryNetCost;
             $deliveryTaxRate = (int) $carrier->getTaxesRate($cart->getAddressCollection()[$cart->id_address_delivery]);
         }
@@ -120,10 +120,13 @@ final class OrderManager
 
     public static function getShopCartFromProduct(\Product $product): Cart
     {
+        $grossPrice = (int) round(round($product->getPrice(), 2) * 100);
+        $netPrice = (int) round(round($product->getPrice(false), 2) * 100);
+
         return new Cart(
-            (int) ($product->getPrice() * 100),
-            null,
-            null,
+            $grossPrice,
+            $netPrice,
+            $grossPrice - $netPrice,
             0,
             null,
             null,

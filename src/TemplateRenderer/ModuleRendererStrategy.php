@@ -28,14 +28,12 @@ namespace Comfino\TemplateRenderer;
 
 use Comfino\Api\ApiClient;
 use Comfino\Api\Exception\AccessDenied;
-use Comfino\Api\Exception\AuthorizationError;
-use Comfino\Api\Exception\RequestValidationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
+use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
 use Comfino\Main;
-use Comfino\View\FrontendManager;
 use Comfino\View\TemplateManager;
 use ComfinoExternal\Psr\Http\Client\NetworkExceptionInterface;
 
@@ -61,7 +59,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
         return $paywallContents;
     }
 
-    public function renderErrorTemplate($exception): string
+    public function renderErrorTemplate($exception, $frontendRenderer): string
     {
         $showLoader = false;
         $showMessage = false;
@@ -83,10 +81,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             ]
         );
 
-        if ($exception instanceof RequestValidationError || $exception instanceof ResponseValidationError
-            || $exception instanceof AuthorizationError || $exception instanceof AccessDenied
-            || $exception instanceof ServiceUnavailable
-        ) {
+        if ($exception instanceof HttpErrorExceptionInterface) {
             $url = $exception->getUrl();
             $requestBody = $exception->getRequestBody();
 
@@ -148,14 +143,12 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             $templateName = 'error';
         }
 
-        if ($this->fullDocumentStructure) {
-            $paywallRenderer = FrontendManager::getPaywallRenderer($this->module);
-            //$headMetaTags = $paywallRenderer->renderHeadMetaTags();
-            $headMetaTags = '';
-            $paywallStyle = $paywallRenderer->getFrontendFragment(PaywallRenderer::PAYWALL_FRAGMENT_STYLE);
-        } else {
-            $headMetaTags = '';
-            $paywallStyle = '';
+        $headMetaTags = '';
+        $paywallStyle = '';
+
+        if ($this->fullDocumentStructure && $frontendRenderer instanceof PaywallRenderer) {
+            //$headMetaTags = $frontendRenderer->renderHeadMetaTags();
+            $paywallStyle = $frontendRenderer->getFrontendFragment(PaywallRenderer::PAYWALL_FRAGMENT_STYLE);
         }
 
         return TemplateManager::renderModuleView(

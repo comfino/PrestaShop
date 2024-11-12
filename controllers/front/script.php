@@ -24,6 +24,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger;
 
@@ -86,9 +87,9 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     'Widget script endpoint',
                     $e->getCode(),
                     $e->getMessage(),
-                    null,
-                    null,
-                    null,
+                    $e instanceof HttpErrorExceptionInterface ? $e->getUrl() : null,
+                    $e instanceof HttpErrorExceptionInterface ? $e->getRequestBody() : null,
+                    $e instanceof HttpErrorExceptionInterface ? $e->getResponseBody() : null,
                     $e->getTraceAsString()
                 );
             }

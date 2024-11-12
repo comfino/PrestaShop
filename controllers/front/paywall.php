@@ -51,7 +51,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $loanAmount = (int) ($this->context->cart->getOrderTotal() * 100);
+        $loanAmount = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
         $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount);
         $allowedProductTypes = SettingsManager::getAllowedProductTypes(
             ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
@@ -88,8 +88,8 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             [
                 '$loanAmount' => $loanAmount,
                 '$allowedProductTypes' => $allowedProductTypes,
-                //'$connectAttemptIdx' => $connectAttemptIdx,
-                //'$connectMaxNumAttempts' => $connectMaxNumAttempts,
+                // '$connectAttemptIdx' => $connectAttemptIdx,
+                // '$connectMaxNumAttempts' => $connectMaxNumAttempts,
             ]
         );
 

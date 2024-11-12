@@ -123,7 +123,7 @@ final class Main
             $comfinoPaymentOption->setModuleName($module->name)
                 ->setAction(ApiService::getControllerUrl($module, 'payment'))
                 ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
-                ->setLogo(ApiClient::getPaywallLogoUrl($module))
+                ->setLogo(ApiClient::getPaywallLogoUrl())
                 ->setAdditionalInformation($paywallIframe);
 
             return [$comfinoPaymentOption];
@@ -243,7 +243,7 @@ final class Main
 
     private static function preparePaywallIframe(\PaymentModule $module, \Cart $cart): ?string
     {
-        $total = $cart->getOrderTotal();
+        $total = round($cart->getOrderTotal(), 2);
         $tools = new Tools(\Context::getContext());
 
         try {
@@ -263,14 +263,14 @@ final class Main
                         'pluginVersion' => COMFINO_VERSION,
                         'language' => $tools->getLanguageIsoCode($cart->id_lang),
                         'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
-                        'cartTotal' => (float) $total,
+                        'cartTotal' => $total,
                         'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
                         'productDetailsApiPath' => ApiService::getControllerPath(
                             $module, 'paywallitemdetails', [], false
                         ),
                     ],
                     'is_ps_16' => !COMFINO_PS_17,
-                    'comfino_logo_url' => ApiClient::getPaywallLogoUrl($module),
+                    'comfino_logo_url' => ApiClient::getPaywallLogoUrl(),
                     'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
                     'comfino_redirect_url' => ApiService::getControllerUrl($module, 'payment'),
                 ]

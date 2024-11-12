@@ -16,6 +16,21 @@ class LoanParameters
     /** @var float
      * @readonly */
     public $rrso;
+    /** @var int|null
+     * @readonly */
+    public $initialPaymentValue;
+    /** @var float|null
+     * @readonly */
+    public $initialPaymentRate;
+    /** @var int|null
+     * @readonly */
+    public $redemptionPaymentValue;
+    /** @var float|null
+     * @readonly */
+    public $redemptionPaymentRate;
+    /** @var float|null
+     * @readonly */
+    public $interest;
 
     /**
      * @param int $instalmentAmount
@@ -23,7 +38,17 @@ class LoanParameters
      * @param int $loanTerm
      * @param float $rrso
      */
-    public function __construct(int $instalmentAmount, int $toPay, int $loanTerm, float $rrso)
+    public function __construct(
+        int $instalmentAmount,
+        int $toPay,
+        int $loanTerm,
+        float $rrso,
+        ?int $initialPaymentValue = null,
+        ?float $initialPaymentRate = null,
+        ?int $redemptionPaymentValue = null,
+        ?float $redemptionPaymentRate = null,
+        ?float $interest = null
+    )
     {
         $this->instalmentAmount = $instalmentAmount;
         $this->toPay = $toPay;

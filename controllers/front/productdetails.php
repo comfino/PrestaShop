@@ -24,19 +24,21 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+use Comfino\Api\ApiClient;
+use Comfino\Api\Dto\Payment\LoanQueryCriteria;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
+use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\Main;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Cart;
-use Comfino\View\FrontendManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontController
+class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
 {
     public function postProcess(): void
     {
@@ -53,28 +55,40 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
         $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount);
 
         Main::debugLog(
-            '[PAYWALL_ITEM_DETAILS]',
-            'getPaywallItemDetails',
+            '[PRODUCT_DETAILS]',
+            'getFinancialProductDetails',
             ['$loanAmount' => $loanAmount, '$loanTypeSelected' => $loanTypeSelected]
         );
 
-        $response = FrontendManager::getPaywallRenderer($this->module)
-            ->getPaywallItemDetails(
-                $loanAmount,
-                LoanTypeEnum::from($loanTypeSelected),
-                new Cart(
-                    $shopCart->getCartItems(),
-                    $shopCart->getTotalValue(),
-                    $shopCart->getDeliveryCost(),
-                    $shopCart->getDeliveryNetCost(),
-                    $shopCart->getDeliveryTaxRate(),
-                    $shopCart->getDeliveryTaxValue()
-                )
+        try {
+            echo $serializer->serialize(
+                ApiClient::getInstance()->getFinancialProductDetails(
+                    new LoanQueryCriteria($loanAmount, null, LoanTypeEnum::from($loanTypeSelected)),
+                    new Cart(
+                        $shopCart->getCartItems(),
+                        $shopCart->getTotalValue(),
+                        $shopCart->getDeliveryCost(),
+                        $shopCart->getDeliveryNetCost(),
+                        $shopCart->getDeliveryTaxRate(),
+                        $shopCart->getDeliveryTaxValue()
+                    )
+                )->financialProducts
+            );
+        } catch (Throwable $e) {
+            ErrorLogger::sendError(
+                'Product details endpoint',
+                $e->getCode(),
+                $e->getMessage(),
+                $e instanceof HttpErrorExceptionInterface ? $e->getUrl() : null,
+                $e instanceof HttpErrorExceptionInterface ? $e->getRequestBody() : null,
+                $e instanceof HttpErrorExceptionInterface ? $e->getResponseBody() : null,
+                $e->getTraceAsString()
             );
 
-        echo $serializer->serialize(
-            ['listItemData' => $response->listItemData, 'productDetails' => $response->productDetails]
-        );
+            http_response_code($e instanceof HttpErrorExceptionInterface ? $e->getStatusCode() : 500);
+
+            echo $e->getMessage();
+        }
 
         exit;
     }

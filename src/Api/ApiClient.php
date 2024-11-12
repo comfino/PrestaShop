@@ -26,11 +26,6 @@
 
 namespace Comfino\Api;
 
-use Comfino\Api\Exception\AccessDenied;
-use Comfino\Api\Exception\AuthorizationError;
-use Comfino\Api\Exception\RequestValidationError;
-use Comfino\Api\Exception\ResponseValidationError;
-use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Common\Backend\Factory\ApiClientFactory;
 use Comfino\Common\Frontend\FrontendHelper;
 use Comfino\Configuration\ConfigManager;
@@ -93,18 +88,10 @@ final class ApiClient
 
     public static function processApiError(string $errorPrefix, \Throwable $exception): void
     {
-        if ($exception instanceof RequestValidationError || $exception instanceof ResponseValidationError
-            || $exception instanceof AuthorizationError || $exception instanceof AccessDenied
-            || $exception instanceof ServiceUnavailable
-        ) {
+        if ($exception instanceof HttpErrorExceptionInterface) {
             $url = $exception->getUrl();
             $requestBody = $exception->getRequestBody();
-
-            if ($exception instanceof ResponseValidationError || $exception instanceof ServiceUnavailable) {
-                $responseBody = $exception->getResponseBody();
-            } else {
-                $responseBody = null;
-            }
+            $responseBody = $exception->getResponseBody();
         } elseif ($exception instanceof NetworkExceptionInterface) {
             $exception->getRequest()->getBody()->rewind();
 
@@ -128,7 +115,7 @@ final class ApiClient
         );
     }
 
-    public static function getLogoUrl(\PaymentModule $module): string
+    public static function getLogoUrl(): string
     {
         return self::getApiHost(
             self::getInstance()->getApiHost()) . '/v1/get-logo-url?auth=' . FrontendHelper::getLogoAuthHash(
@@ -136,7 +123,7 @@ final class ApiClient
             );
     }
 
-    public static function getPaywallLogoUrl(\PaymentModule $module): string
+    public static function getPaywallLogoUrl(): string
     {
         return self::getApiHost(
             self::getInstance()->getApiHost()) . '/v1/get-paywall-logo?auth=' . FrontendHelper::getPaywallLogoAuthHash(
