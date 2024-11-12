@@ -48,7 +48,7 @@ class GetFinancialProducts extends Base
                             $loanParams['initialPaymentRate'] ?? null,
                             $loanParams['redemptionPaymentValue'] ?? null,
                             $loanParams['redemptionPaymentRate'] ?? null,
-                            $loanParams['offerRate'] ?? null
+                            $loanParams['interest'] ?? null
                         );
                     },
                     $financialProduct['loanParameters']
