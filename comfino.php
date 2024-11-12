@@ -36,7 +36,7 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1731410369);
+    define('COMFINO_BUILD_TS', 1731410587);
 }
 
 /* Notice: source code of this script MUST be compatible with PHP 5.6 syntax. */
