@@ -36,7 +36,7 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontController
 {
-    public function postProcess()
+    public function postProcess(): void
     {
         ErrorLogger::init($this->module);
 

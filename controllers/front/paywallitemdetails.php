@@ -38,7 +38,7 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontController
 {
-    public function postProcess()
+    public function postProcess(): void
     {
         ErrorLogger::init($this->module);
 
@@ -48,14 +48,14 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
 
         $serializer = new JsonSerializer();
 
-        $loanAmount = (int) ($this->context->cart->getOrderTotal() * 100);
+        $loanAmount = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
         $loanTypeSelected = Tools::getValue('loanTypeSelected');
         $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount);
 
         Main::debugLog(
             '[PAYWALL_ITEM_DETAILS]',
             'getPaywallItemDetails',
-            ['$loanTypeSelected' => $loanTypeSelected]
+            ['$loanAmount' => $loanAmount, '$loanTypeSelected' => $loanTypeSelected]
         );
 
         $response = FrontendManager::getPaywallRenderer($this->module)

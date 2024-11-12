@@ -32,11 +32,11 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.0.0');
+    define('COMFINO_VERSION', '4.1.0');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1730818312);
+    define('COMFINO_BUILD_TS', 1731411359);
 }
 
 /* Notice: source code of this script MUST be compatible with PHP 5.6 syntax. */
@@ -50,7 +50,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '4.0.0';
+        $this->version = '4.1.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -66,6 +66,7 @@ class Comfino extends PaymentModule
             'paymentstate',
             'paywall',
             'paywallitemdetails',
+            'productdetails',
             'cacheinvalidate',
             'error',
             'script',

@@ -302,7 +302,7 @@ final class ConfigManager
         return $result;
     }
 
-    public static function updateWidgetCode(\PaymentModule $module, string $lastWidgetCodeHash): void
+    public static function updateWidgetCode(\PaymentModule $module, ?string $lastWidgetCodeHash = null): void
     {
         ErrorLogger::init($module);
 
@@ -310,7 +310,7 @@ final class ConfigManager
             $initialWidgetCode = self::getInitialWidgetCode();
             $currentWidgetCode = self::getCurrentWidgetCode($module);
 
-            if (md5($currentWidgetCode) === $lastWidgetCodeHash) {
+            if ($lastWidgetCodeHash === null || md5($currentWidgetCode) === $lastWidgetCodeHash) {
                 // Widget code not changed since last installed version - safely replace with new one.
                 \Configuration::updateValue('COMFINO_WIDGET_CODE', $initialWidgetCode);
             }
@@ -368,7 +368,8 @@ final class ConfigManager
             '{PLATFORM_VERSION}' => _PS_VERSION_,
             '{PLATFORM_DOMAIN}' => \Tools::getShopDomain(),
             '{PLUGIN_VERSION}' => COMFINO_VERSION,
-            '{AVAILABLE_OFFER_TYPES}' => $productData['avail_offers_url'],
+            '{AVAILABLE_OFFER_TYPES_URL}' => $productData['avail_offers_url'],
+            '{PRODUCT_DETAILS_URL}' => $productData['product_details_url'],
         ];
     }
 
@@ -429,11 +430,13 @@ final class ConfigManager
     {
         $context = \Context::getContext();
         $availOffersUrl = ApiService::getControllerUrl($module, 'availableoffertypes', [], false);
+        $productDetailsUrl = ApiService::getControllerUrl($module, 'productdetails', [], false);
 
         $price = 'null';
 
         if ($productId !== null) {
             $availOffersUrl .= ((strpos($availOffersUrl, '?') === false ? '?' : '&') . "product_id=$productId");
+            $productDetailsUrl .= ((strpos($productDetailsUrl, '?') === false ? '?' : '&') . "product_id=$productId");
 
             if (($price = \Product::getPriceStatic($productId)) === null) {
                 $price = 'null';
@@ -448,6 +451,7 @@ final class ConfigManager
             'product_id' => $productId,
             'price' => $price,
             'avail_offers_url' => $availOffersUrl,
+            'product_details_url' => $productDetailsUrl,
         ];
     }
 
@@ -473,7 +477,8 @@ script.onload = function () {
         platformVersion: '{PLATFORM_VERSION}',
         platformDomain: '{PLATFORM_DOMAIN}',
         pluginVersion: '{PLUGIN_VERSION}',
-        availOffersUrl: '{AVAILABLE_OFFER_TYPES}',
+        availOffersUrl: '{AVAILABLE_OFFER_TYPES_URL}',
+        productDetailsUrl: '{PRODUCT_DETAILS_URL}',
         callbackBefore: function () {},
         callbackAfter: function () {},
         onOfferRendered: function (jsonResponse, widgetTarget, widgetNode) { },

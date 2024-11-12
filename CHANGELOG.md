@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.1.0](https://github.com/comfino/PrestaShop/tree/4.1.0) (2024-11-12)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.0.0...4.1.0)
+
+**Merged pull requests:**
+
+- FN-12546 Added support for leasing, fixed some bugs in cart items price calculations. [\#93](https://github.com/comfino/PrestaShop/pull/93) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.0.0](https://github.com/comfino/PrestaShop/tree/4.0.0) (2024-11-06)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.4...4.0.0)
