@@ -1,3 +1,6 @@
+4.1.1
+ - FN-12563 Added some improvements in errors presentation.
+
 4.1.0
  - FN-12546 Added support for leasing, fixed some bugs in cart items price calculations.
 
