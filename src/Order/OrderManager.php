@@ -27,6 +27,7 @@
 namespace Comfino\Order;
 
 use Comfino\Common\Shop\Cart;
+use Comfino\Configuration\ConfigManager;
 use Comfino\Shop\Order\Cart\CartItem;
 use Comfino\Shop\Order\Cart\CartItemInterface;
 use Comfino\Shop\Order\Cart\Product;
@@ -37,7 +38,7 @@ if (!defined('_PS_VERSION_')) {
 
 final class OrderManager
 {
-    public static function getShopCart(\Cart $cart, int $loanAmount): Cart
+    public static function getShopCart(\Cart $cart, int $loanAmount, bool $loadProductCategories = false): Cart
     {
         $totalValue = (int) round(round($cart->getOrderTotal(), 2) * 100);
 
@@ -47,7 +48,9 @@ final class OrderManager
         }
 
         $cartItems = array_map(
-            static function (array $product): CartItemInterface {
+            static function (array $product) use ($loadProductCategories): CartItemInterface {
+                $productEntity = new \Product($product['id_product']);
+
                 $quantity = (int) $product['cart_quantity'];
                 $taxRulesGroupId = \Product::getIdTaxRulesGroupByIdProduct($product['id_product']);
                 $grossPrice = (int) round(round(\Product::getPriceStatic($product['id_product']), 2) * 100);
@@ -58,12 +61,12 @@ final class OrderManager
                         $product['name'],
                         $grossPrice,
                         (string) $product['id_product'],
-                        $product['category'],
+                        $loadProductCategories ? implode(',', self::getProductCategories($productEntity)) : null,
                         $product['ean13'],
                         self::getProductImageUrl($product),
                         \Product::getProductCategories($product['id_product']),
                         $taxRulesGroupId !== 0 ? $netPrice : null,
-                        $taxRulesGroupId !== 0 ? (int) ((new \Product($product['id_product']))->getTaxesRate()) : null,
+                        $taxRulesGroupId !== 0 ? (int) $productEntity->getTaxesRate() : null,
                         $taxRulesGroupId !== 0 ? $grossPrice - $netPrice : null
                     ),
                     $quantity
@@ -118,7 +121,7 @@ final class OrderManager
         );
     }
 
-    public static function getShopCartFromProduct(\Product $product): Cart
+    public static function getShopCartFromProduct(\Product $product, bool $loadProductCategories = false): Cart
     {
         $grossPrice = (int) round(round($product->getPrice(), 2) * 100);
         $netPrice = (int) round(round($product->getPrice(false), 2) * 100);
@@ -137,12 +140,12 @@ final class OrderManager
                         is_array($product->name) ? current($product->name) : $product->name,
                         (int) ($product->getPrice() * 100),
                         (string) $product->id,
-                        null,
-                        null,
+                        $loadProductCategories ? implode(',', self::getProductCategories($product)) : null,
+                        $product->ean13,
                         null,
                         array_map('intval', $product->getCategories()),
                         $product->getIdTaxRulesGroup() !== 0 ? (int) ($product->getPrice(false) * 100) : null,
-                        $product->getIdTaxRulesGroup() !== 0 ? (int) ($product->getTaxesRate() * 100) : null,
+                        $product->getIdTaxRulesGroup() !== 0 ? (int) $product->getTaxesRate() : null,
                         $product->getIdTaxRulesGroup() !== 0
                             ? (int) (($product->getPrice() - $product->getPrice(false)) * 100)
                             : null
@@ -186,5 +189,17 @@ final class OrderManager
         $imageUrl = (new \Link())->getImageLink($linkRewrite, $image['id_image']);
 
         return strpos($imageUrl, 'http') === false ? "https://$imageUrl" : $imageUrl;
+    }
+
+    /**
+     * @return string[]
+     */
+    private static function getProductCategories(\Product $product): array
+    {
+        if (($categories = ConfigManager::getAllProductCategories()) === null) {
+            return [];
+        }
+
+        return array_intersect_key($categories, array_flip($product->getCategories()));
     }
 }

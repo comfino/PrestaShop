@@ -1,3 +1,6 @@
+4.1.1
+ - FN-12581 Fixed bugs in calculations for leasing in shop product widget and bugs in loading product category names for cart items.
+
 4.1.0
  - FN-12546 Added support for leasing, fixed some bugs in cart items price calculations.
 

@@ -31,6 +31,7 @@ use Comfino\Common\Backend\Factory\OrderFactory;
 use Comfino\Configuration\SettingsManager;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\Main;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Customer;
 use Comfino\Shop\Order\Customer\Address;
@@ -126,7 +127,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $shopCart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount);
+        $shopCart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount, true);
 
         $this->module->validateOrder(
             (int) $cart->id,
@@ -216,6 +217,17 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $shopCart->getDeliveryNetCost(),
             $shopCart->getDeliveryTaxRate(),
             $shopCart->getDeliveryTaxValue()
+        );
+
+        Main::debugLog(
+            '[PAYMENT]',
+            'ComfinoPaymentModuleFrontController',
+            [
+                '$loanAmount' => $order->getCart()->getTotalAmount(),
+                '$loanType' => (string) $order->getLoanParameters()->getType(),
+                '$loanTerm' => $order->getLoanParameters()->getTerm(),
+                '$shopCart' => $shopCart->getAsArray(),
+            ]
         );
 
         try {

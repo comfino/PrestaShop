@@ -88,6 +88,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             [
                 '$loanAmount' => $loanAmount,
                 '$allowedProductTypes' => $allowedProductTypes,
+                '$shopCart' => $shopCart->getAsArray(),
                 // '$connectAttemptIdx' => $connectAttemptIdx,
                 // '$connectMaxNumAttempts' => $connectMaxNumAttempts,
             ]
