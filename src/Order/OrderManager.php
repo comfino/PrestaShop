@@ -138,17 +138,15 @@ final class OrderManager
                 new CartItem(
                     new Product(
                         is_array($product->name) ? current($product->name) : $product->name,
-                        (int) ($product->getPrice() * 100),
+                        $grossPrice,
                         (string) $product->id,
                         $loadProductCategories ? implode(',', self::getProductCategories($product)) : null,
                         $product->ean13,
                         null,
                         array_map('intval', $product->getCategories()),
-                        $product->getIdTaxRulesGroup() !== 0 ? (int) ($product->getPrice(false) * 100) : null,
+                        $product->getIdTaxRulesGroup() !== 0 ? $netPrice : null,
                         $product->getIdTaxRulesGroup() !== 0 ? (int) $product->getTaxesRate() : null,
-                        $product->getIdTaxRulesGroup() !== 0
-                            ? (int) (($product->getPrice() - $product->getPrice(false)) * 100)
-                            : null
+                        $product->getIdTaxRulesGroup() !== 0 ? $grossPrice - $netPrice : null
                     ),
                     1
                 ),

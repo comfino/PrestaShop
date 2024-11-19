@@ -1,5 +1,5 @@
 4.1.1
- - FN-12581 Fixed bugs in calculations for leasing in shop product widget and bugs in loading product category names for cart items.
+ - FN-12581 Fixed bugs in calculations for leasing in shop product widget and bugs in loading product category names for cart items, stop collecting of authorization API errors with 401 status code.
 
 4.1.0
  - FN-12546 Added support for leasing, fixed some bugs in cart items price calculations.

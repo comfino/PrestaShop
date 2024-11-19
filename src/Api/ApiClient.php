@@ -26,6 +26,7 @@
 
 namespace Comfino\Api;
 
+use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Common\Backend\Factory\ApiClientFactory;
 use Comfino\Common\Frontend\FrontendHelper;
 use Comfino\Configuration\ConfigManager;
@@ -88,6 +89,11 @@ final class ApiClient
 
     public static function processApiError(string $errorPrefix, \Throwable $exception): void
     {
+        if ($exception instanceof AuthorizationError) {
+            // Don't collect authorization errors caused by empty or wrong API key (response with status code 401).
+            return;
+        }
+
         if ($exception instanceof HttpErrorExceptionInterface) {
             $url = $exception->getUrl();
             $requestBody = $exception->getRequestBody();
