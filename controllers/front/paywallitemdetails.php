@@ -50,12 +50,16 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
 
         $loanAmount = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
         $loanTypeSelected = Tools::getValue('loanTypeSelected');
-        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount);
+        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount, $loanTypeSelected === 'LEASING');
 
         Main::debugLog(
             '[PAYWALL_ITEM_DETAILS]',
             'getPaywallItemDetails',
-            ['$loanAmount' => $loanAmount, '$loanTypeSelected' => $loanTypeSelected]
+            [
+                '$loanAmount' => $loanAmount,
+                '$loanTypeSelected' => $loanTypeSelected,
+                '$shopCart' => $shopCart->getAsArray(),
+            ]
         );
 
         $response = FrontendManager::getPaywallRenderer($this->module)

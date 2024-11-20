@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.1.1](https://github.com/comfino/PrestaShop/tree/4.1.1) (2024-11-20)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.0...4.1.1)
+
+**Merged pull requests:**
+
+- FN-12581 Fixed bugs in calculations for leasing in shop product widget and bugs in loading product category names for cart items, stop collecting of authorization API errors with 401 status code. [\#94](https://github.com/comfino/PrestaShop/pull/94) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.1.0](https://github.com/comfino/PrestaShop/tree/4.1.0) (2024-11-12)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.0.0...4.1.0)

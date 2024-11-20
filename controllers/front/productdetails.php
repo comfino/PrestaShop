@@ -61,14 +61,19 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
             exit;
         }
 
-        $shopCart = OrderManager::getShopCartFromProduct($product);
-        $loanAmount = $shopCart->getTotalValue();
         $loanTypeSelected = Tools::getValue('loanTypeSelected');
+        $shopCart = OrderManager::getShopCartFromProduct($product, $loanTypeSelected === 'LEASING');
+        $loanAmount = $shopCart->getTotalValue();
 
         Main::debugLog(
             '[PRODUCT_DETAILS]',
             'getFinancialProductDetails',
-            ['$loanAmount' => $loanAmount, '$productId' => $productId, '$loanTypeSelected' => $loanTypeSelected]
+            [
+                '$loanAmount' => $loanAmount,
+                '$productId' => $productId,
+                '$loanTypeSelected' => $loanTypeSelected,
+                '$shopCart' => $shopCart->getAsArray(),
+            ]
         );
 
         try {
