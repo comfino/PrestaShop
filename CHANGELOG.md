@@ -1,6 +1,6 @@
 # Changelog
 
-## [4.1.1](https://github.com/comfino/PrestaShop/tree/4.1.1) (2024-11-19)
+## [4.1.1](https://github.com/comfino/PrestaShop/tree/4.1.1) (2024-11-20)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.0...4.1.1)
 
