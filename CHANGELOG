@@ -1,3 +1,6 @@
+4.1.2
+ - FN-12596 Fixed bug in API configuration management (wrong API host used in sandbox mode), refactored product widget rendering logic.
+
 4.1.1
  - FN-12581 Fixed bugs in calculations for leasing in shop product widget and bugs in loading product category names for cart items, stop collecting of authorization API errors with 401 status code.
 

@@ -78,8 +78,19 @@ final class ApiClient
                 ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_NUM_ATTEMPTS', 3)
             );
 
+            if ($sandboxMode) {
+                self::$apiClient->enableSandboxMode();
+            }
+
             self::$apiClient->addCustomHeader('Comfino-Build-Timestamp', (string) COMFINO_BUILD_TS);
         } else {
+            if ($sandboxMode) {
+                self::$apiClient->enableSandboxMode();
+            } else {
+                self::$apiClient->disableSandboxMode();
+            }
+
+            self::$apiClient->setCustomApiHost(self::getApiHost());
             self::$apiClient->setApiKey($apiKey);
             self::$apiClient->setApiLanguage(\Context::getContext()->language->iso_code);
         }
