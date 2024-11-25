@@ -25,6 +25,7 @@
  */
 
 use Comfino\Api\HttpErrorExceptionInterface;
+use Comfino\Common\Frontend\WidgetInitScriptHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger;
 
@@ -50,7 +51,36 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
             try {
                 $widgetVariables = ConfigManager::getWidgetVariables($this->module, $productId);
 
-                echo str_replace(
+                echo WidgetInitScriptHelper::renderWidgetInitScript(
+                    ConfigManager::getCurrentWidgetCode($this->module, $productId),
+                    array_combine(
+                        [
+                            'WIDGET_KEY',
+                            'WIDGET_PRICE_SELECTOR',
+                            'WIDGET_TARGET_SELECTOR',
+                            'WIDGET_PRICE_OBSERVER_SELECTOR',
+                            'WIDGET_PRICE_OBSERVER_LEVEL',
+                            'WIDGET_TYPE',
+                            'OFFER_TYPE',
+                            'EMBED_METHOD',
+                        ],
+                        ConfigManager::getConfigurationValues(
+                            'widget_settings',
+                            [
+                                'COMFINO_WIDGET_KEY',
+                                'COMFINO_WIDGET_PRICE_SELECTOR',
+                                'COMFINO_WIDGET_TARGET_SELECTOR',
+                                'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
+                                'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+                                'COMFINO_WIDGET_TYPE',
+                                'COMFINO_WIDGET_OFFER_TYPE',
+                                'COMFINO_WIDGET_EMBED_METHOD',
+                            ]
+                        )
+                    ),
+                    $widgetVariables
+                );
+                /*echo str_replace(
                     array_merge(
                         [
                             '{WIDGET_KEY}',
@@ -81,7 +111,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                         array_values($widgetVariables)
                     ),
                     ConfigManager::getCurrentWidgetCode($this->module, $productId)
-                );
+                );*/
             } catch (Throwable $e) {
                 ErrorLogger::sendError(
                     'Widget script endpoint',

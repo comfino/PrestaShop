@@ -6,7 +6,7 @@
 
 **Merged pull requests:**
 
-- FN-12596 Fixed bug in API configuration management (wrong API host used in sandbox mode), refactored product widget rendering logic. [\#95](https://github.com/comfino/PrestaShop/pull/95) ([akozubskicr](https://github.com/akozubskicr))
+- FN-12596 Fixed bug in API configuration management (wrong API host used in sandbox mode), product widget initialization script rendering logic refactored. [\#95](https://github.com/comfino/PrestaShop/pull/95) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [4.1.1](https://github.com/comfino/PrestaShop/tree/4.1.1) (2024-11-20)
 
