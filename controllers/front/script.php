@@ -80,38 +80,6 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                     ),
                     $widgetVariables
                 );
-                /*echo str_replace(
-                    array_merge(
-                        [
-                            '{WIDGET_KEY}',
-                            '{WIDGET_PRICE_SELECTOR}',
-                            '{WIDGET_TARGET_SELECTOR}',
-                            '{WIDGET_PRICE_OBSERVER_SELECTOR}',
-                            '{WIDGET_PRICE_OBSERVER_LEVEL}',
-                            '{WIDGET_TYPE}',
-                            '{OFFER_TYPE}',
-                            '{EMBED_METHOD}',
-                        ],
-                        array_keys($widgetVariables)
-                    ),
-                    array_merge(
-                        ConfigManager::getConfigurationValues(
-                            'widget_settings',
-                            [
-                                'COMFINO_WIDGET_KEY',
-                                'COMFINO_WIDGET_PRICE_SELECTOR',
-                                'COMFINO_WIDGET_TARGET_SELECTOR',
-                                'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
-                                'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-                                'COMFINO_WIDGET_TYPE',
-                                'COMFINO_WIDGET_OFFER_TYPE',
-                                'COMFINO_WIDGET_EMBED_METHOD',
-                            ]
-                        ),
-                        array_values($widgetVariables)
-                    ),
-                    ConfigManager::getCurrentWidgetCode($this->module, $productId)
-                );*/
             } catch (Throwable $e) {
                 ErrorLogger::sendError(
                     'Widget script endpoint',
