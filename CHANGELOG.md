@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.1.2](https://github.com/comfino/PrestaShop/tree/4.1.2) (2024-11-25)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.1...4.1.2)
+
+**Merged pull requests:**
+
+- FN-12596 Fixed bug in API configuration management (wrong API host used in sandbox mode), product widget initialization script rendering logic refactored. [\#95](https://github.com/comfino/PrestaShop/pull/95) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.1.1](https://github.com/comfino/PrestaShop/tree/4.1.1) (2024-11-20)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.0...4.1.1)

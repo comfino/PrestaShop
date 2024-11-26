@@ -54,7 +54,7 @@ final class SettingsForm
         $outputType = 'success';
         $output = [];
         $widgetKeyError = false;
-        $widgetKey = '';
+        $widgetKey = ConfigManager::getConfigurationValue('COMFINO_WIDGET_KEY', '');
 
         $errorEmptyMsg = $module->l("Field '%s' can not be empty.");
         $errorNumericFormatMsg = $module->l("Field '%s' has wrong numeric format.");
@@ -97,14 +97,16 @@ final class SettingsForm
                             : ConfigManager::getConfigurationValue('COMFINO_API_KEY');
                     }
 
+                    $apiClient = ApiClient::getInstance($sandboxMode, $apiKey);
+
                     if (!empty($apiKey) && !count($output)) {
                         try {
                             // Check if passed API key is valid.
-                            ApiClient::getInstance($sandboxMode, $apiKey)->isShopAccountActive();
+                            $apiClient->isShopAccountActive();
 
                             try {
                                 // If API key is valid fetch widget key from API endpoint.
-                                $widgetKey = ApiClient::getInstance($sandboxMode, $apiKey)->getWidgetKey();
+                                $widgetKey = $apiClient->getWidgetKey();
                             } catch (\Throwable $e) {
                                 ApiClient::processApiError(
                                     ($activeTab === 'payment_settings' ? 'Payment' : 'Developer') .
@@ -117,7 +119,7 @@ final class SettingsForm
                                 $widgetKeyError = true;
 
                                 if (!empty(getenv('COMFINO_DEV'))) {
-                                    $output[] = sprintf('Comfino API host: %s', ApiClient::getInstance()->getApiHost());
+                                    $output[] = sprintf('Comfino API host: %s', $apiClient->getApiHost());
                                 }
                             }
                         } catch (AuthorizationError|AccessDenied $e) {
@@ -125,7 +127,7 @@ final class SettingsForm
                             $output[] = sprintf($module->l('API key %s is not valid.'), $apiKey);
 
                             if (!empty(getenv('COMFINO_DEV'))) {
-                                $output[] = sprintf('Comfino API host: %s', ApiClient::getInstance()->getApiHost());
+                                $output[] = sprintf('Comfino API host: %s', $apiClient->getApiHost());
                             }
                         } catch (\Throwable $e) {
                             ApiClient::processApiError(
@@ -138,7 +140,7 @@ final class SettingsForm
                             $output[] = $e->getMessage();
 
                             if (!empty(getenv('COMFINO_DEV'))) {
-                                $output[] = sprintf('Comfino API host: %s', ApiClient::getInstance()->getApiHost());
+                                $output[] = sprintf('Comfino API host: %s', $apiClient->getApiHost());
                             }
                         }
                     }

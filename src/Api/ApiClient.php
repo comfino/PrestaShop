@@ -80,8 +80,15 @@ final class ApiClient
 
             self::$apiClient->addCustomHeader('Comfino-Build-Timestamp', (string) COMFINO_BUILD_TS);
         } else {
+            self::$apiClient->setCustomApiHost(self::getApiHost());
             self::$apiClient->setApiKey($apiKey);
             self::$apiClient->setApiLanguage(\Context::getContext()->language->iso_code);
+        }
+
+        if ($sandboxMode) {
+            self::$apiClient->enableSandboxMode();
+        } else {
+            self::$apiClient->disableSandboxMode();
         }
 
         return self::$apiClient;
