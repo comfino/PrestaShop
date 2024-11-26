@@ -28,9 +28,12 @@ namespace Comfino\View;
 
 use Comfino\Api\ApiClient;
 use Comfino\Api\ApiService;
+use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Common\Frontend\PaywallIframeRenderer;
 use Comfino\Common\Frontend\PaywallRenderer;
+use Comfino\Common\Frontend\WidgetInitScriptHelper;
 use Comfino\Configuration\ConfigManager;
+use Comfino\ErrorLogger;
 use Comfino\PluginShared\CacheManager;
 use Comfino\TemplateRenderer\ModuleRendererStrategy;
 
@@ -79,6 +82,55 @@ final class FrontendManager
             ApiService::getEndpointUrl('cacheInvalidate'),
             ApiService::getEndpointUrl('configuration')
         );
+    }
+
+    public static function renderWidgetInitCode(\PaymentModule $module, ?int $productId): string
+    {
+        try {
+            $widgetVariables = ConfigManager::getWidgetVariables($module, $productId);
+
+            return WidgetInitScriptHelper::renderWidgetInitScript(
+                ConfigManager::getCurrentWidgetCode($module, $productId),
+                array_combine(
+                    [
+                        'WIDGET_KEY',
+                        'WIDGET_PRICE_SELECTOR',
+                        'WIDGET_TARGET_SELECTOR',
+                        'WIDGET_PRICE_OBSERVER_SELECTOR',
+                        'WIDGET_PRICE_OBSERVER_LEVEL',
+                        'WIDGET_TYPE',
+                        'OFFER_TYPE',
+                        'EMBED_METHOD',
+                    ],
+                    ConfigManager::getConfigurationValues(
+                        'widget_settings',
+                        [
+                            'COMFINO_WIDGET_KEY',
+                            'COMFINO_WIDGET_PRICE_SELECTOR',
+                            'COMFINO_WIDGET_TARGET_SELECTOR',
+                            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
+                            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+                            'COMFINO_WIDGET_TYPE',
+                            'COMFINO_WIDGET_OFFER_TYPE',
+                            'COMFINO_WIDGET_EMBED_METHOD',
+                        ]
+                    )
+                ),
+                $widgetVariables
+            );
+        } catch (\Throwable $e) {
+            ErrorLogger::sendError(
+                'Widget script endpoint',
+                $e->getCode(),
+                $e->getMessage(),
+                $e instanceof HttpErrorExceptionInterface ? $e->getUrl() : null,
+                $e instanceof HttpErrorExceptionInterface ? $e->getRequestBody() : null,
+                $e instanceof HttpErrorExceptionInterface ? $e->getResponseBody() : null,
+                $e->getTraceAsString()
+            );
+        }
+
+        return '';
     }
 
     public static function getConnectMaxNumAttempts(): int
