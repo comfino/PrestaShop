@@ -235,10 +235,26 @@ final class Main
 
         ErrorLogger::init($module);
 
-        return SettingsManager::getAllowedProductTypes(
+        $loanAmount = (int) \Context::getContext()->cookie->loan_amount;
+        $shopCart = OrderManager::getShopCart($cart, $loanAmount);
+        $allowedProductTypes = SettingsManager::getAllowedProductTypes(
             ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
-            OrderManager::getShopCart($cart, (int) \Context::getContext()->cookie->loan_amount)
-        ) !== [];
+            $shopCart
+        );
+        $paymentIsAvailable = ($allowedProductTypes !== []);
+
+        self::debugLog(
+            '[PAYWALL]',
+            sprintf('paymentIsAvailable: (paywall iframe is %s)', $paymentIsAvailable ? 'visible' : 'invisible'),
+            [
+                '$paymentIsAvailable' => $paymentIsAvailable,
+                '$allowedProductTypes' => $allowedProductTypes,
+                '$loanAmount' => $loanAmount,
+                '$cartTotalValue' => $shopCart->getTotalValue(),
+            ]
+        );
+
+        return $paymentIsAvailable;
     }
 
     private static function preparePaywallIframe(\PaymentModule $module, \Cart $cart): ?string

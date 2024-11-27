@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.1.3](https://github.com/comfino/PrestaShop/tree/4.1.3) (2024-11-27)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.2...4.1.3)
+
+**Merged pull requests:**
+
+- FN-12614 Fixed bug in API client (added extended data for correction items in cart required by leasing), fixed bug in Comfino availability filter (lower cart total value limit not worked properly). [\#96](https://github.com/comfino/PrestaShop/pull/96) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.1.2](https://github.com/comfino/PrestaShop/tree/4.1.2) (2024-11-25)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.1...4.1.2)
