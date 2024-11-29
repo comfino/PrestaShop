@@ -243,6 +243,14 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             );
 
             Tools::redirect(ApiService::getControllerUrl($this->module, 'error', ['error' => $e->getMessage()]));
+        } finally {
+            if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
+                Main::debugLog(
+                    '[CREATE_ORDER_API_REQUEST]',
+                    'createOrder',
+                    ['$request' => $apiRequest->getRequestBody()]
+                );
+            }
         }
     }
 

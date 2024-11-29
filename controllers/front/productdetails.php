@@ -104,6 +104,14 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
             http_response_code($e instanceof HttpErrorExceptionInterface ? $e->getStatusCode() : 500);
 
             echo $e->getMessage();
+        } finally {
+            if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
+                Main::debugLog(
+                    '[PRODUCT_DETAILS_API_REQUEST]',
+                    'getFinancialProductDetails',
+                    ['$request' => $apiRequest->getRequestBody()]
+                );
+            }
         }
 
         exit;
