@@ -118,11 +118,7 @@ final class FormManager
                         ))
                     );
 
-                    $devEnvVariables = [
-                        'DEBUG', 'DEV', 'DEV_API_HOST', 'DEV_API_HOST_FRONTEND', 'DEV_API_HOST_BACKEND',
-                        'DEV_API_PAYWALL_HOST', 'DEV_FRONTEND_SCRIPT_URL', 'DEV_WIDGET_SCRIPT_URL',
-                        'DEV_PAYWALL_FRONTEND_SCRIPT_URL', 'DEV_PAYWALL_FRONTEND_STYLE_URL',
-                    ];
+                    $devEnvVariables = ['DEBUG', 'DEV', 'DEV_API_HOST', 'DEV_WIDGET_SCRIPT_URL'];
 
                     $infoMessages[] = sprintf(
                         '<b>Development environment variables:</b><ul>%s</ul>',
