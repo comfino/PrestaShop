@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.1.4](https://github.com/comfino/PrestaShop/tree/4.1.4) (2024-11-30)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.3...4.1.4)
+
+**Merged pull requests:**
+
+- FN-12631 Added more debug logs - improved plugin diagnostics.. [\#97](https://github.com/comfino/PrestaShop/pull/97) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.1.3](https://github.com/comfino/PrestaShop/tree/4.1.3) (2024-11-27)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.2...4.1.3)
