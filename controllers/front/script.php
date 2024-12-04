@@ -24,9 +24,9 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger;
+use Comfino\View\FrontendManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -42,57 +42,12 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
 
         header('Content-Type: application/javascript');
 
-        if (ConfigManager::getConfigurationValue('COMFINO_WIDGET_ENABLED')) {
+        if (ConfigManager::isWidgetEnabled() && ConfigManager::getWidgetKey() !== '') {
             if (($productId = Tools::getValue('product_id', null)) !== null) {
                 $productId = (int) $productId;
             }
 
-            try {
-                $widgetVariables = ConfigManager::getWidgetVariables($this->module, $productId);
-
-                echo str_replace(
-                    array_merge(
-                        [
-                            '{WIDGET_KEY}',
-                            '{WIDGET_PRICE_SELECTOR}',
-                            '{WIDGET_TARGET_SELECTOR}',
-                            '{WIDGET_PRICE_OBSERVER_SELECTOR}',
-                            '{WIDGET_PRICE_OBSERVER_LEVEL}',
-                            '{WIDGET_TYPE}',
-                            '{OFFER_TYPE}',
-                            '{EMBED_METHOD}',
-                        ],
-                        array_keys($widgetVariables)
-                    ),
-                    array_merge(
-                        ConfigManager::getConfigurationValues(
-                            'widget_settings',
-                            [
-                                'COMFINO_WIDGET_KEY',
-                                'COMFINO_WIDGET_PRICE_SELECTOR',
-                                'COMFINO_WIDGET_TARGET_SELECTOR',
-                                'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
-                                'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-                                'COMFINO_WIDGET_TYPE',
-                                'COMFINO_WIDGET_OFFER_TYPE',
-                                'COMFINO_WIDGET_EMBED_METHOD',
-                            ]
-                        ),
-                        array_values($widgetVariables)
-                    ),
-                    ConfigManager::getCurrentWidgetCode($this->module, $productId)
-                );
-            } catch (Throwable $e) {
-                ErrorLogger::sendError(
-                    'Widget script endpoint',
-                    $e->getCode(),
-                    $e->getMessage(),
-                    $e instanceof HttpErrorExceptionInterface ? $e->getUrl() : null,
-                    $e instanceof HttpErrorExceptionInterface ? $e->getRequestBody() : null,
-                    $e instanceof HttpErrorExceptionInterface ? $e->getResponseBody() : null,
-                    $e->getTraceAsString()
-                );
-            }
+            echo FrontendManager::renderWidgetInitCode($this->module, $productId);
         }
 
         exit;

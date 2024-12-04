@@ -24,6 +24,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+use Comfino\Api\ApiClient;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
@@ -50,12 +51,16 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
 
         $loanAmount = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
         $loanTypeSelected = Tools::getValue('loanTypeSelected');
-        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount);
+        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount, $loanTypeSelected === 'LEASING');
 
         Main::debugLog(
             '[PAYWALL_ITEM_DETAILS]',
             'getPaywallItemDetails',
-            ['$loanAmount' => $loanAmount, '$loanTypeSelected' => $loanTypeSelected]
+            [
+                '$loanAmount' => $loanAmount,
+                '$loanTypeSelected' => $loanTypeSelected,
+                '$shopCart' => $shopCart->getAsArray(),
+            ]
         );
 
         $response = FrontendManager::getPaywallRenderer($this->module)
@@ -71,6 +76,14 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
                     $shopCart->getDeliveryTaxValue()
                 )
             );
+
+        if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
+            Main::debugLog(
+                '[PAYWALL_ITEM_DETAILS_API_REQUEST]',
+                'getPaywallItemDetails',
+                ['$request' => $apiRequest->getRequestBody()]
+            );
+        }
 
         echo $serializer->serialize(
             ['listItemData' => $response->listItemData, 'productDetails' => $response->productDetails]

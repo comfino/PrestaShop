@@ -2,7 +2,7 @@ FROM php:7.1-cli-alpine
 
 USER root
 
-RUN apk add --no-cache git libzip-dev icu-dev gcc make autoconf libc-dev bash tzdata linux-headers
+RUN apk update && apk add --no-cache git libzip-dev icu-dev gcc make autoconf libc-dev bash tzdata linux-headers
 
 RUN docker-php-ext-configure intl && docker-php-ext-configure zip && docker-php-ext-install zip intl
 

@@ -61,14 +61,19 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
             exit;
         }
 
-        $shopCart = OrderManager::getShopCartFromProduct($product);
-        $loanAmount = $shopCart->getTotalValue();
         $loanTypeSelected = Tools::getValue('loanTypeSelected');
+        $shopCart = OrderManager::getShopCartFromProduct($product, $loanTypeSelected === 'LEASING');
+        $loanAmount = $shopCart->getTotalValue();
 
         Main::debugLog(
             '[PRODUCT_DETAILS]',
             'getFinancialProductDetails',
-            ['$loanAmount' => $loanAmount, '$productId' => $productId, '$loanTypeSelected' => $loanTypeSelected]
+            [
+                '$loanAmount' => $loanAmount,
+                '$productId' => $productId,
+                '$loanTypeSelected' => $loanTypeSelected,
+                '$shopCart' => $shopCart->getAsArray(),
+            ]
         );
 
         try {
@@ -99,6 +104,14 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
             http_response_code($e instanceof HttpErrorExceptionInterface ? $e->getStatusCode() : 500);
 
             echo $e->getMessage();
+        } finally {
+            if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
+                Main::debugLog(
+                    '[PRODUCT_DETAILS_API_REQUEST]',
+                    'getFinancialProductDetails',
+                    ['$request' => $apiRequest->getRequestBody()]
+                );
+            }
         }
 
         exit;

@@ -1,5 +1,14 @@
+4.1.4
+ - FN-12631 Added more debug logs - improved plugin diagnostics.
+
+4.1.3
+ - FN-12614 Fixed bug in API client (added extended data for correction items in cart required by leasing), fixed bug in Comfino availability filter (lower cart total value limit not worked properly).
+
+4.1.2
+ - FN-12596 Fixed bug in API configuration management (wrong API host used in sandbox mode), product widget initialization script rendering logic refactored.
+
 4.1.1
- - FN-12563 Added some improvements in errors presentation.
+ - FN-12581 Fixed bugs in calculations for leasing in shop product widget and bugs in loading product category names for cart items, stop collecting of authorization API errors with 401 status code.
 
 4.1.0
  - FN-12546 Added support for leasing, fixed some bugs in cart items price calculations.

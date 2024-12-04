@@ -1,12 +1,36 @@
 # Changelog
 
-## [4.1.1](https://github.com/comfino/PrestaShop/tree/4.1.1) (2024-11-18)
+## [4.1.4](https://github.com/comfino/PrestaShop/tree/4.1.4) (2024-11-30)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.3...4.1.4)
+
+**Merged pull requests:**
+
+- FN-12631 Added more debug logs - improved plugin diagnostics.. [\#97](https://github.com/comfino/PrestaShop/pull/97) ([akozubskicr](https://github.com/akozubskicr))
+
+## [4.1.3](https://github.com/comfino/PrestaShop/tree/4.1.3) (2024-11-27)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.2...4.1.3)
+
+**Merged pull requests:**
+
+- FN-12614 Fixed bug in API client (added extended data for correction items in cart required by leasing), fixed bug in Comfino availability filter (lower cart total value limit not worked properly). [\#96](https://github.com/comfino/PrestaShop/pull/96) ([akozubskicr](https://github.com/akozubskicr))
+
+## [4.1.2](https://github.com/comfino/PrestaShop/tree/4.1.2) (2024-11-25)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.1...4.1.2)
+
+**Merged pull requests:**
+
+- FN-12596 Fixed bug in API configuration management (wrong API host used in sandbox mode), product widget initialization script rendering logic refactored. [\#95](https://github.com/comfino/PrestaShop/pull/95) ([akozubskicr](https://github.com/akozubskicr))
+
+## [4.1.1](https://github.com/comfino/PrestaShop/tree/4.1.1) (2024-11-20)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.0...4.1.1)
 
 **Merged pull requests:**
 
-- FN-12563 Added some improvements in errors presentation. [\#94](https://github.com/comfino/PrestaShop/pull/94) ([akozubskicr](https://github.com/akozubskicr))
+- FN-12581 Fixed bugs in calculations for leasing in shop product widget and bugs in loading product category names for cart items, stop collecting of authorization API errors with 401 status code. [\#94](https://github.com/comfino/PrestaShop/pull/94) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [4.1.0](https://github.com/comfino/PrestaShop/tree/4.1.0) (2024-11-12)
 

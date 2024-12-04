@@ -24,6 +24,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+use Comfino\Api\ApiClient;
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
 use Comfino\Configuration\SettingsManager;
 use Comfino\ErrorLogger;
@@ -88,6 +89,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             [
                 '$loanAmount' => $loanAmount,
                 '$allowedProductTypes' => $allowedProductTypes,
+                '$shopCart' => $shopCart->getAsArray(),
                 // '$connectAttemptIdx' => $connectAttemptIdx,
                 // '$connectMaxNumAttempts' => $connectMaxNumAttempts,
             ]
@@ -95,6 +97,14 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
 
         echo FrontendManager::getPaywallRenderer($this->module)
             ->renderPaywall(new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes)/*, $headMetaTags*/);
+
+        if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
+            Main::debugLog(
+                '[PAYWALL_API_REQUEST]',
+                'renderPaywall',
+                ['$request' => $apiRequest->getRequestBody()]
+            );
+        }
 
         exit;
     }

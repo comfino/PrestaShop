@@ -30,6 +30,7 @@ use Comfino\Api\ApiClient;
 use Comfino\Api\ApiService;
 use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\ConfigurationManager;
+use Comfino\Common\Frontend\WidgetInitScriptHelper;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Common\Shop\Product\CategoryTree;
 use Comfino\ErrorLogger;
@@ -307,7 +308,7 @@ final class ConfigManager
         ErrorLogger::init($module);
 
         try {
-            $initialWidgetCode = self::getInitialWidgetCode();
+            $initialWidgetCode = WidgetInitScriptHelper::getInitialWidgetCode();
             $currentWidgetCode = self::getCurrentWidgetCode($module);
 
             if ($lastWidgetCodeHash === null || md5($currentWidgetCode) === $lastWidgetCodeHash) {
@@ -361,15 +362,15 @@ final class ConfigManager
         $productData = self::getProductData($module, $productId);
 
         return [
-            '{WIDGET_SCRIPT_URL}' => ApiClient::getWidgetScriptUrl(),
-            '{PRODUCT_ID}' => $productData['product_id'],
-            '{PRODUCT_PRICE}' => $productData['price'],
-            '{PLATFORM}' => 'prestashop',
-            '{PLATFORM_VERSION}' => _PS_VERSION_,
-            '{PLATFORM_DOMAIN}' => \Tools::getShopDomain(),
-            '{PLUGIN_VERSION}' => COMFINO_VERSION,
-            '{AVAILABLE_OFFER_TYPES_URL}' => $productData['avail_offers_url'],
-            '{PRODUCT_DETAILS_URL}' => $productData['product_details_url'],
+            'WIDGET_SCRIPT_URL' => ApiClient::getWidgetScriptUrl(),
+            'PRODUCT_ID' => $productData['product_id'],
+            'PRODUCT_PRICE' => $productData['price'],
+            'PLATFORM' => 'prestashop',
+            'PLATFORM_VERSION' => _PS_VERSION_,
+            'PLATFORM_DOMAIN' => \Tools::getShopDomain(),
+            'PLUGIN_VERSION' => COMFINO_VERSION,
+            'AVAILABLE_OFFER_TYPES_URL' => $productData['avail_offers_url'],
+            'PRODUCT_DETAILS_URL' => $productData['product_details_url'],
         ];
     }
 
@@ -407,7 +408,7 @@ final class ConfigManager
             'COMFINO_WIDGET_TYPE' => 'with-modal',
             'COMFINO_WIDGET_OFFER_TYPE' => 'CONVENIENT_INSTALLMENTS',
             'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
-            'COMFINO_WIDGET_CODE' => self::getInitialWidgetCode(),
+            'COMFINO_WIDGET_CODE' => WidgetInitScriptHelper::getInitialWidgetCode(),
             'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => '',
             'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => '',
             'COMFINO_IGNORED_STATUSES' => implode(',', StatusManager::DEFAULT_IGNORED_STATUSES),
@@ -453,42 +454,5 @@ final class ConfigManager
             'avail_offers_url' => $availOffersUrl,
             'product_details_url' => $productDetailsUrl,
         ];
-    }
-
-    private static function getInitialWidgetCode(): string
-    {
-        return trim("
-var script = document.createElement('script');
-script.onload = function () {
-    ComfinoProductWidget.init({
-        widgetKey: '{WIDGET_KEY}',
-        priceSelector: '{WIDGET_PRICE_SELECTOR}',
-        widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',
-        priceObserverSelector: '{WIDGET_PRICE_OBSERVER_SELECTOR}',
-        priceObserverLevel: {WIDGET_PRICE_OBSERVER_LEVEL},
-        type: '{WIDGET_TYPE}',
-        offerType: '{OFFER_TYPE}',
-        embedMethod: '{EMBED_METHOD}',
-        numOfInstallments: 0,
-        price: null,
-        productId: {PRODUCT_ID},
-        productPrice: {PRODUCT_PRICE},
-        platform: '{PLATFORM}',
-        platformVersion: '{PLATFORM_VERSION}',
-        platformDomain: '{PLATFORM_DOMAIN}',
-        pluginVersion: '{PLUGIN_VERSION}',
-        availOffersUrl: '{AVAILABLE_OFFER_TYPES_URL}',
-        productDetailsUrl: '{PRODUCT_DETAILS_URL}',
-        callbackBefore: function () {},
-        callbackAfter: function () {},
-        onOfferRendered: function (jsonResponse, widgetTarget, widgetNode) { },
-        onGetPriceElement: function (priceSelector, priceObserverSelector) { return null; },
-        debugMode: window.location.hash && window.location.hash.substring(1) === 'comfino_debug'
-    });
-};
-script.src = '{WIDGET_SCRIPT_URL}';
-script.async = true;
-document.getElementsByTagName('head')[0].appendChild(script);
-");
     }
 }

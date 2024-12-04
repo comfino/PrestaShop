@@ -26,6 +26,7 @@
 
 namespace Comfino\Api;
 
+use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Common\Backend\Factory\ApiClientFactory;
 use Comfino\Common\Frontend\FrontendHelper;
 use Comfino\Configuration\ConfigManager;
@@ -79,8 +80,15 @@ final class ApiClient
 
             self::$apiClient->addCustomHeader('Comfino-Build-Timestamp', (string) COMFINO_BUILD_TS);
         } else {
+            self::$apiClient->setCustomApiHost(self::getApiHost());
             self::$apiClient->setApiKey($apiKey);
             self::$apiClient->setApiLanguage(\Context::getContext()->language->iso_code);
+        }
+
+        if ($sandboxMode) {
+            self::$apiClient->enableSandboxMode();
+        } else {
+            self::$apiClient->disableSandboxMode();
         }
 
         return self::$apiClient;
@@ -88,6 +96,11 @@ final class ApiClient
 
     public static function processApiError(string $errorPrefix, \Throwable $exception): void
     {
+        if ($exception instanceof AuthorizationError) {
+            // Don't collect authorization errors caused by empty or wrong API key (response with status code 401).
+            return;
+        }
+
         if ($exception instanceof HttpErrorExceptionInterface) {
             $url = $exception->getUrl();
             $requestBody = $exception->getRequestBody();

@@ -31,6 +31,7 @@ use Comfino\Common\Backend\Factory\OrderFactory;
 use Comfino\Configuration\SettingsManager;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\Main;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Customer;
 use Comfino\Shop\Order\Customer\Address;
@@ -54,6 +55,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         $cart = $this->context->cart;
+
+        Main::debugLog('[PAYMENT GATEWAY]', 'postProcess', ['cart_id' => $cart->id]);
 
         if ($cart->id_customer === 0 || $cart->id_address_delivery === 0 || $cart->id_address_invoice === 0) {
             Tools::redirect('index.php?controller=order&step=1');
@@ -126,7 +129,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $shopCart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount);
+        $shopCart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount, true);
 
         $this->module->validateOrder(
             (int) $cart->id,
@@ -218,6 +221,17 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $shopCart->getDeliveryTaxValue()
         );
 
+        Main::debugLog(
+            '[PAYMENT]',
+            'ComfinoPaymentModuleFrontController',
+            [
+                '$loanAmount' => $order->getCart()->getTotalAmount(),
+                '$loanType' => (string) $order->getLoanParameters()->getType(),
+                '$loanTerm' => $order->getLoanParameters()->getTerm(),
+                '$shopCart' => $shopCart->getAsArray(),
+            ]
+        );
+
         try {
             Tools::redirect(ApiClient::getInstance()->createOrder($order)->applicationUrl);
         } catch (Throwable $e) {
@@ -231,6 +245,14 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             );
 
             Tools::redirect(ApiService::getControllerUrl($this->module, 'error', ['error' => $e->getMessage()]));
+        } finally {
+            if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
+                Main::debugLog(
+                    '[CREATE_ORDER_API_REQUEST]',
+                    'createOrder',
+                    ['$request' => $apiRequest->getRequestBody()]
+                );
+            }
         }
     }
 
