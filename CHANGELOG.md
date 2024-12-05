@@ -1,12 +1,20 @@
 # Changelog
 
+## [4.1.5](https://github.com/comfino/PrestaShop/tree/4.1.5) (2024-12-05)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.4...4.1.5)
+
+**Merged pull requests:**
+
+- FN-12646 Changed category separator in category field sent with cart items with multiple categories assigned. [\#98](https://github.com/comfino/PrestaShop/pull/98) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.1.4](https://github.com/comfino/PrestaShop/tree/4.1.4) (2024-11-30)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.3...4.1.4)
 
 **Merged pull requests:**
 
-- FN-12631 Added more debug logs - improved plugin diagnostics.. [\#97](https://github.com/comfino/PrestaShop/pull/97) ([akozubskicr](https://github.com/akozubskicr))
+- FN-12631 Added more debug logs - improved plugin diagnostics. [\#97](https://github.com/comfino/PrestaShop/pull/97) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [4.1.3](https://github.com/comfino/PrestaShop/tree/4.1.3) (2024-11-27)
 
