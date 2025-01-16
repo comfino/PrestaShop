@@ -22,7 +22,6 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
-
 {if $status == 'ok'}
     <p>
         {l s='Your order on %s is complete.' sprintf=[$shop_name] mod='comfino'}

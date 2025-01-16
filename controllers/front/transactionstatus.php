@@ -35,7 +35,7 @@ class ComfinoTransactionStatusModuleFrontController extends ModuleFrontControlle
 {
     public function postProcess(): void
     {
-        ErrorLogger::init($this->module);
+        ErrorLogger::init();
 
         parent::postProcess();
 

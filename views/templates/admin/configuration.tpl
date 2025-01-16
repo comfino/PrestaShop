@@ -22,7 +22,6 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
-
 {if $output|count > 0}
     <div class="bootstrap">
         <div class="module_confirmation conf confirm alert alert-{$output_type|escape:"htmlall":"UTF-8"}">

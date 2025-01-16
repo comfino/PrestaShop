@@ -38,7 +38,7 @@ class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontControl
 {
     public function postProcess(): void
     {
-        ErrorLogger::init($this->module);
+        ErrorLogger::init();
 
         parent::postProcess();
 

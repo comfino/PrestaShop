@@ -24,32 +24,42 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+namespace Comfino;
+
 use Comfino\Configuration\ConfigManager;
-use Comfino\ErrorLogger;
-use Comfino\View\FrontendManager;
+use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class ComfinoScriptModuleFrontController extends ModuleFrontController
+class DebugLogger
 {
-    public function postProcess(): void
+    /** @var Common\Backend\DebugLogger */
+    private static $debugLogger;
+
+    public static function getLoggerInstance(): Common\Backend\DebugLogger
     {
-        ErrorLogger::init();
-
-        parent::postProcess();
-
-        header('Content-Type: application/javascript');
-
-        if (ConfigManager::isWidgetEnabled() && ConfigManager::getWidgetKey() !== '') {
-            if (($productId = Tools::getValue('product_id', null)) !== null) {
-                $productId = (int) $productId;
-            }
-
-            echo FrontendManager::renderWidgetInitCode($productId);
+        if (self::$debugLogger === null) {
+            self::$debugLogger = Common\Backend\DebugLogger::getInstance(
+                new JsonSerializer(),
+                _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/debug.log'
+            );
         }
 
-        exit;
+        return self::$debugLogger;
+    }
+
+    public static function logEvent(string $eventPrefix, string $eventMessage, ?array $parameters = null): void
+    {
+        if ((!isset($_COOKIE['COMFINO_SERVICE_SESSION']) || $_COOKIE['COMFINO_SERVICE_SESSION'] !== 'ACTIVE')
+            && ConfigManager::isServiceMode()
+        ) {
+            return;
+        }
+
+        if (ConfigManager::isDebugMode()) {
+            self::getLoggerInstance()->logEvent($eventPrefix, $eventMessage, $parameters);
+        }
     }
 }

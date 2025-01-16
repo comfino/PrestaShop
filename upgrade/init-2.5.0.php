@@ -39,14 +39,14 @@ function upgrade_module_2_5_0(Comfino $module)
         return false;
     }
 
-    // Initialize new configuration options
+    // Initialize new configuration options.
     ConfigManager::updateConfiguration([
         'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR' => '',
         'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 0,
     ]);
 
     // Update code of widget initialization script.
-    ConfigManager::updateWidgetCode($module, 'e632ce7d5ec92ef9d0cd5c9f70e1914a');
+    ConfigManager::updateWidgetCode('e632ce7d5ec92ef9d0cd5c9f70e1914a');
 
     return true;
 }

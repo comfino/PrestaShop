@@ -31,8 +31,8 @@ use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
+use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
-use Comfino\Main;
 use Comfino\PluginShared\CacheManager;
 
 if (!defined('_PS_VERSION_')) {
@@ -41,14 +41,14 @@ if (!defined('_PS_VERSION_')) {
 
 final class SettingsForm
 {
-    private const ERROR_LOG_NUM_LINES = 100;
-    private const DEBUG_LOG_NUM_LINES = 200;
-    private const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
-    private const COMFINO_SUPPORT_PHONE = '887-106-027';
+    public const ERROR_LOG_NUM_LINES = 100;
+    public const DEBUG_LOG_NUM_LINES = 200;
+    public const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
+    public const COMFINO_SUPPORT_PHONE = '887-106-027';
 
     public static function processForm(\PaymentModule $module): array
     {
-        ErrorLogger::init($module);
+        ErrorLogger::init();
 
         $activeTab = 'payment_settings';
         $outputType = 'success';
@@ -239,7 +239,7 @@ final class SettingsForm
             'active_tab' => $activeTab,
             'output' => $output,
             'output_type' => $outputType,
-            'logo_url' => ApiClient::getLogoUrl(),
+            'logo_url' => ConfigManager::getLogoUrl(),
             'support_email_address' => self::COMFINO_SUPPORT_EMAIL,
             'support_email_subject' => sprintf(
                 $module->l('PrestaShop %s Comfino %s - question'),
@@ -642,8 +642,10 @@ final class SettingsForm
                                 'type' => 'html',
                                 'label' => $module->l('Errors log'),
                                 'name' => 'COMFINO_WIDGET_ERRORS_LOG',
-                                'html_content' => '<textarea rows="20" cols="60" readonly="readonly">' .
-                                    ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES) . '</textarea>',
+                                'html_content' =>
+                                    '<textarea rows="20" cols="60" readonly="readonly">' .
+                                    ErrorLogger::getLoggerInstance()->getErrorLog(self::ERROR_LOG_NUM_LINES) .
+                                    '</textarea>',
                             ],
                             [
                                 'type' => 'html',
@@ -651,8 +653,10 @@ final class SettingsForm
                                 'name' => 'COMFINO_DEBUG_LOG',
                                 'required' => false,
                                 'readonly' => true,
-                                'html_content' => '<textarea rows="40" cols="60" readonly="readonly">' .
-                                    Main::getDebugLog(self::DEBUG_LOG_NUM_LINES) . '</textarea>',
+                                'html_content' =>
+                                    '<textarea rows="40" cols="60" readonly="readonly">' .
+                                    DebugLogger::getLoggerInstance()->getDebugLog(self::DEBUG_LOG_NUM_LINES) .
+                                    '</textarea>',
                             ],
                         ],
                     ]

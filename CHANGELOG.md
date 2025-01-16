@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.2.0](https://github.com/comfino/PrestaShop/tree/4.2.0) (2025-01-16)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.5...4.2.0)
+
+**Merged pull requests:**
+
+- FN-12696 Improved plugin security and compatibility with best practices of PrestaShop plugins design and development. [\#99](https://github.com/comfino/PrestaShop/pull/99) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.1.5](https://github.com/comfino/PrestaShop/tree/4.1.5) (2024-12-05)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.1.4...4.1.5)

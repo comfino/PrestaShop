@@ -28,9 +28,9 @@ use Comfino\Api\ApiClient;
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\Api\HttpErrorExceptionInterface;
+use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
-use Comfino\Main;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Cart;
 
@@ -42,7 +42,7 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
 {
     public function postProcess(): void
     {
-        ErrorLogger::init($this->module);
+        ErrorLogger::init();
 
         parent::postProcess();
 
@@ -65,7 +65,7 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
         $shopCart = OrderManager::getShopCartFromProduct($product, $loanTypeSelected === 'LEASING');
         $loanAmount = $shopCart->getTotalValue();
 
-        Main::debugLog(
+        DebugLogger::logEvent(
             '[PRODUCT_DETAILS]',
             'getFinancialProductDetails',
             [
@@ -106,7 +106,7 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
             echo $e->getMessage();
         } finally {
             if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
-                Main::debugLog(
+                DebugLogger::logEvent(
                     '[PRODUCT_DETAILS_API_REQUEST]',
                     'getFinancialProductDetails',
                     ['$request' => $apiRequest->getRequestBody()]

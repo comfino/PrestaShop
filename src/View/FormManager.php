@@ -104,7 +104,7 @@ final class FormManager
                 $infoMessages[] = sprintf('<b>Widget key:</b> %s', ConfigManager::getWidgetKey());
 
                 if (!empty(getenv('COMFINO_DEBUG')) || !empty(getenv('COMFINO_DEV'))) {
-                    $infoMessages[] = sprintf('<b>Plugin dev-debug mode:</b> %s', ApiClient::isDevEnv() ? 'Yes' : 'No');
+                    $infoMessages[] = sprintf('<b>Plugin dev-debug mode:</b> %s', ConfigManager::isDevEnv() ? 'Yes' : 'No');
 
                     $psEnvVariables = ['PS_LANGUAGE', 'PS_COUNTRY', 'PS_DOMAIN', 'PS_VERSION', 'PS_DEV_MODE'];
 
@@ -168,23 +168,23 @@ final class FormManager
                     ));
                 }
 
-                if (count($infoMessages)) {
+                if (count($infoMessages) > 0) {
                     $messages['description'] = implode('<br />', $infoMessages);
                 }
-                if (count($successMessages)) {
+                if (count($successMessages) > 0) {
                     $messages['success'] = implode('<br />', $successMessages);
                 }
-                if (count($warningMessages)) {
+                if (count($warningMessages) > 0) {
                     $messages['warning'] = implode('<br />', $warningMessages);
                 }
-                if (count($errorMessages)) {
+                if (count($errorMessages) > 0) {
                     $messages['error'] = implode('<br />', $errorMessages);
                 }
 
                 break;
         }
 
-        if (count($messages)) {
+        if (count($messages) > 0) {
             $params['messages'] = $messages;
         }
 

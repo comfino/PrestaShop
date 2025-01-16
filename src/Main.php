@@ -44,26 +44,27 @@ if (!defined('_PS_VERSION_')) {
 
 final class Main
 {
-    /** @var Common\Backend\ErrorLogger */
-    private static $errorLogger;
-    /** @var string */
-    private static $debugLogFilePath;
+    /** @var bool */
+    private static $initialized = false;
 
-    public static function init(\PaymentModule $module): void
+    public static function init(): void
     {
-        self::$errorLogger = ErrorLogger::getLoggerInstance($module);
-        self::$debugLogFilePath = _PS_MODULE_DIR_ . $module->name . '/var/log/debug.log';
+        if (self::$initialized) {
+            return;
+        }
 
         // Initialize cache system.
-        CacheManager::init(_PS_MODULE_DIR_ . $module->name . '/var');
+        CacheManager::init(_PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var');
 
         // Register module API endpoints.
-        ApiService::init($module);
+        ApiService::init();
+
+        self::$initialized = true;
     }
 
     public static function install(\PaymentModule $module): bool
     {
-        ErrorLogger::init($module);
+        ErrorLogger::init();
 
         ConfigManager::initConfigurationValues();
         ShopStatusManager::addCustomOrderStatuses();
@@ -84,11 +85,11 @@ final class Main
         return true;
     }
 
-    public static function uninstall(\PaymentModule $module): bool
+    public static function uninstall(): bool
     {
         ConfigManager::deleteConfigurationValues();
 
-        ErrorLogger::init($module);
+        ErrorLogger::init();
         ApiClient::getInstance()->notifyPluginRemoval();
 
         return true;
@@ -103,27 +104,54 @@ final class Main
     }
 
     /**
-     * @return \PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|string|void
+     * @return \PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|string
      */
     public static function renderPaywallIframe(\PaymentModule $module, array $params)
     {
         /** @var \Cart $cart */
         $cart = $params['cart'];
 
-        if (!self::paymentIsAvailable($module, $cart)
-            || ($paywallIframe = self::preparePaywallIframe($module, $cart)) === null
-        ) {
-            self::debugLog('[PAYWALL]', 'renderPaywallIframe - paymentIsAvailable=FALSE or preparePaywallIframe=NULL');
+        if (!self::paymentIsAvailable($module, $cart)) {
+            DebugLogger::logEvent(
+                '[PAYWALL]',
+                'renderPaywallIframe: paymentIsAvailable=FALSE or preparePaywallIframe=NULL'
+            );
 
-            return;
+            return COMFINO_PS_17 ? [] : '';
         }
+
+        $total = round($cart->getOrderTotal(), 2);
+        $tools = new Tools(\Context::getContext());
+
+        $templateVariables = [
+            'paywall_url' => ApiService::getControllerUrl('paywall', [], false),
+            'payment_state_url' => ApiService::getControllerUrl('paymentstate', [], false),
+            'paywall_options' => [
+                'platform' => 'prestashop',
+                'platformName' => 'PrestaShop',
+                'platformVersion' => _PS_VERSION_,
+                'platformDomain' => \Tools::getShopDomain(),
+                'pluginVersion' => COMFINO_VERSION,
+                'language' => $tools->getLanguageIsoCode($cart->id_lang),
+                'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
+                'cartTotal' => $total,
+                'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
+                'productDetailsApiPath' => ApiService::getControllerPath('paywallitemdetails', [], false),
+            ],
+            'is_ps_16' => !COMFINO_PS_17,
+            'comfino_logo_url' => ConfigManager::getPaywallLogoUrl(),
+            'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
+            'comfino_redirect_url' => ApiService::getControllerUrl('payment'),
+        ];
+
+        $paywallIframe = TemplateManager::renderModuleView($module, 'payment', 'front', $templateVariables);
 
         if (COMFINO_PS_17) {
             $comfinoPaymentOption = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
             $comfinoPaymentOption->setModuleName($module->name)
-                ->setAction(ApiService::getControllerUrl($module, 'payment'))
+                ->setAction(ApiService::getControllerUrl('payment'))
                 ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
-                ->setLogo(ApiClient::getPaywallLogoUrl())
+                ->setLogo(ConfigManager::getPaywallLogoUrl())
                 ->setAdditionalInformation($paywallIframe);
 
             return [$comfinoPaymentOption];
@@ -132,13 +160,53 @@ final class Main
         return $paywallIframe;
     }
 
+    public static function paymentIsAvailable(\PaymentModule $module, \Cart $cart): bool
+    {
+        if (ConfigManager::isServiceMode()) {
+            if (isset($_COOKIE['COMFINO_SERVICE_SESSION']) && $_COOKIE['COMFINO_SERVICE_SESSION'] === 'ACTIVE') {
+                DebugLogger::logEvent('[PAYWALL]', 'paymentIsAvailable: service mode is active.');
+            } else {
+                return false;
+            }
+        }
+
+        if (!$module->active || !OrderManager::checkCartCurrency($module, $cart) || empty(ConfigManager::getApiKey())) {
+            DebugLogger::logEvent('[PAYWALL]', 'paymentIsAvailable - plugin disabled or incomplete configuration.');
+
+            return false;
+        }
+
+        ErrorLogger::init();
+
+        $loanAmount = (int) \Context::getContext()->cookie->loan_amount;
+        $shopCart = OrderManager::getShopCart($cart, $loanAmount);
+        $allowedProductTypes = SettingsManager::getAllowedProductTypes(
+            ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
+            $shopCart
+        );
+        $paymentIsAvailable = ($allowedProductTypes !== []);
+
+        DebugLogger::logEvent(
+            '[PAYWALL]',
+            sprintf('paymentIsAvailable: (paywall iframe is %s)', $paymentIsAvailable ? 'visible' : 'invisible'),
+            [
+                '$paymentIsAvailable' => $paymentIsAvailable,
+                '$allowedProductTypes' => $allowedProductTypes,
+                '$loanAmount' => $loanAmount,
+                '$cartTotalValue' => $shopCart->getTotalValue(),
+            ]
+        );
+
+        return $paymentIsAvailable;
+    }
+
     public static function processFinishedPaymentTransaction(\PaymentModule $module, array $params): string
     {
         if (!COMFINO_PS_17 || !$module->active) {
             return '';
         }
 
-        ErrorLogger::init($module);
+        ErrorLogger::init();
 
         if (in_array($params['order']->getCurrentState(), [
             (int) \Configuration::get('COMFINO_CREATED'),
@@ -181,120 +249,12 @@ final class Main
         }
     }
 
-    public static function debugLog(string $debugPrefix, string $debugMessage, ?array $parameters = null): void
+    public static function addStyleLink(string $id, $styleUrl): void
     {
-        if ((!isset($_COOKIE['COMFINO_SERVICE_SESSION']) || $_COOKIE['COMFINO_SERVICE_SESSION'] !== 'ACTIVE') && ConfigManager::isServiceMode()) {
-            return;
+        if (COMFINO_PS_17) {
+            \Context::getContext()->controller->registerStylesheet($id, $styleUrl, ['server' => 'remote']);
+        } else {
+            \Context::getContext()->controller->addCSS($styleUrl);
         }
-
-        if (ConfigManager::isDebugMode()) {
-            if (!empty($parameters)) {
-                $preparedParameters = [];
-
-                foreach ($parameters as $name => $value) {
-                    if (is_array($value)) {
-                        $value = json_encode($value);
-                    } elseif (is_bool($value)) {
-                        $value = ($value ? 'true' : 'false');
-                    }
-
-                    $preparedParameters[] = "$name=$value";
-                }
-
-                $debugMessage .= (($debugMessage !== '' ? ': ' : '') . implode(', ', $preparedParameters));
-            }
-
-            @file_put_contents(
-                self::$debugLogFilePath,
-                '[' . date('Y-m-d H:i:s') . "] $debugPrefix: $debugMessage\n",
-                FILE_APPEND
-            );
-        }
-    }
-
-    public static function getDebugLog(int $numLines): string
-    {
-        return self::$errorLogger->getErrorLog(self::$debugLogFilePath, $numLines);
-    }
-
-    public static function paymentIsAvailable(\PaymentModule $module, \Cart $cart): bool
-    {
-        if (ConfigManager::isServiceMode()) {
-            if (isset($_COOKIE['COMFINO_SERVICE_SESSION']) && $_COOKIE['COMFINO_SERVICE_SESSION'] === 'ACTIVE') {
-                self::debugLog('[PAYWALL]', 'paymentIsAvailable: service mode is active.');
-            } else {
-                return false;
-            }
-        }
-
-        if (!$module->active || !OrderManager::checkCartCurrency($module, $cart) || empty(ConfigManager::getApiKey())) {
-            self::debugLog('[PAYWALL]', 'paymentIsAvailable - plugin disabled or incomplete configuration.');
-
-            return false;
-        }
-
-        ErrorLogger::init($module);
-
-        $loanAmount = (int) \Context::getContext()->cookie->loan_amount;
-        $shopCart = OrderManager::getShopCart($cart, $loanAmount);
-        $allowedProductTypes = SettingsManager::getAllowedProductTypes(
-            ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
-            $shopCart
-        );
-        $paymentIsAvailable = ($allowedProductTypes !== []);
-
-        self::debugLog(
-            '[PAYWALL]',
-            sprintf('paymentIsAvailable: (paywall iframe is %s)', $paymentIsAvailable ? 'visible' : 'invisible'),
-            [
-                '$paymentIsAvailable' => $paymentIsAvailable,
-                '$allowedProductTypes' => $allowedProductTypes,
-                '$loanAmount' => $loanAmount,
-                '$cartTotalValue' => $shopCart->getTotalValue(),
-            ]
-        );
-
-        return $paymentIsAvailable;
-    }
-
-    private static function preparePaywallIframe(\PaymentModule $module, \Cart $cart): ?string
-    {
-        $total = round($cart->getOrderTotal(), 2);
-        $tools = new Tools(\Context::getContext());
-
-        try {
-            return TemplateManager::renderModuleView(
-                $module,
-                'payment',
-                'front',
-                [
-                    'paywall_iframe' => FrontendManager::getPaywallIframeRenderer($module)
-                        ->renderPaywallIframe(ApiService::getControllerUrl($module, 'paywall')),
-                    'payment_state_url' => ApiService::getControllerUrl($module, 'paymentstate', [], false),
-                    'paywall_options' => [
-                        'platform' => 'prestashop',
-                        'platformName' => 'PrestaShop',
-                        'platformVersion' => _PS_VERSION_,
-                        'platformDomain' => \Tools::getShopDomain(),
-                        'pluginVersion' => COMFINO_VERSION,
-                        'language' => $tools->getLanguageIsoCode($cart->id_lang),
-                        'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
-                        'cartTotal' => $total,
-                        'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
-                        'productDetailsApiPath' => ApiService::getControllerPath(
-                            $module, 'paywallitemdetails', [], false
-                        ),
-                    ],
-                    'is_ps_16' => !COMFINO_PS_17,
-                    'comfino_logo_url' => ApiClient::getPaywallLogoUrl(),
-                    'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
-                    'comfino_redirect_url' => ApiService::getControllerUrl($module, 'payment'),
-                ]
-            );
-        } catch (\Throwable $e) {
-            ApiClient::processApiError('Paywall error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
-        }
-
-        return null;
     }
 }
