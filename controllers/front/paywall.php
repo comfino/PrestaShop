@@ -32,7 +32,6 @@ use Comfino\Configuration\SettingsManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
-use Comfino\Main;
 use Comfino\Order\OrderManager;
 use Comfino\View\FrontendManager;
 use Comfino\View\TemplateManager;

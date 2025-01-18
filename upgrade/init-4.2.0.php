@@ -54,7 +54,7 @@ function upgrade_module_4_2_0(Comfino $module)
     if (is_array($ignoredStatuses = ConfigManager::getConfigurationValue('COMFINO_IGNORED_STATUSES'))
         && in_array(StatusManager::STATUS_CANCELLED_BY_SHOP, $ignoredStatuses, true)
     ) {
-        ConfigManager:: updateConfigurationValue('COMFINO_IGNORED_STATUSES', StatusManager::DEFAULT_IGNORED_STATUSES);
+        ConfigManager::updateConfigurationValue('COMFINO_IGNORED_STATUSES', StatusManager::DEFAULT_IGNORED_STATUSES);
     }
 
     return true;
