@@ -43,11 +43,11 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoPaywallModuleFrontController extends ModuleFrontController
 {
-    public function postProcess(): void
+    public function initContent(): void
     {
         ErrorLogger::init();
 
-        parent::postProcess();
+        parent::initContent();
 
         if (!($this->module instanceof Comfino) || !$this->module->active) {
             TemplateManager::renderControllerView($this, 'module-disabled', 'front');
@@ -98,7 +98,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             ]
         );
 
-        $paywallRenderer = FrontendManager::getPaywallRenderer($this);
+        $paywallRenderer = FrontendManager::getPaywallRenderer($this->module);
         $paywallContents = $paywallRenderer->getPaywall(
             new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes),
             ApiService::getEndpointUrl('paywall')
@@ -107,7 +107,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             'language' => Context::getContext()->language->iso_code,
             'styles' => FrontendManager::registerExternalStyles($paywallRenderer->getStyles()),
             'scripts' => FrontendManager::registerExternalScripts($paywallRenderer->getScripts()),
-            'shop_url' => Main::getShopUrl(),
+            'shop_url' => Tools::getHttpHost(true),
             'paywall_hash' => $paywallRenderer->getPaywallHash($paywallContents->paywallBody, ConfigManager::getApiKey()),
             'frontend_elements' => [
                 'paywallBody' => $paywallContents->paywallBody,
@@ -124,7 +124,5 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
         }
 
         TemplateManager::renderControllerView($this, 'paywall', 'front', $templateVariables);
-
-        exit;
     }
 }
