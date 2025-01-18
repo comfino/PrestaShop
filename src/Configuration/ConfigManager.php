@@ -255,7 +255,7 @@ final class ConfigManager
 
     public static function isDevEnv(): bool
     {
-        return ((string)getenv('COMFINO_DEV')) === ('PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN'));
+        return ((string) getenv('COMFINO_DEV')) === ('PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN'));
     }
 
     public static function useUnminifiedScripts(): bool
