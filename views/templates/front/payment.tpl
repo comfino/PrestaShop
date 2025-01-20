@@ -60,7 +60,7 @@
     <div class="col-xs-12 col-md-12">
         <p class="payment_module">
             <a id="pay-with-comfino" class="comfino-payment-method">
-                <img class="comfino-image" style="height: 49px" src="{$comfino_logo_url|escape:"htmlall":"UTF-8"}" alt="{l s="Pay with comfino" mod="comfino"}" loading="lazy" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')" />
+                <img class="comfino-image" style="height: 49px" src="{$comfino_logo_url|escape:"url":"UTF-8"}" alt="{l s="Pay with comfino" mod="comfino"}" loading="lazy" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')" />
                 {$comfino_label|escape:"htmlall":"UTF-8"}
             </a>
         </p>
@@ -70,9 +70,9 @@
 <div id="comfino-iframe-container"></div>
 {if $is_ps_16}
 <div id="comfino-payment-bar" class="comfino-payment-bar">
-    <a id="comfino-go-to-payment" href="{$comfino_redirect_url|escape:"htmlall":"UTF-8"}" class="comfino-payment-btn">
+    <a id="comfino-go-to-payment" href="{$comfino_redirect_url|escape:"url":"UTF-8"}" class="comfino-payment-btn">
         {l s="Go to payment" mod="comfino"}
     </a>
 </div>
 {/if}
-<script data-cmp-ab="2">if (ComfinoPaywallInit !== undefined) ComfinoPaywallInit.init({if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if}, '{$paywall_url|escape:"htmlall":"UTF-8"}', '{$payment_state_url|escape:"htmlall":"UTF-8"}', {$paywall_options|@json_encode nofilter}); else console.error('ComfinoPaywallInit is undefined.');</script>
+<script data-cmp-ab="2">if (ComfinoPaywallInit !== undefined) ComfinoPaywallInit.init({if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if}, '{$paywall_url|escape:"url":"UTF-8"}', '{$payment_state_url|escape:"url":"UTF-8"}', {$paywall_options|@json_encode nofilter}); else console.error('ComfinoPaywallInit is undefined.');</script>

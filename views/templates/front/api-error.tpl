@@ -35,7 +35,7 @@
                 {/if}
             </title>
             {foreach from=$paywall_styles item=style}
-                <link rel="stylesheet" href="{$style|escape:"htmlall":"UTF-8"}" media="all">
+                <link rel="stylesheet" href="{$style|escape:"url":"UTF-8"}" media="all">
             {/foreach}
         </head>
         <body>
@@ -52,7 +52,7 @@
         <p><strong>Exception class:</strong> {$exception_class|escape:"htmlall":"UTF-8"}</p>
         <p><strong>Trace:</strong></p>
         <pre>{$error_trace|escape:"htmlall":"UTF-8"}</pre>
-        <p><strong>URL:</strong> {$url|escape:"htmlall":"UTF-8"}</p>
+        <p><strong>URL:</strong> {$url|escape:"url":"UTF-8"}</p>
         <p><strong>Request:</strong></p>
         <pre>{$request_body|escape:"htmlall":"UTF-8"}</pre>
         <p><strong>Response:</strong></p>
