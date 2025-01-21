@@ -29,14 +29,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{l s="Comfino - installment and deferred on-line payments" mod="comfino"}</title>
         {foreach from=$styles item=style}
-            <link rel="stylesheet" href="{$style|escape:"url":"UTF-8"}" media="all">
+            <link rel="stylesheet" href="{$style|escape:"htmlall":"UTF-8" nofilter}" media="all">
         {/foreach}
         {foreach from=$scripts item=script}
-            <script src="{$script|escape:"url":"UTF-8"}" data-cmp-ab="2"></script>
+            <script src="{$script|escape:"htmlall":"UTF-8" nofilter}" data-cmp-ab="2"></script>
         {/foreach}
     </head>
     <body>
         <div id="paywall-container"></div>
-        <script data-cmp-ab="2">ComfinoPaywall.init('{$shop_url|escape:"url":"UTF-8"}', document.location.href, '{$paywall_hash|escape:"htmlall":"UTF-8"}', document.getElementById('paywall-container'), {$frontend_elements|@json_encode nofilter});</script>
+        <script data-cmp-ab="2">ComfinoPaywall.init('{$shop_url|escape:"htmlall":"UTF-8" nofilter}', document.location.href, '{$paywall_hash|escape:"htmlall":"UTF-8"}', document.getElementById('paywall-container'), {$frontend_elements|@json_encode nofilter});</script>
     </body>
 </html>

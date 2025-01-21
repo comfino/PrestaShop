@@ -39,7 +39,7 @@
     </div>
 {/if}
 
-{$support_email_address=$support_email_address|escape:"htmlall":"UTF-8"}
+{$support_email_address=$support_email_address|escape:"mail":"UTF-8"}
 {$support_email_subject=$support_email_subject|escape:"htmlall":"UTF-8"|escape:"url"}
 {$support_email_body=$support_email_body|escape:"htmlall":"UTF-8"|escape:"url"}
 
@@ -51,7 +51,7 @@
             </div>
             <div class="panel-body">
                 {$contact_msg1|escape:"htmlall":"UTF-8"}
-                <a href="mailto:{$support_email_address|escape:"htmlall":"UTF-8"}?subject={$support_email_subject|escape:"htmlall":"UTF-8"}&body={$support_email_body|escape:"htmlall":"UTF-8"}">
+                <a href="mailto:{$support_email_address|escape:"mail":"UTF-8"}?subject={$support_email_subject|escape:"htmlall":"UTF-8"}&body={$support_email_body|escape:"htmlall":"UTF-8"}">
                     {$support_email_address|escape:"htmlall":"UTF-8"}
                 </a>
                 {$contact_msg2|escape:"htmlall":"UTF-8"}
