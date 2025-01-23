@@ -29,6 +29,6 @@
 {else}
     <p class="warning">
         {l s="We have noticed that there is a problem with your order. If you think this is an error, you can contact our" mod="comfino"}
-        <a href="{$link->getPageLink("contact", true)|escape:"htmlall":"UTF-8" nofilter}">{l s="customer service department." mod="comfino"}</a>.
+        <a href="{$link->getPageLink("contact", true)|escape:"htmlall":"UTF-8"}">{l s="customer service department." mod="comfino"}</a>.
     </p>
 {/if}
