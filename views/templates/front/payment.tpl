@@ -75,4 +75,4 @@
     </a>
 </div>
 {/if}
-<script data-cmp-ab="2">if (ComfinoPaywallInit !== undefined) ComfinoPaywallInit.init({if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if}, '{$paywall_url|escape:"htmlall":"UTF-8"}'.replace('&amp;', '&'), '{$payment_state_url|escape:"htmlall":"UTF-8"}'.replace('&amp;', '&'), {$paywall_options|@json_encode nofilter}); else console.error('ComfinoPaywallInit is undefined.');</script>
+<script data-cmp-ab="2">if (ComfinoPaywallInit !== undefined) ComfinoPaywallInit.init({if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if}, '{$paywall_url|escape:"htmlall":"UTF-8"}'.replaceAll('&amp;', '&'), '{$payment_state_url|escape:"htmlall":"UTF-8"}'.replaceAll('&amp;', '&'), {$paywall_options|@json_encode nofilter}); else console.error('ComfinoPaywallInit is undefined.');</script>
