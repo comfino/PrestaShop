@@ -28,7 +28,6 @@ namespace Comfino\Api;
 
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Common\Backend\Factory\ApiClientFactory;
-use Comfino\Common\Frontend\FrontendHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger;
 use ComfinoExternal\Psr\Http\Client\NetworkExceptionInterface;
