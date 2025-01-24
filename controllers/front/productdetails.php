@@ -77,7 +77,7 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
         );
 
         try {
-            echo $serializer->serialize(
+            $response = $serializer->serialize(
                 ApiClient::getInstance()->getFinancialProductDetails(
                     new LoanQueryCriteria($loanAmount, null, LoanTypeEnum::from($loanTypeSelected)),
                     new Cart(
@@ -103,7 +103,7 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
 
             http_response_code($e instanceof HttpErrorExceptionInterface ? $e->getStatusCode() : 500);
 
-            echo $e->getMessage();
+            $response = $e->getMessage();
         } finally {
             if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
                 DebugLogger::logEvent(
@@ -114,6 +114,6 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
             }
         }
 
-        exit;
+        exit($response);
     }
 }

@@ -49,12 +49,10 @@ class ComfinoPaymentStateModuleFrontController extends ModuleFrontController
         $cookie->loan_term = Tools::getValue('loan_term');
         $cookie->write();
 
-        echo $serializer->serialize([
+        exit($serializer->serialize([
             'status' => 'OK',
             'type' => $cookie->loan_type,
-            'term' => (int) $cookie->loan_term]
-        );
-
-        exit;
+            'term' => (int) $cookie->loan_term,
+        ]));
     }
 }

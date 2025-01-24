@@ -122,6 +122,11 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             );
         }
 
+        if (!COMFINO_PS_17) {
+            // Exception for PrestaShop 1.6.x view rendering.
+            exit(TemplateManager::renderModuleView($this->module, 'paywall', 'front', $templateVariables));
+        }
+
         TemplateManager::renderControllerView($this, 'paywall', 'front', $templateVariables);
     }
 }

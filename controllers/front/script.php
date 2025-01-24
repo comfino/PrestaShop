@@ -47,9 +47,11 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                 $productId = (int) $productId;
             }
 
-            echo FrontendManager::renderWidgetInitCode($productId);
+            $response = FrontendManager::renderWidgetInitCode($productId);
+        } else {
+            $response = '';
         }
 
-        exit;
+        exit($response);
     }
 }

@@ -85,10 +85,9 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
             );
         }
 
-        echo $serializer->serialize(
-            ['listItemData' => $response->listItemData, 'productDetails' => $response->productDetails]
-        );
-
-        exit;
+        exit($serializer->serialize([
+            'listItemData' => $response->listItemData,
+            'productDetails' => $response->productDetails,
+        ]));
     }
 }
