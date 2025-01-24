@@ -133,13 +133,13 @@ final class FrontendManager
         }
 
         if (ConfigManager::isSandboxMode()) {
-            $stylePath = trim(ConfigManager::getConfigurationValue('COMFINO_CSS_DEV_PATH'), '/');
+            $stylePath = trim(ConfigManager::getConfigurationValue('COMFINO_CSS_DEV_PATH', 'css'), '/');
 
             if (strpos($stylePath, '..') !== false) {
                 $stylePath = trim(ConfigManager::getDefaultValue('COMFINO_CSS_DEV_PATH'), '/');
             }
         } else {
-            $stylePath = trim(ConfigManager::getConfigurationValue('COMFINO_CSS_PROD_PATH'), '/');
+            $stylePath = trim(ConfigManager::getConfigurationValue('COMFINO_CSS_PROD_PATH', 'css'), '/');
 
             if (strpos($stylePath, '..') !== false) {
                 $stylePath = trim(ConfigManager::getDefaultValue('COMFINO_CSS_PROD_PATH'), '/');
