@@ -163,7 +163,7 @@ final class ShopStatusManager
             $canceledOrderStateId = (int) \Configuration::get('PS_OS_CANCELED');
 
             if ($newOrderStateId === $canceledOrderStateId) {
-                ErrorLogger::init($module);
+                ErrorLogger::init();
 
                 try {
                     // Send notification about cancelled order paid by Comfino.

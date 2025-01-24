@@ -22,7 +22,6 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
-
 {if $is_ps_16}
 <style>
     a.comfino-payment-method {
@@ -68,7 +67,7 @@
     </div>
 </div>
 {/if}
-<div id="comfino-iframe-container">{$paywall_iframe nofilter}</div>
+<div id="comfino-iframe-container"></div>
 {if $is_ps_16}
 <div id="comfino-payment-bar" class="comfino-payment-bar">
     <a id="comfino-go-to-payment" href="{$comfino_redirect_url|escape:"htmlall":"UTF-8"}" class="comfino-payment-btn">
@@ -76,4 +75,4 @@
     </a>
 </div>
 {/if}
-<script>ComfinoPaywall.init({if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if}, '{$payment_state_url nofilter}', {$paywall_options|@json_encode nofilter});</script>
+<script data-cmp-ab="2">if (ComfinoPaywallInit !== undefined) ComfinoPaywallInit.init({if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if}, '{$paywall_url|escape:"htmlall":"UTF-8"}'.replaceAll('&amp;', '&'), '{$payment_state_url|escape:"htmlall":"UTF-8"}'.replaceAll('&amp;', '&'), {$paywall_options|@json_encode nofilter}); else console.error('ComfinoPaywallInit is undefined.');</script>

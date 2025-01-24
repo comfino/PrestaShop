@@ -23,6 +23,9 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+use Comfino\View\FrontendManager;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -31,12 +34,16 @@ if (!defined('COMFINO_PS_17')) {
     define('COMFINO_PS_17', version_compare(_PS_VERSION_, '1.7', '>='));
 }
 
+if (!defined('COMFINO_MODULE_NAME')) {
+    define('COMFINO_MODULE_NAME', 'comfino');
+}
+
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.1.5');
+    define('COMFINO_VERSION', '4.2.0');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1733406695);
+    define('COMFINO_BUILD_TS', 1737200299);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
@@ -58,7 +65,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '4.1.5';
+        $this->version = '4.2.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -109,7 +116,7 @@ class Comfino extends PaymentModule
         }
 
         // Initialize Comfino plugin.
-        Comfino\Main::init($this);
+        Comfino\Main::init();
     }
 
     /**
@@ -147,7 +154,7 @@ class Comfino extends PaymentModule
             $this->unregisterHook('header');
             $this->unregisterHook('actionAdminControllerSetMedia');
 
-            return !class_exists('\Comfino\Main') || Comfino\Main::uninstall($this);
+            return !class_exists('\Comfino\Main') || Comfino\Main::uninstall();
         }
 
         return false;
@@ -229,7 +236,9 @@ class Comfino extends PaymentModule
      */
     public function hookHeader()
     {
-        if (stripos(get_class($this->context->controller), 'cart') !== false) {
+        $controllerClassName = get_class($this->context->controller);
+
+        if (stripos($controllerClassName, 'cart') !== false || stripos($controllerClassName, 'checkout') !== false) {
             $controller = 'cart';
         } elseif (empty($controller = $this->context->controller->php_self)) {
             $controller = !empty($this->context->controller->name) ? $this->context->controller->name : '';
@@ -249,23 +258,36 @@ class Comfino extends PaymentModule
 
             if ($allowedProductTypes === []) {
                 // Filters active - all product types disabled.
-                Comfino\Main::debugLog('[WIDGET]', 'Filters active - all product types disabled.');
+                Comfino\DebugLogger::logEvent('[WIDGET]', 'Filters active - all product types disabled.');
 
                 return;
             }
 
             Comfino\Main::addScriptLink(
                 'comfino-widget',
-                Comfino\Api\ApiService::getControllerUrl($this, 'script', ['product_id' => $product->id]),
+                Comfino\Api\ApiService::getControllerUrl('script', ['product_id' => $product->id]),
                 'bottom',
                 'defer'
             );
-        } elseif ($controller === 'cart' || $controller === 'order') {
+        } elseif ($controller === 'cart' || $controller === 'order' || stripos($controller, 'checkout') !== false) {
+            $iframeRenderer = FrontendManager::getPaywallIframeRenderer();
+
+            $styles = FrontendManager::registerExternalStyles($iframeRenderer->getStyles());
+            $scripts = FrontendManager::registerExternalScripts($iframeRenderer->getScripts());
+
+            foreach ($scripts as $scriptId => $scriptUrl) {
+                Comfino\Main::addScriptLink($scriptId, $scriptUrl, 'head');
+            }
+
             Comfino\Main::addScriptLink(
-                'comfino-paywall',
-                _MODULE_DIR_ . $this->name . '/views/js/front/paywall.min.js',
+                'comfino-paywall-init',
+                FrontendManager::getLocalScriptUrl('paywall-init.js'),
                 'head'
             );
+
+            foreach ($styles as $styleId => $styleUrl) {
+                Comfino\Main::addStyleLink($styleId, $styleUrl);
+            }
         }
     }
 

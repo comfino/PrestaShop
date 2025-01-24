@@ -38,7 +38,7 @@ class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontControl
 {
     public function postProcess(): void
     {
-        ErrorLogger::init($this->module);
+        ErrorLogger::init();
 
         parent::postProcess();
 
@@ -48,21 +48,17 @@ class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontControl
         $availableProductTypes = SettingsManager::getProductTypesStrings(ProductTypesListTypeEnum::LIST_TYPE_WIDGET);
 
         if (!Tools::getIsset('product_id')) {
-            echo $serializer->serialize($availableProductTypes);
-            exit;
+            exit($serializer->serialize($availableProductTypes));
         }
 
         $product = new Product(Tools::getValue('product_id'));
 
         if (!Validate::isLoadedObject($product)) {
-            echo $serializer->serialize($availableProductTypes);
-            exit;
+            exit($serializer->serialize($availableProductTypes));
         }
 
-        echo $serializer->serialize(
+        exit($serializer->serialize(
             SettingsManager::getAllowedProductTypes('widget', OrderManager::getShopCartFromProduct($product), true)
-        );
-
-        exit;
+        ));
     }
 }

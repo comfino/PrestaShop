@@ -40,7 +40,7 @@ function upgrade_module_3_3_2(Comfino $module)
     }
 
     // Update code of widget initialization script.
-    ConfigManager::updateWidgetCode($module, '85f1eef41bca54205a10d1e2ae5318a5');
+    ConfigManager::updateWidgetCode('85f1eef41bca54205a10d1e2ae5318a5');
 
     return true;
 }

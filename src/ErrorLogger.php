@@ -28,7 +28,6 @@ namespace Comfino;
 
 use Comfino\Api\ApiClient;
 use Comfino\Configuration\ConfigManager;
-use Comfino\ErrorLogger\StorageAdapter;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -38,33 +37,32 @@ final class ErrorLogger
 {
     /** @var Common\Backend\ErrorLogger */
     private static $errorLogger;
-    /** @var string */
-    private static $logFilePath;
 
-    public static function init(\PaymentModule $module): void
+    public static function init(): void
     {
         static $initialized = false;
 
         if (!$initialized) {
-            self::$errorLogger = self::getLoggerInstance($module);
-            self::$errorLogger->init();
-
-            self::$logFilePath = _PS_MODULE_DIR_ . $module->name . '/var/log/errors.log';
+            self::getLoggerInstance()->init();
 
             $initialized = true;
         }
     }
 
-    public static function getLoggerInstance(\PaymentModule $module): Common\Backend\ErrorLogger
+    public static function getLoggerInstance(): Common\Backend\ErrorLogger
     {
-        return Common\Backend\ErrorLogger::getInstance(
-            \Tools::getShopDomain(),
-            'PrestaShop',
-            'modules/' . $module->name,
-            ConfigManager::getEnvironmentInfo(),
-            ApiClient::getInstance(),
-            new StorageAdapter()
-        );
+        if (self::$errorLogger === null) {
+            self::$errorLogger = Common\Backend\ErrorLogger::getInstance(
+                ApiClient::getInstance(),
+                _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/errors.log',
+                \Tools::getShopDomain(),
+                'PrestaShop',
+                'modules/' . COMFINO_MODULE_NAME,
+                ConfigManager::getEnvironmentInfo()
+            );
+        }
+
+        return self::$errorLogger;
     }
 
     public static function sendError(
@@ -79,19 +77,5 @@ final class ErrorLogger
         self::$errorLogger->sendError(
             $errorPrefix, $errorCode, $errorMessage, $apiRequestUrl, $apiRequest, $apiResponse, $stackTrace
         );
-    }
-
-    public static function logError(string $errorPrefix, string $errorMessage): void
-    {
-        @file_put_contents(
-            self::$logFilePath,
-            '[' . date('Y-m-d H:i:s') . "] $errorPrefix: $errorMessage\n",
-            FILE_APPEND
-        );
-    }
-
-    public static function getErrorLog(int $numLines): string
-    {
-        return self::$errorLogger->getErrorLog(self::$logFilePath, $numLines);
     }
 }

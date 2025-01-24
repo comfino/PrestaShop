@@ -27,14 +27,12 @@
 namespace Comfino\View;
 
 use Comfino\Api\ApiClient;
-use Comfino\Api\ApiService;
 use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Common\Frontend\PaywallIframeRenderer;
 use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\Common\Frontend\WidgetInitScriptHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger;
-use Comfino\PluginShared\CacheManager;
 use Comfino\TemplateRenderer\ModuleRendererStrategy;
 
 if (!defined('_PS_VERSION_')) {
@@ -43,9 +41,9 @@ if (!defined('_PS_VERSION_')) {
 
 final class FrontendManager
 {
-    public static function getPaywallRenderer(\PaymentModule $module, $fullDocumentStructure = false): PaywallRenderer
+    public static function getPaywallRenderer(\PaymentModule $module): PaywallRenderer
     {
-        $client = ApiClient::getInstance();
+        //$client = ApiClient::getInstance();
         /*$cookie = \Context::getContext()->cookie;
 
         if (isset($cookie->comfino_conn_attempt_idx)) {
@@ -61,36 +59,141 @@ final class FrontendManager
             1
         );*/
 
-        return new PaywallRenderer(
-            $client,
-            CacheManager::getCachePool(),
-            new ModuleRendererStrategy($module, $fullDocumentStructure),
-            ApiService::getEndpointUrl('cacheInvalidate'),
-            ApiService::getEndpointUrl('configuration'),
-            \Tools::getShopDomainSsl(true)
-        );
+        return new PaywallRenderer(ApiClient::getInstance(), new ModuleRendererStrategy($module));
     }
 
-    public static function getPaywallIframeRenderer(\PaymentModule $module): PaywallIframeRenderer
+    public static function getPaywallIframeRenderer(): PaywallIframeRenderer
     {
-        return new PaywallIframeRenderer(
-            ApiClient::getInstance(),
-            CacheManager::getCachePool(),
-            new ModuleRendererStrategy($module),
-            'PrestaShop',
-            _PS_VERSION_,
-            ApiService::getEndpointUrl('cacheInvalidate'),
-            ApiService::getEndpointUrl('configuration')
-        );
+        return new PaywallIframeRenderer();
     }
 
-    public static function renderWidgetInitCode(\PaymentModule $module, ?int $productId): string
+    public static function getLocalScriptUrl(string $scriptFileName, bool $frontScript = true): string
+    {
+        $scriptDirectory = ($frontScript ? 'front' : 'admin');
+
+        if (ConfigManager::isDevEnv() && ConfigManager::useUnminifiedScripts()) {
+            $scriptFileName = str_replace('.min.js', '.js', $scriptFileName);
+
+            if (!file_exists(_PS_MODULE_DIR_ . COMFINO_MODULE_NAME . "/views/js/$scriptDirectory/$scriptFileName")) {
+                $scriptFileName = str_replace('.js', '.min.js', $scriptFileName);
+            }
+        } elseif (strpos($scriptFileName, '.min.') === false) {
+            $scriptFileName = str_replace('.js', '.min.js', $scriptFileName);
+        }
+
+        return _MODULE_DIR_ . COMFINO_MODULE_NAME . "/views/js/$scriptDirectory/$scriptFileName";
+    }
+
+    public static function getExternalResourcesBaseUrl(): string
+    {
+        if (ConfigManager::isDevEnv() && getenv('COMFINO_DEV_STATIC_RESOURCES_BASE_URL')) {
+            return getenv('COMFINO_DEV_STATIC_RESOURCES_BASE_URL');
+        }
+
+        return ConfigManager::isSandboxMode() ? 'https://widget.craty.pl' : 'https://widget.comfino.pl';
+    }
+
+    public static function getExternalScriptUrl(string $scriptFileName): string
+    {
+        if (empty($scriptFileName)) {
+            return '';
+        }
+
+        if (ConfigManager::isDevEnv() && ConfigManager::useUnminifiedScripts()) {
+            $scriptFileName = str_replace('.min.js', '.js', $scriptFileName);
+        } elseif (strpos($scriptFileName, '.min.') === false) {
+            $scriptFileName = str_replace('.js', '.min.js', $scriptFileName);
+        }
+
+        if (ConfigManager::isSandboxMode()) {
+            $scriptPath = trim(ConfigManager::getConfigurationValue('COMFINO_JS_DEV_PATH'), '/');
+
+            if (strpos($scriptPath, '..') !== false) {
+                $scriptPath = trim(ConfigManager::getDefaultValue('COMFINO_JS_DEV_PATH'), '/');
+            }
+        } else {
+            $scriptPath = trim(ConfigManager::getConfigurationValue('COMFINO_JS_PROD_PATH'), '/');
+
+            if (strpos($scriptPath, '..') !== false) {
+                $scriptPath = trim(ConfigManager::getDefaultValue('COMFINO_JS_PROD_PATH'), '/');
+            }
+        }
+
+        if (!empty($scriptPath)) {
+            $scriptPath = "/$scriptPath";
+        }
+
+        return self::getExternalResourcesBaseUrl() . "$scriptPath/$scriptFileName";
+    }
+
+    public static function getExternalStyleUrl(string $styleFileName): string
+    {
+        if (empty($styleFileName)) {
+            return '';
+        }
+
+        if (ConfigManager::isSandboxMode()) {
+            $stylePath = trim(ConfigManager::getConfigurationValue('COMFINO_CSS_DEV_PATH', 'css'), '/');
+
+            if (strpos($stylePath, '..') !== false) {
+                $stylePath = trim(ConfigManager::getDefaultValue('COMFINO_CSS_DEV_PATH'), '/');
+            }
+        } else {
+            $stylePath = trim(ConfigManager::getConfigurationValue('COMFINO_CSS_PROD_PATH', 'css'), '/');
+
+            if (strpos($stylePath, '..') !== false) {
+                $stylePath = trim(ConfigManager::getDefaultValue('COMFINO_CSS_PROD_PATH'), '/');
+            }
+        }
+
+        if (!empty($stylePath)) {
+            $stylePath = "/$stylePath";
+        }
+
+        return self::getExternalResourcesBaseUrl() . "$stylePath/$styleFileName";
+    }
+
+    /**
+     * @param string[] $scripts
+     *
+     * @return string[]
+     */
+    public static function registerExternalScripts(array $scripts): array
+    {
+        $registeredScripts = [];
+
+        foreach ($scripts as $scriptName) {
+            $scriptId = 'comfino-script-' . str_replace('.', '-', strtolower(pathinfo($scriptName, PATHINFO_FILENAME)));
+            $registeredScripts[$scriptId] = self::getExternalScriptUrl($scriptName);
+        }
+
+        return $registeredScripts;
+    }
+
+    /**
+     * @param string[] $styles
+     *
+     * @return string[]
+     */
+    public static function registerExternalStyles(array $styles): array
+    {
+        $registeredStyles = [];
+
+        foreach ($styles as $styleName) {
+            $styleId = 'comfino-style-' . str_replace('.', '-', strtolower(pathinfo($styleName, PATHINFO_FILENAME)));
+            $registeredStyles[$styleId] = self::getExternalStyleUrl($styleName);
+        }
+
+        return $registeredStyles;
+    }
+
+    public static function renderWidgetInitCode(?int $productId): string
     {
         try {
-            $widgetVariables = ConfigManager::getWidgetVariables($module, $productId);
+            $widgetVariables = ConfigManager::getWidgetVariables($productId);
 
             return WidgetInitScriptHelper::renderWidgetInitScript(
-                ConfigManager::getCurrentWidgetCode($module, $productId),
+                ConfigManager::getCurrentWidgetCode($productId),
                 array_combine(
                     [
                         'WIDGET_KEY',

@@ -29,9 +29,9 @@ use Comfino\Api\ApiService;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\Common\Backend\Factory\OrderFactory;
 use Comfino\Configuration\SettingsManager;
+use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
-use Comfino\Main;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Customer;
 use Comfino\Shop\Order\Customer\Address;
@@ -44,7 +44,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
     public function postProcess(): void
     {
-        ErrorLogger::init($this->module);
+        ErrorLogger::init();
 
         parent::postProcess();
 
@@ -56,7 +56,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $cart = $this->context->cart;
 
-        Main::debugLog('[PAYMENT GATEWAY]', 'postProcess', ['cart_id' => $cart->id]);
+        DebugLogger::logEvent('[PAYMENT GATEWAY]', 'postProcess', ['cart_id' => $cart->id]);
 
         if ($cart->id_customer === 0 || $cart->id_address_delivery === 0 || $cart->id_address_invoice === 0) {
             Tools::redirect('index.php?controller=order&step=1');
@@ -221,7 +221,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $shopCart->getDeliveryTaxValue()
         );
 
-        Main::debugLog(
+        DebugLogger::logEvent(
             '[PAYMENT]',
             'ComfinoPaymentModuleFrontController',
             [
@@ -244,10 +244,10 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 $e
             );
 
-            Tools::redirect(ApiService::getControllerUrl($this->module, 'error', ['error' => $e->getMessage()]));
+            Tools::redirect(ApiService::getControllerUrl('error', ['error' => $e->getMessage()]));
         } finally {
             if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
-                Main::debugLog(
+                DebugLogger::logEvent(
                     '[CREATE_ORDER_API_REQUEST]',
                     'createOrder',
                     ['$request' => $apiRequest->getRequestBody()]

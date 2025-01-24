@@ -33,9 +33,10 @@ use Comfino\Common\Backend\RestEndpoint\StatusNotification;
 use Comfino\Common\Backend\RestEndpointManager;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Configuration\ConfigManager;
-use Comfino\Main;
+use Comfino\DebugLogger;
 use Comfino\Order\StatusAdapter;
 use Comfino\PluginShared\CacheManager;
+use Comfino\View\SettingsForm;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -46,12 +47,12 @@ final class ApiService
     /** @var RestEndpointManager */
     private static $endpointManager;
 
-    public static function init(\PaymentModule $module): void
+    public static function init(): void
     {
         self::getEndpointManager()->registerEndpoint(
             new StatusNotification(
                 'transactionStatus',
-                self::getControllerUrl($module, 'transactionstatus', [], false),
+                self::getControllerUrl('transactionstatus', [], false),
                 StatusManager::getInstance(new StatusAdapter()),
                 ConfigManager::getForbiddenStatuses(),
                 ConfigManager::getIgnoredStatuses()
@@ -61,13 +62,17 @@ final class ApiService
         self::getEndpointManager()->registerEndpoint(
             new Configuration(
                 'configuration',
-                self::getControllerUrl($module, 'configuration', [], false),
+                self::getControllerUrl('configuration', [], false),
                 ConfigManager::getInstance(),
+                DebugLogger::getLoggerInstance(),
                 'PrestaShop',
-                ...array_values(
-                    ConfigManager::getEnvironmentInfo(
-                        ['shop_version', 'plugin_version', 'plugin_build_ts', 'database_version']
-                    )
+                ...array_merge(
+                    array_values(
+                        ConfigManager::getEnvironmentInfo(
+                            ['shop_version', 'plugin_version', 'plugin_build_ts', 'database_version']
+                        )
+                    ),
+                    [SettingsForm::DEBUG_LOG_NUM_LINES] // $debugLogNumLines
                 )
             )
         );
@@ -75,30 +80,28 @@ final class ApiService
         self::getEndpointManager()->registerEndpoint(
             new CacheInvalidate(
                 'cacheInvalidate',
-                self::getControllerUrl($module, 'cacheinvalidate', [], false),
+                self::getControllerUrl('cacheinvalidate', [], false),
                 CacheManager::getCachePool()
             )
         );
     }
 
     public static function getControllerUrl(
-        \PaymentModule $module,
         string $controllerName,
         array $params = [],
         bool $withLangId = true
     ): string {
-        $url = \Context::getContext()->link->getModuleLink($module->name, $controllerName, $params, true);
+        $url = \Context::getContext()->link->getModuleLink(COMFINO_MODULE_NAME, $controllerName, $params, true);
 
         return $withLangId ? $url : preg_replace('/&?id_lang=\d+&?/', '', $url);
     }
 
     public static function getControllerPath(
-        \PaymentModule $module,
         string $controllerName,
         array $params = [],
         bool $withLangId = true
     ): string {
-        $controllerUrl = self::getControllerUrl($module, $controllerName, $params, $withLangId);
+        $controllerUrl = self::getControllerUrl($controllerName, $params, $withLangId);
         $controllerPath = parse_url($controllerUrl, PHP_URL_PATH);
         $controllerParams = parse_url($controllerUrl, PHP_URL_QUERY);
 
@@ -119,7 +122,7 @@ final class ApiService
         if (ConfigManager::isDebugMode()) {
             $request = self::getEndpointManager()->getServerRequest();
 
-            Main::debugLog(
+            DebugLogger::logEvent(
                 '[REST API]',
                 'processRequest',
                 [

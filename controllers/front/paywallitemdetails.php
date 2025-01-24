@@ -26,9 +26,9 @@
 
 use Comfino\Api\ApiClient;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
+use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
-use Comfino\Main;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Cart;
 use Comfino\View\FrontendManager;
@@ -41,7 +41,7 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
 {
     public function postProcess(): void
     {
-        ErrorLogger::init($this->module);
+        ErrorLogger::init();
 
         parent::postProcess();
 
@@ -53,7 +53,7 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
         $loanTypeSelected = Tools::getValue('loanTypeSelected');
         $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount, $loanTypeSelected === 'LEASING');
 
-        Main::debugLog(
+        DebugLogger::logEvent(
             '[PAYWALL_ITEM_DETAILS]',
             'getPaywallItemDetails',
             [
@@ -78,17 +78,16 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
             );
 
         if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
-            Main::debugLog(
+            DebugLogger::logEvent(
                 '[PAYWALL_ITEM_DETAILS_API_REQUEST]',
                 'getPaywallItemDetails',
                 ['$request' => $apiRequest->getRequestBody()]
             );
         }
 
-        echo $serializer->serialize(
-            ['listItemData' => $response->listItemData, 'productDetails' => $response->productDetails]
-        );
-
-        exit;
+        exit($serializer->serialize([
+            'listItemData' => $response->listItemData,
+            'productDetails' => $response->productDetails,
+        ]));
     }
 }

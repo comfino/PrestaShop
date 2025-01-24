@@ -36,7 +36,7 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
 {
     public function postProcess(): void
     {
-        ErrorLogger::init($this->module);
+        ErrorLogger::init();
 
         parent::postProcess();
 
@@ -47,9 +47,11 @@ class ComfinoScriptModuleFrontController extends ModuleFrontController
                 $productId = (int) $productId;
             }
 
-            echo FrontendManager::renderWidgetInitCode($this->module, $productId);
+            $response = FrontendManager::renderWidgetInitCode($productId);
+        } else {
+            $response = '';
         }
 
-        exit;
+        exit($response);
     }
 }

@@ -24,7 +24,7 @@
  *}
 <div id="{$tree_id|escape:"htmlall":"UTF-8"}_{$product_type|escape:"htmlall":"UTF-8"}"></div>
 <input id="{$tree_id|escape:"htmlall":"UTF-8"}_{$product_type|escape:"htmlall":"UTF-8"}_input" name="{$tree_id|escape:"htmlall":"UTF-8"}[{$product_type|escape:"htmlall":"UTF-8"}]" type="hidden" />
-<script>
+<script data-cmp-ab="2">
     new Tree(
         '#{$tree_id|escape:"htmlall":"UTF-8"}_{$product_type|escape:"htmlall":"UTF-8"}',
         {ldelim}
