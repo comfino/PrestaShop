@@ -26,14 +26,12 @@
 
 namespace Comfino\View;
 
-use Comfino\Api\ApiClient;
 use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Common\Frontend\PaywallIframeRenderer;
 use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\Common\Frontend\WidgetInitScriptHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger;
-use Comfino\TemplateRenderer\ModuleRendererStrategy;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -41,25 +39,15 @@ if (!defined('_PS_VERSION_')) {
 
 final class FrontendManager
 {
-    public static function getPaywallRenderer(\PaymentModule $module): PaywallRenderer
+    public static function getPaywallRenderer(): PaywallRenderer
     {
-        //$client = ApiClient::getInstance();
-        /*$cookie = \Context::getContext()->cookie;
+        static $renderer = null;
 
-        if (isset($cookie->comfino_conn_attempt_idx)) {
-            $connectAttemptIdx = $cookie->comfino_conn_attempt_idx;
-        } else {
-            $connectAttemptIdx = 1;
-            $cookie->comfino_conn_attempt_idx = 1;
+        if ($renderer === null) {
+            $renderer = new PaywallRenderer();
         }
 
-        $client->resetClient(
-            $client->calculateConnectionTimeout($connectAttemptIdx),
-            $client->calculateTransferTimeout($connectAttemptIdx),
-            1
-        );*/
-
-        return new PaywallRenderer(ApiClient::getInstance(), new ModuleRendererStrategy($module));
+        return $renderer;
     }
 
     public static function getPaywallIframeRenderer(): PaywallIframeRenderer
@@ -223,6 +211,7 @@ final class FrontendManager
             );
         } catch (\Throwable $e) {
             ErrorLogger::sendError(
+                $e,
                 'Widget script endpoint',
                 $e->getCode(),
                 $e->getMessage(),

@@ -3551,16 +3551,16 @@
         },
         {
             "name": "prestashop/header-stamp",
-            "version": "v2.5",
+            "version": "v2.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PrestaShopCorp/header-stamp.git",
-                "reference": "39e846d592ae951df06428e01814dd1a9628f8d0"
+                "reference": "7f09cd041bbf1fa56bd71ae91bab3919da88b6ac"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PrestaShopCorp/header-stamp/zipball/39e846d592ae951df06428e01814dd1a9628f8d0",
-                "reference": "39e846d592ae951df06428e01814dd1a9628f8d0",
+                "url": "https://api.github.com/repos/PrestaShopCorp/header-stamp/zipball/7f09cd041bbf1fa56bd71ae91bab3919da88b6ac",
+                "reference": "7f09cd041bbf1fa56bd71ae91bab3919da88b6ac",
                 "shasum": ""
             },
             "require": {
@@ -3570,7 +3570,7 @@
                 "symfony/finder": "^3.4 || ~4.0 || ~5.0 || ~6.0"
             },
             "require-dev": {
-                "phpstan/phpstan": "^0.12.83",
+                "phpstan/phpstan": "^1.12",
                 "prestashop/php-dev-tools": "1.*"
             },
             "bin": [
@@ -3596,9 +3596,9 @@
             "homepage": "https://github.com/PrestaShopCorp/header-stamp",
             "support": {
                 "issues": "https://github.com/PrestaShopCorp/header-stamp/issues",
-                "source": "https://github.com/PrestaShopCorp/header-stamp/tree/v2.5"
+                "source": "https://github.com/PrestaShopCorp/header-stamp/tree/v2.6"
             },
-            "time": "2025-02-04T10:22:06+00:00"
+            "time": "2025-02-05T08:44:26+00:00"
         },
         {
             "name": "prestashop/php-dev-tools",

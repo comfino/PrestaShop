@@ -27,6 +27,7 @@
 use Comfino\Api\ApiClient;
 use Comfino\Api\ApiService;
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
+use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
 use Comfino\DebugLogger;
@@ -76,15 +77,6 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             }
         }
 
-        /*$connectAttemptIdx = FrontendManager::getConnectAttemptIdx();
-        $connectMaxNumAttempts = FrontendManager::getConnectMaxNumAttempts();
-
-        if ($connectAttemptIdx > 1 && $connectAttemptIdx < $connectMaxNumAttempts) {
-            $headMetaTags = [new HeadMetaTag(null, 'refresh', '3')];
-        } else {
-            $headMetaTags = null;
-        }*/
-
         DebugLogger::logEvent(
             '[PAYWALL]',
             'renderPaywall',
@@ -92,41 +84,52 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
                 '$loanAmount' => $loanAmount,
                 '$allowedProductTypes' => $allowedProductTypes,
                 '$shopCart' => $shopCart->getAsArray(),
-                // '$connectAttemptIdx' => $connectAttemptIdx,
-                // '$connectMaxNumAttempts' => $connectMaxNumAttempts,
             ]
         );
 
-        $paywallRenderer = FrontendManager::getPaywallRenderer($this->module);
-        $paywallContents = $paywallRenderer->getPaywall(
-            new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes),
-            ApiService::getEndpointUrl('paywall')
-        );
+        $paywallRenderer = FrontendManager::getPaywallRenderer();
         $templateVariables = [
             'language' => Context::getContext()->language->iso_code,
             'styles' => FrontendManager::registerExternalStyles($paywallRenderer->getStyles()),
             'scripts' => FrontendManager::registerExternalScripts($paywallRenderer->getScripts()),
             'shop_url' => Tools::getHttpHost(true),
-            'paywall_hash' => $paywallRenderer->getPaywallHash($paywallContents->paywallBody, ConfigManager::getApiKey()),
-            'frontend_elements' => [
-                'paywallBody' => $paywallContents->paywallBody,
-                'paywallHash' => $paywallContents->paywallHash,
-            ],
         ];
 
-        if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
-            DebugLogger::logEvent(
-                '[PAYWALL_API_REQUEST]',
-                'renderPaywall',
-                ['$request' => $apiRequest->getRequestBody(), '$templateVariables' => $templateVariables]
+        try {
+            $paywallContents = ApiClient::getInstance()->getPaywall(
+                new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes),
+                ApiService::getEndpointUrl('paywall')
             );
+
+            $templateName = 'paywall';
+            $templateVariables['paywall_hash'] = $paywallRenderer->getPaywallHash(
+                $paywallContents->paywallBody,
+                ConfigManager::getApiKey()
+            );
+            $templateVariables['frontend_elements'] = [
+                'paywallBody' => $paywallContents->paywallBody,
+                'paywallHash' => $paywallContents->paywallHash,
+            ];
+        } catch (\Throwable $e) {
+            http_response_code($e instanceof HttpErrorExceptionInterface ? $e->getStatusCode() : 500);
+
+            $templateVariables = array_merge($templateVariables, ApiClient::processApiError('Paywall endpoint', $e));
+            $templateName = 'api-error';
+        } finally {
+            if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
+                DebugLogger::logEvent(
+                    '[PAYWALL_API_REQUEST]',
+                    'renderPaywall',
+                    ['$request' => $apiRequest->getRequestBody(), '$templateVariables' => $templateVariables]
+                );
+            }
         }
 
         if (!COMFINO_PS_17) {
             // Exception for PrestaShop 1.6.x view rendering.
-            exit(TemplateManager::renderModuleView($this->module, 'paywall', 'front', $templateVariables));
+            exit(TemplateManager::renderModuleView($this->module, $templateName, 'front', $templateVariables));
         }
 
-        TemplateManager::renderControllerView($this, 'paywall', 'front', $templateVariables);
+        TemplateManager::renderControllerView($this, $templateName, 'front', $templateVariables);
     }
 }

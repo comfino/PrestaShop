@@ -394,6 +394,7 @@ final class ConfigManager
             }
         } catch (\Throwable $e) {
             ErrorLogger::sendError(
+                $e,
                 'Widget code update',
                 $e->getCode(),
                 $e->getMessage(),
