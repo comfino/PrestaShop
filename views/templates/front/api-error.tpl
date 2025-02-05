@@ -22,12 +22,11 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
-
 {if $full_document_structure}
     <html>
         <head>
             <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-            {$head_meta_tags nofilter}
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>
                 {if $is_debug_mode}
                     {$error_message|escape:"htmlall":"UTF-8"} [{$error_code|escape:"htmlall":"UTF-8"}]
@@ -35,7 +34,9 @@
                     {$user_error_message|escape:"htmlall":"UTF-8"}
                 {/if}
             </title>
-            <style>{$paywall_style nofilter}</style>
+            {foreach from=$paywall_styles item=style}
+                <link rel="stylesheet" href="{$style|escape:"htmlall":"UTF-8"}" media="all">
+            {/foreach}
         </head>
         <body>
 {/if}

@@ -24,19 +24,42 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-namespace Comfino\ErrorLogger;
+namespace Comfino;
 
-use Comfino\Common\Backend\Logger\StorageAdapterInterface;
-use Comfino\ErrorLogger;
+use Comfino\Configuration\ConfigManager;
+use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class StorageAdapter implements StorageAdapterInterface
+class DebugLogger
 {
-    public function save($errorPrefix, $errorMessage): void
+    /** @var Common\Backend\DebugLogger */
+    private static $debugLogger;
+
+    public static function getLoggerInstance(): Common\Backend\DebugLogger
     {
-        ErrorLogger::logError($errorPrefix, $errorMessage);
+        if (self::$debugLogger === null) {
+            self::$debugLogger = Common\Backend\DebugLogger::getInstance(
+                new JsonSerializer(),
+                _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/debug.log'
+            );
+        }
+
+        return self::$debugLogger;
+    }
+
+    public static function logEvent(string $eventPrefix, string $eventMessage, ?array $parameters = null): void
+    {
+        if ((!isset($_COOKIE['COMFINO_SERVICE_SESSION']) || $_COOKIE['COMFINO_SERVICE_SESSION'] !== 'ACTIVE')
+            && ConfigManager::isServiceMode()
+        ) {
+            return;
+        }
+
+        if (ConfigManager::isDebugMode()) {
+            self::getLoggerInstance()->logEvent($eventPrefix, $eventMessage, $parameters);
+        }
     }
 }

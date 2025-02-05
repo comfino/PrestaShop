@@ -47,13 +47,13 @@ class StatusAdapter implements OrderStatusAdapterInterface
         $inputStatus = \Tools::strtoupper($status);
 
         if (in_array($inputStatus, StatusManager::STATUSES, true)) {
-            $custom_status_new = "COMFINO_$inputStatus";
+            $customStatusNew = "COMFINO_$inputStatus";
         } else {
             return;
         }
 
         $currentInternalStatusId = (int) $order->getCurrentState();
-        $newCustomStatusId = (int) \Configuration::get($custom_status_new);
+        $newCustomStatusId = (int) \Configuration::get($customStatusNew);
 
         if ($newCustomStatusId !== $currentInternalStatusId) {
             $order->setCurrentState($newCustomStatusId);

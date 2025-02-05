@@ -25,11 +25,13 @@
  */
 
 use Comfino\Api\ApiClient;
+use Comfino\Api\ApiService;
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
+use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
+use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
-use Comfino\Main;
 use Comfino\Order\OrderManager;
 use Comfino\View\FrontendManager;
 use Comfino\View\TemplateManager;
@@ -40,11 +42,11 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoPaywallModuleFrontController extends ModuleFrontController
 {
-    public function postProcess(): void
+    public function initContent(): void
     {
-        ErrorLogger::init($this->module);
+        ErrorLogger::init();
 
-        parent::postProcess();
+        parent::initContent();
 
         if (!($this->module instanceof Comfino) || !$this->module->active) {
             TemplateManager::renderControllerView($this, 'module-disabled', 'front');
@@ -83,7 +85,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             $headMetaTags = null;
         }*/
 
-        Main::debugLog(
+        DebugLogger::logEvent(
             '[PAYWALL]',
             'renderPaywall',
             [
@@ -95,17 +97,36 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             ]
         );
 
-        echo FrontendManager::getPaywallRenderer($this->module)
-            ->renderPaywall(new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes)/*, $headMetaTags*/);
+        $paywallRenderer = FrontendManager::getPaywallRenderer($this->module);
+        $paywallContents = $paywallRenderer->getPaywall(
+            new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes),
+            ApiService::getEndpointUrl('paywall')
+        );
+        $templateVariables = [
+            'language' => Context::getContext()->language->iso_code,
+            'styles' => FrontendManager::registerExternalStyles($paywallRenderer->getStyles()),
+            'scripts' => FrontendManager::registerExternalScripts($paywallRenderer->getScripts()),
+            'shop_url' => Tools::getHttpHost(true),
+            'paywall_hash' => $paywallRenderer->getPaywallHash($paywallContents->paywallBody, ConfigManager::getApiKey()),
+            'frontend_elements' => [
+                'paywallBody' => $paywallContents->paywallBody,
+                'paywallHash' => $paywallContents->paywallHash,
+            ],
+        ];
 
         if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
-            Main::debugLog(
+            DebugLogger::logEvent(
                 '[PAYWALL_API_REQUEST]',
                 'renderPaywall',
-                ['$request' => $apiRequest->getRequestBody()]
+                ['$request' => $apiRequest->getRequestBody(), '$templateVariables' => $templateVariables]
             );
         }
 
-        exit;
+        if (!COMFINO_PS_17) {
+            // Exception for PrestaShop 1.6.x view rendering.
+            exit(TemplateManager::renderModuleView($this->module, 'paywall', 'front', $templateVariables));
+        }
+
+        TemplateManager::renderControllerView($this, 'paywall', 'front', $templateVariables);
     }
 }

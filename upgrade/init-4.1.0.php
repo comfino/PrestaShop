@@ -40,7 +40,7 @@ function upgrade_module_4_1_0(Comfino $module)
     }
 
     // Update code of widget initialization script unconditionally.
-    ConfigManager::updateWidgetCode($module);
+    ConfigManager::updateWidgetCode(WIDGET_INIT_SCRIPT_LAST_HASH);
 
     return true;
 }

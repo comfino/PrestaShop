@@ -26,14 +26,15 @@
 
 namespace Comfino\TemplateRenderer;
 
-use Comfino\Api\ApiClient;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Api\Exception\ServiceUnavailable;
 use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\Common\Frontend\TemplateRenderer\RendererStrategyInterface;
-use Comfino\Main;
+use Comfino\Configuration\ConfigManager;
+use Comfino\DebugLogger;
+use Comfino\View\FrontendManager;
 use Comfino\View\TemplateManager;
 use ComfinoExternal\Psr\Http\Client\NetworkExceptionInterface;
 
@@ -54,11 +55,10 @@ class ModuleRendererStrategy implements RendererStrategyInterface
         $this->fullDocumentStructure = $fullDocumentStructure;
     }
 
-    public function renderPaywallTemplate($paywallContents): string
-    {
-        return $paywallContents;
-    }
-
+    /**
+     * @param \Throwable $exception
+     * @param \Comfino\Common\Frontend\FrontendRenderer $frontendRenderer
+     */
     public function renderErrorTemplate($exception, $frontendRenderer): string
     {
         $showLoader = false;
@@ -67,7 +67,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             'There was a technical problem. Please try again in a moment and it should work!'
         );
 
-        Main::debugLog(
+        DebugLogger::logEvent(
             '[API_ERROR]',
             'renderErrorTemplate',
             [
@@ -115,7 +115,7 @@ class ModuleRendererStrategy implements RendererStrategyInterface
                     $showMessage = true;
                 }
 
-                Main::debugLog(
+                DebugLogger::logEvent(
                     '[API_TIMEOUT]',
                     'renderErrorTemplate',
                     [
@@ -143,12 +143,10 @@ class ModuleRendererStrategy implements RendererStrategyInterface
             $templateName = 'error';
         }
 
-        $headMetaTags = '';
-        $paywallStyle = '';
+        $paywallStyles = [];
 
         if ($this->fullDocumentStructure && $frontendRenderer instanceof PaywallRenderer) {
-            //$headMetaTags = $frontendRenderer->renderHeadMetaTags();
-            $paywallStyle = $frontendRenderer->getFrontendFragment(PaywallRenderer::PAYWALL_FRAGMENT_STYLE);
+            $paywallStyles = FrontendManager::registerExternalStyles($frontendRenderer->getStyles());
         }
 
         return TemplateManager::renderModuleView(
@@ -165,13 +163,12 @@ class ModuleRendererStrategy implements RendererStrategyInterface
                 'url' => $url,
                 'request_body' => $requestBody,
                 'response_body' => $responseBody,
-                'head_meta_tags' => $headMetaTags,
-                'paywall_style' => $paywallStyle,
+                'paywall_styles' => $paywallStyles,
                 'full_document_structure' => $this->fullDocumentStructure,
                 'show_loader' => $showLoader,
                 'show_message' => $showMessage,
                 'user_error_message' => $userErrorMessage,
-                'is_debug_mode' => ApiClient::isDevEnv(),
+                'is_debug_mode' => ConfigManager::isDevEnv(),
             ]
         );
     }
