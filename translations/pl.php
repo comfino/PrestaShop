@@ -109,6 +109,9 @@ $_MODULE['<{comfino}prestashop>comfino_8b5dd64ab8d0b8158906796b53a200e2'] = 'Adr
 $_MODULE['<{comfino}prestashop>comfino_8e55577a8ed3b20bff65d23c000280d4'] = 'Nazwisko';
 $_MODULE['<{comfino}prestashop>comfino_1f8261d17452a959e013666c5df45e07'] = 'Numer telefonu';
 $_MODULE['<{comfino}prestashop>comfino_2279612ffecf9ce48d43372cb3524e23'] = 'Adres strony, gdzie będzie instalowana płatność Comfino';
+$_MODULE['<{comfino}prestashop>comfino_e40b15f6b84ceb12c3e9d33b52e3f123'] = 'Wystąpił problem techniczny. Spróbuj ponownie za chwilę i powinno się udać!';
+$_MODULE['<{comfino}prestashop>comfino_45ee253e264f68a44b02a46b9529a636'] = 'Mamy problem z konfiguracją. Sklep już pracuje nad rozwiązaniem!';
+$_MODULE['<{comfino}prestashop>comfino_625ea4421cb1d3d31956f6e9dd02e225'] = 'Wygląda na to, że mamy awarię. Naprawimy ją tak szybko, jak to możliwe!';
 
 $_MODULE['<{comfino}prestashop>configuration_77739e75ed0f4c37e24b63c824010894'] = 'Rejestracja w Comfino';
 $_MODULE['<{comfino}prestashop>configuration_f1a9672d88ab0cae23402867e2def274'] = 'Ustawienia płatności';

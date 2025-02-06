@@ -41,7 +41,7 @@
         height: 22px;
         display: block;
         content: "\f078";
-        font-family: 'FontAwesome';
+        font-family: 'FontAwesome', serif;
         font-size: 25px;
         color: #777777;
         position: absolute;
@@ -67,7 +67,7 @@
     </div>
 </div>
 {/if}
-<div id="comfino-iframe-container"></div>
+<div id="comfino-iframe-container" class="comfino-iframe-container"></div>
 {if $is_ps_16}
 <div id="comfino-payment-bar" class="comfino-payment-bar">
     <a id="comfino-go-to-payment" href="{$comfino_redirect_url|escape:"htmlall":"UTF-8"}" class="comfino-payment-btn">
@@ -75,4 +75,4 @@
     </a>
 </div>
 {/if}
-<script data-cmp-ab="2">if (ComfinoPaywallInit !== undefined) ComfinoPaywallInit.init({if $is_ps_16}document.getElementById('pay-with-comfino'){else}document.querySelector('input[data-module-name^="comfino"]'){/if}, '{$paywall_url|escape:"htmlall":"UTF-8"}'.replaceAll('&amp;', '&'), '{$payment_state_url|escape:"htmlall":"UTF-8"}'.replaceAll('&amp;', '&'), {$paywall_options|@json_encode nofilter}); else console.error('ComfinoPaywallInit is undefined.');</script>
+<script data-cmp-ab="2">window.ComfinoPaywallData = { paywallUrl: '{$paywall_url|escape:"htmlall":"UTF-8"}'.replaceAll('&amp;', '&'), paywallStateUrl: '{$payment_state_url|escape:"htmlall":"UTF-8"}'.replaceAll('&amp;', '&'), paywallOptions: {$paywall_options|@json_encode nofilter} }; if (typeof ComfinoPaywallInit === 'object') ComfinoPaywallInit.init();</script>

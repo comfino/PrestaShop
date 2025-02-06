@@ -224,14 +224,4 @@ final class FrontendManager
 
         return '';
     }
-
-    public static function getConnectMaxNumAttempts(): int
-    {
-        return ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_NUM_ATTEMPTS', 3);
-    }
-
-    public static function getConnectAttemptIdx(): int
-    {
-        return \Context::getContext()->cookie->comfino_conn_attempt_idx ?? 1;
-    }
 }
