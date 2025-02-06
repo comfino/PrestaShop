@@ -26,6 +26,7 @@
 
 use Comfino\Api\ApiClient;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
+use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
@@ -63,8 +64,8 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
             ]
         );
 
-        $response = FrontendManager::getPaywallRenderer($this->module)
-            ->getPaywallItemDetails(
+        try {
+            $paywallItemDetails = ApiClient::getInstance()->getPaywallItemDetails(
                 $loanAmount,
                 LoanTypeEnum::from($loanTypeSelected),
                 new Cart(
@@ -76,18 +77,25 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
                     $shopCart->getDeliveryTaxValue()
                 )
             );
+        } catch (\Throwable $e) {
+            http_response_code($e instanceof HttpErrorExceptionInterface ? $e->getStatusCode() : 500);
 
-        if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
-            DebugLogger::logEvent(
-                '[PAYWALL_ITEM_DETAILS_API_REQUEST]',
-                'getPaywallItemDetails',
-                ['$request' => $apiRequest->getRequestBody()]
-            );
+            exit($serializer->serialize(
+                ApiClient::processApiError('Paywall item details endpoint', $e)['error_details']
+            ));
+        } finally {
+            if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
+                DebugLogger::logEvent(
+                    '[PAYWALL_ITEM_DETAILS_API_REQUEST]',
+                    'getPaywallItemDetails',
+                    ['$request' => $apiRequest->getRequestBody()]
+                );
+            }
         }
 
         exit($serializer->serialize([
-            'listItemData' => $response->listItemData,
-            'productDetails' => $response->productDetails,
+            'listItemData' => $paywallItemDetails->listItemData,
+            'productDetails' => $paywallItemDetails->productDetails,
         ]));
     }
 }
