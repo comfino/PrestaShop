@@ -98,7 +98,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
         try {
             $paywallContents = ApiClient::getInstance()->getPaywall(
                 new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes),
-                ApiService::getEndpointUrl('paywall')
+                ApiService::getControllerUrl('paywall', [], false)
             );
 
             $templateName = 'paywall';
