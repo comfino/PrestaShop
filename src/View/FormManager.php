@@ -50,6 +50,12 @@ final class FormManager
         foreach (ConfigManager::CONFIG_OPTIONS as $options) {
             foreach ($options as $optionName => $optionType) {
                 $helper->fields_value[$optionName] = ConfigManager::getConfigurationValue($optionName);
+
+                if ($optionName === 'COMFINO_WIDGET_OFFER_TYPES' && is_array($helper->fields_value[$optionName])) {
+                    foreach ($helper->fields_value[$optionName] as $optionValue) {
+                        $helper->fields_value["{$optionName}_{$optionValue}"] = $optionValue;
+                    }
+                }
             }
         }
 

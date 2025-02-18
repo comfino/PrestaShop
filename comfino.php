@@ -43,15 +43,15 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1738759127);
+    define('COMFINO_BUILD_TS', 1739805361);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
-    define('WIDGET_INIT_SCRIPT_HASH', 'b1a0cae1a47d1c5b9264df3573c09c48');
+    define('WIDGET_INIT_SCRIPT_HASH', 'c0af7eac44e1da646156fb12f2b7dbd7');
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_LAST_HASH')) {
-    define('WIDGET_INIT_SCRIPT_LAST_HASH', 'abad64fa73a6818c0a2b69a2b2b0b69f');
+    define('WIDGET_INIT_SCRIPT_LAST_HASH', 'b1a0cae1a47d1c5b9264df3573c09c48');
 }
 
 /* Notice: source code of this script MUST be compatible with PHP 5.6 syntax. */

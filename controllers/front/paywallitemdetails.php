@@ -32,7 +32,6 @@ use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Cart;
-use Comfino\View\FrontendManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -52,7 +51,8 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
 
         $loanAmount = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
         $loanTypeSelected = Tools::getValue('loanTypeSelected');
-        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount, $loanTypeSelected === 'LEASING');
+        $loadProductCategories = (Tools::getValue('reqProdCat') === 'yes');
+        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount, $loadProductCategories);
 
         DebugLogger::logEvent(
             '[PAYWALL_ITEM_DETAILS]',
@@ -60,6 +60,7 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
             [
                 '$loanAmount' => $loanAmount,
                 '$loanTypeSelected' => $loanTypeSelected,
+                '$loadProductCategories' => $loadProductCategories,
                 '$shopCart' => $shopCart->getAsArray(),
             ]
         );

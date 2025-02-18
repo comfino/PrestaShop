@@ -32,6 +32,7 @@ use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\Common\Frontend\WidgetInitScriptHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger;
+use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -177,9 +178,9 @@ final class FrontendManager
 
     public static function renderWidgetInitCode(?int $productId): string
     {
-        try {
-            $widgetVariables = ConfigManager::getWidgetVariables($productId);
+        $serializer = new JsonSerializer();
 
+        try {
             return WidgetInitScriptHelper::renderWidgetInitScript(
                 ConfigManager::getCurrentWidgetCode($productId),
                 array_combine(
@@ -190,24 +191,29 @@ final class FrontendManager
                         'WIDGET_PRICE_OBSERVER_SELECTOR',
                         'WIDGET_PRICE_OBSERVER_LEVEL',
                         'WIDGET_TYPE',
-                        'OFFER_TYPE',
+                        'OFFER_TYPES',
                         'EMBED_METHOD',
                     ],
-                    ConfigManager::getConfigurationValues(
-                        'widget_settings',
-                        [
-                            'COMFINO_WIDGET_KEY',
-                            'COMFINO_WIDGET_PRICE_SELECTOR',
-                            'COMFINO_WIDGET_TARGET_SELECTOR',
-                            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
-                            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-                            'COMFINO_WIDGET_TYPE',
-                            'COMFINO_WIDGET_OFFER_TYPE',
-                            'COMFINO_WIDGET_EMBED_METHOD',
-                        ]
+                    array_map(
+                        static function ($optionValue) use ($serializer) {
+                            return is_array($optionValue) ? $serializer->serialize($optionValue) : $optionValue;
+                        },
+                        ConfigManager::getConfigurationValues(
+                            'widget_settings',
+                            [
+                                'COMFINO_WIDGET_KEY',
+                                'COMFINO_WIDGET_PRICE_SELECTOR',
+                                'COMFINO_WIDGET_TARGET_SELECTOR',
+                                'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
+                                'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+                                'COMFINO_WIDGET_TYPE',
+                                'COMFINO_WIDGET_OFFER_TYPES',
+                                'COMFINO_WIDGET_EMBED_METHOD',
+                            ]
+                        )
                     )
                 ),
-                $widgetVariables
+                ConfigManager::getWidgetVariables($productId)
             );
         } catch (\Throwable $e) {
             ErrorLogger::sendError(

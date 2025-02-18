@@ -75,8 +75,8 @@ final class ApiClient
                 ),
                 ConfigManager::getApiHost(),
                 \Context::getContext()->language->iso_code,
-                ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_TIMEOUT', 1),
-                ConfigManager::getConfigurationValue('COMFINO_API_TIMEOUT', 3),
+                ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_TIMEOUT', 3),
+                ConfigManager::getConfigurationValue('COMFINO_API_TIMEOUT', 5),
                 ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_NUM_ATTEMPTS', 3)
             );
 
@@ -108,8 +108,8 @@ final class ApiClient
         $statusCode = 500;
         $isTimeout = false;
         $connectAttemptIdx = 1;
-        $connectionTimeout = ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_TIMEOUT', 1);
-        $transferTimeout = ConfigManager::getConfigurationValue('COMFINO_API_TIMEOUT', 3);
+        $connectionTimeout = ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_TIMEOUT', 3);
+        $transferTimeout = ConfigManager::getConfigurationValue('COMFINO_API_TIMEOUT', 5);
 
         if ($exception instanceof HttpErrorExceptionInterface) {
             $statusCode = $exception->getStatusCode();

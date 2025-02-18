@@ -525,7 +525,6 @@ class ComposerStaticInit5e5e13ca96d415984d7630948afc095f
         'Comfino\\Shop\\Order\\OrderInterface' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Shop/Order/OrderInterface.php',
         'Comfino\\Shop\\Order\\Seller' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Shop/Order/Seller.php',
         'Comfino\\Shop\\Order\\SellerInterface' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Shop/Order/SellerInterface.php',
-        'Comfino\\TemplateRenderer\\ModuleRendererStrategy' => __DIR__ . '/../..' . '/src/TemplateRenderer/ModuleRendererStrategy.php',
         'Comfino\\Tools' => __DIR__ . '/../..' . '/src/Tools.php',
         'Comfino\\View\\FormManager' => __DIR__ . '/../..' . '/src/View/FormManager.php',
         'Comfino\\View\\FrontendManager' => __DIR__ . '/../..' . '/src/View/FrontendManager.php',

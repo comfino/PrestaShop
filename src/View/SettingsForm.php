@@ -33,6 +33,7 @@ use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
+use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\PluginShared\CacheManager;
 
 if (!defined('_PS_VERSION_')) {
@@ -66,7 +67,20 @@ final class SettingsForm
 
             foreach (ConfigManager::CONFIG_OPTIONS[$activeTab] as $optionName => $optionType) {
                 if ($optionName !== 'COMFINO_WIDGET_KEY') {
-                    $configurationOptions[$optionName] = \Tools::getValue($optionName);
+                    if ($optionName === 'COMFINO_WIDGET_OFFER_TYPES') {
+                        $configurationOptions[$optionName] = [];
+                        $offerTypes = SettingsManager::getProductTypesSelectList(
+                            ProductTypesListTypeEnum::LIST_TYPE_WIDGET
+                        );
+
+                        foreach ($offerTypes as $offerType) {
+                            if (\Tools::getIsset("{$optionName}_{$offerType['key']}")) {
+                                $configurationOptions[$optionName][] = $offerType['key'];
+                            }
+                        }
+                    } else {
+                        $configurationOptions[$optionName] = \Tools::getValue($optionName);
+                    }
                 }
             }
 
@@ -427,18 +441,23 @@ final class SettingsForm
                                 ],
                             ],
                             [
-                                'type' => 'select',
-                                'label' => $module->l('Offer type'),
-                                'name' => 'COMFINO_WIDGET_OFFER_TYPE',
+                                'type' => 'checkbox',
+                                'label' => $module->l('Offer types'),
+                                'name' => 'COMFINO_WIDGET_OFFER_TYPES',
                                 'required' => false,
-                                'options' => [
-                                    'query' => $params['offer_types']['widget_settings'],
+                                'values' => [
+                                    'query' => array_map(
+                                        static function ($option) {
+                                            return array_merge($option, ['val' => $option['key']]);
+                                        },
+                                        $params['offer_types']['widget_settings']
+                                    ),
                                     'id' => 'key',
                                     'name' => 'name',
                                 ],
                                 'desc' => $module->l(
                                     'Other payment methods (Installments 0%, Buy now, pay later, Installments for ' .
-                                    'Companies) available after consulting a Comfino advisor (kontakt@comfino.pl).'
+                                    'companies, Leasing) available after consulting a Comfino advisor (kontakt@comfino.pl).'
                                 ),
                             ],
                         ],
