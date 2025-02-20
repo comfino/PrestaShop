@@ -33,7 +33,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class DebugLogger
+final class DebugLogger
 {
     /** @var Common\Backend\DebugLogger */
     private static $debugLogger;

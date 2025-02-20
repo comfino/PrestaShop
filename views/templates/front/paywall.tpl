@@ -36,7 +36,7 @@
         {/foreach}
     </head>
     <body>
-        <div id="paywall-container"></div>
+        <div id="paywall-container" class="paywall-container"></div>
         <script data-cmp-ab="2">ComfinoPaywall.init('{$shop_url|escape:"htmlall":"UTF-8"}'.replaceAll('&amp;', '&'), document.location.href, '{$paywall_hash|escape:"htmlall":"UTF-8"}', document.getElementById('paywall-container'), {$frontend_elements|@json_encode nofilter});</script>
     </body>
 </html>

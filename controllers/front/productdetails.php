@@ -92,6 +92,7 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
             );
         } catch (Throwable $e) {
             ErrorLogger::sendError(
+                $e,
                 'Product details endpoint',
                 $e->getCode(),
                 $e->getMessage(),
