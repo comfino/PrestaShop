@@ -52,11 +52,15 @@ final class Main
             return;
         }
 
-        // Initialize cache system.
-        CacheManager::init(_PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var');
+        try {
+            // Initialize cache system.
+            CacheManager::init(_PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var');
 
-        // Register module API endpoints.
-        ApiService::init();
+            // Register module API endpoints.
+            ApiService::init();
+        } catch (\Throwable $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
 
         self::$initialized = true;
     }

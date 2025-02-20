@@ -115,8 +115,14 @@ class Comfino extends PaymentModule
             return;
         }
 
-        // Initialize Comfino plugin.
-        Comfino\Main::init();
+        try {
+            // Initialize Comfino plugin.
+            Comfino\Main::init();
+        } catch (Exception $e) {
+            if (!preg_match('/^(Class|Interface|Trait) [\'"][^\'"]+[\'"] not found$/', $e->getMessage())) {
+                $this->_errors[] = $e->getMessage();
+            }
+        }
     }
 
     /**
