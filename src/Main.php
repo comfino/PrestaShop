@@ -81,7 +81,6 @@ final class Main
         $module->registerHook('paymentReturn');
         $module->registerHook('displayBackofficeComfinoForm');
         $module->registerHook('actionOrderStatusPostUpdate');
-        $module->registerHook('actionValidateCustomerAddressForm');
         $module->registerHook('header');
         $module->registerHook('actionAdminControllerSetMedia');
 
