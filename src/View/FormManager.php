@@ -27,6 +27,7 @@
 namespace Comfino\View;
 
 use Comfino\Api\ApiClient;
+use Comfino\Api\ApiService;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Configuration\ConfigManager;
@@ -145,8 +146,11 @@ final class FormManager
                 }
 
                 if (!empty(ConfigManager::getApiKey())) {
+                     $cacheInvalidateUrl = ApiService::getEndpointUrl('cacheInvalidate');
+                     $configurationUrl = ApiService::getEndpointUrl('configuration');
+
                     try {
-                        if (ApiClient::getInstance()->isShopAccountActive()) {
+                        if (ApiClient::getInstance()->isShopAccountActive($cacheInvalidateUrl, $configurationUrl)) {
                             $successMessages[] = $module->l(sprintf(
                                 '%s account is active.',
                                 $sandboxMode ? 'Test' : 'Production'

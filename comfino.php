@@ -43,7 +43,7 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1739805361);
+    define('COMFINO_BUILD_TS', 1740157821);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {

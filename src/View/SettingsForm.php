@@ -27,6 +27,7 @@
 namespace Comfino\View;
 
 use Comfino\Api\ApiClient;
+use Comfino\Api\ApiService;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Configuration\ConfigManager;
@@ -114,9 +115,12 @@ final class SettingsForm
                     $apiClient = ApiClient::getInstance($sandboxMode, $apiKey);
 
                     if (!empty($apiKey) && !count($output)) {
+                        $cacheInvalidateUrl = ApiService::getEndpointUrl('cacheInvalidate');
+                        $configurationUrl = ApiService::getEndpointUrl('configuration');
+
                         try {
                             // Check if passed API key is valid.
-                            $apiClient->isShopAccountActive();
+                            $apiClient->isShopAccountActive($cacheInvalidateUrl, $configurationUrl);
 
                             try {
                                 // If API key is valid fetch widget key from API endpoint.
@@ -201,9 +205,12 @@ final class SettingsForm
 
                     if (!count($output) && !empty($apiKey = ConfigManager::getApiKey())) {
                         // Update widget key.
+                        $cacheInvalidateUrl = ApiService::getEndpointUrl('cacheInvalidate');
+                        $configurationUrl = ApiService::getEndpointUrl('configuration');
+
                         try {
                             // Check if passed API key is valid.
-                            ApiClient::getInstance()->isShopAccountActive();
+                            ApiClient::getInstance()->isShopAccountActive($cacheInvalidateUrl, $configurationUrl);
 
                             try {
                                 $widgetKey = ApiClient::getInstance()->getWidgetKey();
