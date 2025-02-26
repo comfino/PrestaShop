@@ -38,13 +38,13 @@ if (!defined('_PS_VERSION_')) {
 
 final class OrderManager
 {
-    public static function getShopCart(\Cart $cart, int $loanAmount, bool $loadProductCategories = false): Cart
+    public static function getShopCart(\Cart $cart, int $priceModifier, bool $loadProductCategories = false): Cart
     {
         $totalValue = (int) round(round($cart->getOrderTotal(), 2) * 100);
 
-        if ($loanAmount > $totalValue) {
-            // Loan amount with price modifier (e.g. custom commission).
-            $totalValue = $loanAmount;
+        if ($priceModifier > 0) {
+            // Add price modifier (e.g. custom commission).
+            $totalValue += $priceModifier;
         }
 
         $cartItems = array_map(

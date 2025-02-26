@@ -133,7 +133,10 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $shopCart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount, true);
+        $initLoanAmount = (int) $cookie->loan_amount;
+        $priceModifier = (int) $cookie->price_modifier;
+
+        $shopCart = OrderManager::getShopCart($cart, $priceModifier, true);
 
         $this->module->validateOrder(
             (int) $cart->id,
@@ -229,6 +232,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             '[PAYMENT]',
             'ComfinoPaymentModuleFrontController',
             [
+                '$initLoanAmount' => $initLoanAmount,
+                '$priceModifier' => $priceModifier,
+                '$cartTotalValue' => $shopCart->getTotalValue(),
                 '$loanAmount' => $order->getCart()->getTotalAmount(),
                 '$loanType' => (string) $order->getLoanParameters()->getType(),
                 '$loanTerm' => $order->getLoanParameters()->getTerm(),

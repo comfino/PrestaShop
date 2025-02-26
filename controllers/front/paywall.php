@@ -55,8 +55,15 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             return;
         }
 
+        if (!Tools::isEmpty('priceModifier') && is_numeric(Tools::getValue('priceModifier'))) {
+            $priceModifier = (int) Tools::getValue('priceModifier');
+        } else {
+            $priceModifier = 0;
+        }
+
         $loanAmount = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
-        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount);
+
+        $shopCart = OrderManager::getShopCart($this->context->cart, $priceModifier);
         $allowedProductTypes = SettingsManager::getAllowedProductTypes(
             ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
             $shopCart
@@ -69,19 +76,13 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             return;
         }
 
-        if (!Tools::isEmpty('priceModifier') && is_numeric(Tools::getValue('priceModifier'))) {
-            $priceModifier = (float) Tools::getValue('priceModifier');
-
-            if ($priceModifier > 0) {
-                $loanAmount += ((int) ($priceModifier * 100));
-            }
-        }
-
         DebugLogger::logEvent(
             '[PAYWALL]',
             'renderPaywall',
             [
                 '$loanAmount' => $loanAmount,
+                '$priceModifier' => $priceModifier,
+                '$cartTotalValue' => $shopCart->getTotalValue(),
                 '$allowedProductTypes' => $allowedProductTypes,
                 '$shopCart' => $shopCart->getAsArray(),
             ]

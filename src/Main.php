@@ -181,7 +181,9 @@ final class Main
         ErrorLogger::init();
 
         $loanAmount = (int) \Context::getContext()->cookie->loan_amount;
-        $shopCart = OrderManager::getShopCart($cart, $loanAmount);
+        $priceModifier = (int) \Context::getContext()->cookie->price_modifier;
+
+        $shopCart = OrderManager::getShopCart($cart, $priceModifier);
         $allowedProductTypes = SettingsManager::getAllowedProductTypes(
             ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
             $shopCart
@@ -195,6 +197,7 @@ final class Main
                 '$paymentIsAvailable' => $paymentIsAvailable,
                 '$allowedProductTypes' => $allowedProductTypes,
                 '$loanAmount' => $loanAmount,
+                '$priceModifier' => $priceModifier,
                 '$cartTotalValue' => $shopCart->getTotalValue(),
             ]
         );
