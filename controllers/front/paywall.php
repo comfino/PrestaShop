@@ -89,6 +89,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
         );
 
         $paywallRenderer = FrontendManager::getPaywallRenderer();
+        $paywallUrl = ApiService::getControllerUrl('paywall', [], false);
         $templateVariables = [
             'language' => Context::getContext()->language->iso_code,
             'styles' => FrontendManager::registerExternalStyles($paywallRenderer->getStyles()),
@@ -99,7 +100,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
         try {
             $paywallContents = ApiClient::getInstance()->getPaywall(
                 new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes),
-                ApiService::getControllerUrl('paywall', [], false)
+                $paywallUrl
             );
 
             $templateName = 'paywall';
@@ -121,7 +122,11 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
                 DebugLogger::logEvent(
                     '[PAYWALL_API_REQUEST]',
                     'renderPaywall',
-                    ['$request' => $apiRequest->getRequestBody(), '$templateVariables' => $templateVariables]
+                    [
+                        '$paywallUrl' => $paywallUrl,
+                        '$request' => $apiRequest->getRequestBody(),
+                        '$templateVariables' => $templateVariables
+                    ]
                 );
             }
         }
