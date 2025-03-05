@@ -65,6 +65,10 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
             ]
         );
 
+        if (empty($loanTypeSelected)) {
+            exit($serializer->serialize(['listItemData' => '', 'productDetails' => '']));
+        }
+
         try {
             $paywallItemDetails = ApiClient::getInstance()->getPaywallItemDetails(
                 $loanAmount,
