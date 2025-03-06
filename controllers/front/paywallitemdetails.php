@@ -66,6 +66,7 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
         );
 
         if (empty($loanTypeSelected)) {
+            // Financial product type not passed - return empty response.
             exit($serializer->serialize(['listItemData' => '', 'productDetails' => '']));
         }
 
