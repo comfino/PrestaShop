@@ -38,13 +38,13 @@ if (!defined('_PS_VERSION_')) {
 
 final class OrderManager
 {
-    public static function getShopCart(\Cart $cart, int $loanAmount, bool $loadProductCategories = false): Cart
+    public static function getShopCart(\Cart $cart, int $priceModifier, bool $loadProductCategories = false): Cart
     {
         $totalValue = (int) round(round($cart->getOrderTotal(), 2) * 100);
 
-        if ($loanAmount > $totalValue) {
-            // Loan amount with price modifier (e.g. custom commission).
-            $totalValue = $loanAmount;
+        if ($priceModifier > 0) {
+            // Add price modifier (e.g. custom commission).
+            $totalValue += $priceModifier;
         }
 
         $cartItems = array_map(
@@ -104,9 +104,19 @@ final class OrderManager
         if (\Validate::isLoadedObject($carrier = new \Carrier($cart->id_carrier))
             && \Carrier::getIdTaxRulesGroupByIdCarrier($cart->id_carrier) !== 0
         ) {
+            $deliveryAddress = $cart->getAddressCollection()[$cart->id_address_delivery];
+            $billingAddress = $cart->getAddressCollection()[$cart->id_address_invoice];
+
             $deliveryNetCost = (int) round(round($cart->getOrderTotal(false, \Cart::ONLY_SHIPPING), 2) * 100);
             $deliveryTaxValue = $deliveryCost - $deliveryNetCost;
-            $deliveryTaxRate = (int) $carrier->getTaxesRate($cart->getAddressCollection()[$cart->id_address_delivery]);
+
+            if ($deliveryAddress !== null) {
+                $deliveryTaxRate = (int) $carrier->getTaxesRate($deliveryAddress);
+            } elseif ($billingAddress !== null) {
+                $deliveryTaxRate = (int) $carrier->getTaxesRate($billingAddress);
+            } else {
+                $deliveryTaxRate = (int) (round($deliveryTaxValue / $deliveryCost, 2) * 100);
+            }
         }
 
         return new Cart(

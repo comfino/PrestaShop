@@ -38,7 +38,6 @@ Configuration parameter fields:
 **PAYMENT SETTINGS**
 
 * **Production environment API key** — a unique access key that allows the module to communicate with the Comfino API (you will receive it from a Comfino representative)
-* **Payment presentation** — the way Comfino is presented on the list of payment methods [`Only icon`, `Only text`, `Icon and text`]
 * **Payment text** — text displayed on the list of payment methods (default `"(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)"`)
 * **Minimal amount in cart** — the value of the cart from which Comfino payment is available (default: 30 PLN)
 
@@ -48,21 +47,23 @@ Configuration parameter fields:
 
 The tab contains settings related to sales management.
 
-Financial product availability rules (product category filters) enable Comfino payments to be assigned to specific product categories. Category filters are divided into sections corresponding to available methods of financing purchases under the contract concluded with Comfino. Moreover, managing the availability of Comfino payments is only possible for the following types of financial products: "Zero percent installments", "Pay later". If the concluded contract does not include one or all of these items, the tab will contain a list of trees limited to this one financing method or it will contain a list of trees for other types of products from the contract, if the contract does not include the "Zero percent installments" and "Pay later" products.
+Financial product availability rules (product category filters) enable Comfino payments to be assigned to specific product categories. Category filters are divided into sections corresponding to available methods of financing purchases under the contract concluded with Comfino. Moreover, managing the availability of Comfino payments is only possible for the following types of financial products: "Zero percent installments", "Pay later", "Leasing". If the concluded contract does not include one or all of these items, the tab will contain a list of trees limited to this one financing method or it will contain a list of trees for other types of products from the contract, if the contract does not include the "Zero percent installments", "Pay later" and "Leasing" products.
 
 By default, Comfino payments are available unconditionally for all product types. To disable Comfino for selected product types, uncheck the appropriate categories in the category tree for each type of financial offer and click "Save".
 
-![Configuration](images/en/configuration6.png "Configuration")
+![Configuration](images/en/configuration2.png "Configuration")
 
 **WIDGET SETTINGS**
 
 **Basic Settings**
 
 * **Widget is active?** — promotional widget activation/deactivation switch on the product page
-* **Widget type** — way of presenting the widget [`Textual widget`, `Graphical widget with banner`, `Graphical widget with installments calculator` , `Graphical widget with extended installments calculator`]
-* **Offer type** — type of financing offer promoted [`Zero percent installments`, `Convenient installments`, `Pay later`, `Deferred payments for companies`]
+* **Widget type** — way of presenting the widget [`Installment calculator`, `Extended calculator - products`]
+* **Offer types** — types of financing offers promoted [`Zero percent installments`, `Convenient installments`, `Pay later`, `Installments for companies`, `Deferred payments for companies`, `Leasing`]
 
 The availability of offer types on the list depends on the individual contract and may differ from that described in the documentation.
+
+![Configuration](images/en/configuration3a.png "Configuration")
 
 **Advanced settings**
 
@@ -75,14 +76,20 @@ The availability of offer types on the list depends on the individual contract a
 
 Detailed information on the operation of the widget and its configuration options can be found in a separate [Comfino widget documentation](https://comfino.pl/widgets/comfino-prestashop/en).
 
-![Configuration](images/en/configuration2.png "Configuration")
+![Configuration](images/en/configuration3b.png "Configuration")
 
 **DEVELOPER SETTINGS**
 
 * **Use test environment** — developer mode activation/deactivation switch
 * **Test environment API key** — a unique access key enabling the module to communicate with the Comfino test API
+* **Debug mode** — debug mode activation/deactivation switch
+* **Service mode** — service mode activation/deactivation switch
 
-![Configuration](images/en/configuration3.png "Configuration")
+Debug mode is useful in case of problems with Comfino payment availability. In this mode module logs details of internal process responsible for displaying of Comfino payment option at the payment methods list. It is recommended to use this option together with activating the second option `"Service mode"` to minimize the saved logs.
+
+Debug mode is useful in case of problems with Comfino payment availability. In this mode module logs details of internal process responsible for displaying of Comfino payment option at the payment methods list.
+
+![Configuration](images/en/configuration4.png "Configuration")
 
 **Note**
 
@@ -91,14 +98,12 @@ Before launching payments on the production store, disable developer mode to blo
 **PLUGIN DIAGNOSTICS**
 
 The tab contains technical information about the plugin and the environment (plugin version, store version, PHP and web server version, etc.).\
-It also contains a list of recent errors with a preview of the local error log.
+It also contains a list of recent errors with a preview of the local error log and a list of the plugin's internal operations recorded in debug mode (debug mode log).
 
-![Configuration](images/en/configuration4.png "Configuration")
+![Configuration](images/en/configuration5.png "Configuration")
 
 Information about developer mode activity is displayed in the tabs `"PAYMENT SETTINGS"` and `"PLUGIN DIAGNOSTICS"`.
 In this mode, the plugin uses the key from the `"DEVELOPER SETTINGS"` tab to communicate with the Comfino test API. You will also receive a test environment key from a Comfino representative.
-
-![Configuration](images/en/configuration5.png "Configuration")
 
 ## REMARKS
 

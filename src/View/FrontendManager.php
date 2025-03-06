@@ -26,14 +26,13 @@
 
 namespace Comfino\View;
 
-use Comfino\Api\ApiClient;
 use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Common\Frontend\PaywallIframeRenderer;
 use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\Common\Frontend\WidgetInitScriptHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\ErrorLogger;
-use Comfino\TemplateRenderer\ModuleRendererStrategy;
+use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -41,25 +40,15 @@ if (!defined('_PS_VERSION_')) {
 
 final class FrontendManager
 {
-    public static function getPaywallRenderer(\PaymentModule $module): PaywallRenderer
+    public static function getPaywallRenderer(): PaywallRenderer
     {
-        //$client = ApiClient::getInstance();
-        /*$cookie = \Context::getContext()->cookie;
+        static $renderer = null;
 
-        if (isset($cookie->comfino_conn_attempt_idx)) {
-            $connectAttemptIdx = $cookie->comfino_conn_attempt_idx;
-        } else {
-            $connectAttemptIdx = 1;
-            $cookie->comfino_conn_attempt_idx = 1;
+        if ($renderer === null) {
+            $renderer = new PaywallRenderer();
         }
 
-        $client->resetClient(
-            $client->calculateConnectionTimeout($connectAttemptIdx),
-            $client->calculateTransferTimeout($connectAttemptIdx),
-            1
-        );*/
-
-        return new PaywallRenderer(ApiClient::getInstance(), new ModuleRendererStrategy($module));
+        return $renderer;
     }
 
     public static function getPaywallIframeRenderer(): PaywallIframeRenderer
@@ -189,9 +178,9 @@ final class FrontendManager
 
     public static function renderWidgetInitCode(?int $productId): string
     {
-        try {
-            $widgetVariables = ConfigManager::getWidgetVariables($productId);
+        $serializer = new JsonSerializer();
 
+        try {
             return WidgetInitScriptHelper::renderWidgetInitScript(
                 ConfigManager::getCurrentWidgetCode($productId),
                 array_combine(
@@ -202,27 +191,33 @@ final class FrontendManager
                         'WIDGET_PRICE_OBSERVER_SELECTOR',
                         'WIDGET_PRICE_OBSERVER_LEVEL',
                         'WIDGET_TYPE',
-                        'OFFER_TYPE',
+                        'OFFER_TYPES',
                         'EMBED_METHOD',
                     ],
-                    ConfigManager::getConfigurationValues(
-                        'widget_settings',
-                        [
-                            'COMFINO_WIDGET_KEY',
-                            'COMFINO_WIDGET_PRICE_SELECTOR',
-                            'COMFINO_WIDGET_TARGET_SELECTOR',
-                            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
-                            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-                            'COMFINO_WIDGET_TYPE',
-                            'COMFINO_WIDGET_OFFER_TYPE',
-                            'COMFINO_WIDGET_EMBED_METHOD',
-                        ]
+                    array_map(
+                        static function ($optionValue) use ($serializer) {
+                            return is_array($optionValue) ? $serializer->serialize($optionValue) : $optionValue;
+                        },
+                        ConfigManager::getConfigurationValues(
+                            'widget_settings',
+                            [
+                                'COMFINO_WIDGET_KEY',
+                                'COMFINO_WIDGET_PRICE_SELECTOR',
+                                'COMFINO_WIDGET_TARGET_SELECTOR',
+                                'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
+                                'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+                                'COMFINO_WIDGET_TYPE',
+                                'COMFINO_WIDGET_OFFER_TYPES',
+                                'COMFINO_WIDGET_EMBED_METHOD',
+                            ]
+                        )
                     )
                 ),
-                $widgetVariables
+                ConfigManager::getWidgetVariables($productId)
             );
         } catch (\Throwable $e) {
             ErrorLogger::sendError(
+                $e,
                 'Widget script endpoint',
                 $e->getCode(),
                 $e->getMessage(),
@@ -234,15 +229,5 @@ final class FrontendManager
         }
 
         return '';
-    }
-
-    public static function getConnectMaxNumAttempts(): int
-    {
-        return ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_NUM_ATTEMPTS', 3);
-    }
-
-    public static function getConnectAttemptIdx(): int
-    {
-        return \Context::getContext()->cookie->comfino_conn_attempt_idx ?? 1;
     }
 }

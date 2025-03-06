@@ -1,3 +1,6 @@
+4.2.1
+ - FN-12563 Improved errors handling and UX.
+
 4.2.0
  - FN-12696 Improved plugin security and compatibility with best practices of PrestaShop plugins design and development.
 

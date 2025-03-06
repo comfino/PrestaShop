@@ -23,65 +23,65 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 window.ComfinoPaywallInit = {
-    init: (frontendInitElement, paywallUrl, paywallStateUrl, paywallOptions) => {
-        window.Comfino = {
-            paywallUrl: paywallUrl,
-            paywallStateUrl: paywallStateUrl,
-            paywallOptions: paywallOptions,
-            init: () => {
-                const iframe = ComfinoPaywallFrontend.createPaywallIframe(Comfino.paywallUrl, Comfino.paywallOptions);
+    init: () => {
+        const iframeContainer = document.getElementById('comfino-iframe-container');
 
-                if ('priceModifier' in frontendInitElement.dataset) {
-                    let priceModifier = parseInt(frontendInitElement.dataset.priceModifier);
+        if (iframeContainer.querySelector('#comfino-paywall-container') !== null) {
+            ComfinoPaywallFrontend.logEvent('Comfino paywall iframe already initialized.', 'info', iframeContainer);
 
-                    if (!Number.isNaN(priceModifier)) {
-                        iframe.src += ('&priceModifier=' + priceModifier);
-                    }
-                }
+            return;
+        }
 
-                document.getElementById('comfino-iframe-container').appendChild(iframe);
+        const iframe = ComfinoPaywallFrontend.createPaywallIframe(ComfinoPaywallData.paywallUrl, ComfinoPaywallData.paywallOptions);
+        const frontendInitElement = document.getElementById('pay-with-comfino') ?? document.querySelector('input[data-module-name^="comfino"]');
 
-                ComfinoPaywallFrontend.init(frontendInitElement, iframe, Comfino.paywallOptions);
-            },
-            setup: () => {
-                if (ComfinoPaywallFrontend.isInitialized()) {
-                    Comfino.init();
-                } else {
-                    Comfino.paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
-                        ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
+        let priceModifier = 0;
 
-                        const url = new URL(paywallStateUrl);
-                        const urlSearchParams = new FormData();
-                        const urlParams = {
-                            loan_amount: loanParams.loanAmount,
-                            loan_type: loanParams.loanType,
-                            loan_term: loanParams.loanTerm
-                        };
+        if ('priceModifier' in frontendInitElement.dataset) {
+            priceModifier = parseInt(frontendInitElement.dataset.priceModifier);
 
-                        for (let paramName in urlParams) {
-                            urlSearchParams.append(paramName, urlParams[paramName]);
-                        }
-
-                        const paymentStateUrl = url.toString();
-
-                        fetch(paymentStateUrl, { method: 'POST', body: urlSearchParams }).then(response => {
-                            ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', paymentStateUrl, response);
-                        });
-                    }
-
-                    Comfino.init();
-                }
+            if (!Number.isNaN(priceModifier)) {
+                iframe.src += ('&priceModifier=' + priceModifier);
+            } else {
+                priceModifier = 0;
             }
         }
 
-        if (document.readyState === 'complete') {
-            Comfino.setup();
-        } else {
-            document.addEventListener('readystatechange', () => {
-                if (document.readyState === 'complete') {
-                    Comfino.setup();
-                }
+        ComfinoPaywallData.paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
+            ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
+
+            const url = new URL(ComfinoPaywallData.paywallStateUrl);
+            const urlSearchParams = new FormData();
+            const urlParams = {
+                loan_amount: loanParams.loanAmount,
+                loan_type: loanParams.loanType,
+                loan_term: loanParams.loanTerm,
+                price_modifier: priceModifier
+            };
+
+            for (let paramName in urlParams) {
+                urlSearchParams.append(paramName, urlParams[paramName]);
+            }
+
+            const paymentStateUrl = url.toString();
+
+            fetch(paymentStateUrl, { method: 'POST', body: urlSearchParams }).then(response => {
+                ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', paymentStateUrl, response);
             });
         }
+
+        iframeContainer.appendChild(iframe);
+
+        ComfinoPaywallFrontend.init(frontendInitElement, iframe, ComfinoPaywallData.paywallOptions);
     }
+}
+
+if (document.readyState === 'complete') {
+    ComfinoPaywallInit.init();
+} else {
+    document.addEventListener('readystatechange', () => {
+        if (document.readyState === 'complete') {
+            ComfinoPaywallInit.init();
+        }
+    });
 }

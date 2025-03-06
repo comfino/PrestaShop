@@ -77,10 +77,14 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $billingAddress = $cart->getAddressCollection()[$cart->id_address_invoice];
         $deliveryAddress = $cart->getAddressCollection()[$cart->id_address_delivery];
 
-        $phoneNumber = trim($billingAddress->phone);
+        if ($billingAddress === null) {
+            $billingAddress = $deliveryAddress;
+        }
+
+        $phoneNumber = trim($billingAddress->phone ?? '');
 
         if (empty($phoneNumber)) {
-            $phoneNumber = trim($billingAddress->phone_mobile);
+            $phoneNumber = trim($billingAddress->phone_mobile ?? '');
         }
 
         if (!empty($deliveryAddress->phone)) {
@@ -129,7 +133,10 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $shopCart = OrderManager::getShopCart($cart, (int) $cookie->loan_amount, true);
+        $initLoanAmount = (int) $cookie->loan_amount;
+        $priceModifier = (int) $cookie->price_modifier;
+
+        $shopCart = OrderManager::getShopCart($cart, $priceModifier, true);
 
         $this->module->validateOrder(
             (int) $cart->id,
@@ -145,7 +152,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $orderId = (string) $this->module->currentOrder;
 
-        if (!empty(trim($billingAddress->firstname))) {
+        if (!empty(trim($billingAddress->firstname ?? ''))) {
             // Use billing address to get customer names.
             [$firstName, $lastName] = $this->prepareCustomerNames($billingAddress);
         } else {
@@ -183,7 +190,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             }
         }
 
-        $customerTaxId = trim(str_replace('-', '', $billingAddress->vat_number));
+        $customerTaxId = trim(str_replace('-', '', $billingAddress->vat_number ?? ''));
 
         $returnUrl = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
             "$cart->id&id_module={$this->module->id}&id_order=$orderId&key={$customer->secure_key}";
@@ -225,6 +232,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             '[PAYMENT]',
             'ComfinoPaymentModuleFrontController',
             [
+                '$initLoanAmount' => $initLoanAmount,
+                '$priceModifier' => $priceModifier,
+                '$cartTotalValue' => $shopCart->getTotalValue(),
                 '$loanAmount' => $order->getCart()->getTotalAmount(),
                 '$loanType' => (string) $order->getLoanParameters()->getType(),
                 '$loanTerm' => $order->getLoanParameters()->getTerm(),
@@ -271,8 +281,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
     private function prepareCustomerNames(\Address $address): array
     {
-        $firstName = trim($address->firstname);
-        $lastName = trim($address->lastname);
+        $firstName = trim($address->firstname ?? '');
+        $lastName = trim($address->lastname ?? '');
 
         if (empty($lastName)) {
             $nameParts = explode(' ', $firstName);

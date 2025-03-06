@@ -27,6 +27,7 @@
 namespace Comfino\View;
 
 use Comfino\Api\ApiClient;
+use Comfino\Api\ApiService;
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Configuration\ConfigManager;
@@ -50,6 +51,12 @@ final class FormManager
         foreach (ConfigManager::CONFIG_OPTIONS as $options) {
             foreach ($options as $optionName => $optionType) {
                 $helper->fields_value[$optionName] = ConfigManager::getConfigurationValue($optionName);
+
+                if ($optionName === 'COMFINO_WIDGET_OFFER_TYPES' && is_array($helper->fields_value[$optionName])) {
+                    foreach ($helper->fields_value[$optionName] as $optionValue) {
+                        $helper->fields_value["{$optionName}_{$optionValue}"] = $optionValue;
+                    }
+                }
             }
         }
 
@@ -139,8 +146,11 @@ final class FormManager
                 }
 
                 if (!empty(ConfigManager::getApiKey())) {
+                     $cacheInvalidateUrl = ApiService::getEndpointUrl('cacheInvalidate');
+                     $configurationUrl = ApiService::getEndpointUrl('configuration');
+
                     try {
-                        if (ApiClient::getInstance()->isShopAccountActive()) {
+                        if (ApiClient::getInstance()->isShopAccountActive($cacheInvalidateUrl, $configurationUrl)) {
                             $successMessages[] = $module->l(sprintf(
                                 '%s account is active.',
                                 $sandboxMode ? 'Test' : 'Production'

@@ -22,44 +22,20 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
-{if $full_document_structure}
-    <html>
-        <head>
-            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>
-                {if $is_debug_mode}
-                    {$error_message|escape:"htmlall":"UTF-8"} [{$error_code|escape:"htmlall":"UTF-8"}]
-                {else}
-                    {$user_error_message|escape:"htmlall":"UTF-8"}
-                {/if}
-            </title>
-            {foreach from=$paywall_styles item=style}
-                <link rel="stylesheet" href="{$style|escape:"htmlall":"UTF-8"}" media="all">
-            {/foreach}
-        </head>
-        <body>
-{/if}
-{if $show_loader}<div class="loadingio-spinner-rolling-comfino"><div class="ldio-comfino"><div></div></div></div>{/if}
-{if $show_message}<div class="error-message">{$user_error_message|escape:"htmlall":"UTF-8"}</div>{/if}
-{if $is_debug_mode}
-    <div class="debug-messages">
-        <h2>API error</h2>
-        <p><strong>Error message:</strong> {$error_message|escape:"htmlall":"UTF-8"}</p>
-        <p><strong>Error code:</strong> {$error_code|escape:"htmlall":"UTF-8"}</p>
-        <p><strong>File:</strong> {$error_file|escape:"htmlall":"UTF-8"}</p>
-        <p><strong>Line:</strong> {$error_line|escape:"htmlall":"UTF-8"}</p>
-        <p><strong>Exception class:</strong> {$exception_class|escape:"htmlall":"UTF-8"}</p>
-        <p><strong>Trace:</strong></p>
-        <pre>{$error_trace|escape:"htmlall":"UTF-8"}</pre>
-        <p><strong>URL:</strong> {$url|escape:"htmlall":"UTF-8"}</p>
-        <p><strong>Request:</strong></p>
-        <pre>{$request_body|escape:"htmlall":"UTF-8"}</pre>
-        <p><strong>Response:</strong></p>
-        <pre>{$response_body|escape:"htmlall":"UTF-8"}</pre>
-    </div>
-{/if}
-{if $full_document_structure}
-        </body>
-    </html>
-{/if}
+<html lang="{$language|escape:"htmlall":"UTF-8"}">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{$title|escape:"htmlall":"UTF-8"}</title>
+        {foreach from=$styles item=style}
+            <link rel="stylesheet" href="{$style|escape:"htmlall":"UTF-8"}" media="all">
+        {/foreach}
+        {foreach from=$scripts item=script}
+            <script src="{$script|escape:"htmlall":"UTF-8"}" data-cmp-ab="2"></script>
+        {/foreach}
+    </head>
+    <body>
+        <div id="paywall-error-container" class="paywall-error-container"></div>
+        <script data-cmp-ab="2">ComfinoPaywall.processError(document.getElementById('paywall-error-container'), {$error_details|@json_encode nofilter});</script>
+    </body>
+</html>

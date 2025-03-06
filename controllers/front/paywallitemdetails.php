@@ -26,12 +26,12 @@
 
 use Comfino\Api\ApiClient;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
+use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Cart;
-use Comfino\View\FrontendManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -51,7 +51,8 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
 
         $loanAmount = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
         $loanTypeSelected = Tools::getValue('loanTypeSelected');
-        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount, $loanTypeSelected === 'LEASING');
+        $loadProductCategories = (Tools::getValue('reqProdCat') === 'yes');
+        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount, $loadProductCategories);
 
         DebugLogger::logEvent(
             '[PAYWALL_ITEM_DETAILS]',
@@ -59,12 +60,18 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
             [
                 '$loanAmount' => $loanAmount,
                 '$loanTypeSelected' => $loanTypeSelected,
+                '$loadProductCategories' => $loadProductCategories,
                 '$shopCart' => $shopCart->getAsArray(),
             ]
         );
 
-        $response = FrontendManager::getPaywallRenderer($this->module)
-            ->getPaywallItemDetails(
+        if (empty($loanTypeSelected)) {
+            // Financial product type not passed - return empty response.
+            exit($serializer->serialize(['listItemData' => '', 'productDetails' => '']));
+        }
+
+        try {
+            $paywallItemDetails = ApiClient::getInstance()->getPaywallItemDetails(
                 $loanAmount,
                 LoanTypeEnum::from($loanTypeSelected),
                 new Cart(
@@ -76,18 +83,25 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
                     $shopCart->getDeliveryTaxValue()
                 )
             );
+        } catch (\Throwable $e) {
+            http_response_code($e instanceof HttpErrorExceptionInterface ? $e->getStatusCode() : 500);
 
-        if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
-            DebugLogger::logEvent(
-                '[PAYWALL_ITEM_DETAILS_API_REQUEST]',
-                'getPaywallItemDetails',
-                ['$request' => $apiRequest->getRequestBody()]
-            );
+            exit($serializer->serialize(
+                ApiClient::processApiError('Paywall item details endpoint', $e)['error_details']
+            ));
+        } finally {
+            if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
+                DebugLogger::logEvent(
+                    '[PAYWALL_ITEM_DETAILS_API_REQUEST]',
+                    'getPaywallItemDetails',
+                    ['$request' => $apiRequest->getRequestBody()]
+                );
+            }
         }
 
         exit($serializer->serialize([
-            'listItemData' => $response->listItemData,
-            'productDetails' => $response->productDetails,
+            'listItemData' => $paywallItemDetails->listItemData,
+            'productDetails' => $paywallItemDetails->productDetails,
         ]));
     }
 }

@@ -52,11 +52,15 @@ final class Main
             return;
         }
 
-        // Initialize cache system.
-        CacheManager::init(_PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var');
+        try {
+            // Initialize cache system.
+            CacheManager::init(_PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var');
 
-        // Register module API endpoints.
-        ApiService::init();
+            // Register module API endpoints.
+            ApiService::init();
+        } catch (\Throwable $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
 
         self::$initialized = true;
     }
@@ -77,7 +81,6 @@ final class Main
         $module->registerHook('paymentReturn');
         $module->registerHook('displayBackofficeComfinoForm');
         $module->registerHook('actionOrderStatusPostUpdate');
-        $module->registerHook('actionValidateCustomerAddressForm');
         $module->registerHook('header');
         $module->registerHook('actionAdminControllerSetMedia');
 
@@ -178,7 +181,9 @@ final class Main
         ErrorLogger::init();
 
         $loanAmount = (int) \Context::getContext()->cookie->loan_amount;
-        $shopCart = OrderManager::getShopCart($cart, $loanAmount);
+        $priceModifier = (int) \Context::getContext()->cookie->price_modifier;
+
+        $shopCart = OrderManager::getShopCart($cart, $priceModifier);
         $allowedProductTypes = SettingsManager::getAllowedProductTypes(
             ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
             $shopCart
@@ -192,6 +197,7 @@ final class Main
                 '$paymentIsAvailable' => $paymentIsAvailable,
                 '$allowedProductTypes' => $allowedProductTypes,
                 '$loanAmount' => $loanAmount,
+                '$priceModifier' => $priceModifier,
                 '$cartTotalValue' => $shopCart->getTotalValue(),
             ]
         );
