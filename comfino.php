@@ -24,8 +24,6 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-use Comfino\View\FrontendManager;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -39,11 +37,11 @@ if (!defined('COMFINO_MODULE_NAME')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.2.1');
+    define('COMFINO_VERSION', '4.2.2');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1740515364);
+    define('COMFINO_BUILD_TS', 1741700337);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
@@ -65,7 +63,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '4.2.1';
+        $this->version = '4.2.2';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -276,10 +274,10 @@ class Comfino extends PaymentModule
                 'defer'
             );
         } elseif ($controller === 'cart' || $controller === 'order' || stripos($controller, 'checkout') !== false) {
-            $iframeRenderer = FrontendManager::getPaywallIframeRenderer();
+            $iframeRenderer = Comfino\View\FrontendManager::getPaywallIframeRenderer();
 
-            $styles = FrontendManager::registerExternalStyles($iframeRenderer->getStyles());
-            $scripts = FrontendManager::registerExternalScripts($iframeRenderer->getScripts());
+            $styles = Comfino\View\FrontendManager::registerExternalStyles($iframeRenderer->getStyles());
+            $scripts = Comfino\View\FrontendManager::registerExternalScripts($iframeRenderer->getScripts());
 
             foreach ($scripts as $scriptId => $scriptUrl) {
                 Comfino\Main::addScriptLink($scriptId, $scriptUrl, 'head');
@@ -287,7 +285,7 @@ class Comfino extends PaymentModule
 
             Comfino\Main::addScriptLink(
                 'comfino-paywall-init',
-                FrontendManager::getLocalScriptUrl('paywall-init.js'),
+                Comfino\View\FrontendManager::getLocalScriptUrl('paywall-init.js'),
                 'head'
             );
 

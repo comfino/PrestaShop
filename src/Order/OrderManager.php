@@ -61,10 +61,10 @@ final class OrderManager
                         $product['name'],
                         $grossPrice,
                         (string) $product['id_product'],
-                        $loadProductCategories ? implode('→', self::getProductCategories($productEntity)) : null,
+                        $loadProductCategories ? implode('→', self::getProductCategoryNames($productEntity)) : null,
                         $product['ean13'],
                         self::getProductImageUrl($product),
-                        \Product::getProductCategories($product['id_product']),
+                        self::getProductCategoryIds($productEntity),
                         $taxRulesGroupId !== 0 ? $netPrice : null,
                         $taxRulesGroupId !== 0 ? (int) $productEntity->getTaxesRate() : null,
                         $taxRulesGroupId !== 0 ? $grossPrice - $netPrice : null
@@ -150,10 +150,10 @@ final class OrderManager
                         is_array($product->name) ? current($product->name) : $product->name,
                         $grossPrice,
                         (string) $product->id,
-                        $loadProductCategories ? implode('→', self::getProductCategories($product)) : null,
+                        $loadProductCategories ? implode('→', self::getProductCategoryNames($product)) : null,
                         $product->ean13,
                         null,
-                        array_map('intval', $product->getCategories()),
+                        self::getProductCategoryIds($product),
                         $product->getIdTaxRulesGroup() !== 0 ? $netPrice : null,
                         $product->getIdTaxRulesGroup() !== 0 ? (int) $product->getTaxesRate() : null,
                         $product->getIdTaxRulesGroup() !== 0 ? $grossPrice - $netPrice : null
@@ -200,14 +200,32 @@ final class OrderManager
     }
 
     /**
+     * @return int[]
+     */
+    private static function getProductCategoryIds(\Product $product): array
+    {
+        $categoryIds = [];
+
+        foreach ($product->getCategories() as $categoryId) {
+            $category = new \Category($categoryId);
+
+            if (\Validate::isLoadedObject($category) && $category->active) {
+                $categoryIds[] = (int) $categoryId;
+            }
+        }
+
+        return $categoryIds;
+    }
+
+    /**
      * @return string[]
      */
-    private static function getProductCategories(\Product $product): array
+    private static function getProductCategoryNames(\Product $product): array
     {
         if (($categories = ConfigManager::getAllProductCategories()) === null) {
             return [];
         }
 
-        return array_intersect_key($categories, array_flip($product->getCategories()));
+        return array_intersect_key($categories, array_flip(self::getProductCategoryIds($product)));
     }
 }
