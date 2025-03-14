@@ -87,11 +87,11 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $phoneNumber = trim($billingAddress->phone_mobile ?? '');
         }
 
-        if (!empty($deliveryAddress->phone)) {
+        if (!empty(trim($deliveryAddress->phone))) {
             $phoneNumber = trim($deliveryAddress->phone);
         }
 
-        if (!empty($deliveryAddress->phone_mobile)) {
+        if (!empty(trim($deliveryAddress->phone_mobile))) {
             $phoneNumber = trim($deliveryAddress->phone_mobile);
         }
 
