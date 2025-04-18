@@ -109,9 +109,16 @@ final class FormManager
                 );
                 $infoMessages[] = sprintf('<b>Shop domain:</b> %s', \Tools::getShopDomain());
                 $infoMessages[] = sprintf('<b>Widget key:</b> %s', ConfigManager::getWidgetKey());
+                $infoMessages[] = sprintf(
+                    '<b>New widget API:</b> %s',
+                    ConfigManager::getConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', false) ? 'Active' : 'Inactive'
+                );
 
                 if (!empty(getenv('COMFINO_DEBUG')) || !empty(getenv('COMFINO_DEV'))) {
-                    $infoMessages[] = sprintf('<b>Plugin dev-debug mode:</b> %s', ConfigManager::isDevEnv() ? 'Yes' : 'No');
+                    $infoMessages[] = sprintf(
+                        '<b>Plugin dev-debug mode:</b> %s',
+                        ConfigManager::isDevEnv() ? 'Yes' : 'No'
+                    );
 
                     $psEnvVariables = ['PS_LANGUAGE', 'PS_COUNTRY', 'PS_DOMAIN', 'PS_VERSION', 'PS_DEV_MODE'];
 

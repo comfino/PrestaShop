@@ -114,7 +114,7 @@ final class OrderManager
                 $deliveryTaxRate = (int) $carrier->getTaxesRate($deliveryAddress);
             } elseif ($billingAddress !== null) {
                 $deliveryTaxRate = (int) $carrier->getTaxesRate($billingAddress);
-            } else {
+            } elseif ($deliveryCost !== 0) {
                 $deliveryTaxRate = (int) (round($deliveryTaxValue / $deliveryCost, 2) * 100);
             }
         }

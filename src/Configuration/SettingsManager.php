@@ -145,8 +145,10 @@ final class SettingsManager
             return $widgetTypes;
         }
 
+        $useNewApi = ConfigManager::getConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', false);
+
         try {
-            $widgetTypes = ApiClient::getInstance()->getWidgetTypes();
+            $widgetTypes = ApiClient::getInstance()->getWidgetTypes($useNewApi);
             $widgetTypesList = $widgetTypes->widgetTypesWithNames;
             $cacheTtl = (int) $widgetTypes->getHeader('Cache-TTL', '0');
 

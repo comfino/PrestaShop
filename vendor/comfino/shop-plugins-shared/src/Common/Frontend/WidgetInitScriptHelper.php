@@ -23,8 +23,7 @@ class WidgetInitScriptHelper
         'PLATFORM_VERSION',
         'PLATFORM_DOMAIN',
         'PLUGIN_VERSION',
-        'AVAILABLE_OFFER_TYPES_URL',
-        'PRODUCT_DETAILS_URL',
+        'AVAILABLE_PRODUCT_TYPES',
     ];
 
     /**
@@ -87,9 +86,9 @@ class WidgetInitScriptHelper
     public static function getInitialWidgetCode(): string
     {
         return trim("
-var script = document.createElement('script');
+const script = document.createElement('script');
 script.onload = function () {
-    ComfinoProductWidget.init({
+    ComfinoWidgetFrontend.init({
         widgetKey: '{WIDGET_KEY}',
         priceSelector: '{WIDGET_PRICE_SELECTOR}',
         widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',
@@ -106,8 +105,7 @@ script.onload = function () {
         platformVersion: '{PLATFORM_VERSION}',
         platformDomain: '{PLATFORM_DOMAIN}',
         pluginVersion: '{PLUGIN_VERSION}',
-        availOffersUrl: '{AVAILABLE_OFFER_TYPES_URL}',
-        productDetailsUrl: '{PRODUCT_DETAILS_URL}',
+        availableProductTypes: {AVAILABLE_PRODUCT_TYPES},
         callbackBefore: function () {},
         callbackAfter: function () {},
         onOfferRendered: function (jsonResponse, widgetTarget, widgetNode) { },
