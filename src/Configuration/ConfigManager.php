@@ -476,6 +476,8 @@ final class ConfigManager
             'PLATFORM_DOMAIN' => \Tools::getShopDomain(),
             'PLUGIN_VERSION' => COMFINO_VERSION,
             'AVAILABLE_PRODUCT_TYPES' => $productData['available_product_types'],
+            'LANGUAGE' => \Context::getContext()->language->iso_code,
+            'CURRENCY' => \Context::getContext()->currency->iso_code,
         ];
     }
 
