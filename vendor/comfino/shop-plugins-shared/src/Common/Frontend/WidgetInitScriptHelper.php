@@ -24,6 +24,8 @@ class WidgetInitScriptHelper
         'PLATFORM_DOMAIN',
         'PLUGIN_VERSION',
         'AVAILABLE_PRODUCT_TYPES',
+        'LANGUAGE',
+        'CURRENCY',
     ];
 
     /**
@@ -106,9 +108,12 @@ script.onload = function () {
         platformDomain: '{PLATFORM_DOMAIN}',
         pluginVersion: '{PLUGIN_VERSION}',
         availableProductTypes: {AVAILABLE_PRODUCT_TYPES},
+        language: '{LANGUAGE}',
+        currency: '{CURRENCY}',
         callbackBefore: function () {},
         callbackAfter: function () {},
         onOfferRendered: function (jsonResponse, widgetTarget, widgetNode) { },
+        onWidgetLoaded: function (loadedOffers) { },
         onGetPriceElement: function (priceSelector, priceObserverSelector) { return null; },
         debugMode: window.location.hash && window.location.hash.substring(1) === 'comfino_debug'
     });
