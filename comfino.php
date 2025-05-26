@@ -41,11 +41,11 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1745334021);
+    define('COMFINO_BUILD_TS', 1748190345);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
-    define('WIDGET_INIT_SCRIPT_HASH', 'f50e0548788ffbcee359a566bbfbe3d6');
+    define('WIDGET_INIT_SCRIPT_HASH', '221b732ca50eaf32cce543271e46a3b0');
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_LAST_HASH')) {
@@ -85,7 +85,6 @@ class Comfino extends PaymentModule
             'script',
             'transactionstatus',
             'configuration',
-            'availableoffertypes',
         ];
 
         parent::__construct();

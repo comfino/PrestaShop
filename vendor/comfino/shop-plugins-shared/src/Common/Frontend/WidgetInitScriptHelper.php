@@ -13,6 +13,7 @@ class WidgetInitScriptHelper
         'WIDGET_TYPE',
         'OFFER_TYPES',
         'EMBED_METHOD',
+        'SHOW_PROVIDER_LOGOS',
     ];
 
     public const WIDGET_INIT_VARIABLES = [
@@ -54,9 +55,8 @@ class WidgetInitScriptHelper
                 },
                 array_merge(self::WIDGET_INIT_PARAMS, array_keys($widgetInitVariables))
             ),
-            array_merge(
-                array_merge($widgetInitParamsAssocKeys, $widgetInitParams),
-                array_map(static function ($varValue): string {
+            array_map(
+                static function ($varValue): string {
                     if (is_bool($varValue)) {
                         return $varValue ? 'true' : 'false';
                     }
@@ -66,7 +66,11 @@ class WidgetInitScriptHelper
                     }
 
                     return $varValue !== null ? (string) $varValue : 'null';
-                }, array_values($widgetInitVariables))
+                },
+                array_merge(
+                    array_merge($widgetInitParamsAssocKeys, $widgetInitParams),
+                    array_values($widgetInitVariables)
+                )
             ),
             $widgetInitCode
         );
@@ -104,16 +108,19 @@ script.onload = function () {
         productId: {PRODUCT_ID},
         productPrice: {PRODUCT_PRICE},
         platform: '{PLATFORM}',
+        platformName: '{PLATFORM_NAME}',
         platformVersion: '{PLATFORM_VERSION}',
         platformDomain: '{PLATFORM_DOMAIN}',
         pluginVersion: '{PLUGIN_VERSION}',
         availableProductTypes: {AVAILABLE_PRODUCT_TYPES},
         language: '{LANGUAGE}',
         currency: '{CURRENCY}',
+        showProviderLogos: {SHOW_PROVIDER_LOGOS},
         callbackBefore: function () {},
         callbackAfter: function () {},
         onOfferRendered: function (jsonResponse, widgetTarget, widgetNode) { },
-        onWidgetLoaded: function (loadedOffers) { },
+        onWidgetBannerLoaded: function (loadedOffers) { },
+        onWidgetCalculatorLoaded: function (loadedOffers) { },
         onGetPriceElement: function (priceSelector, priceObserverSelector) { return null; },
         debugMode: window.location.hash && window.location.hash.substring(1) === 'comfino_debug'
     });

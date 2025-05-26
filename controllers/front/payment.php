@@ -208,7 +208,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 $customer->email,
                 $phoneNumber,
                 Tools::getRemoteAddr(),
-                preg_match('/^[A-Z]{0,3}\d{7,}$/', str_replace('-', '', $customerTaxId)) ? $customerTaxId : null,
+                preg_match('/^[A-Z]{0,3}\d{7,}$/', $customerTaxId) ? $customerTaxId : null,
                 !$customer->is_guest,
                 $customer->isLogged(),
                 new Address(

@@ -131,6 +131,11 @@ final class OrderManager
         );
     }
 
+    /**
+     * @param \Product $product PrestaShop product entity.
+     * @param bool $loadProductCategories Whether to load product category names into cart items.
+     * @return Cart
+     */
     public static function getShopCartFromProduct(\Product $product, bool $loadProductCategories = false): Cart
     {
         $grossPrice = (int) round(round($product->getPrice(), 2) * 100);

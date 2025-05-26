@@ -467,6 +467,23 @@ final class SettingsForm
                                     'companies, Leasing) available after consulting a Comfino advisor (kontakt@comfino.pl).'
                                 ),
                             ],
+                            [
+                                'type' => 'switch',
+                                'label' => $module->l('Show logos of financial services providers'),
+                                'name' => 'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
+                                'values' => [
+                                    [
+                                        'id' => 'provider_logos_enabled',
+                                        'value' => true,
+                                        'label' => $module->l('Yes'),
+                                    ],
+                                    [
+                                        'id' => 'provider_logos_disabled',
+                                        'value' => false,
+                                        'label' => $module->l('No'),
+                                    ],
+                                ],
+                            ],
                         ],
                         'submit' => [
                             'title' => $module->l('Save'),
