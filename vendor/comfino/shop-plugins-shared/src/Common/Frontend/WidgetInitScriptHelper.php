@@ -113,6 +113,7 @@ script.onload = function () {
         platformDomain: '{PLATFORM_DOMAIN}',
         pluginVersion: '{PLUGIN_VERSION}',
         availableProductTypes: {AVAILABLE_PRODUCT_TYPES},
+        productDetailsUrl: '{PRODUCT_DETAILS_URL}',
         language: '{LANGUAGE}',
         currency: '{CURRENCY}',
         showProviderLogos: {SHOW_PROVIDER_LOGOS},

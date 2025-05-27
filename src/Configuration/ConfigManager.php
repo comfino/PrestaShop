@@ -27,6 +27,7 @@
 namespace Comfino\Configuration;
 
 use Comfino\Api\ApiClient;
+use Comfino\Api\ApiService;
 use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Frontend\FrontendHelper;
@@ -479,6 +480,7 @@ final class ConfigManager
             'PLATFORM_DOMAIN' => \Tools::getShopDomain(),
             'PLUGIN_VERSION' => COMFINO_VERSION,
             'AVAILABLE_PRODUCT_TYPES' => $productData['available_product_types'],
+            'PRODUCT_DETAILS_URL' => $productData['product_details_url'],
             'LANGUAGE' => \Context::getContext()->language->iso_code,
             'CURRENCY' => \Context::getContext()->currency->iso_code,
         ];
@@ -555,10 +557,13 @@ final class ConfigManager
     private static function getProductData(?int $productId): array
     {
         $context = \Context::getContext();
+        $productDetailsUrl = ApiService::getControllerUrl('productdetails', [], false);
 
         $price = 'null';
 
         if ($productId !== null) {
+            $productDetailsUrl .= ((strpos($productDetailsUrl, '?') === false ? '?' : '&') . "product_id=$productId");
+
             $product = new \Product($productId);
 
             if (!\Validate::isLoadedObject($product)) {
@@ -581,6 +586,7 @@ final class ConfigManager
             'product_id' => $productId ?? 'null',
             'price' => $price,
             'available_product_types' => $availableProductTypes,
+            'product_details_url' => $productDetailsUrl,
         ];
     }
 
