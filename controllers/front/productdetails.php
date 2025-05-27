@@ -24,15 +24,10 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-use Comfino\Api\ApiClient;
-use Comfino\Api\Dto\Payment\LoanQueryCriteria;
-use Comfino\Api\Dto\Payment\LoanTypeEnum;
-use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\Order\OrderManager;
-use Comfino\Shop\Order\Cart;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -61,58 +56,36 @@ class ComfinoProductDetailsModuleFrontController extends ModuleFrontController
             exit;
         }
 
-        $loanTypeSelected = Tools::getValue('loanTypeSelected');
-        $shopCart = OrderManager::getShopCartFromProduct($product, $loanTypeSelected === 'LEASING');
+        $shopCart = OrderManager::getShopCartFromProduct($product, true);
         $loanAmount = $shopCart->getTotalValue();
 
         DebugLogger::logEvent(
             '[PRODUCT_DETAILS]',
-            'getFinancialProductDetails',
+            'getShopCartFromProduct',
             [
                 '$loanAmount' => $loanAmount,
                 '$productId' => $productId,
-                '$loanTypeSelected' => $loanTypeSelected,
                 '$shopCart' => $shopCart->getAsArray(),
             ]
         );
 
         try {
-            $response = $serializer->serialize(
-                ApiClient::getInstance()->getFinancialProductDetails(
-                    new LoanQueryCriteria($loanAmount, null, LoanTypeEnum::from($loanTypeSelected)),
-                    new Cart(
-                        $shopCart->getCartItems(),
-                        $shopCart->getTotalValue(),
-                        $shopCart->getDeliveryCost(),
-                        $shopCart->getDeliveryNetCost(),
-                        $shopCart->getDeliveryTaxRate(),
-                        $shopCart->getDeliveryTaxValue()
-                    )
-                )->financialProducts
-            );
+            $response = $serializer->serialize($shopCart->getAsArray());
         } catch (Throwable $e) {
             ErrorLogger::sendError(
                 $e,
-                'Product details endpoint',
+                'Cart product details endpoint',
                 $e->getCode(),
                 $e->getMessage(),
-                $e instanceof HttpErrorExceptionInterface ? $e->getUrl() : null,
-                $e instanceof HttpErrorExceptionInterface ? $e->getRequestBody() : null,
-                $e instanceof HttpErrorExceptionInterface ? $e->getResponseBody() : null,
+                null,
+                null,
+                null,
                 $e->getTraceAsString()
             );
 
-            http_response_code($e instanceof HttpErrorExceptionInterface ? $e->getStatusCode() : 500);
+            http_response_code(500);
 
             $response = $e->getMessage();
-        } finally {
-            if (($apiRequest = ApiClient::getInstance()->getRequest()) !== null) {
-                DebugLogger::logEvent(
-                    '[PRODUCT_DETAILS_API_REQUEST]',
-                    'getFinancialProductDetails',
-                    ['$request' => $apiRequest->getRequestBody()]
-                );
-            }
         }
 
         exit($response);
