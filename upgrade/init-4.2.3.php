@@ -49,5 +49,7 @@ function upgrade_module_4_2_3(Comfino $module)
         ConfigManager::updateConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', '0');
     }
 
+    ConfigManager::updateConfigurationValue('COMFINO_PROD_CAT_CACHE_TTL', 60 * 60);
+
     return true;
 }

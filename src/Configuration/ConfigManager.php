@@ -39,6 +39,7 @@ use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
 use Comfino\Order\ShopStatusManager;
+use Comfino\PluginShared\CacheManager;
 use Comfino\Tools;
 
 if (!defined('_PS_VERSION_')) {
@@ -90,6 +91,7 @@ final class ConfigManager
             'COMFINO_API_TIMEOUT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_NEW_WIDGET_ACTIVE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_PROD_CAT_CACHE_TTL' => ConfigurationManager::OPT_VALUE_TYPE_INT,
         ],
     ];
 
@@ -125,6 +127,7 @@ final class ConfigManager
         'COMFINO_API_TIMEOUT',
         'COMFINO_API_CONNECT_NUM_ATTEMPTS',
         'COMFINO_NEW_WIDGET_ACTIVE',
+        'COMFINO_PROD_CAT_CACHE_TTL',
     ];
 
     private const CONFIG_MANAGER_OPTIONS = ConfigurationManager::OPT_SERIALIZE_ARRAYS;
@@ -209,15 +212,32 @@ final class ConfigManager
     {
         static $categories = null;
 
-        if ($categories === null) {
-            $categories = [];
+        $language = \Context::getContext()->language->iso_code;
+
+        if ($categories === null || !isset($categories[$language])) {
+            if ($categories === null) {
+                $categories = [];
+            } else {
+                $categories[$language] = [];
+            }
+
+            $cacheKey = "product_categories.$language";
+
+            if (($categories[$language] = CacheManager::get($cacheKey)) !== null) {
+                // Product categories loaded from cache.
+                return $categories[$language];
+            }
 
             foreach (\Category::getSimpleCategories(\Context::getContext()->language->id) as $category) {
-                $categories[$category['id_category']] = $category['name'];
+                $categories[$language][$category['id_category']] = $category['name'];
             }
+
+            $cacheTtl = self::getConfigurationValue('COMFINO_PROD_CAT_CACHE_TTL', 60 * 60);
+
+            CacheManager::set($cacheKey, $categories[$language], $cacheTtl, ['product_categories']);
         }
 
-        return $categories;
+        return $categories[$language];
     }
 
     public static function getCategoriesTree(): CategoryTree
@@ -480,7 +500,7 @@ final class ConfigManager
             'PLATFORM_DOMAIN' => \Tools::getShopDomain(),
             'PLUGIN_VERSION' => COMFINO_VERSION,
             'AVAILABLE_PRODUCT_TYPES' => $productData['available_product_types'],
-            'PRODUCT_DETAILS_URL' => $productData['product_details_url'],
+            'PRODUCT_CART_DETAILS' => $productData['product_cart_details'],
             'LANGUAGE' => \Context::getContext()->language->iso_code,
             'CURRENCY' => \Context::getContext()->currency->iso_code,
         ];
@@ -536,6 +556,7 @@ final class ConfigManager
             'COMFINO_API_TIMEOUT' => 5,
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => 3,
             'COMFINO_NEW_WIDGET_ACTIVE' => true,
+            'COMFINO_PROD_CAT_CACHE_TTL' => 60 * 60, // Default cache TTL for product categories set to 1 hour.
         ];
     }
 
@@ -556,14 +577,10 @@ final class ConfigManager
      */
     private static function getProductData(?int $productId): array
     {
-        $context = \Context::getContext();
-        $productDetailsUrl = ApiService::getControllerUrl('productdetails', [], false);
-
         $price = 'null';
+        $productCartDetails = 'null';
 
         if ($productId !== null) {
-            $productDetailsUrl .= ((strpos($productDetailsUrl, '?') === false ? '?' : '&') . "product_id=$productId");
-
             $product = new \Product($productId);
 
             if (!\Validate::isLoadedObject($product)) {
@@ -571,22 +588,27 @@ final class ConfigManager
                     ProductTypesListTypeEnum::LIST_TYPE_WIDGET
                 );
             } else {
-                $price = (new Tools($context))->getFormattedPrice($product->getPrice());
+                $shopCart = OrderManager::getShopCartFromProduct($product, true);
+
+                $price = (new Tools(\Context::getContext()))->getFormattedPrice($product->getPrice());
                 $availableProductTypes = SettingsManager::getAllowedProductTypes(
                     ProductTypesListTypeEnum::LIST_TYPE_WIDGET,
-                    OrderManager::getShopCartFromProduct($product),
+                    $shopCart,
                     true
                 );
+                $productCartDetails = $shopCart->getAsArray();
             }
         } else {
-            $availableProductTypes = SettingsManager::getProductTypesStrings(ProductTypesListTypeEnum::LIST_TYPE_WIDGET);
+            $availableProductTypes = SettingsManager::getProductTypesStrings(
+                ProductTypesListTypeEnum::LIST_TYPE_WIDGET
+            );
         }
 
         return [
             'product_id' => $productId ?? 'null',
             'price' => $price,
             'available_product_types' => $availableProductTypes,
-            'product_details_url' => $productDetailsUrl,
+            'product_cart_details' => $productCartDetails,
         ];
     }
 

@@ -25,6 +25,7 @@ class WidgetInitScriptHelper
         'PLATFORM_DOMAIN',
         'PLUGIN_VERSION',
         'AVAILABLE_PRODUCT_TYPES',
+        'PRODUCT_CART_DETAILS',
         'LANGUAGE',
         'CURRENCY',
     ];
@@ -113,7 +114,7 @@ script.onload = function () {
         platformDomain: '{PLATFORM_DOMAIN}',
         pluginVersion: '{PLUGIN_VERSION}',
         availableProductTypes: {AVAILABLE_PRODUCT_TYPES},
-        productDetailsUrl: '{PRODUCT_DETAILS_URL}',
+        productCartDetails: {PRODUCT_CART_DETAILS},
         language: '{LANGUAGE}',
         currency: '{CURRENCY}',
         showProviderLogos: {SHOW_PROVIDER_LOGOS},
