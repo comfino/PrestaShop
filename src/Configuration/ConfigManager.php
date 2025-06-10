@@ -453,7 +453,7 @@ final class ConfigManager
             $optionsToInject[] = "        productId: $productData[product_id]";
         }
         if (strpos($widgetCode, 'availableProductTypes') === false) {
-            $optionsToInject[] = "        availableProductTypes: $productData[available_product_types]";
+            $optionsToInject[] = '        availableProductTypes: ' . implode(',', $productData['available_product_types']);
         }
 
         if (count($optionsToInject) > 0) {
