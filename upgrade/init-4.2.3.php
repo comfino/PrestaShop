@@ -40,7 +40,7 @@ function upgrade_module_4_2_3(Comfino $module)
         return false;
     }
 
-    ConfigManager::updateWidgetCode(WIDGET_INIT_SCRIPT_LAST_HASH);
+    ConfigManager::updateWidgetCode();
 
     ConfigManager::updateConfigurationValue('COMFINO_WIDGET_TYPE', 'standard');
     ConfigManager::updateConfigurationValue('COMFINO_WIDGET_SHOW_PROVIDER_LOGOS', '0');
