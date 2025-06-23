@@ -40,14 +40,13 @@ function upgrade_module_4_2_3(Comfino $module)
         return false;
     }
 
-    if (ConfigManager::updateWidgetCode(WIDGET_INIT_SCRIPT_LAST_HASH)) {
-        ConfigManager::updateConfigurationValue('COMFINO_WIDGET_TYPE', 'standard');
-        ConfigManager::updateConfigurationValue('COMFINO_WIDGET_SHOW_PROVIDER_LOGOS', '0');
-        ConfigManager::updateConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', '1');
-        CacheManager::getCachePool()->clear();
-    } else {
-        ConfigManager::updateConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', '0');
-    }
+    ConfigManager::updateWidgetCode(WIDGET_INIT_SCRIPT_LAST_HASH);
+
+    ConfigManager::updateConfigurationValue('COMFINO_WIDGET_TYPE', 'standard');
+    ConfigManager::updateConfigurationValue('COMFINO_WIDGET_SHOW_PROVIDER_LOGOS', '0');
+    ConfigManager::updateConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', '1');
+
+    CacheManager::getCachePool()->clear();
 
     ConfigManager::updateConfigurationValue('COMFINO_PROD_CAT_CACHE_TTL', 60 * 60);
 
