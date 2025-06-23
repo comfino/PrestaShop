@@ -475,7 +475,7 @@ final class ConfigManager
         $widgetProdScriptVersion = self::getConfigurationValue('COMFINO_WIDGET_PROD_SCRIPT_VERSION');
 
         if (empty($widgetProdScriptVersion)) {
-            $widgetScriptUrl .= '/widget-frontend.min.js';
+            $widgetScriptUrl .= '/v2/widget-frontend.min.js';
         } else {
             $widgetScriptUrl .= ('/' . trim($widgetProdScriptVersion, '/'));
         }
