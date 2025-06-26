@@ -42,13 +42,19 @@ function upgrade_module_4_2_3(Comfino $module)
 
     ConfigManager::updateWidgetCode();
 
-    ConfigManager::updateConfigurationValue('COMFINO_WIDGET_TYPE', 'standard');
-    ConfigManager::updateConfigurationValue('COMFINO_WIDGET_SHOW_PROVIDER_LOGOS', '0');
-    ConfigManager::updateConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', '1');
+    ConfigManager::updateConfiguration([
+        'COMFINO_WIDGET_TYPE' => 'standard',
+        'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
+        'COMFINO_NEW_WIDGET_ACTIVE' =>  true,
+    ]);
 
     CacheManager::getCachePool()->clear();
 
     ConfigManager::updateConfigurationValue('COMFINO_PROD_CAT_CACHE_TTL', 60 * 60);
+
+    @unlink(_PS_MODULE_DIR_ . 'comfino/controllers/front/availableoffertypes.php');
+    @unlink(_PS_MODULE_DIR_ . 'comfino/controllers/front/productdetails.php');
+    @unlink(_PS_MODULE_DIR_ . 'comfino/controllers/front/widget.php');
 
     return true;
 }

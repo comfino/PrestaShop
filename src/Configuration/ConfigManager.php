@@ -27,7 +27,6 @@
 namespace Comfino\Configuration;
 
 use Comfino\Api\ApiClient;
-use Comfino\Api\ApiService;
 use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Frontend\FrontendHelper;

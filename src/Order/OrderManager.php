@@ -131,6 +131,70 @@ final class OrderManager
         );
     }
 
+    public static function getShopCartFromOrder(\Order $order, int $priceModifier, bool $loadProductCategories = false): Cart
+    {
+        $totalValue = (int) round(round($order->getTotalProductsWithTaxes(), 2) * 100);
+        $totalNetValue = (int) round(round($order->getTotalProductsWithoutTaxes(), 2) * 100);
+        $totalTaxValue = $totalValue - $totalNetValue;
+
+        if ($priceModifier > 0) {
+            // Add price modifier (e.g. custom commission).
+            $totalValue += $priceModifier;
+        }
+
+        $cartItems = array_map(
+            static function (array $product) use ($loadProductCategories): CartItemInterface {
+                $productEntity = new \Product($product['id_product']);
+
+                $quantity = (int) $product['cart_quantity'];
+                $taxRulesGroupId = \Product::getIdTaxRulesGroupByIdProduct($product['id_product']);
+                $grossPrice = (int) round(round(\Product::getPriceStatic($product['id_product']), 2) * 100);
+                $netPrice = (int) round(round(\Product::getPriceStatic($product['id_product'], false), 2) * 100);
+
+                return new CartItem(
+                    new Product(
+                        $product['name'],
+                        $grossPrice,
+                        (string) $product['id_product'],
+                        $loadProductCategories ? implode('→', self::getProductCategoryNames($productEntity)) : null,
+                        $product['ean13'],
+                        self::getProductImageUrl($product),
+                        self::getProductCategoryIds($productEntity),
+                        $taxRulesGroupId !== 0 ? $netPrice : null,
+                        $taxRulesGroupId !== 0 ? (int) $productEntity->getTaxesRate() : null,
+                        $taxRulesGroupId !== 0 ? $grossPrice - $netPrice : null
+                    ),
+                    $quantity
+                );
+            },
+            $order->getCartProducts()
+        );
+
+        if ($totalNetValue === 0) {
+            $totalNetValue = null;
+        }
+
+        if ($totalTaxValue === 0) {
+            $totalTaxValue = null;
+        }
+
+        $deliveryCost = (int) round(round($order->total_shipping, 2) * 100);
+        $deliveryNetCost = (int) round(round($order->total_shipping_tax_excl, 2) * 100);
+        $deliveryTaxValue = $deliveryCost - $deliveryNetCost;
+        $deliveryTaxRate = (int) round(round($order->carrier_tax_rate, 2) * 100);
+
+        return new Cart(
+            $totalValue,
+            $totalNetValue,
+            $totalTaxValue,
+            $deliveryCost,
+            $deliveryNetCost,
+            $deliveryTaxRate,
+            $deliveryTaxValue,
+            $cartItems
+        );
+    }
+
     /**
      * @param \Product $product PrestaShop product entity.
      * @param bool $loadProductCategories Whether to load product category names into cart items.
