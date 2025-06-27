@@ -144,6 +144,14 @@ final class FormManager
                             $devEnvVariables
                         ))
                     );
+
+                    $internalOptions = '';
+
+                    foreach (ConfigManager::getConfigurationValues('hidden_settings') as $optionName => $optionValue) {
+                        $internalOptions .= "<li><b>$optionName</b> = \"$optionValue\"</li>";
+                    }
+
+                    $infoMessages[] = "<b>Internal configuration options:</b><ul>$internalOptions</ul>";
                 }
 
                 if ($sandboxMode = ConfigManager::isSandboxMode()) {

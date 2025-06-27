@@ -42,11 +42,14 @@ function upgrade_module_4_2_3(Comfino $module)
 
     ConfigManager::updateWidgetCode();
 
-    ConfigManager::updateConfiguration([
-        'COMFINO_WIDGET_TYPE' => 'standard',
-        'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
-        'COMFINO_NEW_WIDGET_ACTIVE' =>  true,
-    ]);
+    ConfigManager::updateConfiguration(
+        [
+            'COMFINO_WIDGET_TYPE' => 'standard',
+            'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
+            'COMFINO_NEW_WIDGET_ACTIVE' =>  true,
+        ],
+        false
+    );
 
     CacheManager::getCachePool()->clear();
 

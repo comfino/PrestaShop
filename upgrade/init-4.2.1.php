@@ -42,13 +42,16 @@ function upgrade_module_4_2_1(Comfino $module)
     ConfigManager::updateWidgetCode(WIDGET_INIT_SCRIPT_LAST_HASH);
 
     // Initialize new configuration options and set widget type as extended-modal for all upgraded shops, update API connection timeouts.
-    ConfigManager::updateConfiguration([
-        'COMFINO_WIDGET_OFFER_TYPES' => [Configuration::get('COMFINO_WIDGET_OFFER_TYPE')],
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => ['INSTALLMENTS_ZERO_PERCENT', 'PAY_LATER', 'LEASING'],
-        'COMFINO_WIDGET_TYPE' => 'extended-modal',
-        'COMFINO_API_CONNECT_TIMEOUT' => 3,
-        'COMFINO_API_TIMEOUT' => 5,
-    ]);
+    ConfigManager::updateConfiguration(
+        [
+            'COMFINO_WIDGET_OFFER_TYPES' => [Configuration::get('COMFINO_WIDGET_OFFER_TYPE')],
+            'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => ['INSTALLMENTS_ZERO_PERCENT', 'PAY_LATER', 'LEASING'],
+            'COMFINO_WIDGET_TYPE' => 'extended-modal',
+            'COMFINO_API_CONNECT_TIMEOUT' => 3,
+            'COMFINO_API_TIMEOUT' => 5,
+        ],
+        false
+    );
 
     return true;
 }

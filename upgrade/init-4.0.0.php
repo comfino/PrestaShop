@@ -46,16 +46,19 @@ function upgrade_module_4_0_0(Comfino $module)
     ConfigManager::deleteConfigurationValues(['COMFINO_REGISTERED_AT', 'COMFINO_SANDBOX_REGISTERED_AT']);
 
     // Initialize new configuration options.
-    ConfigManager::updateConfiguration([
-        'COMFINO_DEBUG' => false,
-        'COMFINO_SERVICE_MODE' => false,
-        'COMFINO_IGNORED_STATUSES' => implode(',', StatusManager::DEFAULT_IGNORED_STATUSES),
-        'COMFINO_FORBIDDEN_STATUSES' => implode(',', StatusManager::DEFAULT_FORBIDDEN_STATUSES),
-        'COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP),
-        'COMFINO_API_CONNECT_TIMEOUT' => 1,
-        'COMFINO_API_TIMEOUT' => 3,
-        'COMFINO_API_CONNECT_NUM_ATTEMPTS' => 3,
-    ]);
+    ConfigManager::updateConfiguration(
+        [
+            'COMFINO_DEBUG' => false,
+            'COMFINO_SERVICE_MODE' => false,
+            'COMFINO_IGNORED_STATUSES' => implode(',', StatusManager::DEFAULT_IGNORED_STATUSES),
+            'COMFINO_FORBIDDEN_STATUSES' => implode(',', StatusManager::DEFAULT_FORBIDDEN_STATUSES),
+            'COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP),
+            'COMFINO_API_CONNECT_TIMEOUT' => 1,
+            'COMFINO_API_TIMEOUT' => 3,
+            'COMFINO_API_CONNECT_NUM_ATTEMPTS' => 3,
+        ],
+        false
+    );
 
     $logFilePath = _PS_MODULE_DIR_ . $module->name . '/payment_log.log';
 
