@@ -148,6 +148,10 @@ final class FormManager
                     $internalOptions = '';
 
                     foreach (ConfigManager::getConfigurationValues('hidden_settings') as $optionName => $optionValue) {
+                        if (is_array($optionValue) || is_bool($optionValue)) {
+                            $optionValue = json_encode($optionValue);
+                        }
+
                         $internalOptions .= "<li><b>$optionName</b> = \"$optionValue\"</li>";
                     }
 

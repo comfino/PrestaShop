@@ -513,7 +513,7 @@ final class ConfigManager
 
         return count($optionsToReturn)
             ? self::getInstance()->getConfigurationValues($optionsToReturn)
-            : self::getInstance()->getConfigurationValues(self::CONFIG_OPTIONS[$optionsGroup]);
+            : self::getInstance()->getConfigurationValues(array_keys(self::CONFIG_OPTIONS[$optionsGroup]));
     }
 
     public static function getDefaultValue(string $optionName)
