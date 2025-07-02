@@ -198,17 +198,19 @@ final class OrderManager
     /**
      * @param \Product $product PrestaShop product entity.
      * @param bool $loadProductCategories Whether to load product category names into cart items.
-     * @return Cart
+     * @return Cart Comfino cart structure.
      */
     public static function getShopCartFromProduct(\Product $product, bool $loadProductCategories = false): Cart
     {
+        $taxRate = ($product->getIdTaxRulesGroup() !== 0 ? (int) $product->getTaxesRate() : null);
         $grossPrice = (int) round(round($product->getPrice(), 2) * 100);
         $netPrice = (int) round(round($product->getPrice(false), 2) * 100);
+        $taxValue = ($taxRate !== null ? $grossPrice - $netPrice : null);
 
         return new Cart(
             $grossPrice,
             $netPrice,
-            $grossPrice - $netPrice,
+            $taxValue,
             0,
             null,
             null,
@@ -223,9 +225,9 @@ final class OrderManager
                         $product->ean13,
                         null,
                         self::getProductCategoryIds($product),
-                        $product->getIdTaxRulesGroup() !== 0 ? $netPrice : null,
-                        $product->getIdTaxRulesGroup() !== 0 ? (int) $product->getTaxesRate() : null,
-                        $product->getIdTaxRulesGroup() !== 0 ? $grossPrice - $netPrice : null
+                        $taxRate !== null ? $netPrice : null,
+                        $taxRate,
+                        $taxValue
                     ),
                     1
                 ),
