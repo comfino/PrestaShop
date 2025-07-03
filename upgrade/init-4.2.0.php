@@ -43,12 +43,15 @@ function upgrade_module_4_2_0(Comfino $module)
     ConfigManager::updateWidgetCode();
 
     // Initialize new configuration options.
-    ConfigManager::updateConfiguration([
-        'COMFINO_JS_PROD_PATH' => '',
-        'COMFINO_CSS_PROD_PATH' => 'css',
-        'COMFINO_JS_DEV_PATH' => '',
-        'COMFINO_CSS_DEV_PATH' => 'css',
-    ]);
+    ConfigManager::updateConfiguration(
+        [
+            'COMFINO_JS_PROD_PATH' => '',
+            'COMFINO_CSS_PROD_PATH' => 'css',
+            'COMFINO_JS_DEV_PATH' => '',
+            'COMFINO_CSS_DEV_PATH' => 'css',
+        ],
+        false
+    );
 
     // Update COMFINO_IGNORED_STATUSES option.
     if (is_array($ignoredStatuses = ConfigManager::getConfigurationValue('COMFINO_IGNORED_STATUSES'))

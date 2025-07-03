@@ -100,7 +100,7 @@ class Tools
     public function getFormattedPrice(float $price): float
     {
         return (float) preg_replace(
-            ['/[^\d,.]/', '/(?<=\d),(?=\d{3}(?:[^\d]|$))/', '/,00$/', '/,/'],
+            ['/[^\d,.]/', '/(?<=\d),(?=\d{3}(?:\D|$))/', '/,00$/', '/,/'],
             ['', '', '', '.'],
             $this->formatPrice($price, $this->getCurrentCurrencyId())
         );

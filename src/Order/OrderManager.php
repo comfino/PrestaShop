@@ -114,7 +114,7 @@ final class OrderManager
                 $deliveryTaxRate = (int) $carrier->getTaxesRate($deliveryAddress);
             } elseif ($billingAddress !== null) {
                 $deliveryTaxRate = (int) $carrier->getTaxesRate($billingAddress);
-            } else {
+            } elseif ($deliveryCost !== 0) {
                 $deliveryTaxRate = (int) (round($deliveryTaxValue / $deliveryCost, 2) * 100);
             }
         }
@@ -131,15 +131,86 @@ final class OrderManager
         );
     }
 
+    public static function getShopCartFromOrder(\Order $order, int $priceModifier, bool $loadProductCategories = false): Cart
+    {
+        $totalValue = (int) round(round($order->getTotalProductsWithTaxes(), 2) * 100);
+        $totalNetValue = (int) round(round($order->getTotalProductsWithoutTaxes(), 2) * 100);
+        $totalTaxValue = $totalValue - $totalNetValue;
+
+        if ($priceModifier > 0) {
+            // Add price modifier (e.g. custom commission).
+            $totalValue += $priceModifier;
+        }
+
+        $cartItems = array_map(
+            static function (array $product) use ($loadProductCategories): CartItemInterface {
+                $productEntity = new \Product($product['id_product']);
+
+                $quantity = (int) $product['cart_quantity'];
+                $taxRulesGroupId = \Product::getIdTaxRulesGroupByIdProduct($product['id_product']);
+                $grossPrice = (int) round(round(\Product::getPriceStatic($product['id_product']), 2) * 100);
+                $netPrice = (int) round(round(\Product::getPriceStatic($product['id_product'], false), 2) * 100);
+
+                return new CartItem(
+                    new Product(
+                        $product['name'],
+                        $grossPrice,
+                        (string) $product['id_product'],
+                        $loadProductCategories ? implode('→', self::getProductCategoryNames($productEntity)) : null,
+                        $product['ean13'],
+                        self::getProductImageUrl($product),
+                        self::getProductCategoryIds($productEntity),
+                        $taxRulesGroupId !== 0 ? $netPrice : null,
+                        $taxRulesGroupId !== 0 ? (int) $productEntity->getTaxesRate() : null,
+                        $taxRulesGroupId !== 0 ? $grossPrice - $netPrice : null
+                    ),
+                    $quantity
+                );
+            },
+            $order->getCartProducts()
+        );
+
+        if ($totalNetValue === 0) {
+            $totalNetValue = null;
+        }
+
+        if ($totalTaxValue === 0) {
+            $totalTaxValue = null;
+        }
+
+        $deliveryCost = (int) round(round($order->total_shipping, 2) * 100);
+        $deliveryNetCost = (int) round(round($order->total_shipping_tax_excl, 2) * 100);
+        $deliveryTaxValue = $deliveryCost - $deliveryNetCost;
+        $deliveryTaxRate = (int) round(round($order->carrier_tax_rate, 2) * 100);
+
+        return new Cart(
+            $totalValue,
+            $totalNetValue,
+            $totalTaxValue,
+            $deliveryCost,
+            $deliveryNetCost,
+            $deliveryTaxRate,
+            $deliveryTaxValue,
+            $cartItems
+        );
+    }
+
+    /**
+     * @param \Product $product PrestaShop product entity.
+     * @param bool $loadProductCategories Whether to load product category names into cart items.
+     * @return Cart Comfino cart structure.
+     */
     public static function getShopCartFromProduct(\Product $product, bool $loadProductCategories = false): Cart
     {
+        $taxRate = ($product->getIdTaxRulesGroup() !== 0 ? (int) $product->getTaxesRate() : null);
         $grossPrice = (int) round(round($product->getPrice(), 2) * 100);
         $netPrice = (int) round(round($product->getPrice(false), 2) * 100);
+        $taxValue = ($taxRate !== null ? $grossPrice - $netPrice : null);
 
         return new Cart(
             $grossPrice,
             $netPrice,
-            $grossPrice - $netPrice,
+            $taxValue,
             0,
             null,
             null,
@@ -154,9 +225,9 @@ final class OrderManager
                         $product->ean13,
                         null,
                         self::getProductCategoryIds($product),
-                        $product->getIdTaxRulesGroup() !== 0 ? $netPrice : null,
-                        $product->getIdTaxRulesGroup() !== 0 ? (int) $product->getTaxesRate() : null,
-                        $product->getIdTaxRulesGroup() !== 0 ? $grossPrice - $netPrice : null
+                        $taxRate !== null ? $netPrice : null,
+                        $taxRate,
+                        $taxValue
                     ),
                     1
                 ),

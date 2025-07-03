@@ -23,6 +23,41 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+use Comfino\Configuration\ConfigManager;
+use Comfino\PluginShared\CacheManager;
+
 if (!defined('_PS_VERSION_')) {
     exit;
+}
+
+/**
+ * @return bool
+ */
+function upgrade_module_4_2_3(Comfino $module)
+{
+    if (!$module->checkEnvironment()) {
+        return false;
+    }
+
+    ConfigManager::updateWidgetCode();
+
+    ConfigManager::updateConfiguration(
+        [
+            'COMFINO_WIDGET_TYPE' => 'standard',
+            'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
+            'COMFINO_NEW_WIDGET_ACTIVE' =>  true,
+        ],
+        false
+    );
+
+    CacheManager::getCachePool()->clear();
+
+    ConfigManager::updateConfigurationValue('COMFINO_PROD_CAT_CACHE_TTL', 60 * 60);
+
+    @unlink(_PS_MODULE_DIR_ . 'comfino/controllers/front/availableoffertypes.php');
+    @unlink(_PS_MODULE_DIR_ . 'comfino/controllers/front/productdetails.php');
+    @unlink(_PS_MODULE_DIR_ . 'comfino/controllers/front/widget.php');
+
+    return true;
 }

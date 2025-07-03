@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.2.3](https://github.com/comfino/PrestaShop/tree/4.2.3) (2025-07-02)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.2...4.2.3)
+
+**Merged pull requests:**
+
+- FN-13053 Integration with new widget API, fixed some bugs. [\#102](https://github.com/comfino/PrestaShop/pull/102) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.2.2](https://github.com/comfino/PrestaShop/tree/4.2.2) (2025-03-14)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.1...4.2.2)

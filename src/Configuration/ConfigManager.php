@@ -27,7 +27,6 @@
 namespace Comfino\Configuration;
 
 use Comfino\Api\ApiClient;
-use Comfino\Api\ApiService;
 use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Frontend\FrontendHelper;
@@ -36,7 +35,10 @@ use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Common\Shop\Product\CategoryTree;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
+use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\Order\OrderManager;
 use Comfino\Order\ShopStatusManager;
+use Comfino\PluginShared\CacheManager;
 use Comfino\Tools;
 
 if (!defined('_PS_VERSION_')) {
@@ -64,6 +66,7 @@ final class ConfigManager
             'COMFINO_WIDGET_TYPE' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_WIDGET_OFFER_TYPES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
             'COMFINO_WIDGET_EMBED_METHOD' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_WIDGET_CODE' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
         ],
         'developer_settings' => [
@@ -86,6 +89,8 @@ final class ConfigManager
             'COMFINO_API_CONNECT_TIMEOUT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_API_TIMEOUT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => ConfigurationManager::OPT_VALUE_TYPE_INT,
+            'COMFINO_NEW_WIDGET_ACTIVE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_PROD_CAT_CACHE_TTL' => ConfigurationManager::OPT_VALUE_TYPE_INT,
         ],
     ];
 
@@ -109,6 +114,7 @@ final class ConfigManager
         'COMFINO_WIDGET_CODE',
         'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
         'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
+        'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
         'COMFINO_IGNORED_STATUSES',
         'COMFINO_FORBIDDEN_STATUSES',
         'COMFINO_STATUS_MAP',
@@ -119,6 +125,8 @@ final class ConfigManager
         'COMFINO_API_CONNECT_TIMEOUT',
         'COMFINO_API_TIMEOUT',
         'COMFINO_API_CONNECT_NUM_ATTEMPTS',
+        'COMFINO_NEW_WIDGET_ACTIVE',
+        'COMFINO_PROD_CAT_CACHE_TTL',
     ];
 
     private const CONFIG_MANAGER_OPTIONS = ConfigurationManager::OPT_SERIALIZE_ARRAYS;
@@ -203,15 +211,32 @@ final class ConfigManager
     {
         static $categories = null;
 
-        if ($categories === null) {
-            $categories = [];
+        $language = \Context::getContext()->language->iso_code;
+
+        if ($categories === null || !isset($categories[$language])) {
+            if ($categories === null) {
+                $categories = [];
+            } else {
+                $categories[$language] = [];
+            }
+
+            $cacheKey = "product_categories.$language";
+
+            if (($categories[$language] = CacheManager::get($cacheKey)) !== null) {
+                // Product categories loaded from cache.
+                return $categories[$language];
+            }
 
             foreach (\Category::getSimpleCategories(\Context::getContext()->language->id) as $category) {
-                $categories[$category['id_category']] = $category['name'];
+                $categories[$language][$category['id_category']] = $category['name'];
             }
+
+            $cacheTtl = self::getConfigurationValue('COMFINO_PROD_CAT_CACHE_TTL', 60 * 60);
+
+            CacheManager::set($cacheKey, $categories[$language], $cacheTtl, ['product_categories']);
         }
 
-        return $categories;
+        return $categories[$language];
     }
 
     public static function getCategoriesTree(): CategoryTree
@@ -383,7 +408,7 @@ final class ConfigManager
         return $result;
     }
 
-    public static function updateWidgetCode(?string $lastWidgetCodeHash = null): void
+    public static function updateWidgetCode(?string $lastWidgetCodeHash = null): bool
     {
         ErrorLogger::init();
 
@@ -394,6 +419,8 @@ final class ConfigManager
             if ($lastWidgetCodeHash === null || md5($currentWidgetCode) === $lastWidgetCodeHash) {
                 // Widget code not changed since last installed version - safely replace with new one.
                 self::updateConfigurationValue('COMFINO_WIDGET_CODE', $initialWidgetCode);
+
+                return true;
             }
         } catch (\Throwable $e) {
             ErrorLogger::sendError(
@@ -407,6 +434,8 @@ final class ConfigManager
                 $e->getTraceAsString()
             );
         }
+
+        return false;
     }
 
     /**
@@ -422,8 +451,8 @@ final class ConfigManager
         if (strpos($widgetCode, 'productId') === false) {
             $optionsToInject[] = "        productId: $productData[product_id]";
         }
-        if (strpos($widgetCode, 'availOffersUrl') === false) {
-            $optionsToInject[] = "        availOffersUrl: '$productData[avail_offers_url]'";
+        if (strpos($widgetCode, 'availableProductTypes') === false) {
+            $optionsToInject[] = '        availableProductTypes: ' . implode(',', $productData['available_product_types']);
         }
 
         if (count($optionsToInject) > 0) {
@@ -445,7 +474,7 @@ final class ConfigManager
         $widgetProdScriptVersion = self::getConfigurationValue('COMFINO_WIDGET_PROD_SCRIPT_VERSION');
 
         if (empty($widgetProdScriptVersion)) {
-            $widgetScriptUrl .= '/comfino.min.js';
+            $widgetScriptUrl .= '/v2/widget-frontend.min.js';
         } else {
             $widgetScriptUrl .= ('/' . trim($widgetProdScriptVersion, '/'));
         }
@@ -465,11 +494,14 @@ final class ConfigManager
             'PRODUCT_ID' => $productData['product_id'],
             'PRODUCT_PRICE' => $productData['price'],
             'PLATFORM' => 'prestashop',
+            'PLATFORM_NAME' => 'PrestaShop',
             'PLATFORM_VERSION' => _PS_VERSION_,
             'PLATFORM_DOMAIN' => \Tools::getShopDomain(),
             'PLUGIN_VERSION' => COMFINO_VERSION,
-            'AVAILABLE_OFFER_TYPES_URL' => $productData['avail_offers_url'],
-            'PRODUCT_DETAILS_URL' => $productData['product_details_url'],
+            'AVAILABLE_PRODUCT_TYPES' => $productData['available_product_types'],
+            'PRODUCT_CART_DETAILS' => $productData['product_cart_details'],
+            'LANGUAGE' => \Context::getContext()->language->iso_code,
+            'CURRENCY' => \Context::getContext()->currency->iso_code,
         ];
     }
 
@@ -481,7 +513,7 @@ final class ConfigManager
 
         return count($optionsToReturn)
             ? self::getInstance()->getConfigurationValues($optionsToReturn)
-            : self::getInstance()->getConfigurationValues(self::CONFIG_OPTIONS[$optionsGroup]);
+            : self::getInstance()->getConfigurationValues(array_keys(self::CONFIG_OPTIONS[$optionsGroup]));
     }
 
     public static function getDefaultValue(string $optionName)
@@ -505,12 +537,13 @@ final class ConfigManager
             'COMFINO_WIDGET_TARGET_SELECTOR' => 'div.product-actions',
             'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR' => '',
             'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 0,
-            'COMFINO_WIDGET_TYPE' => 'extended-modal',
+            'COMFINO_WIDGET_TYPE' => 'standard',
             'COMFINO_WIDGET_OFFER_TYPES' => 'CONVENIENT_INSTALLMENTS',
             'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
             'COMFINO_WIDGET_CODE' => WidgetInitScriptHelper::getInitialWidgetCode(),
             'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => '',
             'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => '',
+            'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
             'COMFINO_IGNORED_STATUSES' => implode(',', StatusManager::DEFAULT_IGNORED_STATUSES),
             'COMFINO_FORBIDDEN_STATUSES' => implode(',', StatusManager::DEFAULT_FORBIDDEN_STATUSES),
             'COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP),
@@ -521,6 +554,8 @@ final class ConfigManager
             'COMFINO_API_CONNECT_TIMEOUT' => 3,
             'COMFINO_API_TIMEOUT' => 5,
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => 3,
+            'COMFINO_NEW_WIDGET_ACTIVE' => true,
+            'COMFINO_PROD_CAT_CACHE_TTL' => 60 * 60, // Default cache TTL for product categories set to 1 hour.
         ];
     }
 
@@ -541,30 +576,38 @@ final class ConfigManager
      */
     private static function getProductData(?int $productId): array
     {
-        $context = \Context::getContext();
-        $availOffersUrl = ApiService::getControllerUrl('availableoffertypes', [], false);
-        $productDetailsUrl = ApiService::getControllerUrl('productdetails', [], false);
-
         $price = 'null';
+        $productCartDetails = 'null';
 
         if ($productId !== null) {
-            $availOffersUrl .= ((strpos($availOffersUrl, '?') === false ? '?' : '&') . "product_id=$productId");
-            $productDetailsUrl .= ((strpos($productDetailsUrl, '?') === false ? '?' : '&') . "product_id=$productId");
+            $product = new \Product($productId);
 
-            if (($price = \Product::getPriceStatic($productId)) === null) {
-                $price = 'null';
+            if (!\Validate::isLoadedObject($product)) {
+                $availableProductTypes = SettingsManager::getProductTypesStrings(
+                    ProductTypesListTypeEnum::LIST_TYPE_WIDGET
+                );
             } else {
-                $price = (new Tools($context))->getFormattedPrice($price);
+                $shopCart = OrderManager::getShopCartFromProduct($product, true);
+
+                $price = (new Tools(\Context::getContext()))->getFormattedPrice($product->getPrice());
+                $availableProductTypes = SettingsManager::getAllowedProductTypes(
+                    ProductTypesListTypeEnum::LIST_TYPE_WIDGET,
+                    $shopCart,
+                    true
+                );
+                $productCartDetails = $shopCart->getAsArray();
             }
         } else {
-            $productId = 'null';
+            $availableProductTypes = SettingsManager::getProductTypesStrings(
+                ProductTypesListTypeEnum::LIST_TYPE_WIDGET
+            );
         }
 
         return [
-            'product_id' => $productId,
+            'product_id' => $productId ?? 'null',
             'price' => $price,
-            'avail_offers_url' => $availOffersUrl,
-            'product_details_url' => $productDetailsUrl,
+            'available_product_types' => $availableProductTypes,
+            'product_cart_details' => $productCartDetails,
         ];
     }
 

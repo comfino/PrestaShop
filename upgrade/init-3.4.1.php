@@ -40,9 +40,10 @@ function upgrade_module_3_4_1(Comfino $module)
     }
 
     // Initialize new configuration options.
-    ConfigManager::updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-    ]);
+    ConfigManager::updateConfiguration(
+        ['COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER'],
+        false
+    );
 
     return true;
 }

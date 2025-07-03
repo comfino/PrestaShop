@@ -42,6 +42,10 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
+    /**
+     * @throws PrestaShopException
+     * @throws PrestaShopDatabaseException
+     */
     public function postProcess(): void
     {
         ErrorLogger::init();
@@ -136,7 +140,13 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $initLoanAmount = (int) $cookie->loan_amount;
         $priceModifier = (int) $cookie->price_modifier;
 
-        $shopCart = OrderManager::getShopCart($cart, $priceModifier, true);
+        $psOrder = new Order($this->module->currentOrder);
+
+        if (\ValidateCore::isLoadedObject($psOrder)) {
+            $shopCart = OrderManager::getShopCartFromOrder($psOrder, $priceModifier, true);
+        } else {
+            $shopCart = OrderManager::getShopCart($cart, $priceModifier, true);
+        }
 
         $this->module->validateOrder(
             (int) $cart->id,
@@ -208,7 +218,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 $customer->email,
                 $phoneNumber,
                 Tools::getRemoteAddr(),
-                preg_match('/^[A-Z]{0,3}\d{7,}$/', str_replace('-', '', $customerTaxId)) ? $customerTaxId : null,
+                preg_match('/^[A-Z]{0,3}\d{7,}$/', $customerTaxId) ? $customerTaxId : null,
                 !$customer->is_guest,
                 $customer->isLogged(),
                 new Address(
