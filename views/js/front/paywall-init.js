@@ -82,11 +82,20 @@ window.ComfinoPaywallInit = {
     }
 }
 
+function removeExistingPaywallIframe() {
+    const existingIframe = document.querySelector('#comfino-paywall-container');
+    if (existingIframe) {
+        existingIframe.remove();
+    }
+}
+
 if (document.readyState === 'complete') {
+    removeExistingPaywallIframe()
     ComfinoPaywallInit.init();
 } else {
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {
+            removeExistingPaywallIframe()
             ComfinoPaywallInit.init();
         }
     });
