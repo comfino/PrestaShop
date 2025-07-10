@@ -32,7 +32,7 @@ window.ComfinoPaywallInit = {
             return;
         }
 
-        if (iframeContainer.querySelector('#comfino-paywall-container') !== null) {
+        if (iframeContainer.querySelector('#comfino-paywall-container') !== null && ComfinoPaywallFrontend.isFrontendInitSet()) {
             ComfinoPaywallFrontend.logEvent('Comfino paywall iframe already initialized.', 'info', iframeContainer);
 
             return;
@@ -82,20 +82,11 @@ window.ComfinoPaywallInit = {
     }
 }
 
-function removeExistingPaywallIframe() {
-    const existingIframe = document.querySelector('#comfino-paywall-container');
-    if (existingIframe) {
-        existingIframe.remove();
-    }
-}
-
 if (document.readyState === 'complete') {
-    removeExistingPaywallIframe()
     ComfinoPaywallInit.init();
 } else {
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {
-            removeExistingPaywallIframe()
             ComfinoPaywallInit.init();
         }
     });
