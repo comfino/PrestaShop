@@ -32,7 +32,7 @@ window.ComfinoPaywallInit = {
             return;
         }
 
-        if (iframeContainer.querySelector('#comfino-paywall-container') !== null) {
+        if (iframeContainer.querySelector('#comfino-paywall-container') !== null && ComfinoPaywallFrontend.isFrontendInitSet()) {
             ComfinoPaywallFrontend.logEvent('Comfino paywall iframe already initialized.', 'info', iframeContainer);
 
             return;
