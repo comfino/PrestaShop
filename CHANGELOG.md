@@ -7,7 +7,7 @@
 **Merged pull requests:**
 
 - FN-13053 Integration with new widget API, fixed some bugs. [\#102](https://github.com/comfino/PrestaShop/pull/102) ([akozubskicr](https://github.com/akozubskicr))
-- FN-13364 New widget init options (customBannerCss, customCalculatorCss) for overwriting standard widget CSS styles with external styles. [\#103](https://github.com/comfino/PrestaShop/pull/103) ([akozubskicr](https://github.com/akozubskicr))
+- FN-13364 New widget init options (customBannerCss, customCalculatorCss) for overwriting standard widget CSS styles with external styles. [\#105](https://github.com/comfino/PrestaShop/pull/105) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [4.2.2](https://github.com/comfino/PrestaShop/tree/4.2.2) (2025-03-14)
 
