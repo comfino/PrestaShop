@@ -203,6 +203,27 @@ final class SettingsForm
                         );
                     }
 
+                    $customCssUrlOptionNames = [
+                        'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
+                        'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
+                    ];
+
+                    foreach ($customCssUrlOptionNames as $customCssUrlOptionName) {
+                        if (!empty($customCssUrl = \Tools::getValue($customCssUrlOptionName))) {
+                            if (!\Validate::isUrl($customCssUrl)) {
+                                $output[] = sprintf($module->l('Custom CSS URL "%s" is not valid.'), $customCssUrl);
+                            } elseif (!\Validate::isAbsoluteUrl($customCssUrl)) {
+                                $output[] = sprintf($module->l('Custom CSS URL "%s" is not absolute.'), $customCssUrl);
+                            } elseif (stripos($customCssUrl, \Tools::getShopDomain()) === false) {
+                                $output[] = sprintf(
+                                    $module->l('Custom CSS URL "%s" is not in shop domain "%s".'),
+                                    $customCssUrl,
+                                    \Tools::getShopDomain()
+                                );
+                            }
+                        }
+                    }
+
                     if (!count($output) && !empty($apiKey = ConfigManager::getApiKey())) {
                         // Update widget key.
                         $cacheInvalidateUrl = ApiService::getEndpointUrl('cacheInvalidate');
@@ -258,7 +279,7 @@ final class SettingsForm
 
         return [
             'active_tab' => $activeTab,
-            'output' => $output,
+            'output' => array_map('htmlspecialchars_decode', $output),
             'output_type' => $outputType,
             'logo_url' => ConfigManager::getLogoUrl(),
             'support_email_address' => self::COMFINO_SUPPORT_EMAIL,
@@ -464,7 +485,8 @@ final class SettingsForm
                                 ],
                                 'desc' => $module->l(
                                     'Other payment methods (Installments 0%, Buy now, pay later, Installments for ' .
-                                    'companies, Leasing) available after consulting a Comfino advisor (kontakt@comfino.pl).'
+                                    'companies, Leasing) available after consulting a Comfino advisor ' .
+                                    '(kontakt@comfino.pl).'
                                 ),
                             ],
                             [
@@ -541,6 +563,24 @@ final class SettingsForm
                                 'id' => 'key',
                                 'name' => 'name',
                             ],
+                        ],
+                        [
+                            'type' => 'text',
+                            'label' => $module->l('Custom banner CSS style'),
+                            'name' => 'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
+                            'required' => false,
+                            'desc' => $module->l(
+                                'URL for the custom banner style. Only links from your store domain are allowed.'
+                            ),
+                        ],
+                        [
+                            'type' => 'text',
+                            'label' => $module->l('Custom calculator CSS style'),
+                            'name' => 'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
+                            'required' => false,
+                            'desc' => $module->l(
+                                'URL for the custom calculator style. Only links from your store domain are allowed.'
+                            ),
                         ],
                         [
                             'type' => 'textarea',
