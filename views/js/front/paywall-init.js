@@ -79,15 +79,42 @@ window.ComfinoPaywallInit = {
         iframeContainer.appendChild(iframe);
 
         ComfinoPaywallFrontend.init(frontendInitElement, iframe, ComfinoPaywallData.paywallOptions);
+    },
+    initWithObserver: () => {
+        ComfinoPaywallInit.init();
+
+        if (ComfinoPaywallFrontend.isFrontendInitSet()) {
+            return;
+        }
+
+        const frontendInitElement =
+            document.getElementById('pay-with-comfino') ??
+            document.querySelector('input[data-module-name^="comfino"]');
+
+        if (frontendInitElement) {
+            ComfinoPaywallFrontend.logEvent("Paywall initialization with 'display' prop observer.", 'debug');
+
+            const observer = new MutationObserver(() => {
+                if (getComputedStyle(frontendInitElement).display === 'block') {
+                    ComfinoPaywallInit.init();
+
+                    if (ComfinoPaywallFrontend.isFrontendInitSet()) {
+                        observer.disconnect();
+                    }
+                }
+            });
+
+            observer.observe(frontendInitElement, { attributes: true, attributeFilter: ['style'] });
+        }
     }
 }
 
 if (document.readyState === 'complete') {
-    ComfinoPaywallInit.init();
+    ComfinoPaywallInit.initWithObserver();
 } else {
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {
-            ComfinoPaywallInit.init();
+            ComfinoPaywallInit.initWithObserver();
         }
     });
 }
