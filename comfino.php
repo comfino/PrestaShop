@@ -23,12 +23,12 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Cart.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
@@ -64,7 +64,7 @@ class Comfino extends PaymentModule
         $this->currencies_mode = 'checkbox';
 
         $this->controllers = [
-            'payment', 'offer', 'notify', 'error', 'script', 'configuration', 'availableoffertypes'
+            'payment', 'offer', 'notify', 'error', 'script', 'configuration', 'availableoffertypes',
         ];
 
         parent::__construct();
@@ -147,6 +147,7 @@ class Comfino extends PaymentModule
 
     /**
      * @param Cart $cart
+     *
      * @return bool
      */
     public function checkCurrency($cart)
@@ -255,14 +256,29 @@ class Comfino extends PaymentModule
                     break;
 
                 case 'sale_settings':
+                    $categories_tree = $config_manager->getCategoriesTree();
                     $product_categories = array_keys($config_manager->getAllProductCategories());
                     $product_category_filters = [];
 
                     foreach (Tools::getValue('product_categories') as $product_type => $category_ids) {
-                        $product_category_filters[$product_type] = array_values(array_diff(
-                            $product_categories,
-                            explode(',', $category_ids)
-                        ));
+                        $node_ids = [];
+
+                        foreach (explode(',', $category_ids) as $category_id) {
+                            if (($category_node = $categories_tree->getNodeById((int) $category_id)) !== null
+                                && count($path_nodes = $category_node->getPathToRoot()) > 0
+                            ) {
+                                $node_ids[] = $categories_tree->getPathNodeIds($path_nodes);
+                            }
+                        }
+
+                        if (count($node_ids) > 0) {
+                            $product_category_filters[$product_type] = array_values(array_diff(
+                                $product_categories,
+                                ...$node_ids
+                            ));
+                        } else {
+                            $product_category_filters[$product_type] = $product_categories;
+                        }
                     }
 
                     $configuration_options['COMFINO_PRODUCT_CATEGORY_FILTERS'] = json_encode($product_category_filters);
@@ -462,7 +478,9 @@ class Comfino extends PaymentModule
      * PrestaShop 1.6.* compatibility.
      *
      * @param $params
+     *
      * @return string|void
+     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookPayment($params)
@@ -499,7 +517,9 @@ class Comfino extends PaymentModule
      * PrestaShop 1.7.* compatibility.
      *
      * @param array $params
+     *
      * @return \PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
+     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookPaymentOptions($params)
@@ -543,7 +563,9 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
+     *
      * @return string
+     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function hookPaymentReturn($params)
@@ -592,6 +614,7 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
+     *
      * @return string
      */
     public function hookDisplayBackofficeComfinoForm($params)
@@ -601,6 +624,7 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
+     *
      * @return void
      */
     public function hookActionOrderStatusPostUpdate($params)
@@ -627,6 +651,7 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
+     *
      * @return string
      */
     public function hookActionValidateCustomerAddressForm($params)
@@ -668,21 +693,26 @@ class Comfino extends PaymentModule
                 $widget_settings = $config_manager->getConfigurationValues('widget_settings');
 
                 // Check product category filters.
-                $product_type = $widget_settings['COMFINO_WIDGET_OFFER_TYPE'];
                 $product = $this->context->controller->getProduct();
-                $products = [$product->getFields()];
+                $allowed_product_types = $config_manager->getAllowedProductTypes(
+                    'widget',
+                    Comfino\OrderManager::getShopCartFromProduct($product)
+                );
 
-                if ($config_manager->isFinancialProductAvailable($product_type, $products)) {
-                    $config_crc = crc32(implode($widget_settings));
-                    $this->addScriptLink(
-                        'comfino-widget',
-                        $this->context->link->getModuleLink(
-                            $this->name, 'script', ['product_id' => $product->id, 'crc' => $config_crc], true
-                        ),
-                        'bottom',
-                        'defer'
-                    );
+                if ($allowed_product_types === []) {
+                    // Filters active - all product types disabled.
+                    return;
                 }
+
+                $config_crc = crc32(implode($widget_settings));
+                $this->addScriptLink(
+                    'comfino-widget',
+                    $this->context->link->getModuleLink(
+                        $this->name, 'script', ['product_id' => $product->id, 'crc' => $config_crc], true
+                    ),
+                    'bottom',
+                    'defer'
+                );
             }
         } elseif (preg_match('/order|cart|checkout/', $controller)) {
             Comfino\Api::init($this);
@@ -697,6 +727,7 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
+     *
      * @return string
      */
     private function displayForm($params)
@@ -906,6 +937,7 @@ class Comfino extends PaymentModule
      * @param string $submit_action
      * @param string $form_template_dir
      * @param string $form_template
+     *
      * @return HelperForm
      */
     private function getHelperForm($submit_action, $form_template_dir = null, $form_template = null)
@@ -949,6 +981,7 @@ class Comfino extends PaymentModule
 
     /**
      * @param array $params
+     *
      * @return array
      */
     private function getFormFields($params)
@@ -1336,6 +1369,7 @@ class Comfino extends PaymentModule
 
     /**
      * @return array
+     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     private function getTemplateVars()
@@ -1373,6 +1407,7 @@ class Comfino extends PaymentModule
 
     /**
      * @param string $tax_id
+     *
      * @return bool
      */
     private function isValidTaxId($tax_id)
@@ -1395,6 +1430,7 @@ class Comfino extends PaymentModule
 
     /**
      * @return array
+     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     private function getPaywallOptions()
@@ -1421,6 +1457,7 @@ class Comfino extends PaymentModule
      * @param bool $leafs_only
      * @param array $sub_categories
      * @param int $position
+     *
      * @return array
      */
     private function getNestedCategories($leafs_only = false, $sub_categories = [], $position = 0)
@@ -1463,6 +1500,7 @@ class Comfino extends PaymentModule
     /**
      * @param array $categories
      * @param int[] $selected_categories
+     *
      * @return array
      */
     private function buildCategoriesTree($categories, $selected_categories)
@@ -1488,6 +1526,7 @@ class Comfino extends PaymentModule
      * @param string $tree_id
      * @param string $product_type
      * @param int[] $selected_categories
+     *
      * @return string
      */
     private function renderCategoryTree($tree_id, $product_type, $selected_categories)
@@ -1511,6 +1550,7 @@ class Comfino extends PaymentModule
     /**
      * @param Cart $cart
      * @param Comfino\ConfigManager $config_manager
+     *
      * @return array|null
      */
     private function getProductTypesFilter($cart, $config_manager)
@@ -1541,6 +1581,7 @@ class Comfino extends PaymentModule
      * @param string $id
      * @param string $script_url
      * @param string $position
+     *
      * @return void
      */
     private function addScriptLink($id, $script_url, $position = 'bottom', $load_strategy = null)
@@ -1562,6 +1603,7 @@ class Comfino extends PaymentModule
     /**
      * @param string $id
      * @param string $style_url
+     *
      * @return void
      */
     private function addStyleLink($id, $style_url)
@@ -1577,7 +1619,9 @@ class Comfino extends PaymentModule
      * @param int $loan_amount
      * @param array|null $product_types_filter
      * @param string $widget_key
+     *
      * @return string
+     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     private function preparePaywallIframe($loan_amount, $product_types_filter, $widget_key)

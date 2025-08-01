@@ -23,34 +23,73 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Product\CategoryTree;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
-
-use Comfino\Api;
-use Comfino\ErrorLogger;
-
-class ComfinoOfferModuleFrontController extends ModuleFrontController
+class NodeIterator implements \Iterator, \Countable
 {
-    public function postProcess()
+    /**
+     * @var Node[]
+     */
+    private $nodes;
+
+    /**
+     * @param Node[] $nodes
+     */
+    public function __construct(array $nodes)
     {
-        Api::init($this->module);
-        ErrorLogger::init();
+        $this->nodes = $nodes;
+    }
 
-        parent::postProcess();
+    /**
+     * @return Node
+     */
+    public function current()
+    {
+        return current($this->nodes);
+    }
 
-        $cookie = (new \Comfino\Tools($this->context))->getCookie();
-        $cookie->loan_amount = Tools::getValue('loan_amount');
-        $cookie->loan_type = Tools::getValue('loan_type');
-        $cookie->loan_term = Tools::getValue('loan_term');
-        $cookie->write();
+    /**
+     * @return void
+     */
+    public function next()
+    {
+        next($this->nodes);
+    }
 
-        echo json_encode(['status' => 'OK', 'type' => $cookie->loan_type, 'term' => (int) $cookie->loan_term]);
+    /**
+     * @return int
+     */
+    public function key()
+    {
+        return key($this->nodes);
+    }
 
-        exit;
+    /**
+     * @return bool
+     */
+    public function valid()
+    {
+        return key($this->nodes) !== null;
+    }
+
+    /**
+     * @return void
+     */
+    public function rewind()
+    {
+        reset($this->nodes);
+    }
+
+    /**
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->nodes);
     }
 }

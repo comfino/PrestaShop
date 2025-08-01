@@ -23,34 +23,51 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Product;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
-
-use Comfino\Api;
-use Comfino\ErrorLogger;
-
-class ComfinoOfferModuleFrontController extends ModuleFrontController
+final class Category
 {
-    public function postProcess()
+    /**
+     * @readonly
+     *
+     * @var int
+     */
+    public $id;
+
+    /**
+     * @readonly
+     *
+     * @var string
+     */
+    public $name;
+
+    /**
+     * @readonly
+     *
+     * @var int
+     */
+    public $position;
+
+    /**
+     * @var Category[]
+     *
+     * @readonly
+     */
+    public $children;
+
+    /**
+     * @param Category[] $children
+     */
+    public function __construct($id, $name, $position, array $children)
     {
-        Api::init($this->module);
-        ErrorLogger::init();
-
-        parent::postProcess();
-
-        $cookie = (new \Comfino\Tools($this->context))->getCookie();
-        $cookie->loan_amount = Tools::getValue('loan_amount');
-        $cookie->loan_type = Tools::getValue('loan_type');
-        $cookie->loan_term = Tools::getValue('loan_term');
-        $cookie->write();
-
-        echo json_encode(['status' => 'OK', 'type' => $cookie->loan_type, 'term' => (int) $cookie->loan_term]);
-
-        exit;
+        $this->id = $id;
+        $this->name = $name;
+        $this->position = $position;
+        $this->children = $children;
     }
 }

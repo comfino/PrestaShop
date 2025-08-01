@@ -23,10 +23,6 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
-
-use Comfino\Api;
-use Comfino\ErrorLogger;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -35,8 +31,17 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
+use Comfino\Api;
+use Comfino\ErrorLogger;
+use Comfino\Order\CustomerInterface;
+use Comfino\Order\LoanParameters;
+use Comfino\OrderManager;
+
 class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
+    /**
+     * @throws Exception
+     */
     public function postProcess()
     {
         Api::init($this->module);
@@ -68,9 +73,30 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $address = $cart->getAddressCollection();
+        $tools = new Comfino\Tools($this->context);
 
-        if (!$address[$cart->id_address_delivery]->phone && !$address[$cart->id_address_delivery]->phone_mobile) {
+        $billing_address = $cart->getAddressCollection()[$cart->id_address_invoice];
+        $delivery_address = $cart->getAddressCollection()[$cart->id_address_delivery];
+
+        if ($billing_address === null) {
+            $billing_address = $delivery_address;
+        }
+
+        $phone_number = trim(isset($billing_address->phone) ? $billing_address->phone : '');
+
+        if (empty($phone_number)) {
+            $phone_number = trim(isset($billing_address->phone_mobile) ? $billing_address->phone_mobile : '');
+        }
+
+        if (!empty(trim($delivery_address->phone))) {
+            $phone_number = trim($delivery_address->phone);
+        }
+
+        if (!empty(trim($delivery_address->phone_mobile))) {
+            $phone_number = trim($delivery_address->phone_mobile);
+        }
+
+        if (empty($phone_number)) {
             $this->errors[] = $this->module->l(
                 'No phone number in addresses found. Please fill value before choosing comfino payment option.'
             );
@@ -84,19 +110,19 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        /* Check that this payment option is still available in case the customer changed his
-           address just before the end of the checkout process. */
-        $authorized = false;
+        /* Check that this payment option is still available in case the customer changed his address just before
+           the end of the checkout process. */
+        $comfino_is_available = false;
 
         foreach (Module::getPaymentModules() as $module) {
             if ($module['name'] === 'comfino') {
-                $authorized = true;
+                $comfino_is_available = true;
 
                 break;
             }
         }
 
-        if (!$authorized) {
+        if (!$comfino_is_available) {
             exit($this->module->l('This payment method is not available.'));
         }
 
@@ -108,21 +134,109 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $currency = $this->context->currency;
-        $total = (float) $cart->getOrderTotal(true, Cart::BOTH);
+        $initLoanAmount = (int) $cookie->loan_amount;
+        $priceModifier = (int) $cookie->price_modifier;
+
+        $ps_order = new Order($this->module->currentOrder);
+
+        if (\ValidateCore::isLoadedObject($ps_order)) {
+            $shop_cart = OrderManager::getShopCartFromOrder($ps_order, $priceModifier, true);
+        } else {
+            $shop_cart = OrderManager::getShopCart($cart, $priceModifier, true);
+        }
 
         $this->module->validateOrder(
             (int) $cart->id,
             (int) Configuration::get('COMFINO_CREATED'),
-            $total,
+            (float) ($shop_cart->getTotalValue() / 100),
             $this->module->displayName,
             null,
             '',
-            (int) $currency->id,
+            (int) $this->context->currency->id,
             false,
             $customer->secure_key
         );
 
+        $order_id = (string) $this->module->currentOrder;
+
+        if (!empty(trim(isset($billing_address->firstname) ? $billing_address->firstname : ''))) {
+            // Use billing address to get customer names.
+            list($first_name, $last_name) = $this->prepareCustomerNames($billing_address);
+        } else {
+            // Use delivery address to get customer names.
+            list($first_name, $last_name) = $this->prepareCustomerNames($delivery_address);
+        }
+
+        $billing_address_lines = $billing_address->address1;
+
+        if (!empty($billing_address->address2)) {
+            $billing_address_lines .= " $billing_address->address2";
+        }
+
+        if (empty($billing_address_lines)) {
+            $delivery_address_lines = $delivery_address->address1;
+
+            if (!empty($delivery_address->address2)) {
+                $delivery_address_lines .= " {$delivery_address->address2}";
+            }
+
+            $street = trim($delivery_address_lines);
+        } else {
+            $street = trim($billing_address_lines);
+        }
+
+        $address_parts = explode(' ', $street);
+        $building_number = '';
+
+        if (count($address_parts) > 1) {
+            foreach ($address_parts as $idx => $addressPart) {
+                if (preg_match('/^\d+[a-zA-Z]?$/', trim($addressPart))) {
+                    $street = implode(' ', array_slice($address_parts, 0, $idx));
+                    $building_number = trim($addressPart);
+                }
+            }
+        }
+
+        $customer_tax_id = trim(str_replace('-', '', isset($billing_address->vat_number)
+            ? $billing_address->vat_number : ''));
+
+        $return_url = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
+            "$cart->id&id_module={$this->module->id}&id_order=$order_id&key={$customer->secure_key}";
+
+        $order = $this->createOrder(
+            $order_id,
+            $shop_cart->getTotalValue(),
+            $shop_cart->getDeliveryCost(),
+            (int) $cookie->loan_term,
+            $cookie->loan_type,
+            $shop_cart->getCartItems(),
+            new Comfino\Order\Customer(
+                $first_name,
+                $last_name,
+                $customer->email,
+                $phone_number,
+                Tools::getRemoteAddr(),
+                preg_match('/^[A-Z]{0,3}\d{7,}$/', $customer_tax_id) ? $customer_tax_id : null,
+                !$customer->is_guest,
+                $customer->isLogged(),
+                new Comfino\Order\Customer\Address(
+                    $street,
+                    $building_number,
+                    null,
+                    !empty($delivery_address->postcode),
+                    $delivery_address->city,
+                    $tools->getCountryIsoCode($delivery_address->id_country)
+                )
+            ),
+            $return_url,
+            ApiService::getEndpointUrl('transactionStatus'),
+            SettingsManager::getAllowedProductTypes('paywall', $shop_cart),
+            $shop_cart->getDeliveryNetCost(),
+            $shop_cart->getDeliveryTaxRate(),
+            $shop_cart->getDeliveryTaxValue()
+        );
+
+        // *****
         $order_response = Api::createOrder(
             $this->context->cart,
             $this->module->currentOrder,
@@ -137,7 +251,10 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $order->save();
 
             ErrorLogger::sendError(
-                'Order creation error', 0, 'Wrong Comfino API response.',
+                'Order creation error',
+                0,
+                'Wrong Comfino API response.',
+                Api::getLastResponseCode(),
                 $_SERVER['REQUEST_URI'],
                 Api::getLastRequestBody(),
                 is_array($order_response) ? json_encode($order_response) : Api::getLastResponseBody()
@@ -186,6 +303,84 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             setcookie('notifications', $notifications);
         }
 
-        return call_user_func_array(['Tools', 'redirect'], func_get_args());
+        call_user_func_array(['Tools', 'redirect'], func_get_args());
+    }
+
+    /**
+     * @param Address $address
+     *
+     * @return string[]
+     */
+    private function prepareCustomerNames(Address $address)
+    {
+        $first_name = trim(isset($address->firstname) ? $address->firstname : '');
+        $last_name = trim(isset($address->lastname) ? $address->lastname : '');
+
+        if (empty($last_name)) {
+            $nameParts = explode(' ', $first_name);
+
+            if (count($nameParts) > 1) {
+                list($first_name, $last_name) = $nameParts;
+            }
+        }
+
+        return [$first_name, $last_name];
+    }
+
+    /**
+     * @param string $orderId
+     * @param int $orderTotal
+     * @param int $deliveryCost
+     * @param int $loanTerm
+     * @param string $loanType
+     * @param array $cartItems
+     * @param CustomerInterface $customer
+     * @param string $returnUrl
+     * @param string $notificationUrl
+     * @param array|null $allowedProductTypes
+     * @param int|null $deliveryNetCost
+     * @param int|null $deliveryCostTaxRate
+     * @param int|null $deliveryCostTaxValue
+     * @param string|null $category
+     *
+     * @return Comfino\Order\Order
+     */
+    private function createOrder(
+        $orderId,
+        $orderTotal,
+        $deliveryCost,
+        $loanTerm,
+        $loanType,
+        array $cartItems,
+        CustomerInterface $customer,
+        $returnUrl,
+        $notificationUrl,
+        $allowedProductTypes = null,
+        $deliveryNetCost = null,
+        $deliveryCostTaxRate = null,
+        $deliveryCostTaxValue = null,
+        $category = null
+    ) {
+        return new Comfino\Order\Order(
+            $orderId,
+            $returnUrl,
+            new LoanParameters(
+                $orderTotal,
+                $loanTerm,
+                $loanType,
+                $allowedProductTypes
+            ),
+            new Comfino\Api\Cart(
+                $cartItems,
+                $orderTotal,
+                $deliveryCost,
+                $deliveryNetCost,
+                $deliveryCostTaxRate,
+                $deliveryCostTaxValue,
+                $category
+            ),
+            $customer,
+            $notificationUrl
+        );
     }
 }
