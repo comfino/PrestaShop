@@ -23,16 +23,15 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
-
-use Comfino\Api;
-use Comfino\ConfigManager;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
+
+use Comfino\Api;
+use Comfino\ConfigManager;
 
 class ComfinoScriptModuleFrontController extends ModuleFrontController
 {

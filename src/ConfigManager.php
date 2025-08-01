@@ -30,8 +30,14 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+require_once 'CategoryTree/BuildStrategy.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
+
+use Comfino\Order\Cart;
+use Comfino\Product\CategoryFilter;
+use Comfino\Product\CategoryTree;
+use Comfino\Product\CategoryTree\BuildStrategy;
 
 class ConfigManager
 {
@@ -415,7 +421,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
      */
     public function getWidgetTypes()
     {
-        $widget_types = \Comfino\Api::getWidgetTypes();
+        $widget_types = Api::getWidgetTypes();
 
         if ($widget_types !== false) {
             $widget_types_list = [];
@@ -443,6 +449,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
 
     /**
      * @param string $list_type
+     *
      * @return array
      */
     public function getOfferTypes($list_type = 'sale_settings')
@@ -453,7 +460,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
             $list_type = 'widget';
         }
 
-        $product_types = \Comfino\Api::getProductTypes($list_type);
+        $product_types = Api::getProductTypes($list_type);
 
         if ($product_types !== false) {
             $offer_types = [];
@@ -464,14 +471,14 @@ document.getElementsByTagName('head')[0].appendChild(script);
         } else {
             $offer_types = [
                 [
-                    'key' => \Comfino\Api::INSTALLMENTS_ZERO_PERCENT,
+                    'key' => Api::INSTALLMENTS_ZERO_PERCENT,
                     'name' => $this->module->l('Zero percent installments'),
                 ],
                 [
-                    'key' => \Comfino\Api::CONVENIENT_INSTALLMENTS,
+                    'key' => Api::CONVENIENT_INSTALLMENTS,
                     'name' => $this->module->l('Convenient installments'),
                 ],
-                ['key' => \Comfino\Api::PAY_LATER, 'name' => $this->module->l('Pay later')],
+                ['key' => Api::PAY_LATER, 'name' => $this->module->l('Pay later')],
             ];
         }
 
@@ -494,7 +501,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
     }
 
     /**
-     * @return array
+     * @return string[] [['prodTypeCode' => 'prodTypeName'], ...]
      */
     public function getCatFilterAvailProdTypes(array $prod_types)
     {
@@ -517,21 +524,42 @@ document.getElementsByTagName('head')[0].appendChild(script);
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     public function getAllProductCategories()
     {
         static $categories = null;
 
-        if ($categories === null) {
-            $categories = [];
+        $language = \Context::getContext()->language->iso_code;
+
+        if ($categories === null || !isset($categories[$language])) {
+            if ($categories === null) {
+                $categories = [];
+            } else {
+                $categories[$language] = [];
+            }
 
             foreach (\Category::getSimpleCategories(\Context::getContext()->language->id) as $category) {
-                $categories[$category['id_category']] = $category['name'];
+                $categories[$language][$category['id_category']] = $category['name'];
             }
         }
 
-        return $categories;
+        return $categories[$language];
+    }
+
+    /**
+     * @return CategoryTree
+     */
+    public function getCategoriesTree()
+    {
+        /** @var CategoryTree $categories_tree */
+        static $categories_tree = null;
+
+        if ($categories_tree === null) {
+            $categories_tree = new CategoryTree(new BuildStrategy());
+        }
+
+        return $categories_tree;
     }
 
     /**
@@ -591,6 +619,38 @@ document.getElementsByTagName('head')[0].appendChild(script);
         }
 
         return true;
+    }
+
+    /**
+     * @param string $list_type
+     * @param Cart $cart
+     * @param bool $return_only_array
+     *
+     * @return string[]|null
+     */
+    public function getAllowedProductTypes($list_type, Cart $cart, $return_only_array = false)
+    {
+        $available_product_types = Api::getProductTypes($list_type);
+        $category_filter = new CategoryFilter($this->getCategoriesTree());
+
+        $allowed_product_types = [];
+        $excluded_category_ids_by_product_type = $this->getProductCategoryFilters();
+
+        foreach ($available_product_types as $product_type) {
+            if (array_key_exists($product_type, $excluded_category_ids_by_product_type)) {
+                if ($category_filter->isCartValid($cart, $excluded_category_ids_by_product_type[$product_type])) {
+                    $allowed_product_types[] = $product_type;
+                }
+            } else {
+                $allowed_product_types[] = $product_type;
+            }
+        }
+
+        if ($return_only_array) {
+            return $allowed_product_types;
+        }
+
+        return count($available_product_types) !== count($allowed_product_types) ? $allowed_product_types : null;
     }
 
     /**

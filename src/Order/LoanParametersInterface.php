@@ -23,34 +23,40 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
-
-use Comfino\Api;
-use Comfino\ErrorLogger;
-
-class ComfinoOfferModuleFrontController extends ModuleFrontController
+interface LoanParametersInterface
 {
-    public function postProcess()
-    {
-        Api::init($this->module);
-        ErrorLogger::init();
+    /**
+     * Requested loan amount.
+     *
+     * @return int
+     */
+    public function getAmount();
 
-        parent::postProcess();
+    /**
+     * Number of requested installments.
+     *
+     * @return int|null
+     */
+    public function getTerm();
 
-        $cookie = (new \Comfino\Tools($this->context))->getCookie();
-        $cookie->loan_amount = Tools::getValue('loan_amount');
-        $cookie->loan_type = Tools::getValue('loan_type');
-        $cookie->loan_term = Tools::getValue('loan_term');
-        $cookie->write();
+    /**
+     * Selected financial product type.
+     *
+     * @return string|null
+     */
+    public function getType();
 
-        echo json_encode(['status' => 'OK', 'type' => $cookie->loan_type, 'term' => (int) $cookie->loan_term]);
-
-        exit;
-    }
+    /**
+     * List of allowed product types as alternatives to the selected product type, displayed on the transaction website.
+     *
+     * @return string[]|null
+     */
+    public function getAllowedProductTypes();
 }

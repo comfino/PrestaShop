@@ -23,34 +23,42 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order\Cart;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
-
-use Comfino\Api;
-use Comfino\ErrorLogger;
-
-class ComfinoOfferModuleFrontController extends ModuleFrontController
+interface ProductInterface
 {
-    public function postProcess()
-    {
-        Api::init($this->module);
-        ErrorLogger::init();
+    /** @return string */
+    public function getName();
 
-        parent::postProcess();
+    /** @return int */
+    public function getPrice();
 
-        $cookie = (new \Comfino\Tools($this->context))->getCookie();
-        $cookie->loan_amount = Tools::getValue('loan_amount');
-        $cookie->loan_type = Tools::getValue('loan_type');
-        $cookie->loan_term = Tools::getValue('loan_term');
-        $cookie->write();
+    /** @return int|null */
+    public function getNetPrice();
 
-        echo json_encode(['status' => 'OK', 'type' => $cookie->loan_type, 'term' => (int) $cookie->loan_term]);
+    /** @return int|null */
+    public function getTaxRate();
 
-        exit;
-    }
+    /** @return int|null */
+    public function getTaxValue();
+
+    /** @return string|null */
+    public function getId();
+
+    /** @return string|null */
+    public function getCategory();
+
+    /** @return string|null */
+    public function getEan();
+
+    /** @return string|null */
+    public function getPhotoUrl();
+
+    /** @return int[]|null */
+    public function getCategoryIds();
 }

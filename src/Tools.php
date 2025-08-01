@@ -46,7 +46,7 @@ class Tools
     {
         $this->context = $context;
 
-        if (COMFINO_PS_17) {
+        if (COMFINO_PS_17 && isset($this->context->currentLocale)) {
             $this->locale = $this->context->currentLocale;
         }
     }
@@ -54,7 +54,9 @@ class Tools
     /**
      * @param float $price
      * @param int $id_currency
+     *
      * @return float|string
+     *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function formatPrice($price, $id_currency)
@@ -66,10 +68,15 @@ class Tools
 
     /**
      * @param int $id_currency
+     *
      * @return string
      */
     public function getCurrencyIsoCode($id_currency)
     {
+        if ($id_currency === 0) {
+            return 'PLN';
+        }
+
         return COMFINO_PS_17 && method_exists(\Currency::class, 'getIsoCodeById')
             ? \Currency::getIsoCodeById($id_currency)
             : \Currency::getCurrencyInstance($id_currency)->iso_code;
@@ -77,11 +84,22 @@ class Tools
 
     /**
      * @param int $id_lang
+     *
      * @return string
      */
     public function getLanguageIsoCode($id_lang)
     {
         return \Language::getIsoById($id_lang);
+    }
+
+    /**
+     * @param int $id_country
+     *
+     * @return string
+     */
+    public function getCountryIsoCode($id_country)
+    {
+        return \Country::getIsoById($id_country);
     }
 
     /**
@@ -97,21 +115,21 @@ class Tools
      */
     public function getCurrentCurrencyId()
     {
-        global $currency, $cookie;
-
-        return $currency !== null ? $currency->id : $cookie->id_currency;
+        return $this->context->cookie->id_currency;
     }
 
     /**
      * @param float $price
      *
      * @return float
+     *
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function getFormattedPrice($price)
     {
         return (float) preg_replace(
-            ['/[^\d,.]/', '/,/'],
-            ['', '.'],
+            ['/[^\d,.]/', '/(?<=\d),(?=\d{3}(?:\D|$))/', '/,00$/', '/,/'],
+            ['', '', '', '.'],
             $this->formatPrice($price, $this->getCurrentCurrencyId())
         );
     }

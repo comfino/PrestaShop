@@ -23,34 +23,43 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
+require_once 'Customer/AddressInterface.php';
 
-use Comfino\Api;
-use Comfino\ErrorLogger;
+use Comfino\Order\Customer\AddressInterface;
 
-class ComfinoOfferModuleFrontController extends ModuleFrontController
+interface CustomerInterface
 {
-    public function postProcess()
-    {
-        Api::init($this->module);
-        ErrorLogger::init();
+    /** @return string */
+    public function getFirstName();
 
-        parent::postProcess();
+    /** @return string */
+    public function getLastName();
 
-        $cookie = (new \Comfino\Tools($this->context))->getCookie();
-        $cookie->loan_amount = Tools::getValue('loan_amount');
-        $cookie->loan_type = Tools::getValue('loan_type');
-        $cookie->loan_term = Tools::getValue('loan_term');
-        $cookie->write();
+    /** @return string */
+    public function getEmail();
 
-        echo json_encode(['status' => 'OK', 'type' => $cookie->loan_type, 'term' => (int) $cookie->loan_term]);
+    /** @return string */
+    public function getPhoneNumber();
 
-        exit;
-    }
+    /** @return string */
+    public function getIp();
+
+    /** @return string|null */
+    public function getTaxId();
+
+    /** @return bool|null */
+    public function isRegular();
+
+    /** @return bool|null */
+    public function isLogged();
+
+    /** @return AddressInterface|null */
+    public function getAddress();
 }

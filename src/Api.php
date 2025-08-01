@@ -141,6 +141,7 @@ class Api
      * @param \Cart $cart
      * @param string $order_id
      * @param string $return_url
+     *
      * @return array|bool
      */
     public static function createOrder($cart, $order_id, $return_url)
@@ -292,6 +293,7 @@ class Api
 
     /**
      * @param $self_link
+     *
      * @return array|bool
      */
     public static function getOrder($self_link)
@@ -303,6 +305,7 @@ class Api
 
     /**
      * @param string $order_id
+     *
      * @return void
      */
     public static function cancelOrder($order_id)
@@ -342,6 +345,7 @@ class Api
 
     /**
      * @param string $list_type
+     *
      * @return string[]|bool
      */
     public static function getProductTypes($list_type)
@@ -392,6 +396,7 @@ class Api
      * @param string $email
      * @param string $phone
      * @param array $agreements
+     *
      * @return array|bool
      */
     public static function registerShopAccount($name, $url, $contact_name, $email, $phone, $agreements)
@@ -441,6 +446,7 @@ class Api
 
     /**
      * @param ShopPluginError $error
+     *
      * @return bool
      */
     public static function sendLoggedError(ShopPluginError $error)
@@ -487,6 +493,7 @@ class Api
 
     /**
      * @param bool $is_sandbox_mode
+     *
      * @return void
      */
     public static function setSandboxMode($is_sandbox_mode)
@@ -496,6 +503,7 @@ class Api
 
     /**
      * @param string $api_host
+     *
      * @return void
      */
     public static function setApiHost($api_host)
@@ -505,6 +513,7 @@ class Api
 
     /**
      * @param string $api_key
+     *
      * @return void
      */
     public static function setApiKey($api_key)
@@ -597,6 +606,7 @@ class Api
     /**
      * @param bool $frontend_host
      * @param string|null $api_host
+     *
      * @return string
      */
     public static function getApiHost($frontend_host = false, $api_host = null)
@@ -641,6 +651,7 @@ class Api
 
     /**
      * @param array $product
+     *
      * @return string
      */
     private static function getProductsImageUrl($product)
@@ -672,6 +683,7 @@ class Api
 
     /**
      * @param \Context $context
+     *
      * @return string
      */
     private static function getNotifyUrl($context)
@@ -681,6 +693,7 @@ class Api
 
     /**
      * @param string $return_url
+     *
      * @return string
      */
     private static function getReturnUrl($return_url)
@@ -694,6 +707,7 @@ class Api
      * @param array $extra_options
      * @param string $data
      * @param bool $log_errors
+     *
      * @return string|bool
      */
     private static function sendRequest($url, $request_type, $extra_options = [], $data = null, $log_errors = true)
@@ -741,6 +755,7 @@ class Api
      * @param mixed $data
      * @param bool $log_errors
      * @param array $headers
+     *
      * @return string|bool
      */
     private static function processResponse($curl, $url, $data, $log_errors, $headers)
@@ -758,8 +773,12 @@ class Api
 
             if ($log_errors) {
                 ErrorLogger::sendError(
-                    "Communication error [$error_id]", curl_errno($curl), curl_error($curl),
-                    $url, $data !== null ? json_encode($data) : null,
+                    "Communication error [$error_id]",
+                    curl_errno($curl),
+                    curl_error($curl),
+                    self::$last_response_code,
+                    $url,
+                    $data !== null ? json_encode($data) : null,
                     !empty($response) ? $response : self::$last_response_code
                 );
             }
@@ -783,7 +802,11 @@ class Api
 
                 if ($log_errors) {
                     ErrorLogger::sendError(
-                        'Payment error', 0, implode(', ', $errors), $url,
+                        'Payment error',
+                        0,
+                        implode(', ', $errors),
+                        self::$last_response_code,
+                        $url,
                         self::getApiRequestForLog($headers, $data !== null ? json_encode($data) : null),
                         $response
                     );
@@ -797,7 +820,11 @@ class Api
 
                 if ($log_errors) {
                     ErrorLogger::sendError(
-                        "Payment error [$error_id]", self::$last_response_code, 'API error.', $url,
+                        "Payment error [$error_id]",
+                        self::$last_response_code,
+                        'API error.',
+                        self::$last_response_code,
+                        $url,
                         self::getApiRequestForLog($headers, $data !== null ? json_encode($data) : null),
                         $response
                     );
@@ -819,6 +846,7 @@ class Api
     /**
      * @param array $headers
      * @param string $body
+     *
      * @return string
      */
     private static function getApiRequestForLog(array $headers, $body)
@@ -836,6 +864,7 @@ class Api
 
     /**
      * @param string $method
+     *
      * @return array
      */
     private static function getRequestHeaders($method = 'GET', $data = null)
@@ -872,6 +901,7 @@ class Api
 
     /**
      * @param bool $paywallLogo
+     *
      * @return string
      */
     private static function getLogoAuthHash($paywallLogo = false)

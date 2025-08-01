@@ -23,34 +23,37 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
+require_once 'SellerInterface.php';
 
-use Comfino\Api;
-use Comfino\ErrorLogger;
-
-class ComfinoOfferModuleFrontController extends ModuleFrontController
+class Seller implements SellerInterface
 {
-    public function postProcess()
+    /**
+     * @var string|null
+     *
+     * @readonly
+     */
+    private $taxId;
+
+    /**
+     * @param string|null $taxId
+     */
+    public function __construct($taxId)
     {
-        Api::init($this->module);
-        ErrorLogger::init();
+        $this->taxId = $taxId;
+    }
 
-        parent::postProcess();
-
-        $cookie = (new \Comfino\Tools($this->context))->getCookie();
-        $cookie->loan_amount = Tools::getValue('loan_amount');
-        $cookie->loan_type = Tools::getValue('loan_type');
-        $cookie->loan_term = Tools::getValue('loan_term');
-        $cookie->write();
-
-        echo json_encode(['status' => 'OK', 'type' => $cookie->loan_type, 'term' => (int) $cookie->loan_term]);
-
-        exit;
+    /**
+     * {@inheritDoc}
+     */
+    public function getTaxId()
+    {
+        return $this->taxId !== null ? trim(strip_tags($this->taxId)) : null;
     }
 }
