@@ -54,6 +54,7 @@ function upgrade_module_4_2_3(Comfino $module)
                 'COMPANY_INSTALLMENTS',
                 'LEASING',
             ],
+            'COMFINO_DEV_ENV_VARS' => false,
         ],
         false
     );

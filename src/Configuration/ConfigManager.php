@@ -76,6 +76,7 @@ final class ConfigManager
             'COMFINO_SANDBOX_API_KEY' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_DEBUG' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_SERVICE_MODE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_DEV_ENV_VARS' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
         ],
         'hidden_settings' => [
             'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
@@ -131,6 +132,7 @@ final class ConfigManager
         'COMFINO_API_CONNECT_NUM_ATTEMPTS',
         'COMFINO_NEW_WIDGET_ACTIVE',
         'COMFINO_PROD_CAT_CACHE_TTL',
+        'COMFINO_DEV_ENV_VARS',
     ];
 
     private const CONFIG_MANAGER_OPTIONS = ConfigurationManager::OPT_SERIALIZE_ARRAYS;
@@ -285,9 +287,10 @@ final class ConfigManager
         return self::getInstance()->getConfigurationValue('COMFINO_SERVICE_MODE') ?? false;
     }
 
-    public static function isDevEnv(): bool
+    public static function useDevEnvVars(): bool
     {
-        return ((string) getenv('COMFINO_DEV')) === ('PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN'));
+        return getenv('COMFINO_DEV_ENV') === 'TRUE'
+            && self::getInstance()->getConfigurationValue('COMFINO_DEV_ENV_VARS') ?? false;
     }
 
     public static function useUnminifiedScripts(): bool
@@ -321,7 +324,7 @@ final class ConfigManager
 
     public static function getApiHost(?string $apiHost = null): ?string
     {
-        if (self::isDevEnv() && getenv('COMFINO_DEV_API_HOST')) {
+        if (self::useDevEnvVars() && getenv('COMFINO_DEV_API_HOST')) {
             return getenv('COMFINO_DEV_API_HOST');
         }
 
@@ -470,7 +473,7 @@ final class ConfigManager
 
     public static function getWidgetScriptUrl(): string
     {
-        if (self::isDevEnv() && getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')) {
+        if (self::useDevEnvVars() && getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')) {
             return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
         }
 
@@ -563,6 +566,7 @@ final class ConfigManager
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => 3,
             'COMFINO_NEW_WIDGET_ACTIVE' => true,
             'COMFINO_PROD_CAT_CACHE_TTL' => 60 * 60, // Default cache TTL for product categories set to 1 hour.
+            'COMFINO_DEV_ENV_VARS' => false,
         ];
     }
 

@@ -114,10 +114,10 @@ final class FormManager
                     ConfigManager::getConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', false) ? 'Active' : 'Inactive'
                 );
 
-                if (!empty(getenv('COMFINO_DEBUG')) || !empty(getenv('COMFINO_DEV'))) {
+                if (getenv('COMFINO_DEV_ENV') === 'TRUE') {
                     $infoMessages[] = sprintf(
                         '<b>Plugin dev-debug mode:</b> %s',
-                        ConfigManager::isDevEnv() ? 'Yes' : 'No'
+                        ConfigManager::useDevEnvVars() ? 'Yes' : 'No'
                     );
 
                     $psEnvVariables = ['PS_LANGUAGE', 'PS_COUNTRY', 'PS_DOMAIN', 'PS_VERSION', 'PS_DEV_MODE'];
@@ -132,8 +132,6 @@ final class FormManager
                         ))
                     );
 
-                    $devEnvVariables = ['DEBUG', 'DEV', 'DEV_API_HOST', 'DEV_WIDGET_SCRIPT_URL'];
-
                     $infoMessages[] = sprintf(
                         '<b>Development environment variables:</b><ul>%s</ul>',
                         implode('', array_map(
@@ -141,7 +139,10 @@ final class FormManager
                                 $varName = "COMFINO_$envVariable";
                                 return "<li><b>$varName</b> = \"" . getenv($varName) . '"</li>';
                             },
-                            $devEnvVariables
+                            [
+                                'DEV_ENV', 'DEV_API_HOST', 'DEV_STATIC_RESOURCES_BASE_URL',
+                                'DEV_WIDGET_SCRIPT_URL', 'DEV_USE_UNMINIFIED_SCRIPTS',
+                            ]
                         ))
                     );
 

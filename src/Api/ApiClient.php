@@ -189,7 +189,7 @@ final class ApiClient
             'error_details' => FrontendHelper::prepareErrorDetails(
                 $userErrorMessage,
                 $statusCode,
-                ConfigManager::isDevEnv(),
+                ConfigManager::useDevEnvVars(),
                 $exception,
                 $isTimeout,
                 $connectAttemptIdx,

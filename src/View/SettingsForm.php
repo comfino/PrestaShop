@@ -110,6 +110,13 @@ final class SettingsForm
                         $apiKey = $sandboxMode
                             ? \Tools::getValue('COMFINO_SANDBOX_API_KEY')
                             : ConfigManager::getConfigurationValue('COMFINO_API_KEY');
+
+                        if (\Tools::getIsset('COMFINO_DEV_ENV_VARS')) {
+                            ConfigManager::updateConfigurationValue(
+                                'COMFINO_DEV_ENV_VARS',
+                                \Tools::getValue('COMFINO_DEV_ENV_VARS')
+                            );
+                        }
                     }
 
                     $apiClient = ApiClient::getInstance($sandboxMode, $apiKey);
@@ -704,6 +711,31 @@ final class SettingsForm
                         ],
                     ]
                 );
+
+                if (getenv('COMFINO_DEV_ENV') === 'TRUE') {
+                    $fields['developer_settings']['form']['input'][] = [
+                        'type' => 'switch',
+                        'label' => $module->l('Use development environment variables'),
+                        'name' => 'COMFINO_DEV_ENV_VARS',
+                        'values' => [
+                            [
+                                'id' => 'dev_env_vars_enabled',
+                                'value' => true,
+                                'label' => $module->l('Enabled'),
+                            ],
+                            [
+                                'id' => 'dev_env_vars_disabled',
+                                'value' => false,
+                                'label' => $module->l('Disabled'),
+                            ],
+                        ],
+                        'desc' => $module->l(
+                            'Use of development environment variables with custom hosts which overwrite hosts stored in ' .
+                            'the plugin.'
+                        ),
+                    ];
+                }
+
                 break;
 
             case 'plugin_diagnostics':
