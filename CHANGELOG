@@ -1,5 +1,5 @@
 3.5.5
- - FN-12012 Fix bug with empty host in API calls from widget logic.
+ - FN-12012 Fix bug with empty host in API calls from widget logic, fixed bugs in product category filters logic and payment transaction processing. End of official support for plugins 3.x version compatible with PHP 5.6 and PrestaShop versions below 1.6.1.11.
 
 3.5.4
  - FN-11832 Documentation updated.

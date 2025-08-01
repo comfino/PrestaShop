@@ -23,16 +23,17 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Product\CategoryTree;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$sql = [];
-
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
-
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
-    }
+interface BuildStrategyInterface
+{
+    /**
+     * @return Descriptor
+     */
+    public function build();
 }

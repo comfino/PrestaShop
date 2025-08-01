@@ -23,16 +23,73 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Product\CategoryTree;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$sql = [];
+class NodeIterator implements \Iterator, \Countable
+{
+    /**
+     * @var Node[]
+     */
+    private $nodes;
 
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
+    /**
+     * @param Node[] $nodes
+     */
+    public function __construct(array $nodes)
+    {
+        $this->nodes = $nodes;
+    }
 
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
+    /**
+     * @return Node
+     */
+    public function current()
+    {
+        return current($this->nodes);
+    }
+
+    /**
+     * @return void
+     */
+    public function next()
+    {
+        next($this->nodes);
+    }
+
+    /**
+     * @return int
+     */
+    public function key()
+    {
+        return key($this->nodes);
+    }
+
+    /**
+     * @return bool
+     */
+    public function valid()
+    {
+        return key($this->nodes) !== null;
+    }
+
+    /**
+     * @return void
+     */
+    public function rewind()
+    {
+        reset($this->nodes);
+    }
+
+    /**
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->nodes);
     }
 }

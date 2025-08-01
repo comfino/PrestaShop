@@ -23,16 +23,40 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$sql = [];
+interface LoanParametersInterface
+{
+    /**
+     * Requested loan amount.
+     *
+     * @return int
+     */
+    public function getAmount();
 
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
+    /**
+     * Number of requested installments.
+     *
+     * @return int|null
+     */
+    public function getTerm();
 
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
-    }
+    /**
+     * Selected financial product type.
+     *
+     * @return string|null
+     */
+    public function getType();
+
+    /**
+     * List of allowed product types as alternatives to the selected product type, displayed on the transaction website.
+     *
+     * @return string[]|null
+     */
+    public function getAllowedProductTypes();
 }

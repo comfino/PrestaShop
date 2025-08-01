@@ -23,16 +23,53 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
+use Comfino\Api\CartInterface;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$sql = [];
+interface OrderInterface
+{
+    /**
+     * Shop internal order ID.
+     *
+     * @return string
+     */
+    public function getId();
 
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
+    /**
+     * Callback URL used by Comfino API for sending notifications about transaction status changes.
+     *
+     * @return string|null
+     */
+    public function getNotifyUrl();
 
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
-    }
+    /**
+     * Return URL to the shop confirmation page, where customer will be redirected from Comfino website when transaction will be finished - successfully or not.
+     *
+     * @return string
+     */
+    public function getReturnUrl();
+
+    /** @return LoanParametersInterface */
+    public function getLoanParameters();
+
+    /** @return CartInterface */
+    public function getCart();
+
+    /** @return CustomerInterface */
+    public function getCustomer();
+
+    /** @return SellerInterface|null */
+    public function getSeller();
+
+    /** @return string|null */
+    public function getAccountNumber();
+
+    /** @return string|null */
+    public function getTransferTitle();
 }

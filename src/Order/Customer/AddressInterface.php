@@ -23,16 +23,30 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order\Customer;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$sql = [];
+interface AddressInterface
+{
+    /** @return string|null */
+    public function getStreet();
 
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
+    /** @return string|null */
+    public function getBuildingNumber();
 
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
-    }
+    /** @return string|null */
+    public function getApartmentNumber();
+
+    /**@return string|null */
+    public function getPostalCode();
+
+    /** @return string|null */
+    public function getCity();
+
+    /** @return string|null */
+    public function getCountryCode();
 }

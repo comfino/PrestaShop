@@ -23,16 +23,58 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order\Cart;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$sql = [];
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Cart/CartItemInterface.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Cart/ProductInterface.php';
 
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
+use Comfino\Order\Cart\CartItemInterface;
+use Comfino\Order\Cart\ProductInterface;
 
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
+class CartItem implements CartItemInterface
+{
+    /**
+     * @var ProductInterface
+     *
+     * @readonly
+     */
+    private $product;
+
+    /**
+     * @var int
+     *
+     * @readonly
+     */
+    private $quantity;
+
+    /**
+     * @param ProductInterface $product
+     * @param int $quantity
+     */
+    public function __construct(ProductInterface $product, $quantity)
+    {
+        $this->product = $product;
+        $this->quantity = $quantity;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getProduct()
+    {
+        return $this->product;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getQuantity()
+    {
+        return $this->quantity;
     }
 }
