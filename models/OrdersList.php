@@ -185,6 +185,7 @@ class OrdersList extends ObjectModel
      * @param null $id
      * @param null $id_lang
      * @param null $id_shop
+     *
      * @throws PrestaShopDatabaseException
      * @throws PrestaShopException
      */
@@ -194,86 +195,11 @@ class OrdersList extends ObjectModel
     }
 
     /**
-     * @param array $data
-     * @return bool
-     * @throws PrestaShopException
-     */
-    public static function createOrder($data)
-    {
-        $order = new self();
-        $order->id_comfino = $data['id_comfino'];
-        $order->id_customer = $data['id_customer'];
-        $order->order_status = $data['order_status'];
-        $order->legalize_link = $data['legalize_link'];
-        $order->self_link = $data['self_link'];
-        $order->cancel_link = $data['cancel_link'];
-
-        if ($saveStatus = $order->save()) {
-            $orderCore = new OrderCore($order->id_comfino);
-            self::setSecondState($data['order_status'], $orderCore);
-        }
-
-        return $saveStatus;
-    }
-
-    public static function getAllOrders()
-    {
-        $sql = sprintf('SELECT * FROM %scomfino_orders', _DB_PREFIX_);
-
-        if ($row = Db::getInstance()->executeS($sql)) {
-            $result = [];
-
-            foreach ($row as $item) {
-                $customer = new Customer($item['id_customer']);
-                $customer_email = '';
-
-                if (Validate::isLoadedObject($customer)) {
-                    $customer_email = $customer->email;
-                }
-
-                $order = new Order($item['id_comfino']);
-                $status = $order->getCurrentOrderState();
-                $context = Context::getContext();
-
-                $result[] = [
-                    'id_comfino' => $item['id_comfino'],
-                    'customer' => $customer_email,
-                    'order_status' => $status->name[$context->language->id],
-                    'self_link' => $item['self_link'],
-                    'cancel_link' => $item['cancel_link'],
-                    'legalize_link' => $item['legalize_link'],
-                ];
-            }
-
-            return $result;
-        }
-
-        return [];
-    }
-
-    /**
-     * @param $order_id
-     * @param $key
-     * @param $value
-     * @return bool
-     */
-    public static function updateOrder($order_id, $key, $value)
-    {
-        $sql = sprintf(
-            'UPDATE %scomfino_orders SET %s = %s WHERE id_comfino = %s',
-            _DB_PREFIX_,
-            bqSQL($key),
-            pSQL($value),
-            pSQL($order_id)
-        );
-
-        return Db::getInstance()->execute($sql);
-    }
-
-    /**
      * @param string $order_id
      * @param string $status
+     *
      * @return bool
+     *
      * @throws Exception
      */
     public static function processState($order_id, $status)
@@ -308,6 +234,7 @@ class OrdersList extends ObjectModel
 
     /**
      * @param string $state
+     *
      * @return string
      */
     private static function getState($state)

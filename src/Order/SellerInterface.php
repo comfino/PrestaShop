@@ -23,45 +23,15 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
-require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
-
-class ComfinoOrdersListController extends ModuleAdminController
+interface SellerInterface
 {
-    public function __construct()
-    {
-        $this->bootstrap = true;
-
-        parent::__construct();
-    }
-
-    public function initContent()
-    {
-        $this->context->smarty->assign(['orders' => OrdersList::getAllOrders()]);
-
-        if (COMFINO_PS_17) {
-            $this->setTemplate('module:comfino/views/templates/admin/comfino_order_list.tpl');
-        } else {
-            $this->setTemplate('comfino_order_list.tpl');
-        }
-    }
-
-    public function postProcess()
-    {
-        if (!empty($_POST['change_status'])) {
-            $order = \Comfino\Api::getOrder(Tools::getValue('self_link'));
-
-            if ($order === false || !isset($order['status']) || !isset($order['orderId'])) {
-                return false;
-            }
-
-            OrdersList::processState($order['orderId'], $order['status']);
-
-            return true;
-        }
-    }
+    /** @return string|null */
+    public function getTaxId();
 }

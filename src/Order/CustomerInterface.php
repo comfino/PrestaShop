@@ -23,16 +23,43 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$sql = [];
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Customer/AddressInterface.php';
 
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
+use Comfino\Order\Customer\AddressInterface;
 
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
-    }
+interface CustomerInterface
+{
+    /** @return string */
+    public function getFirstName();
+
+    /** @return string */
+    public function getLastName();
+
+    /** @return string */
+    public function getEmail();
+
+    /** @return string */
+    public function getPhoneNumber();
+
+    /** @return string */
+    public function getIp();
+
+    /** @return string|null */
+    public function getTaxId();
+
+    /** @return bool|null */
+    public function isRegular();
+
+    /** @return bool|null */
+    public function isLogged();
+
+    /** @return AddressInterface|null */
+    public function getAddress();
 }

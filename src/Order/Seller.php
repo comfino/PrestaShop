@@ -23,16 +23,39 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$sql = [];
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/SellerInterface.php';
 
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
+use Comfino\Order\SellerInterface;
 
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
+class Seller implements SellerInterface
+{
+    /**
+     * @var string|null
+     *
+     * @readonly
+     */
+    private $taxId;
+
+    /**
+     * @param string|null $taxId
+     */
+    public function __construct($taxId)
+    {
+        $this->taxId = $taxId;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getTaxId()
+    {
+        return $this->taxId !== null ? trim(strip_tags($this->taxId)) : null;
     }
 }

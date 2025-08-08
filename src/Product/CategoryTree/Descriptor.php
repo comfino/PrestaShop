@@ -23,16 +23,39 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Product\CategoryTree;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$sql = [];
+require_once _PS_MODULE_DIR_ . 'comfino/src/Product/CategoryTree/NodeIterator.php';
 
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
+use Comfino\Product\CategoryTree\NodeIterator;
 
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
+final class Descriptor
+{
+    /**
+     * @readonly
+     *
+     * @var \Comfino\Product\CategoryTree\NodeIterator
+     */
+    public $nodes;
+
+    /**
+     * @var Node[]|null
+     *
+     * @readonly
+     */
+    public $index;
+
+    /**
+     * @param Node[]|null $index
+     */
+    public function __construct(NodeIterator $nodes, $index)
+    {
+        $this->nodes = $nodes;
+        $this->index = $index;
     }
 }

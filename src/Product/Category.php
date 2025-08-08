@@ -23,16 +23,51 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Product;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$sql = [];
+final class Category
+{
+    /**
+     * @readonly
+     *
+     * @var int
+     */
+    public $id;
 
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
+    /**
+     * @readonly
+     *
+     * @var string
+     */
+    public $name;
 
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
+    /**
+     * @readonly
+     *
+     * @var int
+     */
+    public $position;
+
+    /**
+     * @var Category[]
+     *
+     * @readonly
+     */
+    public $children;
+
+    /**
+     * @param Category[] $children
+     */
+    public function __construct($id, $name, $position, array $children)
+    {
+        $this->id = $id;
+        $this->name = $name;
+        $this->position = $position;
+        $this->children = $children;
     }
 }

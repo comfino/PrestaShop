@@ -23,16 +23,37 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Api;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$sql = [];
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Cart/CartItemInterface.php';
 
-$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
+use Comfino\Order\Cart\CartItemInterface;
 
-foreach ($sql as $query) {
-    if (Db::getInstance()->execute($query) == false) {
-        return false;
-    }
+interface CartInterface
+{
+    /** @return CartItemInterface[] */
+    public function getItems();
+
+    /** @return int */
+    public function getTotalAmount();
+
+    /** @return int|null */
+    public function getDeliveryCost();
+
+    /** @return int|null */
+    public function getDeliveryNetCost();
+
+    /** @return int|null */
+    public function getDeliveryCostTaxRate();
+
+    /** @return int|null */
+    public function getDeliveryCostTaxValue();
+
+    /** @return string|null */
+    public function getCategory();
 }
