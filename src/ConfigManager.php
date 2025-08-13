@@ -60,8 +60,11 @@ class ConfigManager
             'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
             'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
             'COMFINO_WIDGET_TYPE',
-            'COMFINO_WIDGET_OFFER_TYPE',
+            'COMFINO_WIDGET_OFFER_TYPES',
             'COMFINO_WIDGET_EMBED_METHOD',
+            'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
+            'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
+            'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
             'COMFINO_WIDGET_CODE',
         ],
         'developer_settings' => [
@@ -83,11 +86,18 @@ class ConfigManager
         'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
         'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
         'COMFINO_WIDGET_TYPE',
-        'COMFINO_WIDGET_OFFER_TYPE',
+        'COMFINO_WIDGET_OFFER_TYPES',
         'COMFINO_WIDGET_EMBED_METHOD',
         'COMFINO_WIDGET_CODE',
         'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
         'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
+        'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
+        'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
+        'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
+        'COMFINO_JS_PROD_PATH',
+        'COMFINO_CSS_PROD_PATH',
+        'COMFINO_JS_DEV_PATH',
+        'COMFINO_CSS_DEV_PATH',
     ];
 
     const CONFIG_OPTIONS_TYPES = [
@@ -181,11 +191,18 @@ class ConfigManager
             'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR' => '',
             'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 0,
             'COMFINO_WIDGET_TYPE' => 'with-modal',
-            'COMFINO_WIDGET_OFFER_TYPE' => 'CONVENIENT_INSTALLMENTS',
+            'COMFINO_WIDGET_OFFER_TYPES' => 'CONVENIENT_INSTALLMENTS',
             'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
             'COMFINO_WIDGET_CODE' => $this->getInitialWidgetCode(),
             'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => '',
             'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => '',
+            'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
+            'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL' => '',
+            'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL' => '',
+            'COMFINO_JS_PROD_PATH' => '',
+            'COMFINO_CSS_PROD_PATH' => 'css',
+            'COMFINO_JS_DEV_PATH' => '',
+            'COMFINO_CSS_DEV_PATH' => 'css',
         ];
 
         foreach ($initial_config_values as $opt_name => $opt_value) {
@@ -323,20 +340,26 @@ class ConfigManager
 
     /**
      * @return array
+     *
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     public function getWidgetVariables($product_id = null)
     {
         $product_data = $this->getProductData($product_id);
 
         return [
-            '{WIDGET_SCRIPT_URL}' => Api::getWidgetScriptUrl(),
-            '{PRODUCT_ID}' => $product_data['product_id'],
-            '{PRODUCT_PRICE}' => $product_data['price'],
-            '{PLATFORM}' => 'prestashop',
-            '{PLATFORM_VERSION}' => _PS_VERSION_,
-            '{PLATFORM_DOMAIN}' => \Tools::getShopDomain(),
-            '{PLUGIN_VERSION}' => COMFINO_VERSION,
-            '{AVAILABLE_OFFER_TYPES}' => $product_data['avail_offers_url'],
+            'WIDGET_SCRIPT_URL' => Api::getWidgetScriptUrl(),
+            'PRODUCT_ID' => $product_data['product_id'],
+            'PRODUCT_PRICE' => $product_data['price'],
+            'PLATFORM' => 'prestashop',
+            'PLATFORM_NAME' => 'PrestaShop',
+            'PLATFORM_VERSION' => _PS_VERSION_,
+            'PLATFORM_DOMAIN' => \Tools::getShopDomain(),
+            'PLUGIN_VERSION' => COMFINO_VERSION,
+            'AVAILABLE_PRODUCT_TYPES' => $product_data['available_product_types'],
+            'PRODUCT_CART_DETAILS' => $product_data['product_cart_details'],
+            'LANGUAGE' => \Context::getContext()->language->iso_code,
+            'CURRENCY' => \Context::getContext()->currency->iso_code,
         ];
     }
 
@@ -345,12 +368,12 @@ class ConfigManager
      *
      * @return void
      */
-    public function updateWidgetCode($last_widget_code_hash)
+    public function updateWidgetCode($last_widget_code_hash = null)
     {
         $initial_widget_code = $this->getInitialWidgetCode();
         $current_widget_code = $this->getCurrentWidgetCode();
 
-        if (md5($current_widget_code) === $last_widget_code_hash) {
+        if ($last_widget_code_hash === null || md5($current_widget_code) === $last_widget_code_hash) {
             // Widget code not changed since last installed version - safely replace with new one.
             \Configuration::updateValue('COMFINO_WIDGET_CODE', $initial_widget_code);
         }
@@ -360,17 +383,18 @@ class ConfigManager
     {
         $widget_code = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
         $product_data = $this->getProductData($product_id);
+        $available_product_types = $product_data['available_product_types'];
 
         $options_to_inject = [];
 
         if (strpos($widget_code, 'productId') === false) {
             $options_to_inject[] = "        productId: $product_data[product_id]";
         }
-        if (strpos($widget_code, 'availOffersUrl') === false) {
-            $options_to_inject[] = "        availOffersUrl: '$product_data[avail_offers_url]'";
+        if (is_array($available_product_types) && strpos($widget_code, 'availableProductTypes') === false) {
+            $options_to_inject[] = '        availableProductTypes: ' . implode(',', $available_product_types);
         }
 
-        if (count($options_to_inject)) {
+        if (count($options_to_inject) > 0) {
             $injected_init_options = implode(",\n", $options_to_inject) . ",\n";
 
             return preg_replace('/\{\n(.*widgetKey:)/', "{\n$injected_init_options\$1", $widget_code);
@@ -385,29 +409,41 @@ class ConfigManager
     public function getInitialWidgetCode()
     {
         return trim("
-var script = document.createElement('script');
+const script = document.createElement('script');
 script.onload = function () {
-    ComfinoProductWidget.init({
+    ComfinoWidgetFrontend.init({
         widgetKey: '{WIDGET_KEY}',
         priceSelector: '{WIDGET_PRICE_SELECTOR}',
         widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',
         priceObserverSelector: '{WIDGET_PRICE_OBSERVER_SELECTOR}',
         priceObserverLevel: {WIDGET_PRICE_OBSERVER_LEVEL},
         type: '{WIDGET_TYPE}',
-        offerType: '{OFFER_TYPE}',
+        offerTypes: {OFFER_TYPES},
         embedMethod: '{EMBED_METHOD}',
         numOfInstallments: 0,
-        price: null,        
+        price: null,
         productId: {PRODUCT_ID},
         productPrice: {PRODUCT_PRICE},
         platform: '{PLATFORM}',
+        platformName: '{PLATFORM_NAME}',
         platformVersion: '{PLATFORM_VERSION}',
         platformDomain: '{PLATFORM_DOMAIN}',
         pluginVersion: '{PLUGIN_VERSION}',
-        availOffersUrl: '{AVAILABLE_OFFER_TYPES}',
+        availableProductTypes: {AVAILABLE_PRODUCT_TYPES},
+        productCartDetails: {PRODUCT_CART_DETAILS},
+        language: '{LANGUAGE}',
+        currency: '{CURRENCY}',
+        showProviderLogos: {SHOW_PROVIDER_LOGOS},
+        customBannerCss: '{CUSTOM_BANNER_CSS_URL}',
+        customCalculatorCss: '{CUSTOM_CALCULATOR_CSS_URL}',
         callbackBefore: function () {},
         callbackAfter: function () {},
         onOfferRendered: function (jsonResponse, widgetTarget, widgetNode) { },
+        onWidgetBannerLoaded: function (loadedOffers) { },
+        onWidgetCalculatorLoaded: function (loadedOffers) { },
+        onWidgetCalculatorUpdated: function (activeOffer) { },
+        onWidgetBannerCustomCssLoaded: function (cssUrl) { },
+        onWidgetCalculatorCustomCssLoaded: function (cssUrl) { },
         onGetPriceElement: function (priceSelector, priceObserverSelector) { return null; },
         debugMode: window.location.hash && window.location.hash.substring(1) === 'comfino_debug'
     });
@@ -433,16 +469,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
             }
         } else {
             $widget_types_list = [
-                ['key' => 'simple', 'name' => $this->module->l('Textual widget')],
-                ['key' => 'mixed', 'name' => $this->module->l('Graphical widget with banner')],
-                [
-                    'key' => 'with-modal',
-                    'name' => $this->module->l('Graphical widget with installments calculator'),
-                ],
-                [
-                    'key' => 'extended-modal',
-                    'name' => $this->module->l('Graphical widget with extended installments calculator'),
-                ],
+                ['key' => 'standard', 'name' => 'Widget standardowy'],
             ];
         }
 
@@ -632,7 +659,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
      */
     public function getAllowedProductTypes($list_type, Cart $cart, $return_only_array = false)
     {
-        $available_product_types = Api::getProductTypes($list_type);
+        $available_product_types = array_keys(Api::getProductTypes($list_type));
         $category_filter = new CategoryFilter($this->getCategoriesTree());
 
         $allowed_product_types = [];
@@ -657,30 +684,35 @@ document.getElementsByTagName('head')[0].appendChild(script);
 
     /**
      * @return array
+     *
+     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
     private function getProductData($product_id)
     {
-        $context = \Context::getContext();
-        $avail_offers_url = $context->link->getModuleLink($this->module->name, 'availableoffertypes', [], true);
-
         $price = 'null';
+        $product_cart_details = 'null';
 
         if ($product_id !== null) {
-            $avail_offers_url .= ((strpos($avail_offers_url, '?') === false ? '?' : '&') . "product_id=$product_id");
+            $product = new \Product($product_id);
 
-            if (($price = \Product::getPriceStatic($product_id)) === null) {
-                $price = 'null';
+            if (!\Validate::isLoadedObject($product)) {
+                $available_product_types = array_keys(Api::getProductTypes('widget'));
             } else {
-                $price = (new \Comfino\Tools($context))->getFormattedPrice($price);
+                $shop_cart = OrderManager::getShopCartFromProduct($product);
+
+                $price = (new Tools(\Context::getContext()))->getFormattedPrice($product->getPrice());
+                $available_product_types = $this->getAllowedProductTypes('widget', $shop_cart, true);
+                $product_cart_details = $shop_cart->getAsArray();
             }
         } else {
-            $product_id = 'null';
+            $available_product_types = array_keys(Api::getProductTypes('widget'));
         }
 
         return [
-            'product_id' => $product_id,
+            'product_id' => $product_id !== null ? $product_id : 'null',
             'price' => $price,
-            'avail_offers_url' => $avail_offers_url,
+            'available_product_types' => $available_product_types,
+            'product_cart_details' => $product_cart_details,
         ];
     }
 }

@@ -1,12 +1,12 @@
 # Changelog
 
-## [3.5.5](https://github.com/comfino/PrestaShop/tree/3.5.5) (2025-08-08)
+## [3.5.5](https://github.com/comfino/PrestaShop/tree/3.5.5) (2025-08-13)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/3.5.4...3.5.5)
 
 **Merged pull requests:**
 
-- FN-12012 Fix bug with empty host in API calls from widget logic, fixed bugs in product category filters logic and payment transaction processing. End of official support for plugins 3.x version compatible with PHP 5.6 and PrestaShop versions below 1.6.1.11. [\#91](https://github.com/comfino/PrestaShop/pull/91) ([akozubskicr](https://github.com/akozubskicr))
+- FN-12012 Fix bug with empty host in API calls from widget logic, fixed bugs in product category filters logic and payment transaction processing, integration with new widget banner/calculator based on iframe. End of official support for plugins 3.x version compatible with PHP 5.6 and PrestaShop versions below 1.6.1.11. [\#91](https://github.com/comfino/PrestaShop/pull/91) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [3.5.4](https://github.com/comfino/PrestaShop/tree/3.5.4) (2024-05-07)
 

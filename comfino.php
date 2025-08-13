@@ -1174,7 +1174,7 @@ class Comfino extends PaymentModule
                             [
                                 'type' => 'select',
                                 'label' => $this->l('Offer type'),
-                                'name' => 'COMFINO_WIDGET_OFFER_TYPE',
+                                'name' => 'COMFINO_WIDGET_OFFER_TYPES',
                                 'required' => false,
                                 'options' => [
                                     'query' => $params['offer_types']['widget_settings'],

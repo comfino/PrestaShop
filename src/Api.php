@@ -121,7 +121,7 @@ class Api
             $widget_dev_script_version = $config_manager->getConfigurationValue('COMFINO_WIDGET_DEV_SCRIPT_VERSION');
 
             if (empty($widget_dev_script_version)) {
-                self::$widget_script_url .= '/comfino.min.js';
+                self::$widget_script_url .= '/v2/widget-frontend.min.js';
             } else {
                 self::$widget_script_url .= ('/' . trim($widget_dev_script_version, '/'));
             }
@@ -136,7 +136,7 @@ class Api
             $widget_prod_script_version = $config_manager->getConfigurationValue('COMFINO_WIDGET_PROD_SCRIPT_VERSION');
 
             if (empty($widget_prod_script_version)) {
-                self::$widget_script_url .= '/comfino.min.js';
+                self::$widget_script_url .= '/v2/widget-frontend.min.js';
             } else {
                 self::$widget_script_url .= ('/' . trim($widget_prod_script_version, '/'));
             }
@@ -244,7 +244,7 @@ class Api
         static $product_types = null;
 
         if ($product_types === null) {
-            $product_types = self::sendRequest(self::getApiHost() . '/v1/widget-types', 'GET');
+            $product_types = self::sendRequest(self::getApiHost() . '/widget/v1/widget-types', 'GET');
 
             if ($product_types !== false && !count(self::$last_errors) && strpos($product_types, 'errors') === false) {
                 $product_types = json_decode($product_types, true);

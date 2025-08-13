@@ -34,12 +34,21 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
  *
  * @return bool
  */
-function upgrade_module_3_4_1($module)
+function upgrade_module_3_5_5($module)
 {
+    $config_manager = new \Comfino\ConfigManager($module);
+
     // Initialize new configuration options.
     (new \Comfino\ConfigManager($module))->updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
+        'COMFINO_WIDGET_TYPE' => 'standard',
+        'COMFINO_WIDGET_OFFER_TYPES' => Configuration::get('COMFINO_WIDGET_OFFER_TYPE'),
+        'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
+        'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL' => '',
+        'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL' => '',
     ]);
+
+    // Update code of widget initialization script.
+    $config_manager->updateWidgetCode();
 
     return true;
 }
