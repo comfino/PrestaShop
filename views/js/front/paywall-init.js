@@ -88,15 +88,13 @@ window.ComfinoPaywallInit = {
     initWithObserver: () => {
         ComfinoPaywallInit.init();
 
-        const frontendInitElement =
-            document.getElementById('pay-with-comfino') ??
-            document.querySelector('input[data-module-name^="comfino"]');
-
-        ComfinoPaywallInit.init();
-
         if (ComfinoPaywallFrontend.isFrontendInitSet()) {
             return;
         }
+
+        const frontendInitElement =
+            document.getElementById('pay-with-comfino') ??
+            document.querySelector('input[data-module-name^="comfino"]');
 
         if (frontendInitElement) {
             ComfinoPaywallFrontend.logEvent("Paywall initialization with 'display' prop observer.", 'debug');
