@@ -26,8 +26,7 @@ window.ComfinoPaywallInit = {
     init: () => {
         const iframeContainer = document.getElementById('comfino-iframe-container');
 
-        document
-            .getElementById('comfino-iframe-container')
+        document.getElementById('comfino-iframe-container')
             ?.querySelector('#comfino-paywall-container')
             ?.remove();
 
@@ -100,9 +99,7 @@ window.ComfinoPaywallInit = {
             ComfinoPaywallFrontend.logEvent("Paywall initialization with 'display' prop observer.", 'debug');
 
             const observer = new MutationObserver(() => {
-                const display = getComputedStyle(frontendInitElement).display;
-
-                if (display === 'block') {
+                if (getComputedStyle(frontendInitElement).display === 'block') {
                     ComfinoPaywallInit.init();
 
                     if (ComfinoPaywallFrontend.isFrontendInitSet()) {
