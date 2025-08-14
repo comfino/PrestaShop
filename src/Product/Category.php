@@ -23,23 +23,51 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Product;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_3_4_1($module)
+final class Category
 {
-    // Initialize new configuration options.
-    (new \Comfino\ConfigManager($module))->updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-    ]);
+    /**
+     * @readonly
+     *
+     * @var int
+     */
+    public $id;
 
-    return true;
+    /**
+     * @readonly
+     *
+     * @var string
+     */
+    public $name;
+
+    /**
+     * @readonly
+     *
+     * @var int
+     */
+    public $position;
+
+    /**
+     * @var Category[]
+     *
+     * @readonly
+     */
+    public $children;
+
+    /**
+     * @param Category[] $children
+     */
+    public function __construct($id, $name, $position, array $children)
+    {
+        $this->id = $id;
+        $this->name = $name;
+        $this->position = $position;
+        $this->children = $children;
+    }
 }

@@ -23,23 +23,43 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Customer/AddressInterface.php';
 
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_3_4_1($module)
+use Comfino\Order\Customer\AddressInterface;
+
+interface CustomerInterface
 {
-    // Initialize new configuration options.
-    (new \Comfino\ConfigManager($module))->updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-    ]);
+    /** @return string */
+    public function getFirstName();
 
-    return true;
+    /** @return string */
+    public function getLastName();
+
+    /** @return string */
+    public function getEmail();
+
+    /** @return string */
+    public function getPhoneNumber();
+
+    /** @return string */
+    public function getIp();
+
+    /** @return string|null */
+    public function getTaxId();
+
+    /** @return bool|null */
+    public function isRegular();
+
+    /** @return bool|null */
+    public function isLogged();
+
+    /** @return AddressInterface|null */
+    public function getAddress();
 }

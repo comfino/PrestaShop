@@ -23,23 +23,40 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_3_4_1($module)
+interface LoanParametersInterface
 {
-    // Initialize new configuration options.
-    (new \Comfino\ConfigManager($module))->updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-    ]);
+    /**
+     * Requested loan amount.
+     *
+     * @return int
+     */
+    public function getAmount();
 
-    return true;
+    /**
+     * Number of requested installments.
+     *
+     * @return int|null
+     */
+    public function getTerm();
+
+    /**
+     * Selected financial product type.
+     *
+     * @return string|null
+     */
+    public function getType();
+
+    /**
+     * List of allowed product types as alternatives to the selected product type, displayed on the transaction website.
+     *
+     * @return string[]|null
+     */
+    public function getAllowedProductTypes();
 }

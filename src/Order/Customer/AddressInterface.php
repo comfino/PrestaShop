@@ -23,23 +23,30 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order\Customer;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_3_4_1($module)
+interface AddressInterface
 {
-    // Initialize new configuration options.
-    (new \Comfino\ConfigManager($module))->updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-    ]);
+    /** @return string|null */
+    public function getStreet();
 
-    return true;
+    /** @return string|null */
+    public function getBuildingNumber();
+
+    /** @return string|null */
+    public function getApartmentNumber();
+
+    /**@return string|null */
+    public function getPostalCode();
+
+    /** @return string|null */
+    public function getCity();
+
+    /** @return string|null */
+    public function getCountryCode();
 }

@@ -23,23 +23,42 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order\Cart;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_3_4_1($module)
+interface ProductInterface
 {
-    // Initialize new configuration options.
-    (new \Comfino\ConfigManager($module))->updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-    ]);
+    /** @return string */
+    public function getName();
 
-    return true;
+    /** @return int */
+    public function getPrice();
+
+    /** @return int|null */
+    public function getNetPrice();
+
+    /** @return int|null */
+    public function getTaxRate();
+
+    /** @return int|null */
+    public function getTaxValue();
+
+    /** @return string|null */
+    public function getId();
+
+    /** @return string|null */
+    public function getCategory();
+
+    /** @return string|null */
+    public function getEan();
+
+    /** @return string|null */
+    public function getPhotoUrl();
+
+    /** @return int[]|null */
+    public function getCategoryIds();
 }

@@ -23,23 +23,39 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/SellerInterface.php';
 
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_3_4_1($module)
+use Comfino\Order\SellerInterface;
+
+class Seller implements SellerInterface
 {
-    // Initialize new configuration options.
-    (new \Comfino\ConfigManager($module))->updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-    ]);
+    /**
+     * @var string|null
+     *
+     * @readonly
+     */
+    private $taxId;
 
-    return true;
+    /**
+     * @param string|null $taxId
+     */
+    public function __construct($taxId)
+    {
+        $this->taxId = $taxId;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getTaxId()
+    {
+        return $this->taxId !== null ? trim(strip_tags($this->taxId)) : null;
+    }
 }

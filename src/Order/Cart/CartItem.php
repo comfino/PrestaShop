@@ -23,23 +23,58 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order\Cart;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Cart/CartItemInterface.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Cart/ProductInterface.php';
 
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_3_4_1($module)
+use Comfino\Order\Cart\CartItemInterface;
+use Comfino\Order\Cart\ProductInterface;
+
+class CartItem implements CartItemInterface
 {
-    // Initialize new configuration options.
-    (new \Comfino\ConfigManager($module))->updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-    ]);
+    /**
+     * @var ProductInterface
+     *
+     * @readonly
+     */
+    private $product;
 
-    return true;
+    /**
+     * @var int
+     *
+     * @readonly
+     */
+    private $quantity;
+
+    /**
+     * @param ProductInterface $product
+     * @param int $quantity
+     */
+    public function __construct(ProductInterface $product, $quantity)
+    {
+        $this->product = $product;
+        $this->quantity = $quantity;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getProduct()
+    {
+        return $this->product;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getQuantity()
+    {
+        return $this->quantity;
+    }
 }

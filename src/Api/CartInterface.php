@@ -23,23 +23,37 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Api;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Cart/CartItemInterface.php';
 
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_3_4_1($module)
+use Comfino\Order\Cart\CartItemInterface;
+
+interface CartInterface
 {
-    // Initialize new configuration options.
-    (new \Comfino\ConfigManager($module))->updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-    ]);
+    /** @return CartItemInterface[] */
+    public function getItems();
 
-    return true;
+    /** @return int */
+    public function getTotalAmount();
+
+    /** @return int|null */
+    public function getDeliveryCost();
+
+    /** @return int|null */
+    public function getDeliveryNetCost();
+
+    /** @return int|null */
+    public function getDeliveryCostTaxRate();
+
+    /** @return int|null */
+    public function getDeliveryCostTaxValue();
+
+    /** @return string|null */
+    public function getCategory();
 }

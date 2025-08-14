@@ -23,23 +23,39 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Product\CategoryTree;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Product/CategoryTree/NodeIterator.php';
 
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_3_4_1($module)
+use Comfino\Product\CategoryTree\NodeIterator;
+
+final class Descriptor
 {
-    // Initialize new configuration options.
-    (new \Comfino\ConfigManager($module))->updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-    ]);
+    /**
+     * @readonly
+     *
+     * @var \Comfino\Product\CategoryTree\NodeIterator
+     */
+    public $nodes;
 
-    return true;
+    /**
+     * @var Node[]|null
+     *
+     * @readonly
+     */
+    public $index;
+
+    /**
+     * @param Node[]|null $index
+     */
+    public function __construct(NodeIterator $nodes, $index)
+    {
+        $this->nodes = $nodes;
+        $this->index = $index;
+    }
 }

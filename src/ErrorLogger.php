@@ -30,7 +30,9 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once 'ShopPluginError.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ShopPluginError.php';
+
+use Comfino\ShopPluginError;
 
 class ErrorLogger
 {
@@ -82,15 +84,21 @@ class ErrorLogger
         $error_prefix,
         $error_code,
         $error_message,
+        $http_status_code = 0,
         $api_request_url = null,
         $api_request = null,
         $api_response = null,
         $stack_trace = null
     ) {
-        if (preg_match('/Error .*in \/|Exception .*in \//', $error_message) &&
+        if (preg_match('/Error .*in |Exception .*in /', $error_message) &&
             strpos($error_message, 'modules/comfino') === false
         ) {
             // Ignore all errors and exceptions outside the plugin code.
+            return;
+        }
+
+        if ($http_status_code === 400) {
+            // Don't collect validation errors - validation errors are already collected at API side.
             return;
         }
 
@@ -200,8 +208,13 @@ class ErrorLogger
     {
         self::sendError(
             'Exception ' . get_class($exception) . " in {$exception->getFile()}:{$exception->getLine()}",
-            $exception->getCode(), $exception->getMessage(),
-            null, null, null, $exception->getTraceAsString()
+            $exception->getCode(),
+            $exception->getMessage(),
+            0,
+            null,
+            null,
+            null,
+            $exception->getTraceAsString()
         );
     }
 

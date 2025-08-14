@@ -30,15 +30,6 @@ if (!defined('_PS_VERSION_')) {
 $sql = [];
 
 $sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'comfino_orders`';
-$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'comfino_orders` (
-    `id_comfino_orders` int(55) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `id_comfino` int(55) NOT NULL,
-    `id_customer` int(55) NOT NULL,
-    `order_status` varchar(255) NOT NULL,
-    `legalize_link` varchar(255) NOT NULL,
-    `self_link` varchar(255) NOT NULL,
-    `cancel_link` varchar(255) NOT NULL
-) ENGINE=' . _MYSQL_ENGINE_ . ' COLLATE utf8mb4_bin;';
 
 foreach ($sql as $query) {
     if (Db::getInstance()->execute($query) == false) {

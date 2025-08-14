@@ -23,23 +23,53 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino\Order;
+
+use Comfino\Api\CartInterface;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
-
-/**
- * @param Comfino $module
- *
- * @return bool
- */
-function upgrade_module_3_4_1($module)
+interface OrderInterface
 {
-    // Initialize new configuration options.
-    (new \Comfino\ConfigManager($module))->updateConfiguration([
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
-    ]);
+    /**
+     * Shop internal order ID.
+     *
+     * @return string
+     */
+    public function getId();
 
-    return true;
+    /**
+     * Callback URL used by Comfino API for sending notifications about transaction status changes.
+     *
+     * @return string|null
+     */
+    public function getNotifyUrl();
+
+    /**
+     * Return URL to the shop confirmation page, where customer will be redirected from Comfino website when transaction will be finished - successfully or not.
+     *
+     * @return string
+     */
+    public function getReturnUrl();
+
+    /** @return LoanParametersInterface */
+    public function getLoanParameters();
+
+    /** @return CartInterface */
+    public function getCart();
+
+    /** @return CustomerInterface */
+    public function getCustomer();
+
+    /** @return SellerInterface|null */
+    public function getSeller();
+
+    /** @return string|null */
+    public function getAccountNumber();
+
+    /** @return string|null */
+    public function getTransferTitle();
 }
