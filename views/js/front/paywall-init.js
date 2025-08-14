@@ -88,46 +88,41 @@ window.ComfinoPaywallInit = {
     initWithObserver: () => {
         ComfinoPaywallInit.init();
 
+        const frontendInitElement =
+            document.getElementById('pay-with-comfino') ??
+            document.querySelector('input[data-module-name^="comfino"]');
+
+        ComfinoPaywallInit.init();
+
         if (ComfinoPaywallFrontend.isFrontendInitSet()) {
             return;
         }
-function initComfinoPaywallWithObserver() {
-    const frontendInitElement =
-        document.getElementById('pay-with-comfino') ??
-        document.querySelector('input[data-module-name^="comfino"]');
 
-    ComfinoPaywallInit.init();
+        if (frontendInitElement) {
+            ComfinoPaywallFrontend.logEvent("Paywall initialization with 'display' prop observer.", 'debug');
 
-    if (ComfinoPaywallFrontend.isFrontendInitSet()) {
-        return;
-    }
+            const observer = new MutationObserver(() => {
+                const display = getComputedStyle(frontendInitElement).display;
 
-    if (frontendInitElement) {
-        ComfinoPaywallFrontend.logEvent("Paywall initialization with 'display' prop observer", 'debug');
+                if (display === 'block') {
+                    ComfinoPaywallInit.init();
 
-        const observer = new MutationObserver(() => {
-            const display = getComputedStyle(frontendInitElement).display;
-            if (display === 'block') {
-                ComfinoPaywallInit.init();
-                if (ComfinoPaywallFrontend.isFrontendInitSet()) {
-                    observer.disconnect();
+                    if (ComfinoPaywallFrontend.isFrontendInitSet()) {
+                        observer.disconnect();
+                    }
                 }
-            }
-        });
+            });
 
-        observer.observe(frontendInitElement, {
-            attributes: true,
-            attributeFilter: ['style'],
-        });
+            observer.observe(frontendInitElement, { attributes: true, attributeFilter: ['style'] });
+        }
     }
 }
 
 if (document.readyState === 'complete') {
-    initComfinoPaywallWithObserver()
+    ComfinoPaywallInit.initWithObserver();
 } else {
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {
-            initComfinoPaywallWithObserver()
             ComfinoPaywallInit.initWithObserver();
         }
     });
