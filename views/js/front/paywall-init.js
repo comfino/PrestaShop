@@ -26,6 +26,11 @@ window.ComfinoPaywallInit = {
     init: () => {
         const iframeContainer = document.getElementById('comfino-iframe-container');
 
+        document
+            .getElementById('comfino-iframe-container')
+            ?.querySelector('#comfino-paywall-container')
+            ?.remove();
+
         if (iframeContainer == null) {
             ComfinoPaywallFrontend.logEvent('Comfino paywall iframe container not found.', 'warning');
 
@@ -79,42 +84,45 @@ window.ComfinoPaywallInit = {
         iframeContainer.appendChild(iframe);
 
         ComfinoPaywallFrontend.init(frontendInitElement, iframe, ComfinoPaywallData.paywallOptions);
-    },
-    initWithObserver: () => {
-        ComfinoPaywallInit.init();
+    }
+}
+function initComfinoPaywallWithObserver() {
+    const frontendInitElement =
+        document.getElementById('pay-with-comfino') ??
+        document.querySelector('input[data-module-name^="comfino"]');
 
-        if (ComfinoPaywallFrontend.isFrontendInitSet()) {
-            return;
-        }
+    ComfinoPaywallInit.init();
 
-        const frontendInitElement =
-            document.getElementById('pay-with-comfino') ??
-            document.querySelector('input[data-module-name^="comfino"]');
+    if (ComfinoPaywallFrontend.isFrontendInitSet()) {
+        return;
+    }
 
-        if (frontendInitElement) {
-            ComfinoPaywallFrontend.logEvent("Paywall initialization with 'display' prop observer.", 'debug');
+    if (frontendInitElement) {
+        ComfinoPaywallFrontend.logEvent("Paywall initialization with 'display' prop observer", 'debug');
 
-            const observer = new MutationObserver(() => {
-                if (getComputedStyle(frontendInitElement).display === 'block') {
-                    ComfinoPaywallInit.init();
-
-                    if (ComfinoPaywallFrontend.isFrontendInitSet()) {
-                        observer.disconnect();
-                    }
+        const observer = new MutationObserver(() => {
+            const display = getComputedStyle(frontendInitElement).display;
+            if (display === 'block') {
+                ComfinoPaywallInit.init();
+                if (ComfinoPaywallFrontend.isFrontendInitSet()) {
+                    observer.disconnect();
                 }
-            });
+            }
+        });
 
-            observer.observe(frontendInitElement, { attributes: true, attributeFilter: ['style'] });
-        }
+        observer.observe(frontendInitElement, {
+            attributes: true,
+            attributeFilter: ['style'],
+        });
     }
 }
 
 if (document.readyState === 'complete') {
-    ComfinoPaywallInit.initWithObserver();
+    initComfinoPaywallWithObserver()
 } else {
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {
-            ComfinoPaywallInit.initWithObserver();
+            initComfinoPaywallWithObserver()
         }
     });
 }
