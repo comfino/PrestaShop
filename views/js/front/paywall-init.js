@@ -84,8 +84,13 @@ window.ComfinoPaywallInit = {
         iframeContainer.appendChild(iframe);
 
         ComfinoPaywallFrontend.init(frontendInitElement, iframe, ComfinoPaywallData.paywallOptions);
-    }
-}
+    },
+    initWithObserver: () => {
+        ComfinoPaywallInit.init();
+
+        if (ComfinoPaywallFrontend.isFrontendInitSet()) {
+            return;
+        }
 function initComfinoPaywallWithObserver() {
     const frontendInitElement =
         document.getElementById('pay-with-comfino') ??
@@ -123,6 +128,7 @@ if (document.readyState === 'complete') {
     document.addEventListener('readystatechange', () => {
         if (document.readyState === 'complete') {
             initComfinoPaywallWithObserver()
+            ComfinoPaywallInit.initWithObserver();
         }
     });
 }
