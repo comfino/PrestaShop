@@ -54,7 +54,7 @@ final class Main
 
         try {
             // Initialize cache system.
-            CacheManager::init(_PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var');
+            CacheManager::init(self::getCacheRootPath());
 
             // Register module API endpoints.
             ApiService::init();
@@ -203,6 +203,16 @@ final class Main
         );
 
         return $paymentIsAvailable;
+    }
+
+    public static function getCacheRootPath(): string
+    {
+        return dirname(__DIR__) . '/var';
+    }
+
+    public static function getCachePath(): string
+    {
+        return CacheManager::getCacheFullPath();
     }
 
     public static function processFinishedPaymentTransaction(\PaymentModule $module, array $params): string

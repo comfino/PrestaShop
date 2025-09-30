@@ -95,13 +95,13 @@ final class FrontendManager
         }
 
         if (ConfigManager::isSandboxMode()) {
-            $scriptPath = trim(ConfigManager::getConfigurationValue('COMFINO_JS_DEV_PATH'), '/');
+            $scriptPath = trim(ConfigManager::getConfigurationValue('COMFINO_JS_DEV_PATH', ''), '/');
 
             if (strpos($scriptPath, '..') !== false) {
                 $scriptPath = trim(ConfigManager::getDefaultValue('COMFINO_JS_DEV_PATH'), '/');
             }
         } else {
-            $scriptPath = trim(ConfigManager::getConfigurationValue('COMFINO_JS_PROD_PATH'), '/');
+            $scriptPath = trim(ConfigManager::getConfigurationValue('COMFINO_JS_PROD_PATH', ''), '/');
 
             if (strpos($scriptPath, '..') !== false) {
                 $scriptPath = trim(ConfigManager::getDefaultValue('COMFINO_JS_PROD_PATH'), '/');

@@ -36,8 +36,10 @@ use Comfino\Common\Backend\Payment\ProductTypeFilterManager;
 use Comfino\Common\Shop\Cart;
 use Comfino\Common\Shop\Product\CategoryFilter;
 use Comfino\DebugLogger;
+use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\PluginShared\CacheManager;
+use ComfinoExternal\League\Flysystem\FilesystemException;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -92,7 +94,11 @@ final class SettingsManager
         $listTypeEnum = new ProductTypesListTypeEnum($listType);
 
         if (($productTypes = CacheManager::get($cacheKey)) !== null) {
-            return $productTypes;
+            return is_array($productTypes) ? $productTypes : [];
+        }
+
+        if (empty(ApiClient::getInstance()->getApiKey())) {
+            return $returnErrors ? ['error' => 'API key is required.'] : [];
         }
 
         try {
@@ -103,6 +109,10 @@ final class SettingsManager
             CacheManager::set($cacheKey, $productTypesList, $cacheTtl, ['admin_product_types']);
 
             return $productTypesList;
+        } catch (FilesystemException $e) {
+            ErrorLogger::getLoggerInstance()->logError('Product types cache error', $e->getMessage());
+
+            return $productTypesList ?? [];
         } catch (\Throwable $e) {
             ApiClient::processApiError('Settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
 
@@ -119,7 +129,13 @@ final class SettingsManager
      */
     public static function getProductTypesStrings(string $listType): array
     {
-        return array_keys(self::getProductTypes($listType));
+        $productTypes = self::getProductTypes($listType);
+
+        if (isset($productTypes['error'])) {
+            return [];
+        }
+
+        return array_keys($productTypes);
     }
 
     /**
@@ -127,9 +143,15 @@ final class SettingsManager
      */
     public static function getProductTypesEnums(string $listType): array
     {
+        $productTypes = self::getProductTypes($listType);
+
+        if (isset($productTypes['error'])) {
+            return [];
+        }
+
         return array_map(
             static function (string $productType): LoanTypeEnum { return new LoanTypeEnum($productType); },
-            array_keys(self::getProductTypes($listType))
+            array_keys($productTypes)
         );
     }
 
@@ -142,7 +164,11 @@ final class SettingsManager
         $cacheKey = "widget_types.$language";
 
         if (($widgetTypes = CacheManager::get($cacheKey)) !== null) {
-            return $widgetTypes;
+            return is_array($widgetTypes) ? $widgetTypes : [];
+        }
+
+        if (empty(ApiClient::getInstance()->getApiKey())) {
+            return $returnErrors ? ['error' => 'API key is required.'] : [];
         }
 
         $useNewApi = ConfigManager::getConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', false);
@@ -155,6 +181,10 @@ final class SettingsManager
             CacheManager::set($cacheKey, $widgetTypesList, $cacheTtl, ['admin_widget_types']);
 
             return $widgetTypesList;
+        } catch (FilesystemException $e) {
+            ErrorLogger::getLoggerInstance()->logError('Widget types cache error', $e->getMessage());
+
+            return $widgetTypesList ?? [];
         } catch (\Throwable $e) {
             ApiClient::processApiError('Settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
 
@@ -241,6 +271,11 @@ final class SettingsManager
     public static function getCatFilterAvailProdTypes(): array
     {
         $productTypes = self::getProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL);
+
+        if (isset($productTypes['error'])) {
+            return [];
+        }
+
         $categoryFilterAvailProductTypes = [];
 
         foreach (ConfigManager::getConfigurationValue('COMFINO_CAT_FILTER_AVAIL_PROD_TYPES') as $prod_type) {

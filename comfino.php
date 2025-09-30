@@ -37,11 +37,11 @@ if (!defined('COMFINO_MODULE_NAME')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.2.3');
+    define('COMFINO_VERSION', '4.2.4');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1755178611);
+    define('COMFINO_BUILD_TS', 1759226417);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
@@ -63,7 +63,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '4.2.3';
+        $this->version = '4.2.4';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -253,6 +253,11 @@ class Comfino extends PaymentModule
         if (($controller === 'product') && Comfino\Configuration\ConfigManager::isWidgetEnabled()) {
             // Widget initialization script
             $product = $this->context->controller->getProduct();
+
+            if (!Validate::isLoadedObject($product)) {
+                return;
+            }
+
             $allowedProductTypes = Comfino\Configuration\SettingsManager::getAllowedProductTypes(
                 Comfino\FinancialProduct\ProductTypesListTypeEnum::LIST_TYPE_WIDGET,
                 Comfino\Order\OrderManager::getShopCartFromProduct($product)
