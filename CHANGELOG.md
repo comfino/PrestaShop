@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.2.4](https://github.com/comfino/PrestaShop/tree/4.2.4) (2025-09-30)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.3...4.2.4)
+
+**Merged pull requests:**
+
+- FN-13467 Fixed some minor bugs, added improvements in plugin diagnostic functions and support for new financial product type PAY_IN_PARTS. [\#108](https://github.com/comfino/PrestaShop/pull/108) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.2.3](https://github.com/comfino/PrestaShop/tree/4.2.3) (2025-07-25)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.2...4.2.3)

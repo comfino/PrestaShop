@@ -210,7 +210,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $shopCart->getTotalValue(),
             $shopCart->getDeliveryCost(),
             (int) $cookie->loan_term,
-            new LoanTypeEnum($cookie->loan_type),
+            new LoanTypeEnum($cookie->loan_type, false),
             $shopCart->getCartItems(),
             new Customer(
                 $firstName,

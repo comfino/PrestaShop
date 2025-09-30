@@ -538,7 +538,7 @@ final class ConfigManager
             'COMFINO_SERVICE_MODE' => false,
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' =>
-                'INSTALLMENTS_ZERO_PERCENT,PAY_LATER,COMPANY_BNPL,COMPANY_INSTALLMENTS,LEASING',
+                'INSTALLMENTS_ZERO_PERCENT,PAY_LATER,COMPANY_BNPL,COMPANY_INSTALLMENTS,LEASING,PAY_IN_PARTS',
             'COMFINO_WIDGET_ENABLED' => false,
             'COMFINO_WIDGET_KEY' => '',
             'COMFINO_WIDGET_PRICE_SELECTOR' => COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]',

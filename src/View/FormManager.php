@@ -33,6 +33,7 @@ use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\Main;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -112,6 +113,16 @@ final class FormManager
                 $infoMessages[] = sprintf(
                     '<b>New widget API:</b> %s',
                     ConfigManager::getConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', false) ? 'Active' : 'Inactive'
+                );
+                $infoMessages[] = sprintf(
+                    '<b>Cache root directory writable:</b> %s%s',
+                    is_writable(Main::getCacheRootPath()) ? '<b style="color: green">YES</b>' : '<b style="color: red">NO</b>',
+                    getenv('COMFINO_DEV_ENV') === 'TRUE' ? ' (<i>' . Main::getCacheRootPath() . '</i>)' : ''
+                );
+                $infoMessages[] = sprintf(
+                    '<b>Cache directory writable:</b> %s%s',
+                    is_writable(Main::getCachePath()) ? '<b style="color: green">YES</b>' : '<b style="color: red">NO</b>',
+                    getenv('COMFINO_DEV_ENV') === 'TRUE' ? ' (<i>' . Main::getCachePath() . '</i>)' : ''
                 );
 
                 if (getenv('COMFINO_DEV_ENV') === 'TRUE') {

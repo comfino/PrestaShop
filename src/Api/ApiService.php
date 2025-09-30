@@ -119,11 +119,13 @@ final class ApiService
 
     public static function processRequest(string $endpointName): string
     {
+        $endpointManager = self::getEndpointManager();
+
         if (ConfigManager::isDebugMode()) {
-            $request = self::getEndpointManager()->getServerRequest();
+            $request = $endpointManager->getServerRequest();
 
             DebugLogger::logEvent(
-                '[REST API]',
+                '[REST API request]',
                 'processRequest',
                 [
                     '$endpointName' => $endpointName,
@@ -135,13 +137,13 @@ final class ApiService
             );
         }
 
-        if (empty(self::getEndpointManager()->getRegisteredEndpoints())) {
+        if (empty($endpointManager->getRegisteredEndpoints())) {
             http_response_code(503);
 
             return 'Endpoint manager not initialized.';
         }
 
-        $response = self::getEndpointManager()->processRequest($endpointName);
+        $response = $endpointManager->processRequest($endpointName);
 
         foreach ($response->getHeaders() as $headerName => $headerValues) {
             foreach ($headerValues as $headerValue) {
@@ -152,6 +154,21 @@ final class ApiService
         $responseBody = $response->getBody()->getContents();
 
         http_response_code($response->getStatusCode());
+
+        if (ConfigManager::isDebugMode() && $response->getStatusCode() !== 200) {
+            DebugLogger::logEvent(
+                '[REST API response]',
+                'processRequest',
+                [
+                    '$endpointName' => $endpointName,
+                    'RECEIVED-CR-SIGNATURE' => $endpointManager->getReceivedCrSignature(),
+                    'CALCULATED-CR-SIGNATURE' => $endpointManager->getCalculatedCrSignature(),
+                    'HEADERS' => $response->getHeaders(),
+                    'STATUS' => $response->getStatusCode(),
+                    'BODY' => $response->getBody()->getContents(),
+                ]
+            );
+        }
 
         return !empty($responseBody) ? $responseBody : $response->getReasonPhrase();
     }
