@@ -58,8 +58,8 @@ final class SettingsForm
         $widgetKeyError = false;
         $widgetKey = ConfigManager::getConfigurationValue('COMFINO_WIDGET_KEY', '');
 
-        $errorEmptyMsg = $module->l("Field '%s' can not be empty.");
-        $errorNumericFormatMsg = $module->l("Field '%s' has wrong numeric format.");
+        $errorEmptyMsg = $module->l('Field "%s" can not be empty.');
+        $errorNumericFormatMsg = $module->l('Field "%s" has wrong numeric format.');
 
         $configurationOptions = [];
 

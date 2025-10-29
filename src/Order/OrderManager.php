@@ -31,6 +31,9 @@ use Comfino\Configuration\ConfigManager;
 use Comfino\Shop\Order\Cart\CartItem;
 use Comfino\Shop\Order\Cart\CartItemInterface;
 use Comfino\Shop\Order\Cart\Product;
+use Comfino\Shop\Order\Customer;
+use Comfino\Shop\Order\Customer\Address;
+use Comfino\Tools;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -131,6 +134,13 @@ final class OrderManager
         );
     }
 
+    /**
+     * @param \Order $order
+     * @param int $priceModifier
+     * @param bool $loadProductCategories Whether to load product category names into cart items.
+     *
+     * @return Cart Comfino cart structure.
+     */
     public static function getShopCartFromOrder(\Order $order, int $priceModifier, bool $loadProductCategories = false): Cart
     {
         $totalValue = (int) round(round($order->getTotalProductsWithTaxes(), 2) * 100);
@@ -198,6 +208,7 @@ final class OrderManager
     /**
      * @param \Product $product PrestaShop product entity.
      * @param bool $loadProductCategories Whether to load product category names into cart items.
+     *
      * @return Cart Comfino cart structure.
      */
     public static function getShopCartFromProduct(\Product $product, bool $loadProductCategories = false): Cart
@@ -232,6 +243,96 @@ final class OrderManager
                     1
                 ),
             ]
+        );
+    }
+
+    /**
+     * @param \Cart $cart PrestaShop cart entity.
+     * @param \Customer $customer PrestaShop customer entity.
+     * @param \Context $context PrestaShop context.
+     *
+     * @return Customer Comfino customer structure.
+     */
+    public static function getShopCustomerFromCart(\Cart $cart, \Customer $customer, \Context $context): Customer
+    {
+        $billingAddress = $cart->getAddressCollection()[$cart->id_address_invoice];
+        $deliveryAddress = $cart->getAddressCollection()[$cart->id_address_delivery];
+
+        if ($billingAddress === null) {
+            $billingAddress = $deliveryAddress;
+        }
+
+        $phoneNumber = trim($billingAddress->phone ?? '');
+
+        if (empty($phoneNumber)) {
+            $phoneNumber = trim($billingAddress->phone_mobile ?? '');
+        }
+
+        if (!empty(trim($deliveryAddress->phone))) {
+            $phoneNumber = trim($deliveryAddress->phone);
+        }
+
+        if (!empty(trim($deliveryAddress->phone_mobile))) {
+            $phoneNumber = trim($deliveryAddress->phone_mobile);
+        }
+
+        if (!empty(trim($billingAddress->firstname ?? ''))) {
+            // Use billing address to get customer names.
+            [$firstName, $lastName] = self::prepareCustomerNames($billingAddress);
+        } else {
+            // Use delivery address to get customer names.
+            [$firstName, $lastName] = self::prepareCustomerNames($deliveryAddress);
+        }
+
+        $billingAddressLines = $billingAddress->address1;
+
+        if (!empty($billingAddress->address2)) {
+            $billingAddressLines .= " $billingAddress->address2";
+        }
+
+        if (empty($billingAddressLines)) {
+            $deliveryAddressLines = $deliveryAddress->address1;
+
+            if (!empty($deliveryAddress->address2)) {
+                $deliveryAddressLines .= " {$deliveryAddress->address2}";
+            }
+
+            $street = trim($deliveryAddressLines);
+        } else {
+            $street = trim($billingAddressLines);
+        }
+
+        $addressParts = explode(' ', $street);
+        $buildingNumber = '';
+
+        if (count($addressParts) > 1) {
+            foreach ($addressParts as $idx => $addressPart) {
+                if (preg_match('/^\d+[a-zA-Z]?$/', trim($addressPart))) {
+                    $street = implode(' ', array_slice($addressParts, 0, $idx));
+                    $buildingNumber = trim($addressPart);
+                }
+            }
+        }
+
+        $customerTaxId = trim(str_replace('-', '', $billingAddress->vat_number ?? ''));
+
+        return new Customer(
+            $firstName,
+            $lastName,
+            $customer->email,
+            $phoneNumber,
+            \Tools::getRemoteAddr(),
+            preg_match('/^[A-Z]{0,3}\d{7,}$/', $customerTaxId) ? $customerTaxId : null,
+            !$customer->is_guest,
+            $customer->isLogged(),
+            new Address(
+                $street,
+                $buildingNumber,
+                null,
+                !empty($deliveryAddress->postcode),
+                $deliveryAddress->city,
+                (new Tools($context))->getCountryIsoCode($deliveryAddress->id_country)
+            )
         );
     }
 
@@ -298,5 +399,21 @@ final class OrderManager
         }
 
         return array_intersect_key($categories, array_flip(self::getProductCategoryIds($product)));
+    }
+
+    private static function prepareCustomerNames(\Address $address): array
+    {
+        $firstName = trim($address->firstname ?? '');
+        $lastName = trim($address->lastname ?? '');
+
+        if (empty($lastName)) {
+            $nameParts = explode(' ', $firstName);
+
+            if (count($nameParts) > 1) {
+                [$firstName, $lastName] = $nameParts;
+            }
+        }
+
+        return [$firstName, $lastName];
     }
 }

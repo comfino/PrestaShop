@@ -247,7 +247,20 @@ final class SettingsManager
 
     public static function getProductCategoryFilters(): array
     {
-        return ConfigManager::getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS', []);
+        if (!is_array($catFilters = ConfigManager::getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS', []))) {
+            $catFilters = array_map('trim', explode(',', $catFilters));
+        }
+
+        return $catFilters;
+    }
+
+    public static function getProductCategoryFiltersAvailProductTypes(): array
+    {
+        if (!is_array($availProds = ConfigManager::getConfigurationValue('COMFINO_CAT_FILTER_AVAIL_PROD_TYPES', []))) {
+            $availProds = array_map('trim', explode(',', $availProds));
+        }
+
+        return $availProds;
     }
 
     public static function productCategoryFiltersActive(array $productCategoryFilters): bool
@@ -278,8 +291,8 @@ final class SettingsManager
 
         $categoryFilterAvailProductTypes = [];
 
-        foreach (ConfigManager::getConfigurationValue('COMFINO_CAT_FILTER_AVAIL_PROD_TYPES') as $prod_type) {
-            $categoryFilterAvailProductTypes[$prod_type] = null;
+        foreach (self::getProductCategoryFiltersAvailProductTypes() as $productType) {
+            $categoryFilterAvailProductTypes[$productType] = null;
         }
 
         if (empty($availProductTypes = array_intersect_key($productTypes, $categoryFilterAvailProductTypes))) {

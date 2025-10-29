@@ -56,7 +56,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
         }
 
         if (!Tools::isEmpty('priceModifier') && is_numeric(Tools::getValue('priceModifier'))) {
-            $priceModifier = (int) Tools::getValue('priceModifier');
+            $priceModifier = (int) filter_var(Tools::getValue('priceModifier'), FILTER_VALIDATE_INT);
         } else {
             $priceModifier = 0;
         }

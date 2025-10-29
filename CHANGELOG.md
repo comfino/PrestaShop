@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.2.5](https://github.com/comfino/PrestaShop/tree/4.2.5) (2025-10-29)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.4...4.2.5)
+
+**Merged pull requests:**
+
+- FN-13681 Fixed some minor bugs, improved module security, errors handling, stability and reliability for better UX. [\#109](https://github.com/comfino/PrestaShop/pull/109) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.2.4](https://github.com/comfino/PrestaShop/tree/4.2.4) (2025-09-30)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.3...4.2.4)
