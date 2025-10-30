@@ -120,6 +120,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $initLoanAmount = (int) filter_var($cookie->loan_amount, FILTER_VALIDATE_INT);
         $priceModifier = (int) filter_var($cookie->price_modifier, FILTER_VALIDATE_INT);
+        $loanType = trim(filter_var($cookie->loan_type, FILTER_SANITIZE_STRING));
+        $loanTerm = (int) filter_var($cookie->loan_term, FILTER_VALIDATE_INT);
 
         $psOrder = new \Order($this->module->currentOrder);
 
@@ -143,14 +145,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         /* Create Order object with temporary ID for validation before validateOrder() call.
            This allows validation to occur before the cart is cleared by validateOrder(). */
-        $order = $this->createOrder(
-            $tempOrderId,
-            $cookie->loan_type,
-            (int) $cookie->loan_term,
-            $returnUrl,
-            $shopCart,
-            $shopCustomer
-        );
+        $order = $this->createOrder($tempOrderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer);
 
         // Perform comprehensive validation before validateOrder() to preserve cart on error.
         $validationErrors = $this->validatePaymentData($order, $cart);
@@ -212,14 +207,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         ]);
 
         // Create Order object with real order ID for Comfino API.
-        $order = $this->createOrder(
-            $orderId,
-            $cookie->loan_type,
-            (int) $cookie->loan_term,
-            $returnUrl,
-            $shopCart,
-            $shopCustomer
-        );
+        $order = $this->createOrder($orderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer);
 
         try {
             Tools::redirect(ApiClient::getInstance()->createOrder($order)->applicationUrl);

@@ -41,6 +41,15 @@ if (!defined('_PS_VERSION_')) {
 
 final class OrderManager
 {
+    /**
+     * @param \Cart $cart PrestaShop cart entity.
+     * @param int $priceModifier
+     * @param bool $loadProductCategories Whether to load product category names into cart items.
+     *
+     * @return Cart Comfino cart structure.
+     *
+     * @throws \Exception
+     */
     public static function getShopCart(\Cart $cart, int $priceModifier, bool $loadProductCategories = false): Cart
     {
         $totalValue = (int) round(round($cart->getOrderTotal(), 2) * 100);
@@ -135,7 +144,7 @@ final class OrderManager
     }
 
     /**
-     * @param \Order $order
+     * @param \Order $order PrestaShop order entity.
      * @param int $priceModifier
      * @param bool $loadProductCategories Whether to load product category names into cart items.
      *
