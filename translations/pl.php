@@ -105,7 +105,6 @@ $_MODULE['<{comfino}prestashop>comfino_cedd86183fa6cabdca9383422259d860'] = 'Num
 $_MODULE['<{comfino}prestashop>comfino_4fb2916f8b8110529ecfa5d4095db92a'] = 'Imię jest wymagane.';
 $_MODULE['<{comfino}prestashop>comfino_3c57f7734d95ec699325194ccad92740'] = 'Nazwisko jest wymagane.';
 $_MODULE['<{comfino}prestashop>comfino_d722007b4da3689e00e73bec0e8c5a03'] = 'Adres dostawy jest wymagany.';
-$_MODULE['<{comfino}prestashop>comfino_8d2a0e00a3941a98c468e41b57378170'] = 'Ulica jest wymagana.';
 $_MODULE['<{comfino}prestashop>comfino_1ff12652239c65f1e8c48dc1f51d859a'] = 'Miejscowość jest wymagana.';
 $_MODULE['<{comfino}prestashop>comfino_f48bc4ffb6b27e02ce42a417ecb94e5d'] = 'Kod pocztowy jest wymagany.';
 $_MODULE['<{comfino}prestashop>comfino_e30faf31a44b48cf9087a95c72f21a33'] = 'Koszyk jest pusty. Dodaj produkty do koszyka.';
