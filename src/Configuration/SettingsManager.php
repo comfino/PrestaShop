@@ -150,7 +150,7 @@ final class SettingsManager
         }
 
         return array_map(
-            static function (string $productType): LoanTypeEnum { return new LoanTypeEnum($productType); },
+            static function (string $productType): LoanTypeEnum { return new LoanTypeEnum($productType, false); },
             array_keys($productTypes)
         );
     }
@@ -334,7 +334,7 @@ final class SettingsManager
             && ConfigManager::getConfigurationValue('COMFINO_WIDGET_TYPE') === 'with-modal'
             && !empty($widgetProductType = ConfigManager::getConfigurationValue('COMFINO_WIDGET_OFFER_TYPE'))
         ) {
-            $filters[] = new FilterByProductType([new LoanTypeEnum($widgetProductType)]);
+            $filters[] = new FilterByProductType([new LoanTypeEnum($widgetProductType, false)]);
         }
 
         if (self::productCategoryFiltersActive($productCategoryFilters = self::getProductCategoryFilters())) {
