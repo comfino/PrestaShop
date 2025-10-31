@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Comfino;
+namespace Comfino\Tests;
 
 use Comfino\Api\Client;
+use Comfino\Extended\Api\Client as ExtendedClient;
 use Comfino\Extended\Api\Dto\Plugin\ShopPluginError;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Http\Message\RequestMatcher\RequestMatcher;
@@ -106,7 +107,7 @@ trait ExtendedClientTestTrait
         $this->productionApiHost = parse_url($this->getConstantFromClass(Client::class, 'PRODUCTION_HOST'), PHP_URL_HOST);
     }
 
-    private function initApiClient(string $endpointPath, string $method, ?array $queryParameters = null, ?string $requestBody = null, $responseData = null, ?string $apiKey = null, bool $isPublicEndpoint = false, int $responseStatus = 200): Extended\Api\Client
+    private function initApiClient(string $endpointPath, string $method, ?array $queryParameters = null, ?string $requestBody = null, $responseData = null, ?string $apiKey = null, bool $isPublicEndpoint = false, int $responseStatus = 200): ExtendedClient
     {
         $client = new \Http\Mock\Client();
         $client->on(
@@ -116,10 +117,10 @@ trait ExtendedClientTestTrait
             }
         );
 
-        return new Extended\Api\Client(new RequestFactory(), new StreamFactory(), $client, $apiKey);
+        return new ExtendedClient(new RequestFactory(), new StreamFactory(), $client, $apiKey);
     }
 
-    private function initFailingApiClient(): Extended\Api\Client
+    private function initFailingApiClient(): ExtendedClient
     {
         $client = new \Http\Mock\Client();
         $client->on(
@@ -129,7 +130,7 @@ trait ExtendedClientTestTrait
             }
         );
 
-        return new Extended\Api\Client(new RequestFactory(), new StreamFactory(), $client, 'API-KEY');
+        return new ExtendedClient(new RequestFactory(), new StreamFactory(), $client, 'API-KEY');
     }
 
     private function processRequest(RequestInterface $request, ?array $queryParameters = null, ?string $requestBody = null, $responseData = null, ?string $apiKey = null, bool $isPublicEndpoint = false, int $responseStatus = 200): ResponseInterface

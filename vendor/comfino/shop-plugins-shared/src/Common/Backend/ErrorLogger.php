@@ -51,7 +51,6 @@ final class ErrorLogger
         E_USER_ERROR => 'E_USER_ERROR',
         E_USER_WARNING => 'E_USER_WARNING',
         E_USER_NOTICE => 'E_USER_NOTICE',
-        E_STRICT => 'E_STRICT',
         E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
         E_DEPRECATED => 'E_DEPRECATED',
         E_USER_DEPRECATED => 'E_USER_DEPRECATED',
@@ -156,7 +155,7 @@ final class ErrorLogger
         $errorType = $this->getErrorTypeName($errNo);
 
         if (strpos($errorType, 'E_USER_') === false && strpos($errorType, 'NOTICE') === false) {
-            $this->sendError("Error $errorType in $file:$line", $errNo, $errMsg);
+            $this->sendError("Error $errorType in $file:$line", (string) $errNo, $errMsg);
         }
 
         return false;
@@ -166,7 +165,7 @@ final class ErrorLogger
     {
         $this->sendError(
             'Exception ' . get_class($exception) . " in {$exception->getFile()}:{$exception->getLine()}",
-            $exception->getCode(), $exception->getMessage(),
+            (string) $exception->getCode(), $exception->getMessage(),
             null, null, null, $exception->getTraceAsString()
         );
     }
@@ -193,7 +192,7 @@ final class ErrorLogger
     {
         if (($error = error_get_last()) !== null && ($error['type'] & (E_ERROR | E_RECOVERABLE_ERROR | E_PARSE))) {
             $errorType = $this->getErrorTypeName($error['type']);
-            $this->sendError("Error $errorType in $error[file]:$error[line]", $error['type'], $error['message']);
+            $this->sendError("Error $errorType in $error[file]:$error[line]", (string) $error['type'], $error['message']);
         }
 
         restore_error_handler();
@@ -202,6 +201,11 @@ final class ErrorLogger
 
     private function getErrorTypeName(int $errorType): string
     {
-        return array_key_exists($errorType, self::ERROR_TYPES) ? self::ERROR_TYPES[$errorType] : 'UNKNOWN';
+        return
+            (($errorTypeName = array_key_exists($errorType, self::ERROR_TYPES) ? self::ERROR_TYPES[$errorType] : 'UNKNOWN') === 'UNKNOWN') &&
+            (PHP_VERSION_ID < 70400) &&
+            $errorType === E_STRICT
+                ? 'E_STRICT'
+                : $errorTypeName;
     }
 }

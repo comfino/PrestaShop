@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Comfino;
+namespace Comfino\Tests;
 
 trait ReflectionTrait
 {
