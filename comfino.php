@@ -41,11 +41,11 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1761898622);
+    define('COMFINO_BUILD_TS', 1762178394);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
-    define('WIDGET_INIT_SCRIPT_HASH', '02d26974720fc8ae83ef20c21312bc73');
+    define('WIDGET_INIT_SCRIPT_HASH', '0603f4e0904fd65e2aef1aded0c57c40');
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_LAST_HASH')) {
