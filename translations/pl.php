@@ -117,6 +117,7 @@ $_MODULE['<{comfino}prestashop>configuration_dbdcee2a8f33547e13199af86a38688e'] 
 $_MODULE['<{comfino}prestashop>configuration_0fa6c048c824482bf4dd381c78ef2418'] = 'Ustawienia deweloperskie';
 $_MODULE['<{comfino}prestashop>configuration_24e673cdc2684bde9fe70162a3fbe6a3'] = 'Diagnostyka wtyczki';
 
+$_MODULE['<{comfino}prestashop>payment_0f7f7dbb9907ba5d256ef3e368d526b4'] = 'Przejdź do płatności';
 $_MODULE['<{comfino}prestashop>payment_e2b7dec8fa4b498156dfee6e4c84b156'] = 'Ta metoda płatności nie jest dostępna';
 $_MODULE['<{comfino}prestashop>payment_e40b15f6b84ceb12c3e9d33b52e3f123'] = 'Wystąpił problem techniczny. Spróbuj ponownie za chwilę i powinno się udać!';
 $_MODULE['<{comfino}prestashop>payment_45ee253e264f68a44b02a46b9529a636'] = 'Mamy problem z konfiguracją. Sklep już pracuje nad rozwiązaniem!';

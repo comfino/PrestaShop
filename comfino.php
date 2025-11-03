@@ -238,6 +238,11 @@ class Comfino extends PaymentModule
      */
     public function hookHeader()
     {
+        // Handle notifications from redirectWithNotificationsPs16() for PrestaShop 1.6.x
+        if (!COMFINO_PS_17) {
+            $this->displayNotificationsPs16();
+        }
+
         $controllerClassName = get_class($this->context->controller);
 
         if (stripos($controllerClassName, 'cart') !== false || stripos($controllerClassName, 'checkout') !== false) {
@@ -309,7 +314,34 @@ class Comfino extends PaymentModule
     }
 
     /**
+     * Displays notifications stored in session for PrestaShop 1.6.x.
+     * Retrieves error messages stored by redirectWithNotificationsPs16() and adds them to the controller.
+     *
+     * @return void
+     */
+    private function displayNotificationsPs16()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (isset($_SESSION['comfino_notifications'])) {
+            $notifications = json_decode($_SESSION['comfino_notifications'], true);
+
+            if (is_array($notifications) && isset($notifications['errors']) && is_array($notifications['errors'])) {
+                foreach ($notifications['errors'] as $error) {
+                    $this->context->controller->errors[] = $error;
+                }
+            }
+
+            // Clear the notifications after displaying.
+            unset($_SESSION['comfino_notifications']);
+        }
+    }
+
+    /**
      * @param bool $useTranslations
+     *
      * @return bool
      */
     public function checkEnvironment($useTranslations = false)

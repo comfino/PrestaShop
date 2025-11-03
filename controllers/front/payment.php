@@ -98,6 +98,10 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             }
         }
 
+        if (!isset($this->errors)) {
+            $this->errors = [];
+        }
+
         if (!$comfinoIsAvailable) {
             $this->errors = [$this->module->l('This payment method is not available.')];
 
@@ -316,17 +320,17 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         return $errors;
     }
 
-    private function redirectWithNotificationsPs16(): void
+    private function redirectWithNotificationsPs16(string $url): void
     {
-        $notifications = json_encode(['error' => $this->errors]);
+        $notifications = json_encode(['errors' => $this->errors]);
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            $_SESSION['notifications'] = $notifications;
-        } else {
-            setcookie('notifications', $notifications);
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
         }
 
-        call_user_func_array(['Tools', 'redirect'], func_get_args());
+        $_SESSION['comfino_notifications'] = $notifications;
+
+        Tools::redirect($url);
     }
 
     private function createOrder(
