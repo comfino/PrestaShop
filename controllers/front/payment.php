@@ -33,8 +33,8 @@ use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
-use Comfino\Shop\Order\Customer;
-use Comfino\Shop\Order\Customer\Address;
+use Comfino\Shop\Order\Order;
+use Comfino\Shop\Order\OrderInterface;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -62,71 +62,11 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         DebugLogger::logEvent('[PAYMENT GATEWAY]', 'postProcess', ['cart_id' => $cart->id]);
 
+        // Basic cart validation before proceeding.
         if ($cart->id_customer === 0 || $cart->id_address_delivery === 0 || $cart->id_address_invoice === 0) {
             Tools::redirect('index.php?controller=order&step=1');
 
             return;
-        }
-
-        $cookie = $this->context->cookie;
-
-        if (!$cookie->loan_type || !$cookie->loan_term) {
-            Tools::redirect('index.php?controller=order&step=1');
-
-            return;
-        }
-
-        $tools = new Comfino\Tools($this->context);
-
-        $billingAddress = $cart->getAddressCollection()[$cart->id_address_invoice];
-        $deliveryAddress = $cart->getAddressCollection()[$cart->id_address_delivery];
-
-        if ($billingAddress === null) {
-            $billingAddress = $deliveryAddress;
-        }
-
-        $phoneNumber = trim($billingAddress->phone ?? '');
-
-        if (empty($phoneNumber)) {
-            $phoneNumber = trim($billingAddress->phone_mobile ?? '');
-        }
-
-        if (!empty(trim($deliveryAddress->phone))) {
-            $phoneNumber = trim($deliveryAddress->phone);
-        }
-
-        if (!empty(trim($deliveryAddress->phone_mobile))) {
-            $phoneNumber = trim($deliveryAddress->phone_mobile);
-        }
-
-        if (empty($phoneNumber)) {
-            $this->errors[] = $this->module->l(
-                'No phone number in addresses found. Please fill value before choosing comfino payment option.'
-            );
-
-            if (COMFINO_PS_17) {
-                $this->redirectWithNotifications('index.php?controller=order&step=1');
-            } else {
-                $this->redirectWithNotificationsPs16('index.php?controller=order&step=1');
-            }
-
-            return;
-        }
-
-        /* Check that this payment option is still available in case the customer changed his address just before
-           the end of the checkout process. */
-        $comfinoIsAvailable = false;
-
-        foreach (Module::getPaymentModules() as $module) {
-            if ($module['name'] === 'comfino') {
-                $comfinoIsAvailable = true;
-
-                break;
-            }
-        }
-
-        if (!$comfinoIsAvailable) {
-            exit($this->module->l('This payment method is not available.'));
         }
 
         $customer = new \Customer($cart->id_customer);
@@ -137,10 +77,57 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $initLoanAmount = (int) $cookie->loan_amount;
-        $priceModifier = (int) $cookie->price_modifier;
+        $cookie = $this->context->cookie;
 
-        $psOrder = new Order($this->module->currentOrder);
+        // Basic loan parameters validation.
+        if (!$cookie->loan_type || !$cookie->loan_term) {
+            Tools::redirect('index.php?controller=order&step=1');
+
+            return;
+        }
+
+        /* Check that this payment option is still available in case the customer changed his address just before
+           the end of the checkout process. */
+        $comfinoIsAvailable = false;
+
+        foreach (Module::getPaymentModules() as $module) {
+            if ($module['name'] === $this->module->name) {
+                $comfinoIsAvailable = true;
+
+                break;
+            }
+        }
+
+        if (!isset($this->errors)) {
+            $this->errors = [];
+        }
+
+        if (!$comfinoIsAvailable) {
+            $this->errors = [$this->module->l('This payment method is not available.')];
+
+            if (COMFINO_PS_17) {
+                $this->redirectWithNotifications('index.php?controller=order&step=1');
+            } else {
+                $this->redirectWithNotificationsPs16('index.php?controller=order&step=1');
+            }
+
+            return;
+        }
+
+        $customer = new \Customer($cart->id_customer);
+
+        if (!Validate::isLoadedObject($customer)) {
+            Tools::redirect('index.php?controller=order&step=1');
+
+            return;
+        }
+
+        $initLoanAmount = (int) filter_var($cookie->loan_amount, FILTER_VALIDATE_INT);
+        $priceModifier = (int) filter_var($cookie->price_modifier, FILTER_VALIDATE_INT);
+        $loanType = trim(filter_var($cookie->loan_type, FILTER_SANITIZE_STRING));
+        $loanTerm = (int) filter_var($cookie->loan_term, FILTER_VALIDATE_INT);
+
+        $psOrder = new \Order($this->module->currentOrder);
 
         if (\ValidateCore::isLoadedObject($psOrder)) {
             $shopCart = OrderManager::getShopCartFromOrder($psOrder, $priceModifier, true);
@@ -148,6 +135,60 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $shopCart = OrderManager::getShopCart($cart, $priceModifier, true);
         }
 
+        $shopCustomer = OrderManager::getShopCustomerFromCart($cart, $customer, $this->context);
+
+        // Use temporary order ID for validation purposes (cart not yet cleared).
+        $tempOrderId = 'order_validation_' . $cart->id . '_' . time();
+        $returnUrl = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?' . http_build_query([
+            'controller' => 'order-confirmation',
+            'id_cart' => $cart->id,
+            'id_module' => $this->module->id,
+            'id_order' => $tempOrderId,
+            'key' => $customer->secure_key,
+        ]);
+
+        /* Create Order object with temporary ID for validation before validateOrder() call.
+           This allows validation to occur before the cart is cleared by validateOrder(). */
+        $order = $this->createOrder($tempOrderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer);
+
+        // Perform comprehensive validation before validateOrder() to preserve cart on error.
+        $validationErrors = $this->validatePaymentData($order, $cart);
+
+        if (!empty($validationErrors)) {
+            DebugLogger::logEvent(
+                '[PAYMENT]',
+                'Validation failed',
+                ['errors' => $validationErrors, 'cart_id' => $cart->id]
+            );
+
+            foreach ($validationErrors as $error) {
+                $this->errors[] = $error;
+            }
+
+            if (COMFINO_PS_17) {
+                $this->redirectWithNotifications('index.php?controller=order&step=1');
+            } else {
+                $this->redirectWithNotificationsPs16('index.php?controller=order&step=1');
+            }
+
+            return;
+        }
+
+        DebugLogger::logEvent(
+            '[PAYMENT]',
+            'Validation passed - proceeding with order creation',
+            [
+                '$initLoanAmount' => $initLoanAmount,
+                '$priceModifier' => $priceModifier,
+                '$cartTotalValue' => $shopCart->getTotalValue(),
+                '$loanAmount' => $order->getCart()->getTotalAmount(),
+                '$loanType' => (string) $order->getLoanParameters()->getType(),
+                '$loanTerm' => $order->getLoanParameters()->getTerm(),
+                '$shopCart' => $shopCart->getAsArray(),
+            ]
+        );
+
+        // Validation passed - create the PrestaShop order (this clears the cart).
         $this->module->validateOrder(
             (int) $cart->id,
             (int) Configuration::get('COMFINO_CREATED'),
@@ -161,96 +202,16 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         );
 
         $orderId = (string) $this->module->currentOrder;
+        $returnUrl = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?' . http_build_query([
+            'controller' => 'order-confirmation',
+            'id_cart' => $cart->id,
+            'id_module' => $this->module->id,
+            'id_order' => $orderId,
+            'key' => $customer->secure_key,
+        ]);
 
-        if (!empty(trim($billingAddress->firstname ?? ''))) {
-            // Use billing address to get customer names.
-            [$firstName, $lastName] = $this->prepareCustomerNames($billingAddress);
-        } else {
-            // Use delivery address to get customer names.
-            [$firstName, $lastName] = $this->prepareCustomerNames($deliveryAddress);
-        }
-
-        $billingAddressLines = $billingAddress->address1;
-
-        if (!empty($billingAddress->address2)) {
-            $billingAddressLines .= " $billingAddress->address2";
-        }
-
-        if (empty($billingAddressLines)) {
-            $deliveryAddressLines = $deliveryAddress->address1;
-
-            if (!empty($deliveryAddress->address2)) {
-                $deliveryAddressLines .= " {$deliveryAddress->address2}";
-            }
-
-            $street = trim($deliveryAddressLines);
-        } else {
-            $street = trim($billingAddressLines);
-        }
-
-        $addressParts = explode(' ', $street);
-        $buildingNumber = '';
-
-        if (count($addressParts) > 1) {
-            foreach ($addressParts as $idx => $addressPart) {
-                if (preg_match('/^\d+[a-zA-Z]?$/', trim($addressPart))) {
-                    $street = implode(' ', array_slice($addressParts, 0, $idx));
-                    $buildingNumber = trim($addressPart);
-                }
-            }
-        }
-
-        $customerTaxId = trim(str_replace('-', '', $billingAddress->vat_number ?? ''));
-
-        $returnUrl = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?controller=order-confirmation&id_cart=' .
-            "$cart->id&id_module={$this->module->id}&id_order=$orderId&key={$customer->secure_key}";
-
-        $order = (new OrderFactory())->createOrder(
-            $orderId,
-            $shopCart->getTotalValue(),
-            $shopCart->getDeliveryCost(),
-            (int) $cookie->loan_term,
-            new LoanTypeEnum($cookie->loan_type, false),
-            $shopCart->getCartItems(),
-            new Customer(
-                $firstName,
-                $lastName,
-                $customer->email,
-                $phoneNumber,
-                Tools::getRemoteAddr(),
-                preg_match('/^[A-Z]{0,3}\d{7,}$/', $customerTaxId) ? $customerTaxId : null,
-                !$customer->is_guest,
-                $customer->isLogged(),
-                new Address(
-                    $street,
-                    $buildingNumber,
-                    null,
-                    !empty($deliveryAddress->postcode),
-                    $deliveryAddress->city,
-                    $tools->getCountryIsoCode($deliveryAddress->id_country)
-                )
-            ),
-            $returnUrl,
-            ApiService::getEndpointUrl('transactionStatus'),
-            SettingsManager::getAllowedProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL, $shopCart),
-            $shopCart->getDeliveryNetCost(),
-            $shopCart->getDeliveryTaxRate(),
-            $shopCart->getDeliveryTaxValue()
-        );
-
-        DebugLogger::logEvent(
-            '[PAYMENT]',
-            'ComfinoPaymentModuleFrontController',
-            [
-                '$initLoanAmount' => $initLoanAmount,
-                '$priceModifier' => $priceModifier,
-                '$cartTotalValue' => $shopCart->getTotalValue(),
-                '$loanAmount' => $order->getCart()->getTotalAmount(),
-                '$loanType' => (string) $order->getLoanParameters()->getType(),
-                '$loanTerm' => $order->getLoanParameters()->getTerm(),
-                '$shopCart' => $shopCart->getAsArray(),
-            ]
-        );
+        // Create Order object with real order ID for Comfino API.
+        $order = $this->createOrder($orderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer);
 
         try {
             Tools::redirect(ApiClient::getInstance()->createOrder($order)->applicationUrl);
@@ -276,32 +237,125 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
     }
 
-    private function redirectWithNotificationsPs16(): void
+    /**
+     * Validates payment data from Order object before processing.
+     *
+     * @return string[] Array of error messages, empty if validation passes.
+     */
+    private function validatePaymentData(OrderInterface $order, Cart $cart): array
     {
-        $notifications = json_encode(['error' => $this->errors]);
+        $errors = [];
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            $_SESSION['notifications'] = $notifications;
-        } else {
-            setcookie('notifications', $notifications);
+        // 1. Validate customer e-mail.
+        $customerEmail = $order->getCustomer()->getEmail();
+
+        if (empty($customerEmail) || !Validate::isEmail($customerEmail)) {
+            $errors[] = $this->module->l('Invalid customer e-mail address. Please check your account contact data.');
         }
 
-        call_user_func_array(['Tools', 'redirect'], func_get_args());
-    }
+        // 2. Validate phone number.
+        $phoneNumber = $order->getCustomer()->getPhoneNumber();
 
-    private function prepareCustomerNames(\Address $address): array
-    {
-        $firstName = trim($address->firstname ?? '');
-        $lastName = trim($address->lastname ?? '');
+        if (empty($phoneNumber)) {
+            $errors[] = $this->module->l(
+                'Phone number is required. Please add a phone number to your billing or delivery address.'
+            );
+        }
 
-        if (empty($lastName)) {
-            $nameParts = explode(' ', $firstName);
+        // 3. Validate customer names.
+        if (empty(trim($order->getCustomer()->getFirstName()))) {
+            $errors[] = $this->module->l('First name is required.');
+        }
 
-            if (count($nameParts) > 1) {
-                [$firstName, $lastName] = $nameParts;
+        if (empty(trim($order->getCustomer()->getLastName()))) {
+            $errors[] = $this->module->l('Last name is required.');
+        }
+
+        // 4. Validate customer address.
+        $address = $order->getCustomer()->getAddress();
+
+        if ($address === null) {
+            $errors[] = $this->module->l('Delivery address is required.');
+        } else {
+            if (empty(trim($address->getCity()))) {
+                $errors[] = $this->module->l('City/Town is required.');
+            }
+
+            if (empty(trim($address->getPostalCode()))) {
+                $errors[] = $this->module->l('Postal code is required.');
             }
         }
 
-        return [$firstName, $lastName];
+        // 5. Validate cart data.
+        $cartItems = $order->getCart()->getItems();
+
+        if (empty($cartItems)) {
+            $errors[] = $this->module->l('Cart is empty. Please add products to your cart.');
+        }
+
+        // 6. Validate order amount.
+        if ($order->getCart()->getTotalAmount() <= 0) {
+            $errors[] = $this->module->l('Cart total amount must be greater than zero.');
+        }
+
+        // 7. Validate payment availability.
+        if (!Comfino\Main::paymentIsAvailable($this->module, $cart)) {
+            $errors[] = $this->module->l(
+                'Comfino payment is not available for this cart. Please check cart amount and product types.'
+            );
+        }
+
+        if (!empty($errors)) {
+            // Do not call validation at Comfino API side if any errors detected locally.
+            return $errors;
+        }
+
+        // Call Comfino API validation as a second step of order validation if no errors detected locally.
+        $validationResult = ApiClient::getInstance()->validateOrder($order);
+
+        if (!$validationResult->success) {
+            $errors = array_values($validationResult->errors);
+        }
+
+        return $errors;
+    }
+
+    private function redirectWithNotificationsPs16(string $url): void
+    {
+        $notifications = json_encode(['errors' => $this->errors]);
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $_SESSION['comfino_notifications'] = $notifications;
+
+        Tools::redirect($url);
+    }
+
+    private function createOrder(
+        string $orderId,
+        string $loanType,
+        int $loanTerm,
+        string $returnUrl,
+        Comfino\Common\Shop\Cart $shopCart,
+        Comfino\Shop\Order\Customer $shopCustomer
+    ): Order
+    {
+        return (new OrderFactory())->createOrder(
+            $orderId,
+            $shopCart->getTotalValue(),
+            $shopCart->getDeliveryCost(),
+            $loanTerm,
+            new LoanTypeEnum($loanType, false),
+            $shopCart->getCartItems(),
+            $shopCustomer,
+            $returnUrl,
+            ApiService::getEndpointUrl('transactionStatus'),
+            SettingsManager::getAllowedProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL, $shopCart),
+            $shopCart->getDeliveryNetCost(),
+            $shopCart->getDeliveryTaxRate(),
+            $shopCart->getDeliveryTaxValue()
+        );
     }
 }

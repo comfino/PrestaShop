@@ -39,6 +39,9 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontController
 {
+    /**
+     * @throws Exception
+     */
     public function postProcess(): void
     {
         ErrorLogger::init();
@@ -50,7 +53,7 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
         $serializer = new JsonSerializer();
 
         $loanAmount = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
-        $loanTypeSelected = Tools::getValue('loanTypeSelected');
+        $loanTypeSelected = trim(filter_var(Tools::getValue('loanTypeSelected'), FILTER_SANITIZE_STRING));
         $loadProductCategories = (Tools::getValue('reqProdCat') === 'yes');
         $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount, $loadProductCategories);
 

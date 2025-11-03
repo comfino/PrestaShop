@@ -180,8 +180,8 @@ final class Main
 
         ErrorLogger::init();
 
-        $loanAmount = (int) \Context::getContext()->cookie->loan_amount;
-        $priceModifier = (int) \Context::getContext()->cookie->price_modifier;
+        $loanAmount = (int) filter_var(\Context::getContext()->cookie->loan_amount, FILTER_VALIDATE_INT);
+        $priceModifier = (int) filter_var(\Context::getContext()->cookie->price_modifier, FILTER_VALIDATE_INT);
 
         $shopCart = OrderManager::getShopCart($cart, $priceModifier);
         $allowedProductTypes = SettingsManager::getAllowedProductTypes(

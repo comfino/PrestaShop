@@ -37,11 +37,11 @@ if (!defined('COMFINO_MODULE_NAME')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.2.4');
+    define('COMFINO_VERSION', '4.2.5');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1759226417);
+    define('COMFINO_BUILD_TS', 1762178394);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
@@ -63,7 +63,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '4.2.4';
+        $this->version = '4.2.5';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -238,6 +238,11 @@ class Comfino extends PaymentModule
      */
     public function hookHeader()
     {
+        // Handle notifications from redirectWithNotificationsPs16() for PrestaShop 1.6.x
+        if (!COMFINO_PS_17) {
+            $this->displayNotificationsPs16();
+        }
+
         $controllerClassName = get_class($this->context->controller);
 
         if (stripos($controllerClassName, 'cart') !== false || stripos($controllerClassName, 'checkout') !== false) {
@@ -309,7 +314,34 @@ class Comfino extends PaymentModule
     }
 
     /**
+     * Displays notifications stored in session for PrestaShop 1.6.x.
+     * Retrieves error messages stored by redirectWithNotificationsPs16() and adds them to the controller.
+     *
+     * @return void
+     */
+    private function displayNotificationsPs16()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        if (isset($_SESSION['comfino_notifications'])) {
+            $notifications = json_decode($_SESSION['comfino_notifications'], true);
+
+            if (is_array($notifications) && isset($notifications['errors']) && is_array($notifications['errors'])) {
+                foreach ($notifications['errors'] as $error) {
+                    $this->context->controller->errors[] = $error;
+                }
+            }
+
+            // Clear the notifications after displaying.
+            unset($_SESSION['comfino_notifications']);
+        }
+    }
+
+    /**
      * @param bool $useTranslations
+     *
      * @return bool
      */
     public function checkEnvironment($useTranslations = false)
