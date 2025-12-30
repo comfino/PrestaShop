@@ -26,6 +26,7 @@
 
 namespace Comfino;
 
+use Comfino;
 use Comfino\Api\ApiClient;
 use Comfino\Api\ApiService;
 use Comfino\Configuration\ConfigManager;
@@ -65,7 +66,7 @@ final class Main
         self::$initialized = true;
     }
 
-    public static function install(\PaymentModule $module): bool
+    public static function install(\Comfino $module): bool
     {
         ErrorLogger::init();
 
@@ -73,6 +74,7 @@ final class Main
         ShopStatusManager::addCustomOrderStatuses();
 
         if (!COMFINO_PS_17) {
+            // Register PrestaShop 1.6 hooks.
             $module->registerHook('payment');
             $module->registerHook('displayPaymentEU');
         }
@@ -83,6 +85,7 @@ final class Main
         $module->registerHook('actionOrderStatusPostUpdate');
         $module->registerHook('header');
         $module->registerHook('actionAdminControllerSetMedia');
+        $module->registerHook('displayBackOfficeHeader');
 
         return true;
     }
@@ -98,17 +101,73 @@ final class Main
     }
 
     /**
-     * Renders configuration form.
+     * Returns module instance.
      */
-    public static function getContent(\PaymentModule $module): string
+    public static function getModule(): Comfino
     {
-        return TemplateManager::renderModuleView($module, 'configuration', 'admin', SettingsForm::processForm($module));
+        static $module = null;
+
+        if ($module === null) {
+            /** @var Comfino $module */
+            $module = \Module::getInstanceByName(COMFINO_MODULE_NAME);
+        }
+
+        return $module;
+    }
+
+    public static function translate(string $string): string
+    {
+        return self::getModule()->l($string);
     }
 
     /**
+     * Returns base module directory as absolute path.
+     */
+    public static function getModuleDir(): string
+    {
+        return _PS_MODULE_DIR_ . COMFINO_MODULE_NAME;
+    }
+
+    /**
+     * Returns base module directory as relative path.
+     */
+    public static function getModuleRelativeDir(): string
+    {
+        return _MODULE_DIR_ . COMFINO_MODULE_NAME;
+    }
+
+    /**
+     * Returns full absolute path for given path within module directory.
+     */
+    public static function getModulePath(string $path = ''): string
+    {
+        return self::getModuleDir() . '/' . ltrim($path, '/');
+    }
+
+    /**
+     * Returns relative path for given path within module directory.
+     */
+    public static function getModuleRelativePath(string $path = ''): string
+    {
+        return self::getModuleRelativeDir() . '/' . ltrim($path, '/');
+    }
+
+    /**
+     * Renders configuration form.
+     */
+    public static function getContent(): string
+    {
+        return TemplateManager::renderModuleView('configuration', 'admin', SettingsForm::processForm());
+    }
+
+    /**
+     * Renders Comfino iframe with payment form and returns string with iframe HTML for PrestaShop 1.6 or array with
+     * \PrestaShop\PrestaShop\Core\Payment\PaymentOption object for PrestaShop 1.7+. Returns empty string/array in
+     * case of errors.
+     *
      * @return \PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|string
      */
-    public static function renderPaywallIframe(\PaymentModule $module, array $params)
+    public static function renderPaywallIframe(\Comfino $module, array $params)
     {
         /** @var \Cart $cart */
         $cart = $params['cart'];
@@ -122,8 +181,25 @@ final class Main
             return COMFINO_PS_17 ? [] : '';
         }
 
-        $total = round($cart->getOrderTotal(), 2);
         $tools = new Tools(\Context::getContext());
+
+        try {
+            $total = round($cart->getOrderTotal(), 2);
+            $totalFormatted = $tools->formatPrice($total, $cart->id_currency);
+        } catch (\Exception $e) {
+            ErrorLogger::sendError(
+                $e,
+                'Paywall rendering error',
+                $e->getCode(),
+                $e->getMessage(),
+                null,
+                null,
+                null,
+                $e->getTraceAsString()
+            );
+
+            return COMFINO_PS_17 ? [] : '';
+        }
 
         $templateVariables = [
             'paywall_url' => ApiService::getControllerUrl('paywall', [], false),
@@ -137,7 +213,7 @@ final class Main
                 'language' => $tools->getLanguageIsoCode($cart->id_lang),
                 'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
                 'cartTotal' => $total,
-                'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
+                'cartTotalFormatted' => $totalFormatted,
                 'productDetailsApiPath' => ApiService::getControllerPath('paywallitemdetails', [], false),
             ],
             'is_ps_16' => !COMFINO_PS_17,
@@ -146,9 +222,10 @@ final class Main
             'comfino_redirect_url' => ApiService::getControllerUrl('payment'),
         ];
 
-        $paywallIframe = TemplateManager::renderModuleView($module, 'payment', 'front', $templateVariables);
+        $paywallIframe = TemplateManager::renderModuleView('payment', 'front', $templateVariables);
 
         if (COMFINO_PS_17) {
+            // PrestaShop 1.7+ uses object of class PaymentOption to represent a payment method.
             $comfinoPaymentOption = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
             $comfinoPaymentOption->setModuleName($module->name)
                 ->setAction(ApiService::getControllerUrl('payment'))
@@ -162,7 +239,7 @@ final class Main
         return $paywallIframe;
     }
 
-    public static function paymentIsAvailable(\PaymentModule $module, \Cart $cart): bool
+    public static function paymentIsAvailable(\Comfino $module, \Cart $cart): bool
     {
         if (ConfigManager::isServiceMode()) {
             if (isset($_COOKIE['COMFINO_SERVICE_SESSION']) && $_COOKIE['COMFINO_SERVICE_SESSION'] === 'ACTIVE') {
@@ -205,6 +282,11 @@ final class Main
         return $paymentIsAvailable;
     }
 
+    public static function getRequestUri(): string
+    {
+        return isset($_SERVER['REQUEST_URI']) ? \Tools::safeOutput($_SERVER['REQUEST_URI']) : '';
+    }
+
     public static function getCacheRootPath(): string
     {
         return dirname(__DIR__) . '/var';
@@ -215,7 +297,7 @@ final class Main
         return CacheManager::getCacheFullPath();
     }
 
-    public static function processFinishedPaymentTransaction(\PaymentModule $module, array $params): string
+    public static function processFinishedPaymentTransaction(\Comfino $module, array $params): string
     {
         if (!COMFINO_PS_17 || !$module->active) {
             return '';
@@ -241,7 +323,7 @@ final class Main
             $tplVariables['status'] = 'failed';
         }
 
-        return TemplateManager::renderModuleView($module, 'payment-return', 'front', $tplVariables);
+        return TemplateManager::renderModuleView('payment-return', 'front', $tplVariables);
     }
 
     public static function addScriptLink(

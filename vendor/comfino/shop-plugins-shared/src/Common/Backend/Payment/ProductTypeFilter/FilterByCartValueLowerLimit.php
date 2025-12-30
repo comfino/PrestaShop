@@ -11,11 +11,10 @@ class FilterByCartValueLowerLimit implements ProductTypeFilterInterface
 {
     /**
      * @var int[]
-     * @readonly
      */
     private $cartValueLimitsByProductType;
     /**
-     * @param int[] $cartValueLimitsByProductType ['PRODUCT_TYPE' => cart_value_limit]
+     * @param int[] $cartValueLimitsByProductType
      */
     public function __construct(array $cartValueLimitsByProductType)
     {

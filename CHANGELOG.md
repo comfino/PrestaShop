@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.2.6](https://github.com/comfino/PrestaShop/tree/4.2.6) (2025-12-30)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.5...4.2.6)
+
+**Merged pull requests:**
+
+- FN-13815 Enhanced error handling and security improvements, simplified logger instantiation, added unified error processing, improved documentation, updated external dependencies.  [\#110](https://github.com/comfino/PrestaShop/pull/110) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.2.5](https://github.com/comfino/PrestaShop/tree/4.2.5) (2025-10-29)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.4...4.2.5)

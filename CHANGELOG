@@ -1,3 +1,6 @@
+4.2.6
+ - FN-13815 Enhanced error handling and security improvements, simplified logger instantiation, added unified error processing, improved documentation, updated external dependencies.
+
 4.2.5
  - FN-13681 Fixed some minor bugs, improved module security, errors handling, stability and reliability for better UX.
 

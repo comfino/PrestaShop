@@ -29,6 +29,8 @@ namespace Comfino\Order;
 use Comfino\Api\ApiClient;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\ErrorLogger;
+use Comfino\Main;
+use Comfino\View\FrontendManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -40,6 +42,7 @@ final class ShopStatusManager
         StatusManager::STATUS_ACCEPTED => 'PS_OS_WS_PAYMENT',
         StatusManager::STATUS_CANCELLED => 'PS_OS_CANCELED',
         StatusManager::STATUS_REJECTED => 'PS_OS_CANCELED',
+        StatusManager::STATUS_CANCELLED_BY_SHOP => 'PS_OS_CANCELED',
     ];
 
     private const CUSTOM_ORDER_STATUSES = [
@@ -81,7 +84,16 @@ final class ShopStatusManager
             $comfinoStatusId = \Configuration::get($statusCode);
 
             if (!empty($comfinoStatusId) && \Validate::isInt($comfinoStatusId)) {
-                $orderStatus = new \OrderState($comfinoStatusId);
+                try {
+                    $orderStatus = new \OrderState($comfinoStatusId);
+                } catch (\PrestaShopDatabaseException|\PrestaShopException $e) {
+                    FrontendManager::processError(
+                        sprintf('Order status loading error: %d', (int) $comfinoStatusId),
+                        $e, null, 'Order status loading error.'
+                    );
+
+                    continue;
+                }
 
                 if (\Validate::isLoadedObject($orderStatus)) {
                     // Update existing status definition.
@@ -89,7 +101,14 @@ final class ShopStatusManager
                     $orderStatus->paid = $statusDetails['paid'];
                     $orderStatus->deleted = $statusDetails['deleted'];
 
-                    $orderStatus->update();
+                    try {
+                        $orderStatus->update();
+                    } catch (\PrestaShopDatabaseException|\PrestaShopException $e) {
+                        FrontendManager::processError(
+                            sprintf('Order status update error: %d', (int) $orderStatus->id),
+                            $e, null, 'Order status update error.'
+                        );
+                    }
 
                     continue;
                 }
@@ -109,12 +128,19 @@ final class ShopStatusManager
             $orderStatus->paid = $statusDetails['paid'];
 
             foreach ($languages as $language) {
-                $status_name = $language['iso_code'] === 'pl' ? $statusDetails['name_pl'] : $statusDetails['name'];
-                $orderStatus->name[$language['id_lang']] = $status_name;
+                $statusName = $language['iso_code'] === 'pl' ? $statusDetails['name_pl'] : $statusDetails['name'];
+                $orderStatus->name[$language['id_lang']] = $statusName;
             }
 
-            if ($orderStatus->add()) {
-                \Configuration::updateValue($statusCode, $orderStatus->id);
+            try {
+                if ($orderStatus->add()) {
+                    \Configuration::updateValue($statusCode, $orderStatus->id);
+                }
+            } catch (\PrestaShopDatabaseException|\PrestaShopException $e) {
+                FrontendManager::processError(
+                    sprintf('Order status adding error: %s, %d.', $statusCode, (int) $orderStatus->id),
+                    $e, null, 'Order status adding error.'
+                );
             }
         }
     }
@@ -127,7 +153,16 @@ final class ShopStatusManager
             $comfinoStatusId = \Configuration::get($statusCode);
 
             if (!empty($comfinoStatusId) && \Validate::isInt($comfinoStatusId)) {
-                $orderStatus = new \OrderState($comfinoStatusId);
+                try {
+                    $orderStatus = new \OrderState($comfinoStatusId);
+                } catch (\PrestaShopDatabaseException|\PrestaShopException $e) {
+                    FrontendManager::processError(
+                        sprintf('Order status creation error: %s, %d', $statusCode, (int) $comfinoStatusId),
+                        $e, null, 'Order status creation error.'
+                    );
+
+                    continue;
+                }
 
                 if (\Validate::isLoadedObject($orderStatus)) {
                     // Update existing status definition.
@@ -143,15 +178,31 @@ final class ShopStatusManager
                     $orderStatus->paid = $statusDetails['paid'];
                     $orderStatus->deleted = $statusDetails['deleted'];
 
-                    $orderStatus->save();
+                    try {
+                        $orderStatus->save();
+                    } catch (\PrestaShopException $e) {
+                        FrontendManager::processError(
+                            sprintf('Order status saving error: %s', $statusDetails['name']),
+                            $e, null, 'Order status saving error.'
+                        );
+                    }
                 }
             }
         }
     }
 
-    public static function orderStatusUpdateEventHandler(\PaymentModule $module, array $params): void
+    public static function orderStatusUpdateEventHandler(array $params): void
     {
-        $order = new \Order($params['id_order']);
+        try {
+            $order = new \Order($params['id_order']);
+        } catch (\PrestaShopDatabaseException|\PrestaShopException $e) {
+            FrontendManager::processError(
+                sprintf('Order loading error during cancel event: %s', $params['id_order']),
+                $e, null, 'Order loading error during cancel event.'
+            );
+
+            return;
+        }
 
         if (stripos($order->payment, 'comfino') !== false) {
             // Process orders paid by Comfino only.
@@ -166,11 +217,11 @@ final class ShopStatusManager
                 ErrorLogger::init();
 
                 try {
-                    // Send notification about cancelled order paid by Comfino.
+                    // Send notification about canceled order paid by Comfino.
                     ApiClient::getInstance()->cancelOrder((string) $params['id_order']);
                 } catch (\Throwable $e) {
                     ApiClient::processApiError(
-                        'Order cancellation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e
+                        'Order cancellation error on page "' . Main::getRequestUri() . '" (Comfino API)', $e
                     );
                 }
             }

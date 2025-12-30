@@ -34,6 +34,7 @@ use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Main;
+use Comfino\Update\UpdateManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -41,7 +42,7 @@ if (!defined('_PS_VERSION_')) {
 
 final class FormManager
 {
-    public static function getSettingsForm(\PaymentModule $module, array $params): string
+    public static function getSettingsForm(\Comfino $module, array $params): string
     {
         $configTab = $params['config_tab'] ?? '';
         $formName = $params['form_name'] ?? 'submit_configuration';
@@ -66,7 +67,7 @@ final class FormManager
         switch ($configTab) {
             case 'payment_settings':
                 if (ConfigManager::isSandboxMode()) {
-                    $messages['warning'] = $module->l('Developer mode is active. You are using test environment.');
+                    $messages['warning'] = Main::translate('Developer mode is active. You are using test environment.');
                 }
 
                 break;
@@ -92,6 +93,10 @@ final class FormManager
                 $warningMessages = [];
                 $errorMessages = [];
 
+                $updateInfo = UpdateManager::checkForUpdates();
+                $githubVersion = !empty($updateInfo['github_version']) ? $updateInfo['github_version'] : null;
+                $githubVersionCheckedAt = !empty($updateInfo['checked_at']) ? $updateInfo['checked_at'] : null;
+
                 $infoMessages[] = sprintf(
                     'PrestaShop Comfino %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
                     ...array_values(ConfigManager::getEnvironmentInfo([
@@ -105,15 +110,38 @@ final class FormManager
                 ) . '<hr>' . sprintf('<b>Comfino API host:</b> %s', ApiClient::getInstance()->getApiHost());
 
                 $infoMessages[] = sprintf(
-                    '<b>Plugin build time:</b> %s',
+                    '<b>Plugin build time:</b> %s UTC',
                     \DateTime::createFromFormat('U', COMFINO_BUILD_TS)->format('Y-m-d H:i:s')
                 );
                 $infoMessages[] = sprintf('<b>Shop domain:</b> %s', \Tools::getShopDomain());
                 $infoMessages[] = sprintf('<b>Widget key:</b> %s', ConfigManager::getWidgetKey());
                 $infoMessages[] = sprintf(
                     '<b>New widget API:</b> %s',
-                    ConfigManager::getConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', false) ? 'Active' : 'Inactive'
+                    ConfigManager::getConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE') ? 'Active' : 'Inactive'
                 );
+
+                if ($githubVersion !== null) {
+                    $versionInfoRow = sprintf(
+                        '<b>Latest available version:</b> <b style="color: %s">%s</b> (%s)',
+                        version_compare($githubVersion, COMFINO_VERSION, '>') ? 'orange' : 'green',
+                        $githubVersion,
+                        version_compare($githubVersion, COMFINO_VERSION, '>')
+                            ? '<a href="https://github.com/comfino/PrestaShop/releases" target="_blank">Download from GitHub</a>'
+                            : 'up to date'
+                    );
+
+                    if ($githubVersionCheckedAt) {
+                        $versionInfoRow .= sprintf(
+                            ' <small style="color: #666">Last checked: %s UTC</small>',
+                            \DateTime::createFromFormat('U', $githubVersionCheckedAt)->format('Y-m-d H:i:s')
+                        );
+                    }
+
+                    $infoMessages[] = $versionInfoRow;
+                } else {
+                    $infoMessages[] = '<span style="color: #888">Checking...</span>';
+                }
+
                 $infoMessages[] = sprintf(
                     '<b>Cache root directory writable:</b> %s%s',
                     is_writable(Main::getCacheRootPath()) ? '<b style="color: green">YES</b>' : '<b style="color: red">NO</b>',
@@ -164,6 +192,10 @@ final class FormManager
                             $optionValue = json_encode($optionValue);
                         }
 
+                        if (strlen($optionValue) > 200) {
+                            $optionValue = substr($optionValue, 0, 200) . '...';
+                        }
+
                         $internalOptions .= "<li><b>$optionName</b> = \"$optionValue\"</li>";
                     }
 
@@ -171,9 +203,9 @@ final class FormManager
                 }
 
                 if ($sandboxMode = ConfigManager::isSandboxMode()) {
-                    $warningMessages[] = $module->l('Developer mode is active. You are using test environment.');
+                    $warningMessages[] = Main::translate('Developer mode is active. You are using test environment.');
                 } else {
-                    $successMessages[] = $module->l('Production mode is active.');
+                    $successMessages[] = Main::translate('Production mode is active.');
                 }
 
                 if (!empty(ConfigManager::getApiKey())) {
@@ -182,12 +214,12 @@ final class FormManager
 
                     try {
                         if (ApiClient::getInstance()->isShopAccountActive($cacheInvalidateUrl, $configurationUrl)) {
-                            $successMessages[] = $module->l(sprintf(
+                            $successMessages[] = Main::translate(sprintf(
                                 '%s account is active.',
                                 $sandboxMode ? 'Test' : 'Production'
                             ));
                         } else {
-                            $warningMessages[] = $module->l(sprintf(
+                            $warningMessages[] = Main::translate(sprintf(
                                 '%s account is not active.',
                                 $sandboxMode ? 'Test' : 'Production'
                             ));
@@ -196,14 +228,14 @@ final class FormManager
                         $errorMessages[] = $e->getMessage();
 
                         if ($e instanceof AuthorizationError || $e instanceof AccessDenied) {
-                            $errorMessages[] = $module->l(sprintf(
+                            $errorMessages[] = Main::translate(sprintf(
                                 'Invalid %s API key.',
                                 $sandboxMode ? 'test' : 'production'
                             ));
                         }
                     }
                 } else {
-                    $errorMessages[] = $module->l(sprintf(
+                    $errorMessages[] = Main::translate(sprintf(
                         '%s API key not present.',
                         $sandboxMode ? 'Test' : 'Production'
                     ));
@@ -229,11 +261,11 @@ final class FormManager
             $params['messages'] = $messages;
         }
 
-        return $helper->generateForm(SettingsForm::getFormFields($module, $params));
+        return $helper->generateForm(SettingsForm::getFormFields($params));
     }
 
     private static function getHelperForm(
-        \PaymentModule $module,
+        \Comfino $module,
         string $submitAction,
         ?string $formTemplateDir = null,
         ?string $formTemplate = null

@@ -26,18 +26,16 @@
 
 namespace Comfino\View;
 
+use Comfino\Main;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 final class TemplateManager
 {
-    public static function renderModuleView(
-        \PaymentModule $module,
-        string $name,
-        string $path,
-        array $variables = []
-    ): string {
+    public static function renderModuleView(string $name, string $path, array $variables = []): string
+    {
         $templatePath = 'views/templates';
 
         if (!empty($path)) {
@@ -50,15 +48,18 @@ final class TemplateManager
             \Context::getContext()->smarty->assign($variables);
         }
 
+        $module = Main::getModule();
+
         if (method_exists($module, 'fetch')) {
             if (version_compare(_PS_VERSION_, '1.7.7.0', '<')) {
-                return $module->fetch(_PS_MODULE_DIR_ . "$module->name/$templatePath");
+                // PrestaShop prior than 1.7.7.0 expects full absolute path to the template file.
+                return $module->fetch(Main::getModulePath($templatePath));
             }
 
             return $module->fetch("module:$module->name/$templatePath");
         }
 
-        return $module->display(_MODULE_DIR_ . "$module->name/$module->name.php", $templatePath);
+        return $module->display(Main::getModuleRelativePath("$module->name.php"), $templatePath);
     }
 
     public static function renderControllerView(
@@ -79,10 +80,14 @@ final class TemplateManager
             \Context::getContext()->smarty->assign($variables);
         }
 
-        if (COMFINO_PS_17) {
-            $frontController->setTemplate("module:{$frontController->module->name}/$templatePath");
-        } else {
-            $frontController->setTemplate("$name.tpl");
+        try {
+            if (COMFINO_PS_17) {
+                $frontController->setTemplate("module:{$frontController->module->name}/$templatePath");
+            } else {
+                $frontController->setTemplate("$name.tpl");
+            }
+        } catch (\Exception $e) {
+            FrontendManager::processError('Template rendering error', $e, 500, 'Template rendering error.');
         }
     }
 }

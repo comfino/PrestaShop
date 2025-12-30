@@ -9,46 +9,38 @@ use Comfino\Shop\Order\Cart\CartItemInterface;
 class Cart
 {
     /**
-     * @readonly
      * @var int
      */
     private $totalValue;
     /**
-     * @readonly
      * @var int|null
      */
     private $totalNetValue;
     /**
-     * @readonly
      * @var int|null
      */
     private $totalTaxValue;
     /**
-     * @readonly
      * @var int
      */
     private $deliveryCost;
     /**
-     * @readonly
      * @var int|null
      */
     private $deliveryNetCost;
     /**
-     * @readonly
      * @var int|null
      */
     private $deliveryTaxRate;
     /**
-     * @readonly
      * @var int|null
      */
     private $deliveryTaxValue;
     /**
      * @var CartItemInterface[]
-     * @readonly
      */
     private $cartItems;
-    /** @var int[]|null  */
+    
     private $cartCategoryIds;
 
     /**

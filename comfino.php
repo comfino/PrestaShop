@@ -37,11 +37,11 @@ if (!defined('COMFINO_MODULE_NAME')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.2.5');
+    define('COMFINO_VERSION', '4.2.6');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1762178394);
+    define('COMFINO_BUILD_TS', 1766606925);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
@@ -63,7 +63,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '4.2.5';
+        $this->version = '4.2.6';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -75,15 +75,17 @@ class Comfino extends PaymentModule
         $this->currencies_mode = 'checkbox';
 
         $this->controllers = [
+            'cacheinvalidate',
+            'configuration',
+            'configurationrepair',
+            'error',
             'payment',
             'paymentstate',
             'paywall',
             'paywallitemdetails',
-            'cacheinvalidate',
-            'error',
             'script',
             'transactionstatus',
-            'configuration',
+            'updatedismiss',
         ];
 
         parent::__construct();
@@ -106,7 +108,10 @@ class Comfino extends PaymentModule
         if (is_readable(__DIR__ . '/vendor/autoload.php')) {
             require_once __DIR__ . '/vendor/autoload.php';
         } else {
-            $this->description .= (' File ' . __DIR__ . '/vendor/autoload.php is not readable.');
+            $errorMessage = 'File ' . __DIR__ . '/vendor/autoload.php is not readable.';
+
+            $this->description .= " $errorMessage";
+            $this->_errors[] = $errorMessage;
 
             return;
         }
@@ -155,6 +160,7 @@ class Comfino extends PaymentModule
             $this->unregisterHook('actionValidateCustomerAddressForm');
             $this->unregisterHook('header');
             $this->unregisterHook('actionAdminControllerSetMedia');
+            $this->unregisterHook('displayBackOfficeHeader');
 
             return !class_exists('\Comfino\Main') || Comfino\Main::uninstall();
         }
@@ -176,13 +182,13 @@ class Comfino extends PaymentModule
                 base64_decode('PC9wPg==');
         }
 
-        return Comfino\Main::getContent($this);
+        return Comfino\Main::getContent();
     }
 
     /**
-     * Renders Comfino paywall iframe at payment methods list compatible with PrestaShop 1.6.*.
+     * Renders Comfino paywall iframe at payment methods list compatible with PrestaShop 1.6.
      *
-     * @return string|void
+     * @return string
      */
     public function hookPayment(array $params)
     {
@@ -190,11 +196,9 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * Renders Comfino paywall iframe at payment methods list compatible with PrestaShop 1.7.* and 8.*.
+     * Renders Comfino paywall iframe at payment methods list compatible with PrestaShop 1.7+.
      *
-     * @return PrestaShop\PrestaShop\Core\Payment\PaymentOption[]|void
-     *
-     * @throws PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
+     * @return PrestaShop\PrestaShop\Core\Payment\PaymentOption[]
      */
     public function hookPaymentOptions(array $params)
     {
@@ -228,7 +232,7 @@ class Comfino extends PaymentModule
      */
     public function hookActionOrderStatusPostUpdate(array $params)
     {
-        Comfino\Order\ShopStatusManager::orderStatusUpdateEventHandler($this, $params);
+        Comfino\Order\ShopStatusManager::orderStatusUpdateEventHandler($params);
     }
 
     /**
@@ -238,20 +242,12 @@ class Comfino extends PaymentModule
      */
     public function hookHeader()
     {
-        // Handle notifications from redirectWithNotificationsPs16() for PrestaShop 1.6.x
         if (!COMFINO_PS_17) {
+            // Handle notifications from redirectWithNotificationsPs16() for PrestaShop 1.6.
             $this->displayNotificationsPs16();
         }
 
-        $controllerClassName = get_class($this->context->controller);
-
-        if (stripos($controllerClassName, 'cart') !== false || stripos($controllerClassName, 'checkout') !== false) {
-            $controller = 'cart';
-        } elseif (empty($controller = $this->context->controller->php_self)) {
-            $controller = !empty($this->context->controller->name) ? $this->context->controller->name : '';
-        }
-
-        if (empty($controller)) {
+        if (empty($controller = $this->detectController())) {
             return;
         }
 
@@ -281,7 +277,7 @@ class Comfino extends PaymentModule
                 'bottom',
                 'defer'
             );
-        } elseif ($controller === 'cart' || $controller === 'order' || stripos($controller, 'checkout') !== false) {
+        } elseif (in_array($controller, ['cart', 'order', 'checkout'])) {
             $iframeRenderer = Comfino\View\FrontendManager::getPaywallIframeRenderer();
 
             $styles = Comfino\View\FrontendManager::registerExternalStyles($iframeRenderer->getStyles());
@@ -310,11 +306,162 @@ class Comfino extends PaymentModule
      */
     public function hookActionAdminControllerSetMedia(array $params)
     {
-        $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/admin/tree.min.js');
+        $this->context->controller->addJS(_MODULE_DIR_ . "$this->name/views/js/admin/tree.min.js");
+
+        // Check for plugin updates once per day.
+        $this->checkGithubVersion();
     }
 
     /**
-     * Displays notifications stored in session for PrestaShop 1.6.x.
+     * Renders admin header content including update notices.
+     *
+     * @return string
+     */
+    public function hookDisplayBackOfficeHeader(array $params)
+    {
+        return Comfino\View\FrontendManager::displayGithubVersionNotice($this);
+    }
+
+    /**
+     * @param bool $useTranslations
+     *
+     * @return bool
+     */
+    public function checkEnvironment($useTranslations = false)
+    {
+        if (PHP_VERSION_ID < self::MIN_PHP_VERSION_ID) {
+            $errorMessage = 'The Comfino module could not be installed. ' .
+                            'The minimum PHP version required for Comfino is %s. You are running %s.';
+
+            if ($useTranslations) {
+                $errorMessage = $this->l($errorMessage);
+            }
+
+            $errorMessage = sprintf($errorMessage, self::MIN_PHP_VERSION, PHP_VERSION);
+
+            if (!in_array($errorMessage, $this->_errors, true)) {
+                $this->_errors[] = $errorMessage;
+            }
+
+            return false;
+        }
+
+        if (!extension_loaded('curl')) {
+            $errorMessage = 'The Comfino module could not be installed. It requires PHP cURL extension which is not ' .
+                            'installed. More details: https://www.php.net/manual/en/book.curl.php';
+
+            if ($useTranslations) {
+                $errorMessage = $this->l($errorMessage);
+            }
+
+            if (!in_array($errorMessage, $this->_errors, true)) {
+                $this->_errors[] = $errorMessage;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Detects current controller across all PrestaShop versions (1.6.1.11 - 9.0+).
+     *
+     * @return string Controller identifier (product, cart, order, checkout) or empty string.
+     */
+    private function detectController()
+    {
+        $controller = '';
+
+        // PS 1.7+
+        if (method_exists($this->context->controller, 'getPageName')
+            && !empty($pageName = $this->context->controller->getPageName())
+        ) {
+            $controller = Tools::strtolower($pageName);
+        }
+
+        // PS 1.7+
+        if (empty($controller) && property_exists($this->context->controller, 'page_name')
+            && !empty($pageName = $this->context->controller->page_name)
+        ) {
+            $controller = Tools::strtolower($pageName);
+        }
+
+        // PS 1.6+
+        if (empty($controller) && property_exists($this->context->controller, 'php_self')
+            && !empty($phpSelf = $this->context->controller->php_self)
+        ) {
+            $controller = Tools::strtolower($phpSelf);
+        }
+
+        if (empty($controller)) {
+            $controllerName = str_ireplace(['ModuleFront', 'Controller'], '', get_class($this->context->controller));
+            $controllerName = Tools::strtolower(trim($controllerName));
+
+            if (!empty($controllerName)) {
+                $controller = $controllerName;
+            }
+        }
+
+        // Handle checkout variations (checkout, supercheckout, onepagecheckout, etc.)
+        if (strpos($controller, 'checkout') !== false) {
+            return 'checkout';
+        }
+
+        if (stripos($controller, 'order') === 0) {
+            // Check if it's a specific order-related page that should not trigger paywall.
+            if (in_array(
+                $controller,
+                [
+                    'orderconfirmation', 'orderdetail', 'orderhistory', 'orderfollowup', 'orderreturn', 'orderslip',
+                    'order-confirmation', 'order-detail', 'order-opc'
+                ],
+                true
+            )) {
+                return '';
+            }
+
+            return 'order';
+        }
+
+        // Return only known controllers for security and performance.
+        if (in_array($controller, ['product', 'cart'], true)) {
+            return $controller;
+        }
+
+        // Unknown or irrelevant controller.
+        return '';
+    }
+
+    /**
+     * Check for available GitHub updates (information only in PrestaShop, full updates available).
+     * Checks once per day and caches the result.
+     *
+     * @return void
+     */
+    private function checkGithubVersion()
+    {
+        if (!class_exists('Comfino\Update\UpdateManager')) {
+            return;
+        }
+
+        // Check if we've already checked today.
+        $lastCheckTime = Configuration::get('COMFINO_GITHUB_VERSION_CHECK_TIME');
+
+        if ($lastCheckTime && (time() - (int) $lastCheckTime) < 86400) {
+            // Checked within last 24 hours, skip.
+            return;
+        }
+
+        $updateInfo = Comfino\Update\UpdateManager::checkForUpdates();
+
+        // Store the check time and update info.
+        Configuration::updateValue('COMFINO_GITHUB_VERSION_CHECK_TIME', time());
+        Configuration::updateValue('COMFINO_GITHUB_VERSION_INFO', json_encode($updateInfo));
+    }
+
+    /**
+     * Displays notifications stored in session for PrestaShop 1.6.
      * Retrieves error messages stored by redirectWithNotificationsPs16() and adds them to the controller.
      *
      * @return void
@@ -337,47 +484,5 @@ class Comfino extends PaymentModule
             // Clear the notifications after displaying.
             unset($_SESSION['comfino_notifications']);
         }
-    }
-
-    /**
-     * @param bool $useTranslations
-     *
-     * @return bool
-     */
-    public function checkEnvironment($useTranslations = false)
-    {
-        if (PHP_VERSION_ID < self::MIN_PHP_VERSION_ID) {
-            $errorMessage = 'The Comfino module could not be installed. ' .
-                            'The minimum PHP version required for Comfino is %s. You are running %s.';
-
-            if ($useTranslations) {
-                $errorMessage = $this->l($errorMessage);
-            }
-
-            $errorMessage = sprintf($errorMessage, self::MIN_PHP_VERSION, PHP_VERSION);
-
-            if (!in_array($errorMessage, $this->_errors, true)) {
-                $this->_errors[] = Tools::displayError($errorMessage);
-            }
-
-            return false;
-        }
-
-        if (!extension_loaded('curl')) {
-            $errorMessage = 'The Comfino module could not be installed. It requires PHP cURL extension which is not ' .
-                            'installed. More details: https://www.php.net/manual/en/book.curl.php';
-
-            if ($useTranslations) {
-                $errorMessage = $this->l($errorMessage);
-            }
-
-            if (!in_array($errorMessage, $this->_errors, true)) {
-                $this->_errors[] = Tools::displayError($errorMessage);
-            }
-
-            return false;
-        }
-
-        return true;
     }
 }

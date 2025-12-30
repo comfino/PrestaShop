@@ -8,15 +8,11 @@ use Comfino\Api\Dto\Payment\LoanTypeEnum;
 
 class GetProductTypes extends Base
 {
-    /** @var LoanTypeEnum[]
-     * @readonly */
     public $productTypes;
-    /** @var string[]
-     * @readonly */
+    
     public $productTypesWithNames;
 
     /**
-     * @inheritDoc
      * @param mixed[]|string|bool|null|float|int $deserializedResponseBody
      */
     protected function processResponseBody($deserializedResponseBody): void

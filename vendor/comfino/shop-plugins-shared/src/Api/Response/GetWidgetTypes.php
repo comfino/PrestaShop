@@ -8,15 +8,11 @@ use Comfino\Widget\WidgetTypeEnum;
 
 class GetWidgetTypes extends Base
 {
-    /** @var WidgetTypeEnum[]
-     * @readonly */
     public $widgetTypes;
-    /** @var string[]
-     * @readonly */
+    
     public $widgetTypesWithNames;
 
     /**
-     * @inheritDoc
      * @param mixed[]|string|bool|null|float|int $deserializedResponseBody
      */
     protected function processResponseBody($deserializedResponseBody): void

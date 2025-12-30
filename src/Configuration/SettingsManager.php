@@ -38,6 +38,7 @@ use Comfino\Common\Shop\Product\CategoryFilter;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\Main;
 use Comfino\PluginShared\CacheManager;
 use ComfinoExternal\League\Flysystem\FilesystemException;
 
@@ -114,7 +115,7 @@ final class SettingsManager
 
             return $productTypesList ?? [];
         } catch (\Throwable $e) {
-            ApiClient::processApiError('Settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
+            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e);
 
             if ($returnErrors) {
                 return ['error' => $e->getMessage()];
@@ -171,7 +172,7 @@ final class SettingsManager
             return $returnErrors ? ['error' => 'API key is required.'] : [];
         }
 
-        $useNewApi = ConfigManager::getConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE', false);
+        $useNewApi = ConfigManager::getConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE');
 
         try {
             $widgetTypes = ApiClient::getInstance()->getWidgetTypes($useNewApi);
@@ -186,7 +187,7 @@ final class SettingsManager
 
             return $widgetTypesList ?? [];
         } catch (\Throwable $e) {
-            ApiClient::processApiError('Settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)', $e);
+            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e);
 
             if ($returnErrors) {
                 return ['error' => $e->getMessage()];

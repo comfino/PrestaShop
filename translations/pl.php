@@ -117,6 +117,31 @@ $_MODULE['<{comfino}prestashop>configuration_dbdcee2a8f33547e13199af86a38688e'] 
 $_MODULE['<{comfino}prestashop>configuration_0fa6c048c824482bf4dd381c78ef2418'] = 'Ustawienia deweloperskie';
 $_MODULE['<{comfino}prestashop>configuration_24e673cdc2684bde9fe70162a3fbe6a3'] = 'Diagnostyka wtyczki';
 
+$_MODULE['<{comfino}prestashop>update-notice_4396370718cfed88ccfdec7d4aca7f5e'] = 'Dostępna aktualizacja wtyczki Comfino';
+$_MODULE['<{comfino}prestashop>update-notice_824676dd84eda4bd6a81881a3ebe1dc1'] = 'Dostępna jest nowa wersja modułu płatności Comfino!';
+$_MODULE['<{comfino}prestashop>update-notice_011fedf4050817b8826f95a53d9555b2'] = 'Aktualna wersja';
+$_MODULE['<{comfino}prestashop>update-notice_275e590cc57b619e7c4d9a82d3278394'] = 'Nowa wersja';
+$_MODULE['<{comfino}prestashop>update-notice_d8b5ccfca0da7396ddd16084d27aac3d'] = 'Zobacz notatki dotyczące wydania w serwisie GitHub';
+
+$_MODULE['<{comfino}prestashop>comfino_7efffb636a64b41b644ed179eb9243f8'] = 'Naprawa konfiguracji';
+$_MODULE['<{comfino}prestashop>configuration-repair_6a95d5888404f75da1d9dd0a1b26315e'] = 'Konfiguracja jest poprawna';
+$_MODULE['<{comfino}prestashop>configuration-repair_2e0b1dc1d0849884c03361e8f5e36547'] = 'Wszystkie %d opcje konfiguracyjne istnieją.';
+$_MODULE['<{comfino}prestashop>configuration-repair_b9ba0e480807be85aed3f40bd765c053'] = 'Wykryto problemy z konfiguracją';
+$_MODULE['<{comfino}prestashop>configuration-repair_bf85b4753cd863060616f0619eca587d'] = 'Brakuje %d opcji konfiguracyjnych z %d wszystkich.';
+$_MODULE['<{comfino}prestashop>configuration-repair_a22760e87d39d1cab7332b2a857f16ef'] = 'Brakujące opcje';
+$_MODULE['<{comfino}prestashop>configuration-repair_94231e22e0b8aa9b84a370da7ace58fb'] = 'Napraw konfigurację';
+$_MODULE['<{comfino}prestashop>configuration-repair_4c81749976568ac4d1862491173b373c'] = 'Naprawianie...';
+$_MODULE['<{comfino}prestashop>configuration-repair_9d35bd2b281d0bbe3cb28b1feaa5008d'] = 'Naprawianie zakończone';
+$_MODULE['<{comfino}prestashop>configuration-repair_2627637e263ef687fa978b576580b8b1'] = 'Sprawdzone';
+$_MODULE['<{comfino}prestashop>configuration-repair_2aee0be2678ee90fd327cc186826438e'] = 'Brakujące';
+$_MODULE['<{comfino}prestashop>configuration-repair_5a50d51067957e621efb88bc79d2e84a'] = 'Naprawione';
+$_MODULE['<{comfino}prestashop>configuration-repair_d7c8c85bf79bbe1b7188497c32c3b0ca'] = 'Zakończone błędem';
+$_MODULE['<{comfino}prestashop>configuration-repair_cb7296dfdf37b78dc349d92b13bb049f'] = 'Naprawione opcje';
+$_MODULE['<{comfino}prestashop>configuration-repair_cea60544baf3effa70727ee172aedb61'] = 'Nienaprawione opcje';
+$_MODULE['<{comfino}prestashop>configuration-repair_c3c30216c0f14628348f68bd29c7ff35'] = 'Odśwież stronę, aby zobaczyć zaktualizowany status konfiguracji.';
+$_MODULE['<{comfino}prestashop>configuration-repair_5e12b310071900a44b8176888de12763'] = 'Naprawa nie powiodła się: nieznany błąd.';
+$_MODULE['<{comfino}prestashop>configuration-repair_5402a4ddf0f7db4c0c846b3a97928dee'] = 'Naprawa nie powiodła się.';
+
 $_MODULE['<{comfino}prestashop>payment_0f7f7dbb9907ba5d256ef3e368d526b4'] = 'Przejdź do płatności';
 $_MODULE['<{comfino}prestashop>payment_e2b7dec8fa4b498156dfee6e4c84b156'] = 'Ta metoda płatności nie jest dostępna';
 $_MODULE['<{comfino}prestashop>payment_e40b15f6b84ceb12c3e9d33b52e3f123'] = 'Wystąpił problem techniczny. Spróbuj ponownie za chwilę i powinno się udać!';
@@ -125,8 +150,8 @@ $_MODULE['<{comfino}prestashop>payment_625ea4421cb1d3d31956f6e9dd02e225'] = 'Wyg
 
 $_MODULE['<{comfino}prestashop>payment-error_543dac5f672cf116b68e253ce522d5ef'] = 'Wystąpił błąd podczas składania zamówienia. Skontaktuj się ze sprzedawcą lub wybierz inną płatność.';
 $_MODULE['<{comfino}prestashop>payment-error_902b0d55fddef6f8d651fe1035b7d4bd'] = 'Błąd';
-$_MODULE['<{comfino}prestashop>payment-error_16_543dac5f672cf116b68e253ce522d5ef'] = 'Wystąpił błąd podczas składania zamówienia. Skontaktuj się ze sprzedawcą lub wybierz inną płatność.';
-$_MODULE['<{comfino}prestashop>payment-error_16_902b0d55fddef6f8d651fe1035b7d4bd'] = 'Błąd';
+$_MODULE['<{comfino}prestashop>payment-error-16_543dac5f672cf116b68e253ce522d5ef'] = 'Wystąpił błąd podczas składania zamówienia. Skontaktuj się ze sprzedawcą lub wybierz inną płatność.';
+$_MODULE['<{comfino}prestashop>payment-error-16_902b0d55fddef6f8d651fe1035b7d4bd'] = 'Błąd';
 
 $_MODULE['<{comfino}prestashop>payment-return_88526efe38fd18179a127024aba8c1d7'] = 'Twoje zamówienie w %s jest kompletne.';
 $_MODULE['<{comfino}prestashop>payment-return_9bdf695c5a30784327137011da6ef568'] = 'Zauważyliśmy, że wystąpił problem z Twoim zamówieniem. Jeśli uważasz, że to błąd, możesz skontaktować się z naszym';

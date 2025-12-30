@@ -37,9 +37,6 @@ class GetPaywall extends Request
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function prepareRequestBody(): ?array
     {
         return null;
