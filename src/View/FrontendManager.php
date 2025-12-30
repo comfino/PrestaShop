@@ -31,8 +31,10 @@ use Comfino\Common\Frontend\PaywallIframeRenderer;
 use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\Common\Frontend\WidgetInitScriptHelper;
 use Comfino\Configuration\ConfigManager;
+use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
+use Comfino\Main;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -235,5 +237,99 @@ final class FrontendManager
         }
 
         return '';
+    }
+
+    /**
+     * Display admin notice about available GitHub version.
+     *
+     * @return string HTML content for update notice banner.
+     */
+    public static function displayGithubVersionNotice(\Comfino $module): string
+    {
+        $dismissedVersion = \Configuration::get('COMFINO_UPDATE_NOTICE_DISMISSED');
+        $updateInfoJson = \Configuration::get('COMFINO_GITHUB_VERSION_INFO');
+
+        if (empty($updateInfoJson)) {
+            return '';
+        }
+
+        $updateInfo = json_decode($updateInfoJson, true);
+
+        if (!isset($updateInfo['update_available']) || !$updateInfo['update_available']) {
+            return '';
+        }
+
+        $githubVersion = $updateInfo['github_version'] ?? '';
+
+        // Check if this version was already dismissed.
+        if ($dismissedVersion === $githubVersion) {
+            return '';
+        }
+
+        // Render the notice template.
+        return TemplateManager::renderModuleView(
+            'update-notice',
+            'admin',
+            [
+                'update_info' => $updateInfo,
+                'module_url' => \Context::getContext()->link->getAdminLink('AdminModules') .
+                    '&configure=' . $module->name . '&tab_module=' . $module->tab . '&module_name=' . $module->name .
+                    '&active_tab=plugin_diagnostics',
+                'dismiss_url' => \Context::getContext()->link->getModuleLink($module->name, 'updatedismiss', [], true),
+            ]
+        );
+    }
+
+    /**
+     * Unified error processing method for handling exceptions consistently across the module.
+     *
+     * @param string $errorPrefix Short description of error context.
+     * @param \Throwable $exception Exception to process.
+     * @param int|null $httpStatus Optional HTTP status code to set in response.
+     * @param string|null $userErrorMessage Optional custom user-friendly error message.
+     *
+     * @return array Array with 'title' (user error message) and 'language' (shop language code).
+     */
+    public static function processError(
+        string $errorPrefix,
+        \Throwable $exception,
+        ?int $httpStatus = null,
+        ?string $userErrorMessage = null
+    ): array {
+        DebugLogger::logEvent(
+            '[ERROR]',
+            $errorPrefix,
+            [
+                'exception' => get_class($exception),
+                'error_message' => $exception->getMessage(),
+                'error_code' => $exception->getCode(),
+                'error_file' => $exception->getFile(),
+                'error_line' => $exception->getLine(),
+                'error_trace' => $exception->getTraceAsString(),
+            ]
+        );
+
+        ErrorLogger::sendError(
+            $exception,
+            $errorPrefix,
+            (string) $exception->getCode(),
+            $exception->getMessage(),
+            $exception instanceof HttpErrorExceptionInterface ? $exception->getUrl() : null,
+            $exception instanceof HttpErrorExceptionInterface ? $exception->getRequestBody() : null,
+            $exception instanceof HttpErrorExceptionInterface ? $exception->getResponseBody() : null,
+            $exception->getTraceAsString()
+        );
+
+        if (empty($userErrorMessage)) {
+            $userErrorMessage = Main::translate(
+                'There was a technical problem. Please try again in a moment and it should work!'
+            );
+        }
+
+        if ($httpStatus !== null) {
+            http_response_code($httpStatus);
+        }
+
+        return ['title' => $userErrorMessage, 'language' => \Context::getContext()->language->iso_code];
     }
 }

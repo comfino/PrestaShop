@@ -29,6 +29,7 @@ namespace Comfino\Api;
 use Comfino\Common\Backend\Factory\ApiServiceFactory;
 use Comfino\Common\Backend\RestEndpoint\CacheInvalidate;
 use Comfino\Common\Backend\RestEndpoint\Configuration;
+use Comfino\Common\Backend\RestEndpoint\ConfigurationRepair;
 use Comfino\Common\Backend\RestEndpoint\StatusNotification;
 use Comfino\Common\Backend\RestEndpointManager;
 use Comfino\Common\Shop\Order\StatusManager;
@@ -84,6 +85,15 @@ final class ApiService
                 CacheManager::getCachePool()
             )
         );
+
+        self::getEndpointManager()->registerEndpoint(
+            new ConfigurationRepair(
+                'configurationRepair',
+                self::getControllerUrl('configurationrepair', [], false),
+                [ConfigManager::class, 'validateConfigurationIntegrity'],
+                [ConfigManager::class, 'repairMissingConfigurationOptions']
+            )
+        );
     }
 
     public static function getControllerUrl(
@@ -115,6 +125,16 @@ final class ApiService
         }
 
         return '';
+    }
+
+    public static function getValidationKey(): string
+    {
+        return self::getEndpointManager()->getValidationKey();
+    }
+
+    public static function getCrSignature(string $requestData): string
+    {
+        return self::getEndpointManager()->getCrSignature($requestData);
     }
 
     public static function processRequest(string $endpointName): string

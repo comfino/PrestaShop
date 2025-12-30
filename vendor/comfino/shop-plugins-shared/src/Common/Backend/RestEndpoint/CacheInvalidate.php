@@ -15,7 +15,6 @@ use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
 class CacheInvalidate extends RestEndpoint
 {
     /**
-     * @readonly
      * @var \ComfinoExternal\Cache\TagInterop\TaggableCacheItemPoolInterface
      */
     private $cache;

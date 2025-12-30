@@ -35,7 +35,9 @@ use Comfino\Configuration\SettingsManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\Main;
 use Comfino\PluginShared\CacheManager;
+use Comfino\Update\UpdateManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -48,7 +50,7 @@ final class SettingsForm
     public const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     public const COMFINO_SUPPORT_PHONE = '887-106-027';
 
-    public static function processForm(\PaymentModule $module): array
+    public static function processForm(): array
     {
         ErrorLogger::init();
 
@@ -58,8 +60,8 @@ final class SettingsForm
         $widgetKeyError = false;
         $widgetKey = ConfigManager::getConfigurationValue('COMFINO_WIDGET_KEY', '');
 
-        $errorEmptyMsg = $module->l('Field "%s" can not be empty.');
-        $errorNumericFormatMsg = $module->l('Field "%s" has wrong numeric format.');
+        $errorEmptyMsg = Main::translate('Field "%s" can not be empty.');
+        $errorNumericFormatMsg = Main::translate('Field "%s" has wrong numeric format.');
 
         $configurationOptions = [];
 
@@ -95,15 +97,15 @@ final class SettingsForm
                             : \Tools::getValue('COMFINO_API_KEY');
 
                         if (\Tools::isEmpty(\Tools::getValue('COMFINO_API_KEY'))) {
-                            $output[] = sprintf($errorEmptyMsg, $module->l('Production environment API key'));
+                            $output[] = sprintf($errorEmptyMsg, Main::translate('Production environment API key'));
                         }
                         if (\Tools::isEmpty(\Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
-                            $output[] = sprintf($errorEmptyMsg, $module->l('Payment text'));
+                            $output[] = sprintf($errorEmptyMsg, Main::translate('Payment text'));
                         }
                         if (\Tools::isEmpty(\Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
-                            $output[] = sprintf($errorEmptyMsg, $module->l('Minimal amount in cart'));
+                            $output[] = sprintf($errorEmptyMsg, Main::translate('Minimal amount in cart'));
                         } elseif (!is_numeric(\Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
-                            $output[] = sprintf($errorNumericFormatMsg, $module->l('Minimal amount in cart'));
+                            $output[] = sprintf($errorNumericFormatMsg, Main::translate('Minimal amount in cart'));
                         }
                     } else {
                         $sandboxMode = (bool) \Tools::getValue('COMFINO_IS_SANDBOX');
@@ -135,7 +137,7 @@ final class SettingsForm
                             } catch (\Throwable $e) {
                                 ApiClient::processApiError(
                                     ($activeTab === 'payment_settings' ? 'Payment' : 'Developer') .
-                                    ' settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
+                                    ' settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
                                     $e
                                 );
 
@@ -149,7 +151,7 @@ final class SettingsForm
                             }
                         } catch (AuthorizationError|AccessDenied $e) {
                             $outputType = 'warning';
-                            $output[] = sprintf($module->l('API key %s is not valid.'), $apiKey);
+                            $output[] = sprintf(Main::translate('API key %s is not valid.'), $apiKey);
 
                             if (!empty(getenv('COMFINO_DEV'))) {
                                 $output[] = sprintf('Comfino API host: %s', $apiClient->getApiHost());
@@ -157,7 +159,7 @@ final class SettingsForm
                         } catch (\Throwable $e) {
                             ApiClient::processApiError(
                                 ($activeTab === 'payment_settings' ? 'Payment' : 'Developer') .
-                                ' settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
+                                ' settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
                                 $e
                             );
 
@@ -206,7 +208,7 @@ final class SettingsForm
                     if (!is_numeric(\Tools::getValue('COMFINO_WIDGET_PRICE_OBSERVER_LEVEL'))) {
                         $output[] = sprintf(
                             $errorNumericFormatMsg,
-                            $module->l('Price change detection - container hierarchy level')
+                            Main::translate('Price change detection - container hierarchy level')
                         );
                     }
 
@@ -218,12 +220,18 @@ final class SettingsForm
                     foreach ($customCssUrlOptionNames as $customCssUrlOptionName) {
                         if (!empty($customCssUrl = \Tools::getValue($customCssUrlOptionName))) {
                             if (!\Validate::isUrl($customCssUrl)) {
-                                $output[] = sprintf($module->l('Custom CSS URL "%s" is not valid.'), $customCssUrl);
+                                $output[] = sprintf(
+                                    Main::translate('Custom CSS URL "%s" is not valid.'),
+                                    $customCssUrl
+                                );
                             } elseif (!\Validate::isAbsoluteUrl($customCssUrl)) {
-                                $output[] = sprintf($module->l('Custom CSS URL "%s" is not absolute.'), $customCssUrl);
+                                $output[] = sprintf(
+                                    Main::translate('Custom CSS URL "%s" is not absolute.'),
+                                    $customCssUrl
+                                );
                             } elseif (stripos($customCssUrl, \Tools::getShopDomain()) === false) {
                                 $output[] = sprintf(
-                                    $module->l('Custom CSS URL "%s" is not in shop domain "%s".'),
+                                    Main::translate('Custom CSS URL "%s" is not in shop domain "%s".'),
                                     $customCssUrl,
                                     \Tools::getShopDomain()
                                 );
@@ -244,7 +252,7 @@ final class SettingsForm
                                 $widgetKey = ApiClient::getInstance()->getWidgetKey();
                             } catch (\Throwable $e) {
                                 ApiClient::processApiError(
-                                    'Widget settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
+                                    'Widget settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
                                     $e
                                 );
 
@@ -254,10 +262,10 @@ final class SettingsForm
                             }
                         } catch (AuthorizationError|AccessDenied $e) {
                             $outputType = 'warning';
-                            $output[] = sprintf($module->l('API key %s is not valid.'), $apiKey);
+                            $output[] = sprintf(Main::translate('API key %s is not valid.'), $apiKey);
                         } catch (\Throwable $e) {
                             ApiClient::processApiError(
-                                'Widget settings error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
+                                'Widget settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
                                 $e
                             );
 
@@ -272,12 +280,12 @@ final class SettingsForm
 
             if (!$widgetKeyError && count($output)) {
                 $outputType = 'warning';
-                $output[] = $module->l('Settings not updated.');
+                $output[] = Main::translate('Settings not updated.');
             } else {
                 // Update plugin configuration.
                 ConfigManager::updateConfiguration($configurationOptions, false);
 
-                $output[] = $module->l('Settings updated.');
+                $output[] = Main::translate('Settings updated.');
             }
 
             // Clear configuration and frontend cache.
@@ -291,7 +299,7 @@ final class SettingsForm
             'logo_url' => ConfigManager::getLogoUrl(),
             'support_email_address' => self::COMFINO_SUPPORT_EMAIL,
             'support_email_subject' => sprintf(
-                $module->l('PrestaShop %s Comfino %s - question'),
+                Main::translate('PrestaShop %s Comfino %s - question'),
                 _PS_VERSION_,
                 COMFINO_VERSION
             ),
@@ -301,18 +309,18 @@ final class SettingsForm
                 COMFINO_VERSION,
                 PHP_VERSION
             ),
-            'contact_msg1' => $module->l('Do you want to ask about something? Write to us at'),
+            'contact_msg1' => Main::translate('Do you want to ask about something? Write to us at'),
             'contact_msg2' => sprintf(
-                $module->l(
+                Main::translate(
                     'or contact us by phone. We are waiting on the number: %s. We will answer all your questions!'
                 ),
                 self::COMFINO_SUPPORT_PHONE
             ),
-            'plugin_version' => $module->version,
+            'plugin_version' => COMFINO_VERSION,
         ];
     }
 
-    public static function getFormFields(\PaymentModule $module, array $params): array
+    public static function getFormFields(array $params): array
     {
         $fields = [];
         $configTab = $params['config_tab'] ?? '';
@@ -341,26 +349,26 @@ final class SettingsForm
                             ],
                             [
                                 'type' => 'text',
-                                'label' => $module->l('Production environment API key'),
+                                'label' => Main::translate('Production environment API key'),
                                 'name' => 'COMFINO_API_KEY',
                                 'required' => true,
-                                'placeholder' => $module->l('Please enter the key provided during registration'),
+                                'placeholder' => Main::translate('Please enter the key provided during registration'),
                             ],
                             [
                                 'type' => 'text',
-                                'label' => $module->l('Payment text'),
+                                'label' => Main::translate('Payment text'),
                                 'name' => 'COMFINO_PAYMENT_TEXT',
                                 'required' => true,
                             ],
                             [
                                 'type' => 'text',
-                                'label' => $module->l('Minimal amount in cart'),
+                                'label' => Main::translate('Minimal amount in cart'),
                                 'name' => 'COMFINO_MINIMAL_CART_AMOUNT',
                                 'required' => true,
                             ],
                         ],
                         'submit' => [
-                            'title' => $module->l('Save'),
+                            'title' => Main::translate('Save'),
                             'class' => 'btn btn-default pull-right',
                             'name' => $formName,
                         ],
@@ -402,7 +410,6 @@ final class SettingsForm
                         'name' => 'product_category_filter[' . $prodTypeCode . ']',
                         'required' => false,
                         'html_content' => self::renderCategoryTree(
-                            $module,
                             'product_categories',
                             $prodTypeCode,
                             $selectedCategories
@@ -411,10 +418,10 @@ final class SettingsForm
                 }
 
                 $fields['sale_settings_category_filter']['form'] = [
-                    'legend' => ['title' => $module->l('Rules for the availability of financial products')],
+                    'legend' => ['title' => Main::translate('Rules for the availability of financial products')],
                     'input' => $productCategoryFilterInputs,
                     'submit' => [
-                        'title' => $module->l('Save'),
+                        'title' => Main::translate('Save'),
                         'class' => 'btn btn-default pull-right',
                         'name' => $formName,
                     ],
@@ -422,7 +429,7 @@ final class SettingsForm
                 break;
 
             case 'widget_settings':
-                $fields['widget_settings_basic']['form'] = ['legend' => ['title' => $module->l('Basic settings')]];
+                $fields['widget_settings_basic']['form'] = ['legend' => ['title' => Main::translate('Basic settings')]];
 
                 if (isset($params['messages'])) {
                     // Messages list in the form header (type => message): description, warning, success, error
@@ -443,30 +450,30 @@ final class SettingsForm
                             ],
                             [
                                 'type' => 'switch',
-                                'label' => $module->l('Widget is active?'),
+                                'label' => Main::translate('Widget is active?'),
                                 'name' => 'COMFINO_WIDGET_ENABLED',
                                 'values' => [
                                     [
                                         'id' => 'widget_enabled',
                                         'value' => true,
-                                        'label' => $module->l('Enabled'),
+                                        'label' => Main::translate('Enabled'),
                                     ],
                                     [
                                         'id' => 'widget_disabled',
                                         'value' => false,
-                                        'label' => $module->l('Disabled'),
+                                        'label' => Main::translate('Disabled'),
                                     ],
                                 ],
                             ],
                             [
                                 'type' => 'hidden',
-                                'label' => $module->l('Widget key'),
+                                'label' => Main::translate('Widget key'),
                                 'name' => 'COMFINO_WIDGET_KEY',
                                 'required' => false,
                             ],
                             [
                                 'type' => 'select',
-                                'label' => $module->l('Widget type'),
+                                'label' => Main::translate('Widget type'),
                                 'name' => 'COMFINO_WIDGET_TYPE',
                                 'required' => false,
                                 'options' => [
@@ -477,7 +484,7 @@ final class SettingsForm
                             ],
                             [
                                 'type' => 'checkbox',
-                                'label' => $module->l('Offer types'),
+                                'label' => Main::translate('Offer types'),
                                 'name' => 'COMFINO_WIDGET_OFFER_TYPES',
                                 'required' => false,
                                 'values' => [
@@ -490,7 +497,7 @@ final class SettingsForm
                                     'id' => 'key',
                                     'name' => 'name',
                                 ],
-                                'desc' => $module->l(
+                                'desc' => Main::translate(
                                     'Other payment methods (Installments 0%, Buy now, pay later, Installments for ' .
                                     'companies, Leasing) available after consulting a Comfino advisor ' .
                                     '(kontakt@comfino.pl).'
@@ -498,24 +505,24 @@ final class SettingsForm
                             ],
                             [
                                 'type' => 'switch',
-                                'label' => $module->l('Show logos of financial services providers'),
+                                'label' => Main::translate('Show logos of financial services providers'),
                                 'name' => 'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
                                 'values' => [
                                     [
                                         'id' => 'provider_logos_enabled',
                                         'value' => true,
-                                        'label' => $module->l('Yes'),
+                                        'label' => Main::translate('Yes'),
                                     ],
                                     [
                                         'id' => 'provider_logos_disabled',
                                         'value' => false,
-                                        'label' => $module->l('No'),
+                                        'label' => Main::translate('No'),
                                     ],
                                 ],
                             ],
                         ],
                         'submit' => [
-                            'title' => $module->l('Save'),
+                            'title' => Main::translate('Save'),
                             'class' => 'btn btn-default pull-right',
                             'name' => $formName,
                         ],
@@ -523,41 +530,41 @@ final class SettingsForm
                 );
 
                 $fields['widget_settings_advanced']['form'] = [
-                    'legend' => ['title' => $module->l('Advanced settings')],
+                    'legend' => ['title' => Main::translate('Advanced settings')],
                     'input' => [
                         [
                             'type' => 'text',
-                            'label' => $module->l('Widget price element selector'),
+                            'label' => Main::translate('Widget price element selector'),
                             'name' => 'COMFINO_WIDGET_PRICE_SELECTOR',
                             'required' => false,
                         ],
                         [
                             'type' => 'text',
-                            'label' => $module->l('Widget anchor element selector'),
+                            'label' => Main::translate('Widget anchor element selector'),
                             'name' => 'COMFINO_WIDGET_TARGET_SELECTOR',
                             'required' => false,
                         ],
                         [
                             'type' => 'text',
-                            'label' => $module->l('Price change detection - container selector'),
+                            'label' => Main::translate('Price change detection - container selector'),
                             'name' => 'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
                             'required' => false,
-                            'desc' => $module->l(
+                            'desc' => Main::translate(
                                 'Selector of observed parent element which contains price element.'
                             ),
                         ],
                         [
                             'type' => 'text',
-                            'label' => $module->l('Price change detection - container hierarchy level'),
+                            'label' => Main::translate('Price change detection - container hierarchy level'),
                             'name' => 'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
                             'required' => false,
-                            'desc' => $module->l(
+                            'desc' => Main::translate(
                                 'Hierarchy level of observed parent element relative to the price element.'
                             ),
                         ],
                         [
                             'type' => 'select',
-                            'label' => $module->l('Embedding method'),
+                            'label' => Main::translate('Embedding method'),
                             'name' => 'COMFINO_WIDGET_EMBED_METHOD',
                             'required' => false,
                             'options' => [
@@ -573,25 +580,25 @@ final class SettingsForm
                         ],
                         [
                             'type' => 'text',
-                            'label' => $module->l('Custom banner CSS style'),
+                            'label' => Main::translate('Custom banner CSS style'),
                             'name' => 'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
                             'required' => false,
-                            'desc' => $module->l(
+                            'desc' => Main::translate(
                                 'URL for the custom banner style. Only links from your store domain are allowed.'
                             ),
                         ],
                         [
                             'type' => 'text',
-                            'label' => $module->l('Custom calculator CSS style'),
+                            'label' => Main::translate('Custom calculator CSS style'),
                             'name' => 'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
                             'required' => false,
-                            'desc' => $module->l(
+                            'desc' => Main::translate(
                                 'URL for the custom calculator style. Only links from your store domain are allowed.'
                             ),
                         ],
                         [
                             'type' => 'textarea',
-                            'label' => $module->l('Widget initialization code'),
+                            'label' => Main::translate('Widget initialization code'),
                             'name' => 'COMFINO_WIDGET_CODE',
                             'required' => false,
                             'rows' => 15,
@@ -599,7 +606,7 @@ final class SettingsForm
                         ],
                     ],
                     'submit' => [
-                        'title' => $module->l('Save'),
+                        'title' => Main::translate('Save'),
                         'class' => 'btn btn-default pull-right',
                         'name' => $formName,
                     ],
@@ -628,21 +635,21 @@ final class SettingsForm
                             ],
                             [
                                 'type' => 'switch',
-                                'label' => $module->l('Use test environment'),
+                                'label' => Main::translate('Use test environment'),
                                 'name' => 'COMFINO_IS_SANDBOX',
                                 'values' => [
                                     [
                                         'id' => 'sandbox_enabled',
                                         'value' => true,
-                                        'label' => $module->l('Enabled'),
+                                        'label' => Main::translate('Enabled'),
                                     ],
                                     [
                                         'id' => 'sandbox_disabled',
                                         'value' => false,
-                                        'label' => $module->l('Disabled'),
+                                        'label' => Main::translate('Disabled'),
                                     ],
                                 ],
-                                'desc' => $module->l(
+                                'desc' => Main::translate(
                                     'The test environment allows the store owner to get acquainted with the ' .
                                     'functionality of the Comfino module. This is a Comfino simulator, thanks ' .
                                     'to which you can get to know all the advantages of this payment method. ' .
@@ -651,31 +658,31 @@ final class SettingsForm
                             ],
                             [
                                 'type' => 'text',
-                                'label' => $module->l('Test environment API key'),
+                                'label' => Main::translate('Test environment API key'),
                                 'name' => 'COMFINO_SANDBOX_API_KEY',
                                 'required' => false,
-                                'desc' => $module->l(
+                                'desc' => Main::translate(
                                     'Ask the supervisor for access to the test environment (key, login, password, ' .
                                     'link). Remember, the test key is different from the production key.'
                                 ),
                             ],
                             [
                                 'type' => 'switch',
-                                'label' => $module->l('Debug mode'),
+                                'label' => Main::translate('Debug mode'),
                                 'name' => 'COMFINO_DEBUG',
                                 'values' => [
                                     [
                                         'id' => 'debug_enabled',
                                         'value' => true,
-                                        'label' => $module->l('Enabled'),
+                                        'label' => Main::translate('Enabled'),
                                     ],
                                     [
                                         'id' => 'debug_disabled',
                                         'value' => false,
-                                        'label' => $module->l('Disabled'),
+                                        'label' => Main::translate('Disabled'),
                                     ],
                                 ],
-                                'desc' => $module->l(
+                                'desc' => Main::translate(
                                     'Debug mode is useful in case of problems with Comfino payment availability. ' .
                                     'In this mode module logs details of internal process responsible for ' .
                                     'displaying of Comfino payment option at the payment methods list.'
@@ -683,21 +690,21 @@ final class SettingsForm
                             ],
                             [
                                 'type' => 'switch',
-                                'label' => $module->l('Service mode'),
+                                'label' => Main::translate('Service mode'),
                                 'name' => 'COMFINO_SERVICE_MODE',
                                 'values' => [
                                     [
                                         'id' => 'service_mode_enabled',
                                         'value' => true,
-                                        'label' => $module->l('Enabled'),
+                                        'label' => Main::translate('Enabled'),
                                     ],
                                     [
                                         'id' => 'service_mode_disabled',
                                         'value' => false,
-                                        'label' => $module->l('Disabled'),
+                                        'label' => Main::translate('Disabled'),
                                     ],
                                 ],
-                                'desc' => $module->l(
+                                'desc' => Main::translate(
                                     'Service mode is useful in testing Comfino payment gateway without sharing ' .
                                     'it with customers. In this mode Comfino payment method is visible only for ' .
                                     'selected sessions and debug logs are collected only for these sessions.'
@@ -705,7 +712,7 @@ final class SettingsForm
                             ],
                         ],
                         'submit' => [
-                            'title' => $module->l('Save'),
+                            'title' => Main::translate('Save'),
                             'class' => 'btn btn-default pull-right',
                             'name' => $formName,
                         ],
@@ -715,23 +722,23 @@ final class SettingsForm
                 if (getenv('COMFINO_DEV_ENV') === 'TRUE') {
                     $fields['developer_settings']['form']['input'][] = [
                         'type' => 'switch',
-                        'label' => $module->l('Use development environment variables'),
+                        'label' => Main::translate('Use development environment variables'),
                         'name' => 'COMFINO_DEV_ENV_VARS',
                         'values' => [
                             [
                                 'id' => 'dev_env_vars_enabled',
                                 'value' => true,
-                                'label' => $module->l('Enabled'),
+                                'label' => Main::translate('Enabled'),
                             ],
                             [
                                 'id' => 'dev_env_vars_disabled',
                                 'value' => false,
-                                'label' => $module->l('Disabled'),
+                                'label' => Main::translate('Disabled'),
                             ],
                         ],
-                        'desc' => $module->l(
-                            'Use of development environment variables with custom hosts which overwrite hosts stored in ' .
-                            'the plugin.'
+                        'desc' => Main::translate(
+                            'Use of development environment variables with custom hosts which overwrite hosts stored ' .
+                            'in the plugin.'
                         ),
                     ];
                 }
@@ -755,7 +762,13 @@ final class SettingsForm
                         'input' => [
                             [
                                 'type' => 'html',
-                                'label' => $module->l('Errors log'),
+                                'label' => Main::translate('Configuration repair'),
+                                'name' => 'COMFINO_CONFIG_REPAIR',
+                                'html_content' => self::renderConfigurationRepairSection(),
+                            ],
+                            [
+                                'type' => 'html',
+                                'label' => Main::translate('Errors log'),
                                 'name' => 'COMFINO_WIDGET_ERRORS_LOG',
                                 'html_content' =>
                                     '<textarea rows="20" cols="60" readonly="readonly">' .
@@ -764,7 +777,7 @@ final class SettingsForm
                             ],
                             [
                                 'type' => 'html',
-                                'label' => $module->l('Debug log'),
+                                'label' => Main::translate('Debug log'),
                                 'name' => 'COMFINO_DEBUG_LOG',
                                 'required' => false,
                                 'readonly' => true,
@@ -787,15 +800,10 @@ final class SettingsForm
     /**
      * @param int[] $selectedCategories
      */
-    private static function renderCategoryTree(
-        \PaymentModule $module,
-        string $treeId,
-        string $productType,
-        array $selectedCategories
-    ): string {
+    private static function renderCategoryTree(string $treeId, string $productType, array $selectedCategories): string
+    {
         return TemplateManager::renderModuleView(
-            $module,
-            'product_category_filter',
+            'product-category-filter',
             'admin/_configure',
             [
                 'tree_id' => $treeId,
@@ -830,6 +838,9 @@ final class SettingsForm
         return $categoryTree;
     }
 
+    /**
+     * Returns full category tree with nested categories.
+     */
     private static function getNestedCategories(
         bool $leavesOnly = false,
         array $subCategories = [],
@@ -868,5 +879,25 @@ final class SettingsForm
         }
 
         return $categories;
+    }
+
+    /**
+     * Renders the configuration repair section with validation status and repair button.
+     */
+    private static function renderConfigurationRepairSection(): string
+    {
+        $validationKey = ApiService::getValidationKey();
+        $crSignature = ApiService::getCrSignature($validationKey);
+
+        return TemplateManager::renderModuleView(
+            'configuration-repair',
+            'admin/_configure',
+            [
+                'validation' => ConfigManager::validateConfigurationIntegrity(),
+                'repair_url' => ApiService::getControllerUrl('configurationrepair', ['vkey' => $validationKey]),
+                'vkey' => $validationKey,
+                'cr_signature' => $crSignature,
+            ]
+        );
     }
 }

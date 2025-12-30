@@ -11,30 +11,25 @@ final class ConfigurationManager
 {
     /**
      * @var int[]
-     * @readonly
      */
     private $availConfigOptions;
     /**
      * @var string[]
-     * @readonly
      */
     private $accessibleConfigOptions;
     /**
      * @var int
-     * @readonly
      */
     private $options;
     /**
-     * @readonly
      * @var \Comfino\Common\Backend\Configuration\StorageAdapterInterface
      */
     private $storageAdapter;
     /**
-     * @readonly
      * @var \Comfino\Api\SerializerInterface
      */
     private $serializer;
-    // Data types of configuration options as bit masks.
+    
     public const OPT_VALUE_TYPE_STRING = (1 << 0);
     public const OPT_VALUE_TYPE_INT = (1 << 1);
     public const OPT_VALUE_TYPE_FLOAT = (1 << 2);
@@ -66,9 +61,12 @@ final class ConfigurationManager
     private $loaded = false;
 
     /**
-     * @param int $options Options (bit field with flags set by OPT_X constants).
-     * @param int[] $availConfigOptions List of available configuration options with data types as pairs [OPTION_NAME => OPT_VALUE_TYPE].
-     * @param string[] $accessibleConfigOptions List of accessible configuration options via REST endpoints.
+     * @param int[] $availConfigOptions
+     * @param string[] $accessibleConfigOptions
+     * @param int $options
+     * @param StorageAdapterInterface $storageAdapter
+     * @param SerializerInterface $serializer
+     * @return self
      */
     public static function getInstance(
         array $availConfigOptions,
@@ -85,9 +83,9 @@ final class ConfigurationManager
     }
 
     /**
-     * @param int $options Options (bit field with flags set by OPT_X constants).
-     * @param int[] $availConfigOptions List of available configuration options with data types as pairs [OPTION_NAME => OPT_VALUE_TYPE].
-     * @param string[] $accessibleConfigOptions List of accessible configuration options via REST endpoints.
+     * @param int $options
+     * @param int[] $availConfigOptions
+     * @param string[] $accessibleConfigOptions
      */
     private function __construct(
         array $availConfigOptions,
@@ -109,17 +107,24 @@ final class ConfigurationManager
         $this->persist();
     }
 
+    /**
+     * @return array
+     */
     public function returnConfigurationOptions(): array
     {
         return $this->getConfigurationValues($this->accessibleConfigOptions);
     }
 
+    /**
+     * @param array $configurationOptions
+     */
     public function updateConfigurationOptions(array $configurationOptions): void
     {
         $this->setConfigurationValues($configurationOptions, $this->accessibleConfigOptions);
     }
 
     /**
+     * @param string $optionName
      * @return mixed
      */
     public function getConfigurationValue(string $optionName)
@@ -129,6 +134,7 @@ final class ConfigurationManager
 
     /**
      * @param string[] $optionNames
+     * @return array
      */
     public function getConfigurationValues(array $optionNames): array
     {
@@ -136,6 +142,7 @@ final class ConfigurationManager
     }
 
     /**
+     * @param string $optionName
      * @param mixed $optionValue
      */
     public function setConfigurationValue(string $optionName, $optionValue): void
@@ -146,6 +153,10 @@ final class ConfigurationManager
         }
     }
 
+    /**
+     * @param array $configurationOptions
+     * @param string[]|null $accessibleOptions
+     */
     public function setConfigurationValues(array $configurationOptions, ?array $accessibleOptions = null): void
     {
         if ($this->configuration === null) {

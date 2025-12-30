@@ -7,9 +7,6 @@ namespace Comfino\Api\Request;
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
 use Comfino\Api\Request;
 
-/**
- * Financial products listing request.
- */
 class GetFinancialProducts extends Request
 {
     /**
@@ -35,9 +32,6 @@ class GetFinancialProducts extends Request
         );
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function prepareRequestBody(): ?array
     {
         return null;

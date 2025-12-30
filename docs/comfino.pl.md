@@ -1,3 +1,13 @@
+## WYMAGANIA
+
+- **PrestaShop**: 1.6.x, 1.7.x, 8.x, 9.x (minimalna wspierana wersja PrestaShop to 1.6.1.11)
+- **PHP**: 7.1 lub nowszy
+- **Rozszerzenia PHP**: curl, json, zlib
+
+W przypadku starszych środowisk najnowsza wersja wtyczki zgodna z PHP 5.6 i PrestaShop 1.6.0.14+: [3.5.5](https://github.com/comfino/PrestaShop/releases/tag/3.5.5)  
+Może zostać pobrana stąd: [comfino.zip](https://github.com/comfino/PrestaShop/releases/download/3.5.5/comfino.zip)  
+Zdecydowanie zalecamy uaktualnienie środowiska sklepowego co najmniej do wersji 1.7.8.11 i korzystanie z wtyczek w wersji 4.x.
+
 ## POBIERANIE WTYCZKI
 
 Pobierz najnowszą wersję wtyczki ze strony: https://github.com/comfino/PrestaShop/releases

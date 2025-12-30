@@ -12,7 +12,6 @@ class FilterByProductType implements ProductTypeFilterInterface
 {
     /**
      * @var LoanTypeEnum[]
-     * @readonly
      */
     private $allowedProductTypes;
     /**

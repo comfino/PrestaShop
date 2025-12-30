@@ -9,14 +9,10 @@ use Comfino\Api\Request;
 use Comfino\Shop\Order\CartInterface;
 use Comfino\Shop\Order\CartTrait;
 
-/**
- * Financial product details request.
- */
 class GetFinancialProductDetails extends Request
 {
     /**
      * @var CartInterface
-     * @readonly
      */
     private $cart;
     use CartTrait;
@@ -46,9 +42,6 @@ class GetFinancialProductDetails extends Request
         );
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function prepareRequestBody(): ?array
     {
         return $this->getCartAsArray($this->cart);

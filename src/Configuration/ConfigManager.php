@@ -94,17 +94,18 @@ final class ConfigManager
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_NEW_WIDGET_ACTIVE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_PROD_CAT_CACHE_TTL' => ConfigurationManager::OPT_VALUE_TYPE_INT,
+            'COMFINO_GITHUB_VERSION_CHECK_TIME' => ConfigurationManager::OPT_VALUE_TYPE_INT,
+            'COMFINO_GITHUB_VERSION_INFO' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
         ],
     ];
 
     public const ACCESSIBLE_CONFIG_OPTIONS = [
+        // Payment settings
         'COMFINO_PAYMENT_TEXT',
         'COMFINO_MINIMAL_CART_AMOUNT',
-        'COMFINO_IS_SANDBOX',
-        'COMFINO_DEBUG',
-        'COMFINO_SERVICE_MODE',
+        // Sale settings
         'COMFINO_PRODUCT_CATEGORY_FILTERS',
-        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES',
+        // Widget settings
         'COMFINO_WIDGET_ENABLED',
         'COMFINO_WIDGET_KEY',
         'COMFINO_WIDGET_PRICE_SELECTOR',
@@ -114,12 +115,19 @@ final class ConfigManager
         'COMFINO_WIDGET_TYPE',
         'COMFINO_WIDGET_OFFER_TYPES',
         'COMFINO_WIDGET_EMBED_METHOD',
-        'COMFINO_WIDGET_CODE',
-        'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
-        'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
         'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
         'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
         'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
+        'COMFINO_WIDGET_CODE',
+        // Developer settings
+        'COMFINO_IS_SANDBOX',
+        'COMFINO_DEBUG',
+        'COMFINO_SERVICE_MODE',
+        'COMFINO_DEV_ENV_VARS',
+        // Hidden settings
+        'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
+        'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
+        'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES',
         'COMFINO_IGNORED_STATUSES',
         'COMFINO_FORBIDDEN_STATUSES',
         'COMFINO_STATUS_MAP',
@@ -132,7 +140,8 @@ final class ConfigManager
         'COMFINO_API_CONNECT_NUM_ATTEMPTS',
         'COMFINO_NEW_WIDGET_ACTIVE',
         'COMFINO_PROD_CAT_CACHE_TTL',
-        'COMFINO_DEV_ENV_VARS',
+        'COMFINO_GITHUB_VERSION_CHECK_TIME',
+        'COMFINO_GITHUB_VERSION_INFO',
     ];
 
     private const CONFIG_MANAGER_OPTIONS = ConfigurationManager::OPT_SERIALIZE_ARRAYS;
@@ -573,14 +582,89 @@ final class ConfigManager
 
     public static function initConfigurationValues(): void
     {
-        if (\Configuration::hasKey('COMFINO_API_KEY')) {
-            // Avoid overwriting of existing configuration if plugin is reinstalled/upgraded.
-            return;
+        foreach (self::getDefaultConfigurationValues() as $optName => $optValue) {
+            // Avoid overwriting of existing configuration options if plugin is reinstalled/upgraded.
+            if (!\Configuration::hasKey($optName)) {
+                \Configuration::updateValue($optName, $optValue);
+            }
+        }
+    }
+
+    /**
+     * Repairs missing configuration options by initializing them with default values.
+     * Does not overwrite existing options - only creates missing ones.
+     *
+     * @return array Statistics about the repair operation with keys:
+     *               - 'checked': Total number of options checked.
+     *               - 'missing': Number of missing options found.
+     *               - 'repaired': Number of options successfully repaired.
+     *               - 'failed': Number of options that failed to repair.
+     *               - 'options_repaired': Array of option names that were repaired.
+     *               - 'options_failed': Array of option names that failed to repair.
+     */
+    public static function repairMissingConfigurationOptions(): array
+    {
+        ErrorLogger::init();
+
+        $stats = [
+            'checked' => 0,
+            'missing' => 0,
+            'repaired' => 0,
+            'failed' => 0,
+            'options_repaired' => [],
+            'options_failed' => [],
+        ];
+
+        $defaultValues = self::getDefaultConfigurationValues();
+
+        foreach ($defaultValues as $optName => $optValue) {
+            $stats['checked']++;
+
+            if (!\Configuration::hasKey($optName) && \Configuration::get($optName) !== $optValue) {
+                $stats['missing']++;
+
+                try {
+                    if (\Configuration::updateValue($optName, $optValue)) {
+                        $stats['repaired']++;
+                        $stats['options_repaired'][] = $optName;
+                    } else {
+                        $stats['failed']++;
+                        $stats['options_failed'][] = $optName;
+                    }
+                } catch (\Throwable $e) {
+                    $stats['failed']++;
+                    $stats['options_failed'][] = $optName;
+                }
+            }
         }
 
-        foreach (self::getDefaultConfigurationValues() as $optName => $optValue) {
-            \Configuration::updateValue($optName, $optValue);
+        return $stats;
+    }
+
+    /**
+     * Validates that all required configuration options exist.
+     *
+     * @return array Array with keys:
+     *               - 'valid': boolean indicating if all options exist
+     *               - 'missing_options': array of missing option names
+     *               - 'total_options': total number of expected options
+     */
+    public static function validateConfigurationIntegrity(): array
+    {
+        $defaultValues = self::getDefaultConfigurationValues();
+        $missingOptions = [];
+
+        foreach ($defaultValues as $optName => $optValue) {
+            if (!\Configuration::hasKey($optName) && \Configuration::get($optName) !== $optValue) {
+                $missingOptions[] = $optName;
+            }
         }
+
+        return [
+            'valid' => empty($missingOptions),
+            'missing_options' => $missingOptions,
+            'total_options' => count($defaultValues),
+        ];
     }
 
     /**

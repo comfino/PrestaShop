@@ -27,7 +27,6 @@
 namespace Comfino;
 
 use Comfino\Configuration\ConfigManager;
-use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -42,7 +41,6 @@ final class DebugLogger
     {
         if (self::$debugLogger === null) {
             self::$debugLogger = Common\Backend\DebugLogger::getInstance(
-                new JsonSerializer(),
                 _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/debug.log'
             );
         }
@@ -61,5 +59,10 @@ final class DebugLogger
         if (ConfigManager::isDebugMode()) {
             self::getLoggerInstance()->logEvent($eventPrefix, $eventMessage, $parameters);
         }
+    }
+
+    public static function clearLogs(): void
+    {
+        self::getLoggerInstance()->clearLogs();
     }
 }

@@ -48,13 +48,17 @@ final class OrderManager
      *
      * @return Cart Comfino cart structure.
      *
-     * @throws \Exception
+     * @throws \Exception|\InvalidArgumentException
      */
     public static function getShopCart(\Cart $cart, int $priceModifier, bool $loadProductCategories = false): Cart
     {
         $totalValue = (int) round(round($cart->getOrderTotal(), 2) * 100);
 
-        if ($priceModifier > 0) {
+        if ($totalValue < 0) {
+            throw new \InvalidArgumentException('Total value must be greater than 0.');
+        }
+
+        if ($priceModifier > 0 && $priceModifier < $totalValue) {
             // Add price modifier (e.g. custom commission).
             $totalValue += $priceModifier;
         }
@@ -98,6 +102,14 @@ final class OrderManager
             if ($cartItem->getProduct()->getTaxValue() !== null) {
                 $totalTaxValue += ($cartItem->getProduct()->getTaxValue() * $cartItem->getQuantity());
             }
+        }
+
+        if (is_float($totalNetValue) || $totalNetValue > PHP_INT_MAX) {
+            throw new \InvalidArgumentException('Total net value must be integer not greater than PHP_INT_MAX.');
+        }
+
+        if (is_float($totalTaxValue) || $totalTaxValue > PHP_INT_MAX) {
+            throw new \InvalidArgumentException('Total tax value must be integer not greater than PHP_INT_MAX.');
         }
 
         if ($totalNetValue === 0) {
@@ -156,7 +168,7 @@ final class OrderManager
         $totalNetValue = (int) round(round($order->getTotalProductsWithoutTaxes(), 2) * 100);
         $totalTaxValue = $totalValue - $totalNetValue;
 
-        if ($priceModifier > 0) {
+        if ($priceModifier > 0 && $priceModifier < $totalValue) {
             // Add price modifier (e.g. custom commission).
             $totalValue += $priceModifier;
         }
@@ -345,7 +357,7 @@ final class OrderManager
         );
     }
 
-    public static function checkCartCurrency(\PaymentModule $module, \Cart $cart): bool
+    public static function checkCartCurrency(\Comfino $module, \Cart $cart): bool
     {
         $currencyOrder = new \Currency($cart->id_currency);
         $currenciesModule = $module->getCurrency($cart->id_currency);

@@ -11,17 +11,15 @@ use Comfino\Common\Shop\Product\CategoryFilter;
 class FilterByExcludedCategory implements ProductTypeFilterInterface
 {
     /**
-     * @readonly
      * @var \Comfino\Common\Shop\Product\CategoryFilter
      */
     private $categoryFilter;
     /**
      * @var int[][]
-     * @readonly
      */
     private $excludedCategoryIdsByProductType;
     /**
-     * @param int[][] $excludedCategoryIdsByProductType ['PRODUCT_TYPE' => [excluded_category_ids]]
+     * @param int[][] $excludedCategoryIdsByProductType
      */
     public function __construct(CategoryFilter $categoryFilter, array $excludedCategoryIdsByProductType)
     {

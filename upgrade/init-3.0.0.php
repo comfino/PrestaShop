@@ -36,16 +36,16 @@ function upgrade_module_3_0_0(Comfino $module)
         return false;
     }
 
-    if (file_exists(_PS_MODULE_DIR_ . 'comfino/override')) {
+    if (file_exists(_PS_MODULE_DIR_ . $module->name . '/override')) {
         // Remove admin controller override from older versions.
-        unlink(_PS_MODULE_DIR_ . 'comfino/override/index.php');
-        unlink(_PS_MODULE_DIR_ . 'comfino/override/controllers/index.php');
-        unlink(_PS_MODULE_DIR_ . 'comfino/override/controllers/admin/index.php');
-        unlink(_PS_MODULE_DIR_ . 'comfino/override/controllers/admin/AdminOrdersController.php');
+        unlink(_PS_MODULE_DIR_ . $module->name . '/override/index.php');
+        unlink(_PS_MODULE_DIR_ . $module->name . '/override/controllers/index.php');
+        unlink(_PS_MODULE_DIR_ . $module->name . '/override/controllers/admin/index.php');
+        unlink(_PS_MODULE_DIR_ . $module->name . '/override/controllers/admin/AdminOrdersController.php');
 
-        rmdir(_PS_MODULE_DIR_ . 'comfino/override/controllers/admin');
-        rmdir(_PS_MODULE_DIR_ . 'comfino/override/controllers');
-        rmdir(_PS_MODULE_DIR_ . 'comfino/override');
+        rmdir(_PS_MODULE_DIR_ . $module->name . '/override/controllers/admin');
+        rmdir(_PS_MODULE_DIR_ . $module->name . '/override/controllers');
+        rmdir(_PS_MODULE_DIR_ . $module->name . '/override');
 
         $comfinoOverriddenControllerPath = _PS_OVERRIDE_DIR_ . 'controllers/admin/AdminOrdersController.php';
 

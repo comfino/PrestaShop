@@ -13,7 +13,6 @@ class GetPaywallItemDetails extends Request
 {
     /**
      * @var CartInterface
-     * @readonly
      */
     private $cart;
     use CartTrait;
@@ -31,9 +30,6 @@ class GetPaywallItemDetails extends Request
         $this->setRequestParams(['loanAmount' => $loanAmount, 'loanTypeSelected' => (string) $loanType]);
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function prepareRequestBody(): ?array
     {
         return $this->getCartAsArray($this->cart);

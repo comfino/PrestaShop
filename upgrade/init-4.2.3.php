@@ -46,7 +46,7 @@ function upgrade_module_4_2_3(Comfino $module)
         [
             'COMFINO_WIDGET_TYPE' => 'standard',
             'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
-            'COMFINO_NEW_WIDGET_ACTIVE' =>  true,
+            'COMFINO_NEW_WIDGET_ACTIVE' => true,
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => [
                 'INSTALLMENTS_ZERO_PERCENT',
                 'PAY_LATER',
@@ -63,9 +63,9 @@ function upgrade_module_4_2_3(Comfino $module)
 
     ConfigManager::updateConfigurationValue('COMFINO_PROD_CAT_CACHE_TTL', 60 * 60);
 
-    @unlink(_PS_MODULE_DIR_ . 'comfino/controllers/front/availableoffertypes.php');
-    @unlink(_PS_MODULE_DIR_ . 'comfino/controllers/front/productdetails.php');
-    @unlink(_PS_MODULE_DIR_ . 'comfino/controllers/front/widget.php');
+    @unlink(_PS_MODULE_DIR_ . $module->name . '/controllers/front/availableoffertypes.php');
+    @unlink(_PS_MODULE_DIR_ . $module->name . '/controllers/front/productdetails.php');
+    @unlink(_PS_MODULE_DIR_ . $module->name . '/controllers/front/widget.php');
 
     return true;
 }

@@ -33,6 +33,7 @@ use Comfino\Common\Frontend\FrontendHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
+use Comfino\Main;
 use ComfinoExternal\Psr\Http\Client\NetworkExceptionInterface;
 
 if (!defined('_PS_VERSION_')) {
@@ -98,10 +99,7 @@ final class ApiClient
 
     public static function processApiError(string $errorPrefix, \Throwable $exception): array
     {
-        /** @var \PaymentModule $module */
-        $module = \Module::getInstanceByName(COMFINO_MODULE_NAME);
-
-        $userErrorMessage = $module->l(
+        $userErrorMessage = Main::translate(
             'There was a technical problem. Please try again in a moment and it should work!'
         );
 
@@ -137,11 +135,11 @@ final class ApiClient
                     ]
                 );
             } elseif ($statusCode < 500) {
-                $userErrorMessage = $module->l(
+                $userErrorMessage = Main::translate(
                     'We have a configuration problem. The store is already working on a solution!'
                 );
             } elseif ($statusCode < 504) {
-                $userErrorMessage = $module->l(
+                $userErrorMessage = Main::translate(
                     'It looks like we have an outage. We\'ll fix it as soon as possible!',
                     'comfino-payment-gateway'
                 );

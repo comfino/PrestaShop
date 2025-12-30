@@ -32,6 +32,7 @@ use Comfino\Configuration\SettingsManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
+use Comfino\Main;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Order;
 use Comfino\Shop\Order\OrderInterface;
@@ -129,10 +130,44 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         $psOrder = new \Order($this->module->currentOrder);
 
-        if (\ValidateCore::isLoadedObject($psOrder)) {
-            $shopCart = OrderManager::getShopCartFromOrder($psOrder, $priceModifier, true);
-        } else {
-            $shopCart = OrderManager::getShopCart($cart, $priceModifier, true);
+        try {
+            if (\ValidateCore::isLoadedObject($psOrder)) {
+                $shopCart = OrderManager::getShopCartFromOrder($psOrder, $priceModifier, true);
+            } else {
+                $shopCart = OrderManager::getShopCart($cart, $priceModifier, true);
+            }
+        } catch (\Exception $e) {
+            $this->errors = [$this->module->l('There was an error creating your cart. Please try again.')];
+
+            DebugLogger::logEvent(
+                '[PAYMENT]',
+                'Shop cart creation error',
+                [
+                    'exception' => get_class($e),
+                    'error_message' => $e->getMessage(),
+                    'error_code' => $e->getCode(),
+                    'cart_id' => $cart->id,
+                ]
+            );
+
+            ErrorLogger::sendError(
+                $e,
+                'Shop cart creation error',
+                (string) $e->getCode(),
+                $e->getMessage(),
+                null,
+                null,
+                null,
+                $e->getTraceAsString()
+            );
+
+            if (COMFINO_PS_17) {
+                $this->redirectWithNotifications('index.php?controller=order&step=1');
+            } else {
+                $this->redirectWithNotificationsPs16('index.php?controller=order&step=1');
+            }
+
+            return;
         }
 
         $shopCustomer = OrderManager::getShopCustomerFromCart($cart, $customer, $this->context);
@@ -216,12 +251,12 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         try {
             Tools::redirect(ApiClient::getInstance()->createOrder($order)->applicationUrl);
         } catch (Throwable $e) {
-            $psOrder = new Order($this->module->currentOrder);
+            $psOrder = new \Order($this->module->currentOrder);
             $psOrder->setCurrentState((int) Configuration::get('PS_OS_ERROR'));
             $psOrder->save();
 
             ApiClient::processApiError(
-                'Order creation error on page "' . $_SERVER['REQUEST_URI'] . '" (Comfino API)',
+                'Order creation error on page "' . Main::getRequestUri() . '" (Comfino API)',
                 $e
             );
 
