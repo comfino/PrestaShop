@@ -37,7 +37,6 @@ use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Main;
 use Comfino\PluginShared\CacheManager;
-use Comfino\Update\UpdateManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -50,6 +49,17 @@ final class SettingsForm
     public const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     public const COMFINO_SUPPORT_PHONE = '887-106-027';
 
+    /**
+     * Processes form submission from module configuration page.
+     *
+     * Handles various form submissions including:
+     * - Module reset.
+     * - Error log clearing.
+     * - Debug log clearing.
+     * - Configuration updates for all settings tabs.
+     *
+     * @return array Configuration and output data for template rendering
+     */
     public static function processForm(): array
     {
         ErrorLogger::init();
@@ -65,7 +75,67 @@ final class SettingsForm
 
         $configurationOptions = [];
 
-        if (\Tools::isSubmit('submit_configuration')) {
+        // Handle module reset submission.
+        if (\Tools::isSubmit('submit_module_reset')) {
+            $activeTab = 'plugin_diagnostics';
+
+            try {
+                $resetStats = Main::reset(Main::getModule());
+                $hasErrors = $resetStats['config_failed'] > 0
+                    || $resetStats['hooks_failed'] > 0
+                    || $resetStats['statuses_create_failed'] > 0
+                    || $resetStats['statuses_update_failed'] > 0;
+
+                if ($hasErrors) {
+                    $outputType = 'warning';
+                    $output[] = Main::translate('Module reset completed with some errors.');
+                } else {
+                    $output[] = Main::translate('Module reset completed successfully.');
+                }
+
+                $output[] = sprintf(
+                    Main::translate('Configuration: %d repaired, %d failed'),
+                    $resetStats['config_repaired'],
+                    $resetStats['config_failed']
+                );
+                $output[] = sprintf(
+                    Main::translate('Hooks: %d registered, %d failed'),
+                    $resetStats['hooks_registered'],
+                    $resetStats['hooks_failed']
+                );
+                $output[] = sprintf(
+                    Main::translate('Order statuses: %d created, %d updated, %d failed'),
+                    $resetStats['statuses_created'],
+                    $resetStats['statuses_updated'],
+                    $resetStats['statuses_create_failed'] + $resetStats['statuses_update_failed']
+                );
+            } catch (\Exception $e) {
+                $outputType = 'error';
+                $output[] = Main::translate('Module reset failed') . ': ' . $e->getMessage();
+            }
+        } elseif (\Tools::isSubmit('submit_clear_error_log')) {
+            $activeTab = 'plugin_diagnostics';
+
+            try {
+                ErrorLogger::clearLogs();
+
+                $output[] = Main::translate('Error log cleared successfully.');
+            } catch (\Exception $e) {
+                $outputType = 'error';
+                $output[] = Main::translate('Error log clearing failed') . ': ' . $e->getMessage();
+            }
+        } elseif (\Tools::isSubmit('submit_clear_debug_log')) {
+            $activeTab = 'plugin_diagnostics';
+
+            try {
+                DebugLogger::clearLogs();
+
+                $output[] = Main::translate('Debug log cleared successfully.');
+            } catch (\Exception $e) {
+                $outputType = 'error';
+                $output[] = Main::translate('Debug log clearing failed') . ': ' . $e->getMessage();
+            }
+        } elseif (\Tools::isSubmit('submit_configuration')) {
             $activeTab = \Tools::getValue('active_tab');
 
             foreach (ConfigManager::CONFIG_OPTIONS[$activeTab] as $optionName => $optionType) {
@@ -320,6 +390,20 @@ final class SettingsForm
         ];
     }
 
+    /**
+     * Generates form fields configuration for module settings.
+     *
+     * Builds form field definitions for different configuration tabs:
+     * - payment_settings: API key, payment text, minimal cart amount
+     * - sale_settings: Product category filters
+     * - widget_settings: Widget configuration and appearance
+     * - developer_settings: Sandbox mode, debug mode, service mode
+     * - plugin_diagnostics: Module reset, logs, diagnostics
+     *
+     * @param array $params Form parameters including config_tab and form_name
+     *
+     * @return array Form fields configuration for PrestaShop form rendering
+     */
     public static function getFormFields(array $params): array
     {
         $fields = [];
@@ -365,6 +449,25 @@ final class SettingsForm
                                 'label' => Main::translate('Minimal amount in cart'),
                                 'name' => 'COMFINO_MINIMAL_CART_AMOUNT',
                                 'required' => true,
+                            ],
+                            [
+                                'type' => 'switch',
+                                'label' => Main::translate('Use order reference as external ID'),
+                                'name' => 'COMFINO_USE_ORDER_REFERENCE',
+                                'desc' => Main::translate('Use customer-visible order reference instead of numeric order ID for Comfino API integration. New orders only.'),
+                                'is_bool' => true,
+                                'values' => [
+                                    [
+                                        'id' => 'active_on',
+                                        'value' => true,
+                                        'label' => Main::translate('Yes'),
+                                    ],
+                                    [
+                                        'id' => 'active_off',
+                                        'value' => false,
+                                        'label' => Main::translate('No'),
+                                    ],
+                                ],
                             ],
                         ],
                         'submit' => [
@@ -452,6 +555,7 @@ final class SettingsForm
                                 'type' => 'switch',
                                 'label' => Main::translate('Widget is active?'),
                                 'name' => 'COMFINO_WIDGET_ENABLED',
+                                'is_bool' => true,
                                 'values' => [
                                     [
                                         'id' => 'widget_enabled',
@@ -507,6 +611,7 @@ final class SettingsForm
                                 'type' => 'switch',
                                 'label' => Main::translate('Show logos of financial services providers'),
                                 'name' => 'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
+                                'is_bool' => true,
                                 'values' => [
                                     [
                                         'id' => 'provider_logos_enabled',
@@ -637,6 +742,7 @@ final class SettingsForm
                                 'type' => 'switch',
                                 'label' => Main::translate('Use test environment'),
                                 'name' => 'COMFINO_IS_SANDBOX',
+                                'is_bool' => true,
                                 'values' => [
                                     [
                                         'id' => 'sandbox_enabled',
@@ -670,6 +776,7 @@ final class SettingsForm
                                 'type' => 'switch',
                                 'label' => Main::translate('Debug mode'),
                                 'name' => 'COMFINO_DEBUG',
+                                'is_bool' => true,
                                 'values' => [
                                     [
                                         'id' => 'debug_enabled',
@@ -692,6 +799,7 @@ final class SettingsForm
                                 'type' => 'switch',
                                 'label' => Main::translate('Service mode'),
                                 'name' => 'COMFINO_SERVICE_MODE',
+                                'is_bool' => true,
                                 'values' => [
                                     [
                                         'id' => 'service_mode_enabled',
@@ -724,6 +832,7 @@ final class SettingsForm
                         'type' => 'switch',
                         'label' => Main::translate('Use development environment variables'),
                         'name' => 'COMFINO_DEV_ENV_VARS',
+                        'is_bool' => true,
                         'values' => [
                             [
                                 'id' => 'dev_env_vars_enabled',
@@ -762,18 +871,15 @@ final class SettingsForm
                         'input' => [
                             [
                                 'type' => 'html',
-                                'label' => Main::translate('Configuration repair'),
-                                'name' => 'COMFINO_CONFIG_REPAIR',
-                                'html_content' => self::renderConfigurationRepairSection(),
+                                'label' => Main::translate('Module reset'),
+                                'name' => 'COMFINO_MODULE_RESET',
+                                'html_content' => self::renderModuleResetSection(),
                             ],
                             [
                                 'type' => 'html',
                                 'label' => Main::translate('Errors log'),
                                 'name' => 'COMFINO_WIDGET_ERRORS_LOG',
-                                'html_content' =>
-                                    '<textarea rows="20" cols="60" readonly="readonly">' .
-                                    ErrorLogger::getLoggerInstance()->getErrorLog(self::ERROR_LOG_NUM_LINES) .
-                                    '</textarea>',
+                                'html_content' => self::renderErrorLogSection(),
                             ],
                             [
                                 'type' => 'html',
@@ -781,10 +887,15 @@ final class SettingsForm
                                 'name' => 'COMFINO_DEBUG_LOG',
                                 'required' => false,
                                 'readonly' => true,
-                                'html_content' =>
-                                    '<textarea rows="40" cols="60" readonly="readonly">' .
-                                    DebugLogger::getLoggerInstance()->getDebugLog(self::DEBUG_LOG_NUM_LINES) .
-                                    '</textarea>',
+                                'html_content' => self::renderDebugLogSection(),
+                            ],
+                            [
+                                'type' => 'html',
+                                'label' => Main::translate('Installation logs'),
+                                'name' => 'COMFINO_INSTALLATION_LOGS',
+                                'required' => false,
+                                'readonly' => true,
+                                'html_content' => self::renderInstallationLogsSection(),
                             ],
                         ],
                     ]
@@ -882,21 +993,55 @@ final class SettingsForm
     }
 
     /**
-     * Renders the configuration repair section with validation status and repair button.
+     * Renders the module reset section with reset button.
      */
-    private static function renderConfigurationRepairSection(): string
+    private static function renderModuleResetSection(): string
     {
-        $validationKey = ApiService::getValidationKey();
-        $crSignature = ApiService::getCrSignature($validationKey);
-
         return TemplateManager::renderModuleView(
-            'configuration-repair',
+            'module-reset',
+            'admin/_configure',
+            []
+        );
+    }
+
+    /**
+     * Renders the error log section with textarea and clear button.
+     */
+    private static function renderErrorLogSection(): string
+    {
+        return TemplateManager::renderModuleView(
+            'error-log',
+            'admin/_configure',
+            ['error_log_content' => ErrorLogger::getLoggerInstance()->getErrorLog(self::ERROR_LOG_NUM_LINES)]
+        );
+    }
+
+    /**
+     * Renders the debug log section with textarea and clear button.
+     */
+    private static function renderDebugLogSection(): string
+    {
+        return TemplateManager::renderModuleView(
+            'debug-log',
+            'admin/_configure',
+            ['debug_log_content' => DebugLogger::getLoggerInstance()->getDebugLog(self::DEBUG_LOG_NUM_LINES)]
+        );
+    }
+
+    /**
+     * Renders the installation logs section (collapsed by default).
+     *
+     * @return string Rendered HTML content
+     */
+    private static function renderInstallationLogsSection(): string
+    {
+        return TemplateManager::renderModuleView(
+            'installation-logs',
             'admin/_configure',
             [
-                'validation' => ConfigManager::validateConfigurationIntegrity(),
-                'repair_url' => ApiService::getControllerUrl('configurationrepair', ['vkey' => $validationKey]),
-                'vkey' => $validationKey,
-                'cr_signature' => $crSignature,
+                'install_log_content' => Main::readInstallLog(),
+                'upgrade_log_content' => Main::readUpgradeLog(),
+                'uninstall_log_content' => Main::readUninstallLog(),
             ]
         );
     }

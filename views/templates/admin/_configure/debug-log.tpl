@@ -1,5 +1,4 @@
-<?php
-/**
+{**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
@@ -22,28 +21,12 @@
  * @author    PrestaShop SA and Contributors <contact@prestashop.com>
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
- */
-
-use Comfino\Configuration\ConfigManager;
-use Comfino\Order\ShopStatusManager;
-
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
-
-/**
- * @return bool
- */
-function upgrade_module_2_4_0(Comfino $module)
-{
-    if (!$module->checkEnvironment()) {
-        return false;
-    }
-
-    // Update code of widget initialization script.
-    ConfigManager::updateWidgetCode('bde49851ffc0fd8239eb5d086c8165d4');
-    // Update custom order statuses.
-    ShopStatusManager::updateCustomOrderStatuses();
-
-    return true;
-}
+ *}
+<textarea rows="40" cols="60" readonly="readonly">{$debug_log_content|escape:'html':'UTF-8'}</textarea>
+<div style="margin-top: 10px;">
+    <form method="post" style="display: inline;">
+        <button type="submit" name="submit_clear_debug_log" class="btn btn-warning" onclick="return confirm('{l s="Are you sure you want to clear the debug log?" mod="comfino" js=1}');">
+            {l s="Clear debug log" mod="comfino"}
+        </button>
+    </form>
+</div>

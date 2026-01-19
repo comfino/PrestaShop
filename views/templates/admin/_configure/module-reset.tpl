@@ -1,5 +1,4 @@
-<?php
-/**
+{**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
@@ -22,28 +21,22 @@
  * @author    PrestaShop SA and Contributors <contact@prestashop.com>
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
- */
-
-use Comfino\Configuration\ConfigManager;
-use Comfino\Order\ShopStatusManager;
-
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
-
-/**
- * @return bool
- */
-function upgrade_module_2_4_0(Comfino $module)
-{
-    if (!$module->checkEnvironment()) {
-        return false;
-    }
-
-    // Update code of widget initialization script.
-    ConfigManager::updateWidgetCode('bde49851ffc0fd8239eb5d086c8165d4');
-    // Update custom order statuses.
-    ShopStatusManager::updateCustomOrderStatuses();
-
-    return true;
-}
+ *}
+<div class="alert alert-info" role="alert">
+    <strong>{l s="Module reset" mod="comfino"}</strong><br>
+    {l s="This operation will" mod="comfino"}:
+    <ul style="margin-top: 10px;">
+        <li>{l s="Add missing configuration options (preserves existing values)." mod="comfino"}</li>
+        <li>{l s="Re-register all PrestaShop hooks." mod="comfino"}</li>
+        <li>{l s="Recreate custom order statuses." mod="comfino"}</li>
+        <li>{l s="Clear module cache." mod="comfino"}</li>
+    </ul>
+    <p style="margin-top: 10px;"><em>{l s="Note: This operation does NOT delete any existing configuration or data." mod="comfino"}</em></p>
+</div>
+<div>
+    <form method="post" id="comfino-reset-form">
+        <button type="submit" name="submit_module_reset" class="btn btn-primary" onclick="return confirm('{l s="Are you sure you want to reset the module? This will re-register hooks and recreate order statuses." mod="comfino" js=1}');">
+            {l s="Reset module" mod="comfino"}
+        </button>
+    </form>
+</div>

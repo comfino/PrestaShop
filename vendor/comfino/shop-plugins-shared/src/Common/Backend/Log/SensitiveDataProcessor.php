@@ -15,14 +15,11 @@ final class SensitiveDataProcessor implements ProcessorInterface
         '/bearer/i',
         '/token/i',
         '/secret/i',
-        '/signature/i',
 
         '/password/i',
         '/passwd/i',
         '/pwd/i',
 
-        '/cr[_-]?signature/i',
-        '/x-cr-signature/i',
         '/card[_-]?number/i',
         '/cvv/i',
         '/cvc/i',
@@ -37,10 +34,12 @@ final class SensitiveDataProcessor implements ProcessorInterface
 
     private const SENSITIVE_HEADERS = [
         'authorization',
-        'cr-signature',
-        'x-cr-signature',
         'api-key',
         'x-api-key',
+    ];
+
+    private const UNMASKED_KEY_PATTERNS = [
+        '/cr-signature/i',
     ];
 
     /**
@@ -57,9 +56,10 @@ final class SensitiveDataProcessor implements ProcessorInterface
 
     /**
      * @param array $data
+     * @param string|int|null $parentKey
      * @return array
      */
-    private function sanitize(array $data): array
+    private function sanitize(array $data, $parentKey = null): array
     {
         $sanitized = [];
 
@@ -70,8 +70,18 @@ final class SensitiveDataProcessor implements ProcessorInterface
                 continue;
             }
 
+            if (is_string($key) || is_string($parentKey)) {
+                foreach (self::UNMASKED_KEY_PATTERNS as $keyPattern) {
+                    if ((is_string($key) && preg_match($keyPattern, $key)) || (is_string($parentKey) && preg_match($keyPattern, $parentKey))) {
+                        $sanitized[$key] = $value;
+
+                        continue 2;
+                    }
+                }
+            }
+
             if (is_array($value)) {
-                $sanitized[$key] = $this->sanitize($value);
+                $sanitized[$key] = $this->sanitize($value, $key);
             } elseif (is_string($value)) {
                 $sanitized[$key] = $this->sanitizeString($value);
             } else {

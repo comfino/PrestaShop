@@ -52,6 +52,7 @@ final class ConfigManager
             'COMFINO_API_KEY' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_PAYMENT_TEXT' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_MINIMAL_CART_AMOUNT' => ConfigurationManager::OPT_VALUE_TYPE_FLOAT,
+            'COMFINO_USE_ORDER_REFERENCE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
         ],
         'sale_settings' => [
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
@@ -103,6 +104,7 @@ final class ConfigManager
         // Payment settings
         'COMFINO_PAYMENT_TEXT',
         'COMFINO_MINIMAL_CART_AMOUNT',
+        'COMFINO_USE_ORDER_REFERENCE',
         // Sale settings
         'COMFINO_PRODUCT_CATEGORY_FILTERS',
         // Widget settings
@@ -416,7 +418,7 @@ final class ConfigManager
             }
         } else {
             foreach (self::CONFIG_OPTIONS as $options) {
-                foreach ($options as $optionName) {
+                foreach (array_keys($options) as $optionName) {
                     $result &= \Configuration::deleteByName($optionName);
                 }
             }
@@ -443,7 +445,7 @@ final class ConfigManager
             ErrorLogger::sendError(
                 $e,
                 'Widget code update',
-                $e->getCode(),
+                (string) $e->getCode(),
                 $e->getMessage(),
                 null,
                 null,
@@ -543,6 +545,7 @@ final class ConfigManager
         return [
             'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
+            'COMFINO_USE_ORDER_REFERENCE' => false,
             'COMFINO_IS_SANDBOX' => false,
             'COMFINO_DEBUG' => false,
             'COMFINO_SERVICE_MODE' => false,
@@ -580,14 +583,18 @@ final class ConfigManager
         ];
     }
 
-    public static function initConfigurationValues(): void
+    public static function initConfigurationValues(): bool
     {
+        $result = true;
+
         foreach (self::getDefaultConfigurationValues() as $optName => $optValue) {
             // Avoid overwriting of existing configuration options if plugin is reinstalled/upgraded.
             if (!\Configuration::hasKey($optName)) {
-                \Configuration::updateValue($optName, $optValue);
+                $result &= \Configuration::updateValue($optName, $optValue);
             }
         }
+
+        return $result;
     }
 
     /**
@@ -604,9 +611,7 @@ final class ConfigManager
      */
     public static function repairMissingConfigurationOptions(): array
     {
-        ErrorLogger::init();
-
-        $stats = [
+        $resultStats = [
             'checked' => 0,
             'missing' => 0,
             'repaired' => 0,
@@ -618,27 +623,27 @@ final class ConfigManager
         $defaultValues = self::getDefaultConfigurationValues();
 
         foreach ($defaultValues as $optName => $optValue) {
-            $stats['checked']++;
+            $resultStats['checked']++;
 
             if (!\Configuration::hasKey($optName) && \Configuration::get($optName) !== $optValue) {
-                $stats['missing']++;
+                $resultStats['missing']++;
 
                 try {
                     if (\Configuration::updateValue($optName, $optValue)) {
-                        $stats['repaired']++;
-                        $stats['options_repaired'][] = $optName;
+                        $resultStats['repaired']++;
+                        $resultStats['options_repaired'][] = $optName;
                     } else {
-                        $stats['failed']++;
-                        $stats['options_failed'][] = $optName;
+                        $resultStats['failed']++;
+                        $resultStats['options_failed'][] = $optName;
                     }
                 } catch (\Throwable $e) {
-                    $stats['failed']++;
-                    $stats['options_failed'][] = $optName;
+                    $resultStats['failed']++;
+                    $resultStats['options_failed'][] = $optName;
                 }
             }
         }
 
-        return $stats;
+        return $resultStats;
     }
 
     /**

@@ -39,16 +39,35 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
+/**
+ * Manages order and cart data conversion between PrestaShop entities and Comfino API structures.
+ *
+ * This class provides static methods for:
+ * - Converting PrestaShop carts and orders to Comfino cart objects.
+ * - Extracting customer information from PrestaShop entities.
+ * - Handling product categories, images, and tax calculations.
+ * - Currency validation for payment processing.
+ */
 final class OrderManager
 {
     /**
-     * @param \Cart $cart PrestaShop cart entity.
-     * @param int $priceModifier
-     * @param bool $loadProductCategories Whether to load product category names into cart items.
+     * Converts a PrestaShop cart entity to Comfino cart structure.
      *
-     * @return Cart Comfino cart structure.
+     * This method extracts all cart data including products, prices, taxes, and delivery costs,
+     * then transforms it into the format required by Comfino API. It handles:
+     * - Total value calculation with optional price modifier.
+     * - Product details including categories, images, and EAN codes.
+     * - Tax calculations for both products and delivery.
+     * - Net and gross price separation.
      *
-     * @throws \Exception|\InvalidArgumentException
+     * @param \Cart $cart PrestaShop cart entity to convert
+     * @param int $priceModifier Optional price modifier in cents (e.g., custom commission)
+     * @param bool $loadProductCategories Whether to load product category names into cart items
+     *
+     * @return Cart Comfino cart structure with all product and delivery information
+     *
+     * @throws \InvalidArgumentException If total value is negative or exceeds PHP_INT_MAX
+     * @throws \Exception If product or carrier loading fails
      */
     public static function getShopCart(\Cart $cart, int $priceModifier, bool $loadProductCategories = false): Cart
     {
@@ -156,11 +175,17 @@ final class OrderManager
     }
 
     /**
-     * @param \Order $order PrestaShop order entity.
-     * @param int $priceModifier
-     * @param bool $loadProductCategories Whether to load product category names into cart items.
+     * Converts a PrestaShop order entity to Comfino cart structure.
      *
-     * @return Cart Comfino cart structure.
+     * Similar to getShopCart() but operates on an already created order instead of a cart.
+     * This is useful for order status updates and processing existing orders.
+     * Uses order totals directly instead of recalculating from cart.
+     *
+     * @param \Order $order PrestaShop order entity to convert
+     * @param int $priceModifier Optional price modifier in cents (e.g., custom commission)
+     * @param bool $loadProductCategories Whether to load product category names into cart items
+     *
+     * @return Cart Comfino cart structure with order products and delivery information
      */
     public static function getShopCartFromOrder(\Order $order, int $priceModifier, bool $loadProductCategories = false): Cart
     {
@@ -227,10 +252,16 @@ final class OrderManager
     }
 
     /**
-     * @param \Product $product PrestaShop product entity.
-     * @param bool $loadProductCategories Whether to load product category names into cart items.
+     * Converts a single PrestaShop product to Comfino cart structure.
      *
-     * @return Cart Comfino cart structure.
+     * Creates a minimal cart containing only one product with quantity 1.
+     * This is primarily used for widget initialization on product pages
+     * where the cart context is not yet available.
+     *
+     * @param \Product $product PrestaShop product entity to convert
+     * @param bool $loadProductCategories Whether to load product category names into cart items
+     *
+     * @return Cart Comfino cart structure with single product and no delivery costs
      */
     public static function getShopCartFromProduct(\Product $product, bool $loadProductCategories = false): Cart
     {
@@ -268,11 +299,21 @@ final class OrderManager
     }
 
     /**
-     * @param \Cart $cart PrestaShop cart entity.
-     * @param \Customer $customer PrestaShop customer entity.
-     * @param \Context $context PrestaShop context.
+     * Extracts customer information from PrestaShop cart and customer entities.
      *
-     * @return Customer Comfino customer structure.
+     * Collects customer data from multiple sources (billing address, delivery address, customer record)
+     * and converts it to Comfino Customer structure. Handles:
+     * - Customer name extraction (with fallback for missing last names).
+     * - Phone number prioritization (delivery address preferred).
+     * - Address parsing (street name and building number separation).
+     * - Tax ID validation for Polish NIP numbers.
+     * - Guest vs. registered customer detection.
+     *
+     * @param \Cart $cart PrestaShop cart entity containing address information
+     * @param \Customer $customer PrestaShop customer entity
+     * @param \Context $context PrestaShop context for country code resolution
+     *
+     * @return Customer Comfino customer structure with complete customer and address data
      */
     public static function getShopCustomerFromCart(\Cart $cart, \Customer $customer, \Context $context): Customer
     {
@@ -357,6 +398,17 @@ final class OrderManager
         );
     }
 
+    /**
+     * Validates that the cart currency is supported by the Comfino payment module.
+     *
+     * Checks if the cart's currency is enabled for the Comfino payment method
+     * by comparing the cart currency against the module's configured currencies.
+     *
+     * @param \Comfino $module Comfino payment module instance
+     * @param \Cart $cart PrestaShop cart entity to validate
+     *
+     * @return bool True if cart currency is supported, false otherwise
+     */
     public static function checkCartCurrency(\Comfino $module, \Cart $cart): bool
     {
         $currencyOrder = new \Currency($cart->id_currency);
@@ -373,6 +425,16 @@ final class OrderManager
         return false;
     }
 
+    /**
+     * Retrieves the full URL of the product cover image.
+     *
+     * Extracts the cover image URL using PrestaShop's Link class.
+     * Ensures the URL uses HTTPS protocol.
+     *
+     * @param array $product Product data array containing 'id_product' and 'link_rewrite'
+     *
+     * @return string Full HTTPS URL to product cover image, or empty string if image not found
+     */
     private static function getProductImageUrl(array $product): string
     {
         $linkRewrite = is_array($product['link_rewrite']) ? end($product['link_rewrite']) : $product['link_rewrite'];
@@ -393,7 +455,14 @@ final class OrderManager
     }
 
     /**
-     * @return int[]
+     * Retrieves active category IDs for a product.
+     *
+     * Filters product categories to include only active ones.
+     * Used for category-based product filtering in Comfino API.
+     *
+     * @param \Product $product PrestaShop product entity
+     *
+     * @return int[] Array of active category IDs
      */
     private static function getProductCategoryIds(\Product $product): array
     {
@@ -411,7 +480,14 @@ final class OrderManager
     }
 
     /**
-     * @return string[]
+     * Retrieves category names for a product.
+     *
+     * Returns human-readable category names filtered by product's active categories.
+     * Category names are retrieved from ConfigManager's cached category tree.
+     *
+     * @param \Product $product PrestaShop product entity
+     *
+     * @return string[] Array of category names indexed by category ID
      */
     private static function getProductCategoryNames(\Product $product): array
     {
@@ -422,6 +498,16 @@ final class OrderManager
         return array_intersect_key($categories, array_flip(self::getProductCategoryIds($product)));
     }
 
+    /**
+     * Extracts and normalizes customer first and last names from address.
+     *
+     * Handles edge cases where last name is missing by splitting the first name.
+     * This ensures both first and last names are always available for API submission.
+     *
+     * @param \Address $address PrestaShop address entity
+     *
+     * @return array Array with two elements: [firstName, lastName]
+     */
     private static function prepareCustomerNames(\Address $address): array
     {
         $firstName = trim($address->firstname ?? '');

@@ -25,7 +25,6 @@
  */
 
 use Comfino\Configuration\ConfigManager;
-use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\Main;
 use Comfino\Order\ShopStatusManager;
@@ -38,31 +37,25 @@ if (!defined('_PS_VERSION_')) {
 /**
  * @return bool
  */
-function upgrade_module_4_2_6(Comfino $module)
+function upgrade_module_4_2_7(Comfino $module)
 {
     if (!$module->checkEnvironment()) {
         return false;
     }
 
-    // Update default status map configuration.
-    ConfigManager::updateConfiguration(
-        ['COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP)],
-        false
-    );
+    // Initialize new configuration option for order reference usage.
+    ConfigManager::updateConfiguration(['COMFINO_USE_ORDER_REFERENCE' => false], false);
 
-    // Initialize not initialized options with default values - cumulative fix for configuration from older versions.
-    ConfigManager::repairMissingConfigurationOptions();
-
-    $module->registerHook('displayBackOfficeHeader');
+    // Reinitialize and repair custom order statuses.
+    ShopStatusManager::reinitializeCustomOrderStatuses($module);
 
     // Clear configuration and frontend cache.
     CacheManager::getCachePool()->clear();
 
     // Clear plugin logs.
     ErrorLogger::clearLogs();
-    DebugLogger::clearLogs();
 
-    Main::updateUpgradeLog('Upgrade script for 4.2.6 executed.');
+    Main::updateUpgradeLog('Upgrade script for 4.2.7 executed.');
 
     return true;
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Comfino\Common\Backend\RestEndpoint;
 
+use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Common\Backend\RestEndpoint;
 use Comfino\Common\Exception\InvalidEndpoint;
 use Comfino\Common\Exception\InvalidRequest;
@@ -76,7 +77,11 @@ class StatusNotification extends RestEndpoint
         try {
             $this->statusManager->setOrderStatus($requestPayload['externalId'], $requestPayload['status']);
         } catch (\Throwable $e) {
-            throw new InvalidRequest($e->getMessage());
+            if ($e instanceof HttpErrorExceptionInterface) {
+                throw $e;
+            }
+
+            throw new InvalidRequest($e->getMessage(), $e->getCode(), $e);
         }
 
         return null;

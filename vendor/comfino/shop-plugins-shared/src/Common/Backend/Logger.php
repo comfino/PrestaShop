@@ -35,7 +35,7 @@ abstract class Logger
 
     /**
      * @param string $logFilePath
-     * @return array
+     * @return string[]
      */
     protected function findAllLogFiles($logFilePath): array
     {

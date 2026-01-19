@@ -29,12 +29,14 @@ namespace Comfino;
 use Comfino;
 use Comfino\Api\ApiClient;
 use Comfino\Api\ApiService;
+use Comfino\Common\Backend\FileUtils;
 use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
 use Comfino\Order\ShopStatusManager;
 use Comfino\PluginShared\CacheManager;
+use Comfino\View\FrontendManager;
 use Comfino\View\SettingsForm;
 use Comfino\View\TemplateManager;
 
@@ -44,6 +46,25 @@ if (!defined('_PS_VERSION_')) {
 
 final class Main
 {
+    private const INSTALL_LOG_PATH = _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/install.log';
+    private const UNINSTALL_LOG_PATH = _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/uninstall.log';
+    private const UPGRADE_LOG_PATH = _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/upgrade.log';
+
+    private const HOOKS = [
+        'paymentOptions',
+        'paymentReturn',
+        'displayBackofficeComfinoForm',
+        'actionOrderStatusPostUpdate',
+        'header',
+        'actionAdminControllerSetMedia',
+        'displayBackOfficeHeader',
+    ];
+
+    private const PS16_HOOKS = [
+        'payment',
+        'displayPaymentEU',
+    ];
+
     /** @var bool */
     private static $initialized = false;
 
@@ -70,34 +91,150 @@ final class Main
     {
         ErrorLogger::init();
 
-        ConfigManager::initConfigurationValues();
-        ShopStatusManager::addCustomOrderStatuses();
+        $resultStats = [
+            'statuses_created' => 0,
+            'statuses_updated' => 0,
+            'statuses_create_failed' => 0,
+            'statuses_update_failed' => 0,
+            'hooks_registered' => 0,
+            'hooks_failed' => 0,
+            'operations' => [],
+        ];
 
-        if (!COMFINO_PS_17) {
-            // Register PrestaShop 1.6 hooks.
-            $module->registerHook('payment');
-            $module->registerHook('displayPaymentEU');
+        if (ConfigManager::initConfigurationValues()) {
+            $resultStats['operations'][] = ['name' => 'init_configuration_options', 'success' => true];
+        } else {
+            $resultStats['operations'][] = ['name' => 'init_configuration_options', 'success' => false];
         }
 
-        $module->registerHook('paymentOptions');
-        $module->registerHook('paymentReturn');
-        $module->registerHook('displayBackofficeComfinoForm');
-        $module->registerHook('actionOrderStatusPostUpdate');
-        $module->registerHook('header');
-        $module->registerHook('actionAdminControllerSetMedia');
-        $module->registerHook('displayBackOfficeHeader');
+        $customStatusStats = ShopStatusManager::addCustomOrderStatuses($module);
+        $resultStats = array_merge($resultStats, array_diff_key($customStatusStats, ['operations' => []]));
+        $resultStats['operations'] = array_merge($resultStats['operations'], $customStatusStats['operations']);
 
-        return true;
+        $hookStats = self::registerHooks($module);
+        $resultStats = array_merge($resultStats, array_diff_key($hookStats, ['operations' => []]));
+        $resultStats['operations'] = array_merge($resultStats['operations'], $hookStats['operations']);
+
+        self::createInstallLog(print_r($resultStats, true));
+
+        return $resultStats['statuses_create_failed'] === 0
+            && $resultStats['statuses_update_failed'] === 0
+            && $resultStats['hooks_failed'] === 0;
     }
 
-    public static function uninstall(): bool
+    public static function uninstall(\Comfino $module): bool
     {
-        ConfigManager::deleteConfigurationValues();
-
         ErrorLogger::init();
-        ApiClient::getInstance()->notifyPluginRemoval();
 
-        return true;
+        $resultStats = [
+            'statuses_removed' => 0,
+            'statuses_updated' => 0,
+            'statuses_remove_failed' => 0,
+            'statuses_update_failed' => 0,
+            'hooks_unregistered' => 0,
+            'hooks_failed' => 0,
+            'operations' => [],
+        ];
+
+        $resultStats['operations'][] = [
+            'name' => 'hooks_registration',
+            'success' => $resultStats['hooks_failed'] === 0,
+            'registered' => $resultStats['hooks_registered'],
+            'failed' => $resultStats['hooks_failed'],
+        ];
+
+        if (ConfigManager::deleteConfigurationValues()) {
+            $resultStats['operations'][] = ['name' => 'configuration_options_delete', 'success' => true];
+        } else {
+            $resultStats['operations'][] = ['name' => 'configuration_options_delete', 'success' => false];
+        }
+
+        $customStatusStats = ShopStatusManager::removeCustomOrderStatuses();
+        $resultStats = array_merge($resultStats, array_diff_key($customStatusStats, ['operations' => []]));
+        $resultStats['operations'] = array_merge($resultStats['operations'], $customStatusStats['operations']);
+
+        $hookStats = self::unregisterHooks($module);
+        $resultStats = array_merge($resultStats, array_diff_key($hookStats, ['operations' => []]));
+        $resultStats['operations'] = array_merge($resultStats['operations'], $hookStats['operations']);
+
+        if (ApiClient::getInstance()->notifyPluginRemoval()) {
+            $resultStats['operations'][] = ['name' => 'uninstall_notification_sent' , 'success' => true];
+        } else {
+            $resultStats['operations'][] = ['name' => 'uninstall_notification_sent' , 'success' => false];
+        }
+
+        self::createUninstallLog(print_r($resultStats, true));
+
+        return $resultStats['statuses_remove_failed'] === 0
+            && $resultStats['statuses_update_failed'] === 0
+            && $resultStats['hooks_failed'] === 0;
+    }
+
+    /**
+     * Resets module to initial state without uninstalling:
+     * - Adds missing configuration options.
+     * - Re-registers all PrestaShop hooks.
+     * - Recreates custom order statuses.
+     * - Clears configuration and frontend cache.
+     *
+     * @return array Reset operation statistics
+     */
+    public static function reset(\Comfino $module): array
+    {
+        ErrorLogger::init();
+
+        $resultStats = [
+            'config_repaired' => 0,
+            'config_failed' => 0,
+            'hooks_registered' => 0,
+            'hooks_failed' => 0,
+            'statuses_created' => 0,
+            'statuses_updated' => 0,
+            'statuses_create_failed' => 0,
+            'statuses_update_failed' => 0,
+            'operations' => [],
+        ];
+
+        // 1. Repair missing configuration options.
+        try {
+            $repairStats = ConfigManager::repairMissingConfigurationOptions();
+
+            $resultStats['config_repaired'] = $repairStats['repaired'];
+            $resultStats['config_failed'] = $repairStats['failed'];
+            $resultStats['operations'][] = [
+                'name' => 'configuration_repair',
+                'success' => $repairStats['failed'] === 0,
+                'details' => $repairStats,
+            ];
+        } catch (\Exception $e) {
+            $resultStats['operations'][] = [
+                'name' => 'configuration_repair',
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        // 2. Re-register all PrestaShop hooks.
+        $hookStats = self::registerHooks($module);
+        $resultStats = array_merge($resultStats, array_diff_key($hookStats, ['operations' => []]));
+        $resultStats['operations'] = array_merge($resultStats['operations'], $hookStats['operations']);
+
+        $resultStats['operations'][] = [
+            'name' => 'hooks_registration',
+            'success' => $resultStats['hooks_failed'] === 0,
+            'registered' => $resultStats['hooks_registered'],
+            'failed' => $resultStats['hooks_failed'],
+        ];
+
+        // 3. Reinitialize, repair and recreate custom order statuses.
+        $reinitStats = ShopStatusManager::reinitializeCustomOrderStatuses($module);
+        $resultStats = array_merge($resultStats, array_diff_key($reinitStats, ['operations' => []]));
+        $resultStats['operations'] = array_merge($resultStats['operations'], $reinitStats['operations']);
+
+        // 4. Clear configuration and frontend cache.
+        CacheManager::getCachePool()->clear();
+
+        return $resultStats;
     }
 
     /**
@@ -187,16 +324,7 @@ final class Main
             $total = round($cart->getOrderTotal(), 2);
             $totalFormatted = $tools->formatPrice($total, $cart->id_currency);
         } catch (\Exception $e) {
-            ErrorLogger::sendError(
-                $e,
-                'Paywall rendering error',
-                $e->getCode(),
-                $e->getMessage(),
-                null,
-                null,
-                null,
-                $e->getTraceAsString()
-            );
+            FrontendManager::processError('Paywall rendering error', $e);
 
             return COMFINO_PS_17 ? [] : '';
         }
@@ -353,5 +481,135 @@ final class Main
         } else {
             \Context::getContext()->controller->addCSS($styleUrl);
         }
+    }
+
+    public static function updateUpgradeLog(string $logContents): void
+    {
+        if (FileUtils::isWritable(dirname(self::UPGRADE_LOG_PATH))) {
+            FileUtils::append(date('Y-m-d H:i:s') .  ': ' . self::UPGRADE_LOG_PATH, "$logContents\n");
+        }
+    }
+
+    public static function readUpgradeLog(): string
+    {
+        if (FileUtils::isReadable(self::UPGRADE_LOG_PATH)) {
+            return FileUtils::read(self::UPGRADE_LOG_PATH);
+        }
+
+        return '';
+    }
+
+    public static function readInstallLog(): string
+    {
+        if (FileUtils::isReadable(self::INSTALL_LOG_PATH)) {
+            return FileUtils::read(self::INSTALL_LOG_PATH);
+        }
+
+        return '';
+    }
+
+    public static function readUninstallLog(): string
+    {
+        if (FileUtils::isReadable(self::UNINSTALL_LOG_PATH)) {
+            return FileUtils::read(self::UNINSTALL_LOG_PATH);
+        }
+
+        return '';
+    }
+
+    private static function createInstallLog(string $logContents): void
+    {
+        if (FileUtils::isWritable(dirname(self::INSTALL_LOG_PATH))) {
+            FileUtils::write(self::INSTALL_LOG_PATH, date('Y-m-d H:i:s') . "\n$logContents");
+        }
+    }
+
+    private static function createUninstallLog(string $logContents): void
+    {
+        if (FileUtils::isWritable(dirname(self::UNINSTALL_LOG_PATH))) {
+            FileUtils::write(self::UNINSTALL_LOG_PATH, date('Y-m-d H:i:s') . "\n$logContents");
+        }
+    }
+
+    private static function registerHooks(\Comfino $module): array
+    {
+        $hooks = self::HOOKS;
+
+        // Add PrestaShop 1.6 specific hooks.
+        if (!COMFINO_PS_17) {
+            $hooks = array_merge($hooks, self::PS16_HOOKS);
+        }
+
+        $resultStats = [
+            'hooks_registered' => 0,
+            'hooks_failed' => 0,
+            'operations' => [],
+        ];
+
+        foreach ($hooks as $hookName) {
+            try {
+                if ($module->registerHook($hookName)) {
+                    $resultStats['hooks_registered']++;
+                    $resultStats['operations'][] = [
+                        'name' => 'hook_registration',
+                        'success' => true,
+                        'hook' => $hookName,
+                    ];
+                } else {
+                    $resultStats['hooks_failed']++;
+                    $resultStats['operations'][] = [
+                        'name' => 'hook_registration',
+                        'success' => false,
+                        'hook' => $hookName,
+                    ];
+                }
+            } catch (\Exception $e) {
+                $resultStats['hooks_failed']++;
+                $resultStats['operations'][] = [
+                    'name' => 'hook_registration',
+                    'success' => false,
+                    'hook' => $hookName,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return $resultStats;
+    }
+
+    private static function unregisterHooks(\Comfino $module): array
+    {
+        $hooks = self::HOOKS;
+
+        // Add PrestaShop 1.6 specific hooks.
+        if (!COMFINO_PS_17) {
+            $hooks = array_merge($hooks, self::PS16_HOOKS);
+        }
+
+        $resultStats = [
+            'hooks_unregistered' => 0,
+            'hooks_failed' => 0,
+            'operations' => [],
+        ];
+
+        foreach ($hooks as $hookName) {
+            try {
+                if ($module->unregisterHook($hookName)) {
+                    ++$resultStats['hooks_unregistered'];
+                } else {
+                    ++$resultStats['hooks_failed'];
+                }
+            } catch (\Exception $e) {
+                ++$resultStats['hooks_failed'];
+                $resultStats['operations'][] = [
+                    'name' => 'hook_unregistration',
+                    'success' => false,
+                    'hook' => $hookName,
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return $resultStats;
     }
 }

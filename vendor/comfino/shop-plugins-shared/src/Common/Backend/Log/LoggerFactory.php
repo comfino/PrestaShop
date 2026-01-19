@@ -51,6 +51,7 @@ final class LoggerFactory
      * @param string $logFilePath
      * @param bool $enableSanitization
      * @return Logger
+     * @throws \Exception
      */
     public static function createErrorLogger(string $logFilePath, bool $enableSanitization = true): Logger
     {

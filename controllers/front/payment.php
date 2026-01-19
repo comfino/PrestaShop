@@ -28,6 +28,7 @@ use Comfino\Api\ApiClient;
 use Comfino\Api\ApiService;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\Common\Backend\Factory\OrderFactory;
+use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
@@ -36,6 +37,7 @@ use Comfino\Main;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Order;
 use Comfino\Shop\Order\OrderInterface;
+use Comfino\View\FrontendManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -131,7 +133,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $psOrder = new \Order($this->module->currentOrder);
 
         try {
-            if (\ValidateCore::isLoadedObject($psOrder)) {
+            if (\Validate::isLoadedObject($psOrder)) {
                 $shopCart = OrderManager::getShopCartFromOrder($psOrder, $priceModifier, true);
             } else {
                 $shopCart = OrderManager::getShopCart($cart, $priceModifier, true);
@@ -139,26 +141,13 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         } catch (\Exception $e) {
             $this->errors = [$this->module->l('There was an error creating your cart. Please try again.')];
 
-            DebugLogger::logEvent(
-                '[PAYMENT]',
+            FrontendManager::processError(
                 'Shop cart creation error',
-                [
-                    'exception' => get_class($e),
-                    'error_message' => $e->getMessage(),
-                    'error_code' => $e->getCode(),
-                    'cart_id' => $cart->id,
-                ]
-            );
-
-            ErrorLogger::sendError(
                 $e,
-                'Shop cart creation error',
-                (string) $e->getCode(),
-                $e->getMessage(),
                 null,
                 null,
-                null,
-                $e->getTraceAsString()
+                ['cart_id' => $cart->id],
+                '[PAYMENT]'
             );
 
             if (COMFINO_PS_17) {
@@ -226,7 +215,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         // Validation passed - create the PrestaShop order (this clears the cart).
         $this->module->validateOrder(
             (int) $cart->id,
-            (int) Configuration::get('COMFINO_CREATED'),
+            (int) \Configuration::get('COMFINO_CREATED'),
             (float) ($shopCart->getTotalValue() / 100),
             $this->module->displayName,
             null,
@@ -236,7 +225,27 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $customer->secure_key
         );
 
-        $orderId = (string) $this->module->currentOrder;
+        // Get order ID or reference based on configuration.
+        if ($useOrderReference = ConfigManager::getConfigurationValue('COMFINO_USE_ORDER_REFERENCE', false)) {
+            if (!\Validate::isLoadedObject($psOrder)) {
+                $psOrder = new \Order((int) $this->module->currentOrder);
+            }
+
+            $orderId = !empty($psOrder->reference) ? $psOrder->reference : (string) $this->module->currentOrder;
+        } else {
+            $orderId = (string) $this->module->currentOrder;
+        }
+
+        DebugLogger::logEvent(
+            '[PAYMENT]',
+            'Order identifier for Comfino API',
+            [
+                'use_reference' => $useOrderReference,
+                'order_id' => $orderId,
+                'reference' => $psOrder->reference ?? 'not_set',
+            ]
+        );
+
         $returnUrl = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?' . http_build_query([
             'controller' => 'order-confirmation',
             'id_cart' => $cart->id,

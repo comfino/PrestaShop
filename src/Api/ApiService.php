@@ -29,7 +29,6 @@ namespace Comfino\Api;
 use Comfino\Common\Backend\Factory\ApiServiceFactory;
 use Comfino\Common\Backend\RestEndpoint\CacheInvalidate;
 use Comfino\Common\Backend\RestEndpoint\Configuration;
-use Comfino\Common\Backend\RestEndpoint\ConfigurationRepair;
 use Comfino\Common\Backend\RestEndpoint\StatusNotification;
 use Comfino\Common\Backend\RestEndpointManager;
 use Comfino\Common\Shop\Order\StatusManager;
@@ -83,15 +82,6 @@ final class ApiService
                 'cacheInvalidate',
                 self::getControllerUrl('cacheinvalidate', [], false),
                 CacheManager::getCachePool()
-            )
-        );
-
-        self::getEndpointManager()->registerEndpoint(
-            new ConfigurationRepair(
-                'configurationRepair',
-                self::getControllerUrl('configurationrepair', [], false),
-                [ConfigManager::class, 'validateConfigurationIntegrity'],
-                [ConfigManager::class, 'repairMissingConfigurationOptions']
             )
         );
     }

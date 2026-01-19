@@ -100,7 +100,6 @@ class Client extends \Comfino\Extended\Api\Client
      * @param int $transferTimeout
      * @param int $connectionMaxNumAttempts
      * @param array $options
-     * @return void
      */
     public function resetClient($connectionTimeout, $transferTimeout, $connectionMaxNumAttempts, $options = []): void
     {

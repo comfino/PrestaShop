@@ -1,5 +1,4 @@
-<?php
-/**
+{**
  * Copyright since 2007 PrestaShop SA and Contributors
  * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
  *
@@ -22,23 +21,12 @@
  * @author    PrestaShop SA and Contributors <contact@prestashop.com>
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
- */
-
-use Comfino\Api\ApiService;
-use Comfino\ErrorLogger;
-
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
-
-class ComfinoConfigurationRepairModuleFrontController extends ModuleFrontController
-{
-    public function postProcess(): void
-    {
-        ErrorLogger::init();
-
-        parent::postProcess();
-
-        exit(ApiService::processRequest('configurationRepair'));
-    }
-}
+ *}
+<textarea rows="20" cols="60" readonly="readonly">{$error_log_content|escape:'html':'UTF-8'}</textarea>
+<div style="margin-top: 10px;">
+    <form method="post" style="display: inline;">
+        <button type="submit" name="submit_clear_error_log" class="btn btn-warning" onclick="return confirm('{l s="Are you sure you want to clear the error log?" mod="comfino" js=1}');">
+            {l s="Clear error log" mod="comfino"}
+        </button>
+    </form>
+</div>

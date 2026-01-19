@@ -49,9 +49,11 @@ function upgrade_module_3_0_0(Comfino $module)
 
         $comfinoOverriddenControllerPath = _PS_OVERRIDE_DIR_ . 'controllers/admin/AdminOrdersController.php';
 
-        if (file_exists($comfinoOverriddenControllerPath) && strpos(Tools::file_get_contents($comfinoOverriddenControllerPath), 'comfino') !== false) {
-            unlink($comfinoOverriddenControllerPath);
-            unlink(_PS_CACHE_DIR_ . 'class_index.php');
+        if (file_exists($comfinoOverriddenControllerPath)
+            && strpos(Tools::file_get_contents($comfinoOverriddenControllerPath), COMFINO_MODULE_NAME) !== false
+        ) {
+           unlink($comfinoOverriddenControllerPath);
+           unlink(_PS_CACHE_DIR_ . 'class_index.php');
         }
     }
 
