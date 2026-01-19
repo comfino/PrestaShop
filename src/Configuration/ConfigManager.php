@@ -620,9 +620,7 @@ final class ConfigManager
             'options_failed' => [],
         ];
 
-        $defaultValues = self::getDefaultConfigurationValues();
-
-        foreach ($defaultValues as $optName => $optValue) {
+        foreach (self::getDefaultConfigurationValues() as $optName => $optValue) {
             $resultStats['checked']++;
 
             if (!\Configuration::hasKey($optName) && \Configuration::get($optName) !== $optValue) {
@@ -644,32 +642,6 @@ final class ConfigManager
         }
 
         return $resultStats;
-    }
-
-    /**
-     * Validates that all required configuration options exist.
-     *
-     * @return array Array with keys:
-     *               - 'valid': boolean indicating if all options exist
-     *               - 'missing_options': array of missing option names
-     *               - 'total_options': total number of expected options
-     */
-    public static function validateConfigurationIntegrity(): array
-    {
-        $defaultValues = self::getDefaultConfigurationValues();
-        $missingOptions = [];
-
-        foreach ($defaultValues as $optName => $optValue) {
-            if (!\Configuration::hasKey($optName) && \Configuration::get($optName) !== $optValue) {
-                $missingOptions[] = $optName;
-            }
-        }
-
-        return [
-            'valid' => empty($missingOptions),
-            'missing_options' => $missingOptions,
-            'total_options' => count($defaultValues),
-        ];
     }
 
     /**

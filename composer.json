@@ -68,6 +68,7 @@
     "require": {
         "php": ">=7.1",
         "ext-curl": "*",
+        "ext-ctype": "*",
         "ext-json": "*",
         "ext-zlib": "*",
         "comfino/shop-plugins-shared": "dev-master",
