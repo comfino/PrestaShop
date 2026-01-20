@@ -2,7 +2,7 @@
 
 - **PrestaShop**: 1.6.x, 1.7.x, 8.x, 9.x (minimalna wspierana wersja PrestaShop to 1.6.1.11)
 - **PHP**: 7.1 lub nowszy
-- **Rozszerzenia PHP**: curl, json, zlib
+- **Rozszerzenia PHP**: curl, json, zlib, ctype
 
 W przypadku starszych środowisk najnowsza wersja wtyczki zgodna z PHP 5.6 i PrestaShop 1.6.0.14+: [3.5.5](https://github.com/comfino/PrestaShop/releases/tag/3.5.5)  
 Może zostać pobrana stąd: [comfino.zip](https://github.com/comfino/PrestaShop/releases/download/3.5.5/comfino.zip)  
@@ -25,17 +25,18 @@ W tym polu należy wybrać plik z modułem, a następnie kliknąć `"Prześlij m
 ![Konfiguracja](images/pl/modules_ps_16.png "Konfiguracja")
 ![Konfiguracja](images/pl/modules_ps_16_panel.png "Konfiguracja")
 
-PrestaShop 1.7, PrestaShop 8
+PrestaShop 1.7, PrestaShop 8, PrestaShop 9
 -------
 
-Przejdź do zakładki `"Moduły -> Manager modułów"`, następnie kliknij przycisk `"Załaduj moduł"`. Z wyświetlonego pola do przesyłania modułów, należy wybrać odpowiedni plik z modułem. Wtyczka zainstaluje się automatycznie.
+Przejdź do zakładki `"Moduły -> Menedżer modułów"`, następnie kliknij przycisk `"Załaduj moduł"`. Z wyświetlonego pola do przesyłania modułów, należy wybrać odpowiedni plik z modułem. Wtyczka zainstaluje się automatycznie.
 
-![Konfiguracja](images/pl/modules_ps_17.png "Konfiguracja")
+![Konfiguracja](images/pl/modules_ps_9.png "Konfiguracja")
 
 ## KONFIGURACJA
 
 Parametry konfiguracyjne modułu są pogrupowane kategoriami odpowiadającymi zakładkom panelu konfiguracyjnego: `"USTAWIENIA PŁATNOŚCI"`, `"USTAWIENIA SPRZEDAŻY"`, `"USTAWIENIA WIDGETU"`, `"USTAWIENIA DEWELOPERSKIE"`.
-Ostatnia zakładka `"DIAGNOSTYKA WTYCZKI"` nie zawiera żadnych parametrów do ustawienia i pełni funkcję informacyjno-diagnostyczną. Zawiera między innymi lokalny dziennik błędów (log błędów).
+Ostatnia zakładka `"DIAGNOSTYKA WTYCZKI"` nie zawiera żadnych parametrów do ustawienia i pełni funkcję informacyjno-diagnostyczną.
+Zawiera między innymi informacje o zainstalowanej wtyczce, lokalny dziennik błędów (log błędów) oraz logi instalacji, aktualizacji i dezinstalacji.
 
 Przed użyciem płatności Comfino, moduł musi zostać skonfigurowany. Możesz to zrobić, klikając `"Konfiguruj"` w panelu informacyjnym modułu.
 
@@ -49,6 +50,7 @@ Pola parametrów konfiguracyjnych:
 * **Klucz API środowiska produkcyjnego** — unikalny klucz dostępowy umożliwiający komunikację modułu z API Comfino (otrzymasz go od przedstawiciela Comfino)
 * **Tekst płatności** — tekst wyświetlany na liście metod płatności (domyślnie `"(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)"`)
 * **Minimalna kwota w koszyku** — wartość koszyka, od której dostępna jest płatność Comfino (domyślnie: 30 zł)
+* **Użyj numeru zamówienia jako zewnętrznego ID** — Używaj numeru zamówienia widocznego dla klienta zamiast numerycznego ID zamówienia w komunikacji z API Comfino. Dotyczy tylko nowych zamówień.
 
 ![Konfiguracja](images/pl/configuration1.png "Konfiguracja")
 
@@ -67,8 +69,9 @@ Domyślnie płatności Comfino są dostępne bezwarunkowo dla wszystkich typów 
 **Ustawienia podstawowe**
 
 * **Widget włączony?** — przełącznik aktywacji/deaktywacji widgetu promocyjnego na stronie produktu
-* **Typ widgetu** — sposób prezentacji widgetu [`Kalkulator rat`, `Rozszerzony kalkulator - produkty`]
+* **Typ widgetu** — sposób prezentacji widgetu [`Widget standardowy`, `Widget klasyczny`]
 * **Typy ofert** — typy promowanych ofert finansowania [`Raty zero procent`, `Niskie raty`, `Zapłać później`, `Raty dla firm`, `Odroczone płatności dla firm`, `Leasing`]
+* **Pokaż loga dostawców usług finansowych** — przełącznik umożliwiający pokazanie loga każdego z dostępnych dostawców finansowych
 
 Dostępność typów ofert na liście jest uzależniona od indywidualnej umowy i może różnić się od tej opisanej w dokumentacji.
 
@@ -109,9 +112,44 @@ Przed uruchomieniem płatności na sklepie produkcyjnym, wyłącz tryb deweloper
 **DIAGNOSTYKA WTYCZKI**
 
 Zakładka zawiera informacje techniczne o wtyczce i środowisku (wersja wtyczki, wersja sklepu, wersja PHP i serwera www, itp.).\
-Zawiera też listę ostatnich błędów wraz z podglądem lokalnego dziennika błędów (log błędów) oraz listę z zapisanymi w trybie debug operacjami wewnętrznymi wtyczki (log trybu debugowania).
 
-![Konfiguracja](images/pl/configuration5.png "Konfiguracja")
+![Konfiguracja](images/pl/configuration5a.png "Konfiguracja")
+
+Zawiera też listę ostatnich błędów wraz z podglądem lokalnego dziennika błędów (log błędów) oraz listę z zapisanymi w trybie debug operacjami wewnętrznymi wtyczki (log trybu debugowania).
+Jest również opcja wyczyszczenia dziennika błędów, jak i listy operacji wewnętrznych w trybie debug.
+
+![Konfiguracja](images/pl/configuration5b.png "Konfiguracja")
+
+Sekcja **Reset modułu** służy do przywrócenia modułu do stanu początkowej konfiguracji bez utraty danych ani indywidualnych ustawień biznesowych.\
+Operacja resetu wykonuje następujące czynności:
+* Dodaje brakujące opcje konfiguracyjne – uzupełnia konfigurację o brakujące ustawienia, zachowując już istniejące wartości.
+* Ponownie rejestruje wszystkie hooki PrestaShop – zapewnia poprawne podpięcie modułu do mechanizmów systemowych sklepu.
+* Odtwarza niestandardowe statusy zamówień – przywraca statusy wykorzystywane przez moduł, jeśli zostały usunięte lub uszkodzone.
+* Czyści pamięć podręczną modułu – usuwa cache, co pozwala wyeliminować problemy wynikające z nieaktualnych danych.
+
+**Uwaga**: Reset modułu nie usuwa istniejącej konfiguracji ani danych (np. ustawień, mapowań, historii operacji).
+
+Aby wykonać reset, należy użyć przycisku „Zresetuj moduł”.
+
+![Konfiguracja](images/pl/configuration5b1.png "Konfiguracja")
+![Konfiguracja](images/pl/configuration5b2.png "Konfiguracja")
+
+Zakładka zawiera dodatkowo zapis operacji wykonanych podczas instalacji, aktualizacji i dezinstalacji modułu.
+
+**Kiedy przeglądać logi:**
+
+Log instalacyjny:
+* **Po pierwszej instalacji modułu – weryfikacja poprawnej konfiguracji**
+* **Gdy występują problemy ze statusami zamówień lub hook-ami**
+
+Log aktualizacji:
+* **Po aktualizacji modułu do nowszej wersji**
+* **Gdy po aktualizacji pojawiają się nieoczekiwane błędy**
+
+Log dezinstalacji:
+* **Po odinstalowaniu – weryfikacja, czy proces zakończył się prawidłowo**
+
+![Konfiguracja](images/pl/configuration5c.png "Konfiguracja")
 
 Informacja o aktywności trybu deweloperskiego jest wyświetlana w zakładkach `"USTAWIENIA PŁATNOŚCI"` i `"DIAGNOSTYKA WTYCZKI"`.
 W trybie tym wtyczka używa klucza z zakładki `"USTAWIENIA DEWELOPERSKIE"` do komunikacji z testowym API Comfino. Klucz środowiska testowego również otrzymasz od przedstawiciela Comfino.
