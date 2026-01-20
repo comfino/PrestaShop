@@ -2,7 +2,7 @@
 
 - **PrestaShop**: 1.6.x, 1.7.x, 8.x, 9.x (minimal supported version of PrestaShop is 1.6.1.11)
 - **PHP**: 7.1 or higher
-- **PHP extensions**: curl, json, zlib
+- **PHP extensions**: curl, json, zlib, ctype
 
 For legacy environments the latest version of the plugin compatible with PHP 5.6 and PrestaShop 1.6.0.14+: [3.5.5](https://github.com/comfino/PrestaShop/releases/tag/3.5.5)  
 It can be downloaded from here: [comfino.zip](https://github.com/comfino/PrestaShop/releases/download/3.5.5/comfino.zip)  
@@ -25,13 +25,13 @@ In this input choose module's file and click `"Send module button"`. If the modu
 ![Configuration](images/en/modules_ps_16.png "Configuration")
 ![Configuration](images/en/modules_ps_16_panel.png "Configuration")
 
-PrestaShop 1.7, PrestaShop 8
+PrestaShop 1.7, PrestaShop 8, PrestaShop 9
 -------
 
-To install the module, please go to `"Modules -> Modules Manager"` tab, and then click `"Upload module"` button.
+To install the module, please go to `"Modules -> Module Manager"` tab, and then click `"Upload a module"` button.
 To the field that appears, put module's file. Module will be installed automatically.
 
-![Configuration](images/en/modules_ps_17.png "Configuration")
+![Configuration](images/en/modules_ps_9.png "Configuration")
 
 ## CONFIGURATION
 
@@ -120,7 +120,7 @@ There is also an option to clear the error log as well as the list of internal o
 
 ![Configuration](images/en/configuration5b.png "Configuration")
 
-The **Module Reset** section allows you to restore the module to its initial configuration without losing any data or individual business settings.\
+The **Module reset** section allows you to restore the module to its initial configuration without losing any data or individual business settings.\
 The reset operation performs the following actions:
 * Adds missing configuration options – supplements the configuration with missing settings while retaining existing values.
 * Registers all PrestaShop hooks – ensures the module is properly connected to the store's system mechanisms.
@@ -129,7 +129,7 @@ The reset operation performs the following actions:
 
 **Note**: Resetting the module does not delete existing configuration or data (e.g., settings, mappings, transaction history).
 
-To perform a reset, click the "Reset Module" button.
+To perform a reset, click the "Reset module" button.
 
 ![Konfiguracja](images/en/configuration5b1.png "Konfiguracja")
 ![Konfiguracja](images/en/configuration5b2.png "Konfiguracja")

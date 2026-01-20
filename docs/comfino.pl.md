@@ -2,7 +2,7 @@
 
 - **PrestaShop**: 1.6.x, 1.7.x, 8.x, 9.x (minimalna wspierana wersja PrestaShop to 1.6.1.11)
 - **PHP**: 7.1 lub nowszy
-- **Rozszerzenia PHP**: curl, json, zlib
+- **Rozszerzenia PHP**: curl, json, zlib, ctype
 
 W przypadku starszych środowisk najnowsza wersja wtyczki zgodna z PHP 5.6 i PrestaShop 1.6.0.14+: [3.5.5](https://github.com/comfino/PrestaShop/releases/tag/3.5.5)  
 Może zostać pobrana stąd: [comfino.zip](https://github.com/comfino/PrestaShop/releases/download/3.5.5/comfino.zip)  
@@ -25,12 +25,12 @@ W tym polu należy wybrać plik z modułem, a następnie kliknąć `"Prześlij m
 ![Konfiguracja](images/pl/modules_ps_16.png "Konfiguracja")
 ![Konfiguracja](images/pl/modules_ps_16_panel.png "Konfiguracja")
 
-PrestaShop 1.7, PrestaShop 8
+PrestaShop 1.7, PrestaShop 8, PrestaShop 9
 -------
 
-Przejdź do zakładki `"Moduły -> Manager modułów"`, następnie kliknij przycisk `"Załaduj moduł"`. Z wyświetlonego pola do przesyłania modułów, należy wybrać odpowiedni plik z modułem. Wtyczka zainstaluje się automatycznie.
+Przejdź do zakładki `"Moduły -> Menedżer modułów"`, następnie kliknij przycisk `"Załaduj moduł"`. Z wyświetlonego pola do przesyłania modułów, należy wybrać odpowiedni plik z modułem. Wtyczka zainstaluje się automatycznie.
 
-![Konfiguracja](images/pl/modules_ps_17.png "Konfiguracja")
+![Konfiguracja](images/pl/modules_ps_9.png "Konfiguracja")
 
 ## KONFIGURACJA
 
