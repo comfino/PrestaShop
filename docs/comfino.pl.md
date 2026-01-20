@@ -120,12 +120,12 @@ Jest również opcja wyczyszczenia dziennika błędów, jak i listy operacji wew
 
 ![Konfiguracja](images/pl/configuration5b.png "Konfiguracja")
 
-Sekcja **Reset modułu** służy do przywrócenia modułu do stanu początkowej konfiguracji bez utraty danych ani indywidualnych ustawień biznesowych.
+Sekcja **Reset modułu** służy do przywrócenia modułu do stanu początkowej konfiguracji bez utraty danych ani indywidualnych ustawień biznesowych.\
 Operacja resetu wykonuje następujące czynności:
-* **Dodaje brakujące opcje konfiguracyjne – uzupełnia konfigurację o brakujące ustawienia, zachowując już istniejące wartości**
-* **Ponownie rejestruje wszystkie hooki PrestaShop – zapewnia poprawne podpięcie modułu do mechanizmów systemowych sklepu**
-* **Odtwarza niestandardowe statusy zamówień – przywraca statusy wykorzystywane przez moduł, jeśli zostały usunięte lub uszkodzone**
-* **Czyści pamięć podręczną modułu – usuwa cache, co pozwala wyeliminować problemy wynikające z nieaktualnych danych**
+* Dodaje brakujące opcje konfiguracyjne – uzupełnia konfigurację o brakujące ustawienia, zachowując już istniejące wartości.
+* Ponownie rejestruje wszystkie hooki PrestaShop – zapewnia poprawne podpięcie modułu do mechanizmów systemowych sklepu.
+* Odtwarza niestandardowe statusy zamówień – przywraca statusy wykorzystywane przez moduł, jeśli zostały usunięte lub uszkodzone.
+* Czyści pamięć podręczną modułu – usuwa cache, co pozwala wyeliminować problemy wynikające z nieaktualnych danych.
 
 **Uwaga**: Reset modułu nie usuwa istniejącej konfiguracji ani danych (np. ustawień, mapowań, historii operacji).
 
