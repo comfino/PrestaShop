@@ -98,11 +98,6 @@ class StatusAdapter implements OrderStatusAdapterInterface
             } catch (\PrestaShopDatabaseException|\PrestaShopException $e) {
                 throw new ServiceUnavailable("Order $orderId loading error.", $e->getCode(), $e);
             }
-
-            if (!empty($order->module) && $order->module !== COMFINO_MODULE_NAME) {
-                // Process orders paid by Comfino only.
-                throw new RequestValidationError("Order $orderId is not a valid Comfino order.");
-            }
         } else {
             // New path: Load by reference using PrestaShopCollection.
             try {
@@ -117,6 +112,11 @@ class StatusAdapter implements OrderStatusAdapterInterface
 
         if (!\Validate::isLoadedObject($order)) {
             throw new NotFound(sprintf('Order not found by %s: %s', $isNumericId ? 'id' : 'reference', $orderId));
+        }
+
+        if ($order->module !== COMFINO_MODULE_NAME) {
+            // Process orders paid by Comfino only.
+            throw new RequestValidationError("Order $orderId is not a valid Comfino order.");
         }
 
         $inputStatus = \Tools::strtoupper($status);
