@@ -98,7 +98,6 @@ Szczegółowe informacje o działaniu widgetu i jego opcjach konfiguracyjnych zn
 * **Klucz API środowiska testowego** — unikalny klucz dostępowy umożliwiający komunikację modułu z testowym API Comfino
 * **Tryb debugowania** — przełącznik aktywacji/deaktywacji trybu debugowania
 * **Tryb serwisowy** — przełącznik aktywacji/deaktywacji trybu serwisowego
-* **Użyj zmiennych środowiska deweloperskiego** — przełącznik aktywacji/deaktywacji trybu dla deweloperów z wykorzystaniem niestandardowych hostów
 
 Tryb debugowania przydaje się w przypadku problemów z dostępnością płatności Comfino. W tym trybie moduł rejestruje szczegóły wewnętrznego procesu odpowiedzialnego za wyświetlenie opcji płatności Comfino na liście metod płatności. Zaleca się korzystać z tej opcji wraz z aktywacją drugiej opcji `"Tryb serwisowy"` w celu minimalizacji zapisywanych logów.
 
@@ -141,7 +140,7 @@ Zakładka zawiera dodatkowo zapis operacji wykonanych podczas instalacji, aktual
 
 Log instalacyjny:
 * **Po pierwszej instalacji modułu – weryfikacja poprawnej konfiguracji**
-* **Gdy występują problemy z statusami zamówień lub hook-ami**
+* **Gdy występują problemy ze statusami zamówień lub hook-ami**
 
 Log aktualizacji:
 * **Po aktualizacji modułu do nowszej wersji**
