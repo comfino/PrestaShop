@@ -82,6 +82,12 @@ class StatusAdapter implements OrderStatusAdapterInterface
      */
     public function setStatus($orderId, $status): void
     {
+        DebugLogger::logEvent(
+            '[ORDER_STATUS_UPDATE]',
+            'StatusAdapter::setStatus: Order status update from Comfino API.',
+            ['orderId' => $orderId, 'status' => $status]
+        );
+
         // Determine if orderId is numeric (legacy) or reference (new).
         $isNumericId = is_numeric($orderId) && ctype_digit((string) $orderId);
 
