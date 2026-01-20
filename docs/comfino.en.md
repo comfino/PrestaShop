@@ -50,6 +50,7 @@ Configuration parameter fields:
 * **Production environment API key** — a unique access key that allows the module to communicate with the Comfino API (you will receive it from a Comfino representative)
 * **Payment text** — text displayed on the list of payment methods (default `"(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)"`)
 * **Minimal amount in cart** — the value of the cart from which Comfino payment is available (default: 30 PLN)
+* **Use order reference as external ID** — Use customer-visible order reference instead of numeric order ID for Comfino API integration. New orders only.
 
 ![Configuration](images/en/configuration1.png "Configuration")
 
@@ -68,8 +69,9 @@ By default, Comfino payments are available unconditionally for all product types
 **Basic Settings**
 
 * **Widget is active?** — promotional widget activation/deactivation switch on the product page
-* **Widget type** — way of presenting the widget [`Installment calculator`, `Extended calculator - products`]
+* **Widget type** — way of presenting the widget [`Standard widget`, `Classic widget`]
 * **Offer types** — types of financing offers promoted [`Zero percent installments`, `Convenient installments`, `Pay later`, `Installments for companies`, `Deferred payments for companies`, `Leasing`]
+* **Show logos of financial services providers** — switch enabling to display the logo of each available financial provider
 
 The availability of offer types on the list depends on the individual contract and may differ from that described in the documentation.
 
@@ -110,9 +112,44 @@ Before launching payments on the production store, disable developer mode to blo
 **PLUGIN DIAGNOSTICS**
 
 The tab contains technical information about the plugin and the environment (plugin version, store version, PHP and web server version, etc.).\
-It also contains a list of recent errors with a preview of the local error log and a list of the plugin's internal operations recorded in debug mode (debug mode log).
 
-![Configuration](images/en/configuration5.png "Configuration")
+![Configuration](images/en/configuration5a.png "Configuration")
+
+It also contains a list of recent errors with a preview of the local error log and a list of the plugin's internal operations recorded in debug mode (debug mode log).
+There is also an option to clear the error log as well as the list of internal operations in debug mode.
+
+![Configuration](images/en/configuration5b.png "Configuration")
+
+The **Module Reset** section allows you to restore the module to its initial configuration without losing any data or individual business settings.\
+The reset operation performs the following actions:
+* Adds missing configuration options – supplements the configuration with missing settings while retaining existing values.
+* Registers all PrestaShop hooks – ensures the module is properly connected to the store's system mechanisms.
+* Restores custom order statuses – restores statuses used by the module if they have been deleted or corrupted.
+* Clears the module cache – clears the cache, eliminating issues resulting from outdated data.
+
+**Note**: Resetting the module does not delete existing configuration or data (e.g., settings, mappings, transaction history).
+
+To perform a reset, click the "Reset Module" button.
+
+![Konfiguracja](images/en/configuration5b1.png "Konfiguracja")
+![Konfiguracja](images/en/configuration5b2.png "Konfiguracja")
+
+This tab also contains a record of operations performed during module installation, update and uninstallation.
+
+**When to view logs:**
+
+Installation log:
+* **After initial module installation – verifying correct configuration**
+* **When problems occur with order statuses or hooks**
+
+Update log:
+* **After updating the module to a newer version**
+* **When unexpected errors occur after updating**
+
+Uninstallation log:
+* **After uninstallation – verifying that the process completed correctly**
+
+![Konfiguracja](images/en/configuration5c.png "Konfiguracja")
 
 Information about developer mode activity is displayed in the tabs `"PAYMENT SETTINGS"` and `"PLUGIN DIAGNOSTICS"`.
 In this mode, the plugin uses the key from the `"DEVELOPER SETTINGS"` tab to communicate with the Comfino test API. You will also receive a test environment key from a Comfino representative.
