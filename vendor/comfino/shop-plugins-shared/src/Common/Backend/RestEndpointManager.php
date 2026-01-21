@@ -15,7 +15,6 @@ use ComfinoExternal\Psr\Http\Message\ServerRequestFactoryInterface;
 use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
 use ComfinoExternal\Psr\Http\Message\StreamFactoryInterface;
 use ComfinoExternal\Psr\Http\Message\UriFactoryInterface;
-use Random\RandomException;
 
 final class RestEndpointManager
 {
