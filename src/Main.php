@@ -171,7 +171,9 @@ final class Main
     }
 
     /**
-     * Resets module to initial state without uninstalling:
+     * Resets module to initial state without uninstalling.
+     *
+     * This method:
      * - Adds missing configuration options.
      * - Re-registers all PrestaShop hooks.
      * - Recreates custom order statuses.
