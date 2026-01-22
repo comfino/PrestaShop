@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7f9f49a6a84f20d26db6891b32f7c97f",
+    "content-hash": "24635c797d2fe66e451bae21f49f2f81",
     "packages": [
         {
             "name": "cache/adapter-common",
@@ -344,12 +344,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:comfino/shop-plugins-shared.git",
-                "reference": "6050fe0de84ef31942d9293d71e3a37743c28745"
+                "reference": "dbf46b5bd29989c047254c147fd3c9adfb8637dc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/6050fe0de84ef31942d9293d71e3a37743c28745",
-                "reference": "6050fe0de84ef31942d9293d71e3a37743c28745",
+                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/dbf46b5bd29989c047254c147fd3c9adfb8637dc",
+                "reference": "dbf46b5bd29989c047254c147fd3c9adfb8637dc",
                 "shasum": ""
             },
             "require": {
@@ -399,7 +399,7 @@
                 "source": "https://github.com/comfino/shop-plugins-shared/tree/master",
                 "issues": "https://github.com/comfino/shop-plugins-shared/issues"
             },
-            "time": "2026-01-21T13:10:02+00:00"
+            "time": "2026-01-22T11:35:36+00:00"
         },
         {
             "name": "fig/http-message-util",
@@ -5876,6 +5876,7 @@
     "prefer-lowest": false,
     "platform": {
         "php": ">=7.1",
+        "ext-ctype": "*",
         "ext-curl": "*",
         "ext-json": "*",
         "ext-zlib": "*"

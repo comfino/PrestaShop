@@ -6,7 +6,6 @@ namespace Comfino\Common\Backend\RestEndpoint;
 
 use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Common\Backend\RestEndpoint;
-use Comfino\Common\Exception\InvalidEndpoint;
 use Comfino\Common\Exception\InvalidRequest;
 use Comfino\Common\Shop\Order\StatusManager;
 use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
@@ -46,20 +45,14 @@ class StatusNotification extends RestEndpoint
      */
     public function processRequest($serverRequest, $endpointName = null): ?array
     {
-        if (!$this->endpointPathMatch($serverRequest, $endpointName)) {
-            throw new InvalidEndpoint('Endpoint path does not match request path.');
-        }
-
-        try {
-            if (!is_array($requestPayload = $this->getParsedRequestBody($serverRequest))) {
-                throw new InvalidRequest('Invalid request payload.');
-            }
-        } catch (\JsonException $e) {
-            throw new InvalidRequest(sprintf('Invalid request payload: %s', $e->getMessage()), $e->getCode(), $e);
-        }
+        $requestPayload = parent::processRequest($serverRequest, $endpointName);
 
         if (!isset($requestPayload['status'])) {
-            throw new InvalidRequest('Status must be set.');
+            throw new InvalidRequest(
+                (string) $serverRequest->getUri(),
+                $serverRequest->getBody()->getContents(),
+                'Status must be set.'
+            );
         }
 
         if (in_array($requestPayload['status'], $this->ignoredStatuses, true)) {
@@ -67,11 +60,19 @@ class StatusNotification extends RestEndpoint
         }
 
         if (!isset($requestPayload['externalId'])) {
-            throw new InvalidRequest('External ID must be set.');
+            throw new InvalidRequest(
+                (string) $serverRequest->getUri(),
+                $serverRequest->getBody()->getContents(),
+                'External ID must be set.'
+            );
         }
 
         if (in_array($requestPayload['status'], $this->forbiddenStatuses, true)) {
-            throw new InvalidRequest('Invalid status "' . $requestPayload['status'] . '".');
+            throw new InvalidRequest(
+                (string) $serverRequest->getUri(),
+                $serverRequest->getBody()->getContents(),
+                'Invalid status "' . $requestPayload['status'] . '".'
+            );
         }
 
         try {
@@ -81,7 +82,13 @@ class StatusNotification extends RestEndpoint
                 throw $e;
             }
 
-            throw new InvalidRequest($e->getMessage(), $e->getCode(), $e);
+            throw new InvalidRequest(
+                (string) $serverRequest->getUri(),
+                $serverRequest->getBody()->getContents(),
+                $e->getMessage(),
+                $e->getCode(),
+                $e
+            );
         }
 
         return null;

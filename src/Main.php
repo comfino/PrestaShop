@@ -46,9 +46,9 @@ if (!defined('_PS_VERSION_')) {
 
 final class Main
 {
-    private const INSTALL_LOG_PATH = _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/install.log';
-    private const UNINSTALL_LOG_PATH = _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/uninstall.log';
-    private const UPGRADE_LOG_PATH = _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/upgrade.log';
+    private const INSTALL_LOG_FILENAME = 'install.log';
+    private const UPGRADE_LOG_FILENAME = 'upgrade.log';
+    private const UNINSTALL_LOG_FILENAME = 'uninstall.log';
 
     private const HOOKS = [
         'paymentOptions',
@@ -417,9 +417,14 @@ final class Main
         return isset($_SERVER['REQUEST_URI']) ? \Tools::safeOutput($_SERVER['REQUEST_URI']) : '';
     }
 
+    public static function getVarPath(): string
+    {
+        return _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . DIRECTORY_SEPARATOR . 'var';
+    }
+
     public static function getCacheRootPath(): string
     {
-        return dirname(__DIR__) . '/var';
+        return self::getVarPath();
     }
 
     public static function getCachePath(): string
@@ -487,49 +492,60 @@ final class Main
 
     public static function updateUpgradeLog(string $logContents): void
     {
-        if (FileUtils::isWritable(dirname(self::UPGRADE_LOG_PATH))) {
-            FileUtils::append(date('Y-m-d H:i:s') .  ': ' . self::UPGRADE_LOG_PATH, "$logContents\n");
-        }
+        self::appendLog(self::UPGRADE_LOG_FILENAME, $logContents);
     }
 
     public static function readUpgradeLog(): string
     {
-        if (FileUtils::isReadable(self::UPGRADE_LOG_PATH)) {
-            return FileUtils::read(self::UPGRADE_LOG_PATH);
-        }
-
-        return '';
+        return self::readLog(self::UPGRADE_LOG_FILENAME);
     }
 
     public static function readInstallLog(): string
     {
-        if (FileUtils::isReadable(self::INSTALL_LOG_PATH)) {
-            return FileUtils::read(self::INSTALL_LOG_PATH);
-        }
-
-        return '';
+        return self::readLog(self::INSTALL_LOG_FILENAME);
     }
 
     public static function readUninstallLog(): string
     {
-        if (FileUtils::isReadable(self::UNINSTALL_LOG_PATH)) {
-            return FileUtils::read(self::UNINSTALL_LOG_PATH);
+        return self::readLog(self::UNINSTALL_LOG_FILENAME);
+    }
+
+    private static function createInstallLog(string $logContents): void
+    {
+        self::writeLog(self::INSTALL_LOG_FILENAME, $logContents);
+    }
+
+    private static function createUninstallLog(string $logContents): void
+    {
+        self::writeLog(self::UNINSTALL_LOG_FILENAME, $logContents);
+    }
+
+    private static function readLog(string $fileName): string
+    {
+        $logPath = FileUtils::buildPathFromComponents([self::getVarPath(), 'log', $fileName]);
+
+        if (FileUtils::isReadable($logPath)) {
+            return FileUtils::read($logPath);
         }
 
         return '';
     }
 
-    private static function createInstallLog(string $logContents): void
+    private static function writeLog(string $fileName, string $logContents): void
     {
-        if (FileUtils::isWritable(dirname(self::INSTALL_LOG_PATH))) {
-            FileUtils::write(self::INSTALL_LOG_PATH, date('Y-m-d H:i:s') . "\n$logContents");
+        $logPath = FileUtils::buildPathFromComponents([self::getVarPath(), 'log', $fileName]);
+
+        if (FileUtils::isWritable(dirname($logPath))) {
+            FileUtils::write($logPath, gmdate('Y-m-d H:i:s') . "\n$logContents");
         }
     }
 
-    private static function createUninstallLog(string $logContents): void
+    private static function appendLog(string $fileName, string $logContents): void
     {
-        if (FileUtils::isWritable(dirname(self::UNINSTALL_LOG_PATH))) {
-            FileUtils::write(self::UNINSTALL_LOG_PATH, date('Y-m-d H:i:s') . "\n$logContents");
+        $logPath = FileUtils::buildPathFromComponents([self::getVarPath(), 'log', $fileName]);
+
+        if (FileUtils::isWritable($logPath)) {
+            FileUtils::append($logPath, gmdate('Y-m-d H:i:s') . "\n$logContents");
         }
     }
 
