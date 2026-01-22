@@ -20,7 +20,7 @@ PrestaShop payment module for Comfino deferred payments gateway - installment pa
 
 - **PrestaShop**: 1.6.x, 1.7.x, 8.x, 9.x (minimal supported version of PrestaShop is 1.6.1.11)
 - **PHP**: 7.1 or higher
-- **PHP extensions**: curl, json, zlib
+- **PHP extensions**: ctype, curl, json, zlib
 
 For legacy environments the latest version of the plugin compatible with PHP 5.6 and PrestaShop 1.6.0.14+: [3.5.5](https://github.com/comfino/PrestaShop/releases/tag/3.5.5)   
 It can be downloaded from here: [comfino.zip](https://github.com/comfino/PrestaShop/releases/download/3.5.5/comfino.zip)  
@@ -32,7 +32,7 @@ We strongly recommend upgrading your store environment to at least version 1.7.8
 
 - PHP 7.1 or higher
 - PrestaShop 1.6.1.11 or higher
-- PHP extensions: curl, json, zlib
+- PHP extensions: ctype, curl, json, zlib
 - Docker and Docker Compose (for local development)
 
 ### Local development setup
