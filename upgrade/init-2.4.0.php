@@ -43,7 +43,7 @@ function upgrade_module_2_4_0(Comfino $module)
     // Update code of widget initialization script.
     ConfigManager::updateWidgetCode('bde49851ffc0fd8239eb5d086c8165d4');
     // Update custom order statuses.
-    ShopStatusManager::updateOrderStatuses();
+    ShopStatusManager::updateCustomOrderStatuses();
 
     return true;
 }

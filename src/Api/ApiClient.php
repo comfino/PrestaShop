@@ -174,7 +174,7 @@ final class ApiClient
         ErrorLogger::sendError(
             $exception,
             $errorPrefix,
-            $exception->getCode(),
+            (string) $exception->getCode(),
             $exception->getMessage(),
             $url !== '' ? $url : null,
             $requestBody !== '' ? $requestBody : null,

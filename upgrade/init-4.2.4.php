@@ -45,7 +45,7 @@ function upgrade_module_4_2_4(Comfino $module)
     ConfigManager::updateConfiguration(
         [
             'COMFINO_WIDGET_TYPE' => 'standard',
-            'COMFINO_NEW_WIDGET_ACTIVE' =>  true,
+            'COMFINO_NEW_WIDGET_ACTIVE' => true,
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => [
                 'INSTALLMENTS_ZERO_PERCENT',
                 'PAY_LATER',

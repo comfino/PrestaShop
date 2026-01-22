@@ -224,16 +224,7 @@ final class FrontendManager
                 ConfigManager::getWidgetVariables($productId)
             );
         } catch (\Throwable $e) {
-            ErrorLogger::sendError(
-                $e,
-                'Widget script endpoint',
-                $e->getCode(),
-                $e->getMessage(),
-                $e instanceof HttpErrorExceptionInterface ? $e->getUrl() : null,
-                $e instanceof HttpErrorExceptionInterface ? $e->getRequestBody() : null,
-                $e instanceof HttpErrorExceptionInterface ? $e->getResponseBody() : null,
-                $e->getTraceAsString()
-            );
+            self::processError('Widget script endpoint', $e);
         }
 
         return '';
@@ -294,19 +285,24 @@ final class FrontendManager
         string $errorPrefix,
         \Throwable $exception,
         ?int $httpStatus = null,
-        ?string $userErrorMessage = null
+        ?string $userErrorMessage = null,
+        ?array $parameters = null,
+        string $eventPrefix = '[ERROR]'
     ): array {
         DebugLogger::logEvent(
-            '[ERROR]',
+            $eventPrefix,
             $errorPrefix,
-            [
-                'exception' => get_class($exception),
-                'error_message' => $exception->getMessage(),
-                'error_code' => $exception->getCode(),
-                'error_file' => $exception->getFile(),
-                'error_line' => $exception->getLine(),
-                'error_trace' => $exception->getTraceAsString(),
-            ]
+            array_merge(
+                [
+                    'exception' => get_class($exception),
+                    'error_message' => $exception->getMessage(),
+                    'error_code' => $exception->getCode(),
+                    'error_file' => $exception->getFile(),
+                    'error_line' => $exception->getLine(),
+                    'error_trace' => $exception->getTraceAsString(),
+                ],
+                $parameters ?? []
+            )
         );
 
         ErrorLogger::sendError(

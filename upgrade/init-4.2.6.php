@@ -27,6 +27,7 @@
 use Comfino\Configuration\ConfigManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
+use Comfino\Main;
 use Comfino\Order\ShopStatusManager;
 use Comfino\PluginShared\CacheManager;
 
@@ -60,6 +61,8 @@ function upgrade_module_4_2_6(Comfino $module)
     // Clear plugin logs.
     ErrorLogger::clearLogs();
     DebugLogger::clearLogs();
+
+    Main::updateUpgradeLog('Upgrade script for 4.2.6 executed.');
 
     return true;
 }

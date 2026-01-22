@@ -51,6 +51,7 @@ final class LoggerFactory
      * @param string $logFilePath
      * @param bool $enableSanitization
      * @return Logger
+     * @throws \Exception
      */
     public static function createErrorLogger(string $logFilePath, bool $enableSanitization = true): Logger
     {
@@ -186,11 +187,11 @@ final class LoggerFactory
             return;
         }
 
-        if (!file_exists($htaccessPath = $logDir . '/.htaccess')) {
+        if (!file_exists($htaccessPath = $logDir . DIRECTORY_SEPARATOR . '.htaccess')) {
             file_put_contents($htaccessPath, "Order deny,allow\nDeny from all\n");
         }
 
-        if (!file_exists($indexPath = $logDir . '/index.php')) {
+        if (!file_exists($indexPath = $logDir . DIRECTORY_SEPARATOR . 'index.php')) {
             file_put_contents($indexPath, "<?php\n// Silence is golden.\n");
         }
     }

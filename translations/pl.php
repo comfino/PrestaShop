@@ -42,6 +42,8 @@ $_MODULE['<{comfino}prestashop>comfino_00d23a76e43b46dae9ec7aa9dcbebb32'] = 'Wł
 $_MODULE['<{comfino}prestashop>comfino_b9f5c797ebbf55adccdd8539a65a0241'] = 'Wyłączony';
 $_MODULE['<{comfino}prestashop>comfino_e228daa9c5b7bec78933f46885101f50'] = 'Tekst płatności';
 $_MODULE['<{comfino}prestashop>comfino_a0cc6d4139acea469ac9f00b8fb54cf9'] = 'Minimalna kwota w koszyku';
+$_MODULE['<{comfino}prestashop>comfino_fc06d645aa8782435bb92f3de1aac55e'] = 'Użyj numeru zamówienia jako zewnętrznego ID';
+$_MODULE['<{comfino}prestashop>comfino_58e8e35a64dcc03b5cb70353e0d658be'] = 'Używaj numeru zamówienia widocznego dla klienta zamiast numerycznego ID zamówienia w komunikacji z API Comfino. Dotyczy tylko nowych zamówień.';
 $_MODULE['<{comfino}prestashop>comfino_90e7796dead41b55c2063846c52a0826'] = 'Comfino to nowatorska metoda płatności dla klientów sklepów e-commerce! To płatności ratalne, odroczone (kup teraz, zapłać później) oraz płatności dla firm dostępne na jednej platformie za pomocą szybkiej integracji. Rozwijaj swój biznes z Comfino!';
 $_MODULE['<{comfino}prestashop>comfino_3e1759db51250b5b214727fbdf60f739'] = 'Płatności Comfino';
 $_MODULE['<{comfino}prestashop>comfino_c58c4371152e7a7d857ca26127c91169'] = 'Czy na pewno chcesz odinstalować płatności Comfino?';
@@ -111,6 +113,12 @@ $_MODULE['<{comfino}prestashop>comfino_e30faf31a44b48cf9087a95c72f21a33'] = 'Kos
 $_MODULE['<{comfino}prestashop>comfino_dc2d9bc154bafaa5710857ddf96698ee'] = 'Łączna kwota koszyka musi być większa niż zero.';
 $_MODULE['<{comfino}prestashop>comfino_591bb5cc3346609be5ab321d790f06da'] = 'Płatność Comfino nie jest dostępna dla tego koszyka. Sprawdź kwotę koszyka i typy produktów.';
 
+$_MODULE['<{comfino}prestashop>comfino_92553589e0b4f210e91e856583052d29'] = 'Log błędów został pomyślnie wyczyszczony.';
+$_MODULE['<{comfino}prestashop>comfino_18ec1638ce465aa002dc8290d22c1ee0'] = 'Czyszczenie logu błędów nie powiodło się';
+$_MODULE['<{comfino}prestashop>comfino_0d89706534c2e473ae966343d86b9a2c'] = 'Log debugowania został pomyślnie wyczyszczony.';
+$_MODULE['<{comfino}prestashop>comfino_a6167daf1db77c6f535415c0042f2e83'] = 'Czyszczenie logu debugowania nie powiodło się';
+$_MODULE['<{comfino}prestashop>comfino_3469efb95a288b25dfbae8aff6e7c49f'] = 'Logi instalacyjne';
+
 $_MODULE['<{comfino}prestashop>configuration_f1a9672d88ab0cae23402867e2def274'] = 'Ustawienia płatności';
 $_MODULE['<{comfino}prestashop>configuration_ad5d1a1c9746f7d0f75ae8727ee1ec12'] = 'Ustawienia sprzedaży';
 $_MODULE['<{comfino}prestashop>configuration_dbdcee2a8f33547e13199af86a38688e'] = 'Ustawienia widgetu';
@@ -123,24 +131,37 @@ $_MODULE['<{comfino}prestashop>update-notice_011fedf4050817b8826f95a53d9555b2'] 
 $_MODULE['<{comfino}prestashop>update-notice_275e590cc57b619e7c4d9a82d3278394'] = 'Nowa wersja';
 $_MODULE['<{comfino}prestashop>update-notice_d8b5ccfca0da7396ddd16084d27aac3d'] = 'Zobacz notatki dotyczące wydania w serwisie GitHub';
 
-$_MODULE['<{comfino}prestashop>comfino_7efffb636a64b41b644ed179eb9243f8'] = 'Naprawa konfiguracji';
-$_MODULE['<{comfino}prestashop>configuration-repair_6a95d5888404f75da1d9dd0a1b26315e'] = 'Konfiguracja jest poprawna';
-$_MODULE['<{comfino}prestashop>configuration-repair_2e0b1dc1d0849884c03361e8f5e36547'] = 'Wszystkie %d opcje konfiguracyjne istnieją.';
-$_MODULE['<{comfino}prestashop>configuration-repair_b9ba0e480807be85aed3f40bd765c053'] = 'Wykryto problemy z konfiguracją';
-$_MODULE['<{comfino}prestashop>configuration-repair_bf85b4753cd863060616f0619eca587d'] = 'Brakuje %d opcji konfiguracyjnych z %d wszystkich.';
-$_MODULE['<{comfino}prestashop>configuration-repair_a22760e87d39d1cab7332b2a857f16ef'] = 'Brakujące opcje';
-$_MODULE['<{comfino}prestashop>configuration-repair_94231e22e0b8aa9b84a370da7ace58fb'] = 'Napraw konfigurację';
-$_MODULE['<{comfino}prestashop>configuration-repair_4c81749976568ac4d1862491173b373c'] = 'Naprawianie...';
-$_MODULE['<{comfino}prestashop>configuration-repair_9d35bd2b281d0bbe3cb28b1feaa5008d'] = 'Naprawianie zakończone';
-$_MODULE['<{comfino}prestashop>configuration-repair_2627637e263ef687fa978b576580b8b1'] = 'Sprawdzone';
-$_MODULE['<{comfino}prestashop>configuration-repair_2aee0be2678ee90fd327cc186826438e'] = 'Brakujące';
-$_MODULE['<{comfino}prestashop>configuration-repair_5a50d51067957e621efb88bc79d2e84a'] = 'Naprawione';
-$_MODULE['<{comfino}prestashop>configuration-repair_d7c8c85bf79bbe1b7188497c32c3b0ca'] = 'Zakończone błędem';
-$_MODULE['<{comfino}prestashop>configuration-repair_cb7296dfdf37b78dc349d92b13bb049f'] = 'Naprawione opcje';
-$_MODULE['<{comfino}prestashop>configuration-repair_cea60544baf3effa70727ee172aedb61'] = 'Nienaprawione opcje';
-$_MODULE['<{comfino}prestashop>configuration-repair_c3c30216c0f14628348f68bd29c7ff35'] = 'Odśwież stronę, aby zobaczyć zaktualizowany status konfiguracji.';
-$_MODULE['<{comfino}prestashop>configuration-repair_5e12b310071900a44b8176888de12763'] = 'Naprawa nie powiodła się: nieznany błąd.';
-$_MODULE['<{comfino}prestashop>configuration-repair_5402a4ddf0f7db4c0c846b3a97928dee'] = 'Naprawa nie powiodła się.';
+$_MODULE['<{comfino}prestashop>comfino_ab6340c9c3cff00bd1d580ba07cb8283'] = 'Reset modułu';
+
+$_MODULE['<{comfino}prestashop>module-reset_ab6340c9c3cff00bd1d580ba07cb8283'] = 'Reset modułu';
+$_MODULE['<{comfino}prestashop>module-reset_6b579a895d548c054d83c0f977bef75c'] = 'Ta operacja wykona';
+$_MODULE['<{comfino}prestashop>module-reset_967ebe745197b3355caada4e9db0ab3d'] = 'Dodanie brakujących opcji konfiguracyjnych (z zachowaniem istniejących wartości).';
+$_MODULE['<{comfino}prestashop>module-reset_5d51d8f234708b63606b3cab36e77751'] = 'Ponowne zarejestrowanie wszystkich hook-ów PrestaShop.';
+$_MODULE['<{comfino}prestashop>module-reset_b6b49d7a80221e367f7db9b7494e065f'] = 'Odtworzenie niestandardowych statusów zamówień.';
+$_MODULE['<{comfino}prestashop>module-reset_526e08d5342ea49e9c6c4014159d021a'] = 'Wyczyszczenie pamięci podręcznej modułu.';
+$_MODULE['<{comfino}prestashop>module-reset_dc6cbd1f5136370699cc52309c2dc81a'] = 'Uwaga: Ta operacja NIE usuwa istniejącej konfiguracji ani danych.';
+$_MODULE['<{comfino}prestashop>module-reset_f26af8e606a623cb71d8df8c65a7b896'] = 'Czy na pewno chcesz zresetować moduł? Spowoduje to ponowną rejestrację hook-ów i odtworzenie statusów zamówień.';
+$_MODULE['<{comfino}prestashop>module-reset_817ea9c22e6b11ecd69691c1dd47ef1a'] = 'Zresetuj moduł';
+
+$_MODULE['<{comfino}prestashop>error-log_2ed282f505b8586cfd3487158b956fec'] = 'Wyczyść log błędów';
+$_MODULE['<{comfino}prestashop>error-log_b9c3dc098fa924c9748cf9a283f0d70d'] = 'Czy na pewno chcesz wyczyścić log błędów?';
+
+$_MODULE['<{comfino}prestashop>debug-log_62f7d7f11bfc0a72920f08feeca0d7d5'] = 'Wyczyść log debugowania';
+$_MODULE['<{comfino}prestashop>debug-log_582ab5c2ec553cb0cd7061e4f34a45d4'] = 'Czy na pewno chcesz wyczyścić log debugowania?';
+
+$_MODULE['<{comfino}prestashop>installation-logs_2fbcbaccda99264847b63f1caf9b411e'] = 'Log instalacji';
+$_MODULE['<{comfino}prestashop>installation-logs_33dece4bdd632cc7d3f122173d4d34d9'] = 'Log aktualizacji';
+$_MODULE['<{comfino}prestashop>installation-logs_87de57d550255967703fc495a43dd208'] = 'Log dezinstalacji';
+$_MODULE['<{comfino}prestashop>installation-logs_f135d18c239c1d1e3f260fbbcfaf1587'] = 'Log instalacji niedostępny.';
+$_MODULE['<{comfino}prestashop>installation-logs_e2e2f88a8081fb8038c258ca60ec3971'] = 'Log aktualizacji niedostępny.';
+$_MODULE['<{comfino}prestashop>installation-logs_416eb74b2d1c711b062563c18c9e7521'] = 'Log dezinstalacji niedostępny.';
+
+$_MODULE['<{comfino}prestashop>comfino_5e3868a3dae7d2055cd11efb4321083a'] = 'Resetowanie modułu zakończone z pewnymi błędami.';
+$_MODULE['<{comfino}prestashop>comfino_841eaba3ff65d8b6fa24bc74eaf41183'] = 'Resetowanie modułu zakończone pomyślnie.';
+$_MODULE['<{comfino}prestashop>comfino_3118c3d3aaca5d51ac8d52c960d76f63'] = 'Konfiguracja: %d naprawionych, %d nieudanych';
+$_MODULE['<{comfino}prestashop>comfino_2f1458780e96adb1c81f66ef40da3a4a'] = 'Hooki: %d zarejestrowanych, %d nieudanych';
+$_MODULE['<{comfino}prestashop>comfino_42ee188afab598503289d1b0de299fe2'] = 'Statusy zamówień: %d utworzonych, %d zaktualizowanych, %d nieudanych';
+$_MODULE['<{comfino}prestashop>comfino_2051440020040b387e6ba9a7c1883548'] = 'Resetowanie modułu nie powiodło się';
 
 $_MODULE['<{comfino}prestashop>payment_0f7f7dbb9907ba5d256ef3e368d526b4'] = 'Przejdź do płatności';
 $_MODULE['<{comfino}prestashop>payment_e2b7dec8fa4b498156dfee6e4c84b156'] = 'Ta metoda płatności nie jest dostępna';

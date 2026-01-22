@@ -6,16 +6,15 @@ namespace Comfino\Common\Backend;
 
 use Comfino\Api\Exception\AccessDenied;
 use Comfino\Api\Exception\AuthorizationError;
+use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Api\SerializerInterface;
 use Comfino\Common\Exception\InvalidEndpoint;
-use Comfino\Common\Exception\InvalidRequest;
 use ComfinoExternal\Psr\Http\Message\ResponseFactoryInterface;
 use ComfinoExternal\Psr\Http\Message\ResponseInterface;
 use ComfinoExternal\Psr\Http\Message\ServerRequestFactoryInterface;
 use ComfinoExternal\Psr\Http\Message\ServerRequestInterface;
 use ComfinoExternal\Psr\Http\Message\StreamFactoryInterface;
 use ComfinoExternal\Psr\Http\Message\UriFactoryInterface;
-use Random\RandomException;
 
 final class RestEndpointManager
 {
@@ -209,18 +208,16 @@ final class RestEndpointManager
 
         try {
             $this->verifyRequest($serverRequest);
-        } catch (AuthorizationError $e) {
-            return $this->getPreparedResponse($this->responseFactory->createResponse(401, $e->getMessage()));
-        } catch (AccessDenied $e) {
-            return $this->getPreparedResponse($this->responseFactory->createResponse(403, $e->getMessage()));
+        } catch (HttpErrorExceptionInterface $e) {
+            return $this->getPreparedResponse($this->responseFactory->createResponse($e->getStatusCode(), $e->getMessage()));
         }
 
         if (($endpointName !== null) && ($endpoint = $this->getEndpointByName($endpointName)) !== null) {
             try {
                 return $this->prepareResponse($serverRequest, $endpoint->processRequest($serverRequest, $endpointName));
-            } catch (InvalidRequest $e) {
+            } catch (HttpErrorExceptionInterface $e) {
                 return $this->getPreparedResponse(
-                    $this->responseFactory->createResponse(400, $e->getMessage()),
+                    $this->responseFactory->createResponse($e->getStatusCode(), $e->getMessage()),
                     ['error' => $e->getMessage()]
                 );
             }
@@ -231,9 +228,9 @@ final class RestEndpointManager
                 return $this->prepareResponse($serverRequest, $endpoint->processRequest($serverRequest));
             } catch (InvalidEndpoint $exception) {
                 continue;
-            } catch (InvalidRequest $e) {
+            } catch (HttpErrorExceptionInterface $e) {
                 return $this->getPreparedResponse(
-                    $this->responseFactory->createResponse(400, $e->getMessage()),
+                    $this->responseFactory->createResponse($e->getStatusCode(), $e->getMessage()),
                     ['error' => $e->getMessage()]
                 );
             }

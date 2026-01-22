@@ -37,11 +37,11 @@ if (!defined('COMFINO_MODULE_NAME')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.2.6');
+    define('COMFINO_VERSION', '4.2.7');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1766606925);
+    define('COMFINO_BUILD_TS', 1769081918);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
@@ -63,7 +63,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '4.2.6';
+        $this->version = '4.2.7';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -77,7 +77,6 @@ class Comfino extends PaymentModule
         $this->controllers = [
             'cacheinvalidate',
             'configuration',
-            'configurationrepair',
             'error',
             'payment',
             'paymentstate',
@@ -131,11 +130,7 @@ class Comfino extends PaymentModule
      */
     public function install()
     {
-        if (!$this->checkEnvironment(true)) {
-            return false;
-        }
-
-        if (!parent::install()) {
+        if (!$this->checkEnvironment(true) || !parent::install()) {
             return false;
         }
 
@@ -147,25 +142,7 @@ class Comfino extends PaymentModule
      */
     public function uninstall()
     {
-        if (parent::uninstall()) {
-            if (!COMFINO_PS_17) {
-                $this->unregisterHook('payment');
-                $this->unregisterHook('displayPaymentEU');
-            }
-
-            $this->unregisterHook('paymentOptions');
-            $this->unregisterHook('paymentReturn');
-            $this->unregisterHook('displayBackofficeComfinoForm');
-            $this->unregisterHook('actionOrderStatusPostUpdate');
-            $this->unregisterHook('actionValidateCustomerAddressForm');
-            $this->unregisterHook('header');
-            $this->unregisterHook('actionAdminControllerSetMedia');
-            $this->unregisterHook('displayBackOfficeHeader');
-
-            return !class_exists('\Comfino\Main') || Comfino\Main::uninstall();
-        }
-
-        return false;
+        return Comfino\Main::uninstall($this) && parent::uninstall();
     }
 
     /**

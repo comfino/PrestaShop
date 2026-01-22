@@ -9,5 +9,7 @@ config.xml
 !/vendor/composer/
 !/vendor/fig/
 !/vendor/league/
+!/vendor/monolog/
 !/vendor/psr/
 !/vendor/sunrise/
+!/vendor/symfony/

@@ -2,7 +2,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit7f9f49a6a84f20d26db6891b32f7c97f
+class ComposerStaticInit24635c797d2fe66e451bae21f49f2f81
 {
     public static $files = array (
         'e90b514f516f456feec46b4f674e0f58' => __DIR__ . '/..' . '/sunrise/http-message/constants/REASON_PHRASES.php',
@@ -512,11 +512,14 @@ class ComposerStaticInit7f9f49a6a84f20d26db6891b32f7c97f
         'Comfino\\Api\\Dto\\Payment\\LoanTypeEnum' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Dto/Payment/LoanTypeEnum.php',
         'Comfino\\Api\\Exception\\AccessDenied' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Exception/AccessDenied.php',
         'Comfino\\Api\\Exception\\AuthorizationError' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Exception/AuthorizationError.php',
+        'Comfino\\Api\\Exception\\Conflict' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Exception/Conflict.php',
+        'Comfino\\Api\\Exception\\Forbidden' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Exception/Forbidden.php',
+        'Comfino\\Api\\Exception\\MethodNotAllowed' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Exception/MethodNotAllowed.php',
+        'Comfino\\Api\\Exception\\NotFound' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Exception/NotFound.php',
         'Comfino\\Api\\Exception\\RequestValidationError' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Exception/RequestValidationError.php',
         'Comfino\\Api\\Exception\\ResponseValidationError' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Exception/ResponseValidationError.php',
         'Comfino\\Api\\Exception\\ServiceUnavailable' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Exception/ServiceUnavailable.php',
         'Comfino\\Api\\HttpErrorExceptionInterface' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/HttpErrorExceptionInterface.php',
-        'Comfino\\Api\\PluginUpdate' => __DIR__ . '/../..' . '/src/Api/PluginUpdate.php',
         'Comfino\\Api\\Request' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Request.php',
         'Comfino\\Api\\Request\\CancelOrder' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Request/CancelOrder.php',
         'Comfino\\Api\\Request\\CreateOrder' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Api/Request/CreateOrder.php',
@@ -571,7 +574,6 @@ class ComposerStaticInit7f9f49a6a84f20d26db6891b32f7c97f
         'Comfino\\Common\\Backend\\RestEndpointManager' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/RestEndpointManager.php',
         'Comfino\\Common\\Backend\\RestEndpoint\\CacheInvalidate' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/RestEndpoint/CacheInvalidate.php',
         'Comfino\\Common\\Backend\\RestEndpoint\\Configuration' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/RestEndpoint/Configuration.php',
-        'Comfino\\Common\\Backend\\RestEndpoint\\ConfigurationRepair' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/RestEndpoint/ConfigurationRepair.php',
         'Comfino\\Common\\Backend\\RestEndpoint\\StatusNotification' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/RestEndpoint/StatusNotification.php',
         'Comfino\\Common\\Exception\\ConnectionTimeout' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Exception/ConnectionTimeout.php',
         'Comfino\\Common\\Exception\\InvalidEndpoint' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Exception/InvalidEndpoint.php',
@@ -642,9 +644,9 @@ class ComposerStaticInit7f9f49a6a84f20d26db6891b32f7c97f
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit7f9f49a6a84f20d26db6891b32f7c97f::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit7f9f49a6a84f20d26db6891b32f7c97f::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit7f9f49a6a84f20d26db6891b32f7c97f::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit24635c797d2fe66e451bae21f49f2f81::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit24635c797d2fe66e451bae21f49f2f81::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit24635c797d2fe66e451bae21f49f2f81::$classMap;
 
         }, null, ClassLoader::class);
     }
