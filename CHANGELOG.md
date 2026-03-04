@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.2.8](https://github.com/comfino/PrestaShop/tree/4.2.8) (2026-03-04)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.7...4.2.8)
+
+**Merged pull requests:**
+
+- FN-14209 Fixed some bugs. [\#112](https://github.com/comfino/PrestaShop/pull/112) ([pkaluzinski-comfino](https://github.com/pkaluzinski-comfino))
+
 ## [4.2.7](https://github.com/comfino/PrestaShop/tree/4.2.7) (2026-01-09)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.6...4.2.7)
