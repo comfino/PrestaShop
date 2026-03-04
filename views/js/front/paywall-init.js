@@ -51,7 +51,7 @@ window.ComfinoPaywallInit = {
             priceModifier = parseInt(frontendInitElement.dataset.priceModifier);
 
             if (!Number.isNaN(priceModifier)) {
-                iframe.src += ('&priceModifier=' + priceModifier);
+                iframe.src += ((iframe.src.includes('?') ? '&' : '?') + 'priceModifier=' + priceModifier);
             } else {
                 priceModifier = 0;
             }
