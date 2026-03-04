@@ -37,7 +37,7 @@ if (!defined('COMFINO_MODULE_NAME')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.2.7');
+    define('COMFINO_VERSION', '4.2.8');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
