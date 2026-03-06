@@ -126,9 +126,14 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         $initLoanAmount = (int) filter_var($cookie->loan_amount, FILTER_VALIDATE_INT);
-        $priceModifier = (int) filter_var($cookie->price_modifier, FILTER_VALIDATE_INT);
         $loanType = trim(filter_var($cookie->loan_type, FILTER_SANITIZE_STRING));
         $loanTerm = (int) filter_var($cookie->loan_term, FILTER_VALIDATE_INT);
+
+        $priceModifier = filter_var($cookie->price_modifier, FILTER_VALIDATE_INT);
+
+        if ($priceModifier === false || $priceModifier < 0 || $priceModifier > 1000000) {
+            $priceModifier = 0;
+        }
 
         $psOrder = new \Order($this->module->currentOrder);
 

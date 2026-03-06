@@ -43,6 +43,9 @@ if (!defined('_PS_VERSION_')) {
 
 class ComfinoPaywallModuleFrontController extends ModuleFrontController
 {
+    /**
+     * @throws Exception
+     */
     public function initContent(): void
     {
         ErrorLogger::init();
@@ -55,13 +58,17 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             return;
         }
 
-        if (!Tools::isEmpty('priceModifier') && is_numeric(Tools::getValue('priceModifier'))) {
-            $priceModifier = (int) filter_var(Tools::getValue('priceModifier'), FILTER_VALIDATE_INT);
+        if (!Tools::isEmpty('priceModifier') && ctype_digit(Tools::getValue('priceModifier'))) {
+            $priceModifier = filter_var(Tools::getValue('priceModifier'), FILTER_VALIDATE_INT);
+
+            if ($priceModifier === false || $priceModifier < 0 || $priceModifier > 1000000) {
+                $priceModifier = 0;
+            }
         } else {
             $priceModifier = 0;
         }
 
-        $loanAmount = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
+        $cartTotal = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
 
         $shopCart = OrderManager::getShopCart($this->context->cart, $priceModifier);
         $allowedProductTypes = SettingsManager::getAllowedProductTypes(
@@ -80,7 +87,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
             '[PAYWALL]',
             'renderPaywall',
             [
-                '$loanAmount' => $loanAmount,
+                '$cartTotal' => $cartTotal,
                 '$priceModifier' => $priceModifier,
                 '$cartTotalValue' => $shopCart->getTotalValue(),
                 '$allowedProductTypes' => $allowedProductTypes,
@@ -99,7 +106,7 @@ class ComfinoPaywallModuleFrontController extends ModuleFrontController
 
         try {
             $paywallContents = ApiClient::getInstance()->getPaywall(
-                new LoanQueryCriteria($loanAmount, null, null, $allowedProductTypes),
+                new LoanQueryCriteria($cartTotal, null, null, $priceModifier, $allowedProductTypes),
                 $paywallUrl
             );
 

@@ -245,12 +245,12 @@ final class FrontendManager
         }
 
         $updateInfo = json_decode($updateInfoJson, true);
+        $githubVersion = $updateInfo['github_version'] ?? '';
 
-        if (!isset($updateInfo['update_available']) || !$updateInfo['update_available']) {
+        // Re-evaluate against current version to avoid showing stale cached notice after an update.
+        if (empty($githubVersion) || !version_compare($githubVersion, COMFINO_VERSION, '>')) {
             return '';
         }
-
-        $githubVersion = $updateInfo['github_version'] ?? '';
 
         // Check if this version was already dismissed.
         if ($dismissedVersion === $githubVersion) {
