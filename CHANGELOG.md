@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.2.9](https://github.com/comfino/PrestaShop/tree/4.2.9) (2026-03-06)
+
+[Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.8...4.2.9)
+
+**Merged pull requests:**
+
+- FN-14233 Fixed a bug in extra commission calculation for loan amount (priceModifier) and in plugin update notification display logic. [\#113](https://github.com/comfino/PrestaShop/pull/113) ([akozubskicr](https://github.com/akozubskicr))
+
 ## [4.2.8](https://github.com/comfino/PrestaShop/tree/4.2.8) (2026-03-04)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.7...4.2.8)

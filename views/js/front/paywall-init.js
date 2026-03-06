@@ -45,15 +45,11 @@ window.ComfinoPaywallInit = {
         const iframe = ComfinoPaywallFrontend.createPaywallIframe(ComfinoPaywallData.paywallUrl, ComfinoPaywallData.paywallOptions);
         const frontendInitElement = document.getElementById('pay-with-comfino') ?? document.querySelector('input[data-module-name^="comfino"]');
 
-        let priceModifier = 0;
-
         if ('priceModifier' in frontendInitElement.dataset) {
-            priceModifier = parseInt(frontendInitElement.dataset.priceModifier);
+            let priceModifier = parseInt(frontendInitElement.dataset.priceModifier);
 
             if (!Number.isNaN(priceModifier)) {
                 iframe.src += ((iframe.src.includes('?') ? '&' : '?') + 'priceModifier=' + priceModifier);
-            } else {
-                priceModifier = 0;
             }
         }
 
@@ -66,7 +62,7 @@ window.ComfinoPaywallInit = {
                 loan_amount: loanParams.loanAmount,
                 loan_type: loanParams.loanType,
                 loan_term: loanParams.loanTerm,
-                price_modifier: priceModifier
+                price_modifier: loanParams.priceModifier
             };
 
             for (let paramName in urlParams) {
