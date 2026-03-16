@@ -109,7 +109,7 @@ class Configuration extends RestEndpoint
                     'plugin_build_ts' => $this->pluginBuildTs,
                     'wordpress_version' => $wpVersion,
                     'symfony_version' => class_exists('\Symfony\Component\HttpKernel\Kernel')
-                        ? \ComfinoExternal\Symfony\Component\HttpKernel\Kernel::VERSION
+                        ? \Symfony\Component\HttpKernel\Kernel::VERSION
                         : 'n/a',
                     'php_version' => PHP_VERSION,
                     'server_software' => $serverRequest->getServerParams()['SERVER_SOFTWARE'],
