@@ -1,3 +1,6 @@
+4.2.9
+ - FN-14233 Fixed a bug in extra commission calculation for loan amount (priceModifier) and in plugin update notification display logic.
+
 4.2.8
  - FN-14209 Fixed some bugs.
 

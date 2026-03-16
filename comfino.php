@@ -37,11 +37,11 @@ if (!defined('COMFINO_MODULE_NAME')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.2.8');
+    define('COMFINO_VERSION', '4.2.9');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1772632040);
+    define('COMFINO_BUILD_TS', 1772806598);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
@@ -63,7 +63,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '4.2.8';
+        $this->version = '4.2.9';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -426,8 +426,15 @@ class Comfino extends PaymentModule
         $lastCheckTime = Configuration::get('COMFINO_GITHUB_VERSION_CHECK_TIME');
 
         if ($lastCheckTime && (time() - (int) $lastCheckTime) < 86400) {
-            // Checked within last 24 hours, skip.
-            return;
+            // Checked within last 24 hours - but bypass if the running version changed (e.g. after an update).
+            if (is_array($cachedInfo = json_decode(Configuration::get('COMFINO_GITHUB_VERSION_INFO'), true))
+                && (isset($cachedInfo['current_version']) ? $cachedInfo['current_version'] : '') === COMFINO_VERSION
+            ) {
+                return;
+            }
+
+            // Version changed since last cache - force refresh.
+            Comfino\Update\UpdateManager::forceCheckForUpdates();
         }
 
         $updateInfo = Comfino\Update\UpdateManager::checkForUpdates();
