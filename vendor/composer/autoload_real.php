@@ -1,6 +1,6 @@
 <?php
 
-class ComposerAutoloaderInit5a90db578ef4735eb13393bf335b70ce
+class ComposerAutoloaderInit24635c797d2fe66e451bae21f49f2f81
 {
     private static $loader;
 
@@ -20,48 +20,28 @@ class ComposerAutoloaderInit5a90db578ef4735eb13393bf335b70ce
             return self::$loader;
         }
 
-        spl_autoload_register(array('ComposerAutoloaderInit5a90db578ef4735eb13393bf335b70ce', 'loadClassLoader'), true, false);
-        self::$loader = $loader = new \Composer\Autoload\ClassLoader(\dirname(\dirname(__FILE__)));
-        spl_autoload_unregister(array('ComposerAutoloaderInit5a90db578ef4735eb13393bf335b70ce', 'loadClassLoader'));
+        spl_autoload_register(array('ComposerAutoloaderInit24635c797d2fe66e451bae21f49f2f81', 'loadClassLoader'), true, false);
+        self::$loader = $loader = new \Composer\Autoload\ClassLoader(\dirname(__DIR__));
+        spl_autoload_unregister(array('ComposerAutoloaderInit24635c797d2fe66e451bae21f49f2f81', 'loadClassLoader'));
 
-        $useStaticLoader = PHP_VERSION_ID >= 50600 && !defined('HHVM_VERSION') && (!function_exists('zend_loader_file_encoded') || !zend_loader_file_encoded());
-        if ($useStaticLoader) {
-            require __DIR__ . '/autoload_static.php';
-
-            call_user_func(\Composer\Autoload\ComposerStaticInit5a90db578ef4735eb13393bf335b70ce::getInitializer($loader));
-        } else {
-            $classMap = require __DIR__ . '/autoload_classmap.php';
-            if ($classMap) {
-                $loader->addClassMap($classMap);
-            }
-        }
+        require __DIR__ . '/autoload_static.php';
+        call_user_func(\Composer\Autoload\ComposerStaticInit24635c797d2fe66e451bae21f49f2f81::getInitializer($loader));
 
         $loader->setClassMapAuthoritative(true);
         $loader->register(false);
 
-        if ($useStaticLoader) {
-            $includeFiles = Composer\Autoload\ComposerStaticInit5a90db578ef4735eb13393bf335b70ce::$files;
-        } else {
-            $includeFiles = require __DIR__ . '/autoload_files.php';
-        }
-        foreach ($includeFiles as $fileIdentifier => $file) {
-            composerRequire5a90db578ef4735eb13393bf335b70ce($fileIdentifier, $file);
+        $filesToLoad = \Composer\Autoload\ComposerStaticInit24635c797d2fe66e451bae21f49f2f81::$files;
+        $requireFile = \Closure::bind(static function ($fileIdentifier, $file) {
+            if (empty($GLOBALS['__composer_autoload_files'][$fileIdentifier])) {
+                $GLOBALS['__composer_autoload_files'][$fileIdentifier] = true;
+
+                require $file;
+            }
+        }, null, null);
+        foreach ($filesToLoad as $fileIdentifier => $file) {
+            $requireFile($fileIdentifier, $file);
         }
 
         return $loader;
-    }
-}
-
-/**
-     * @param string $fileIdentifier
-     * @param string $file
-     * @return void
-     */
-function composerRequire5a90db578ef4735eb13393bf335b70ce($fileIdentifier, $file)
-{
-    if (empty($GLOBALS['__composer_autoload_files'][$fileIdentifier])) {
-        $GLOBALS['__composer_autoload_files'][$fileIdentifier] = true;
-
-        require $file;
     }
 }
