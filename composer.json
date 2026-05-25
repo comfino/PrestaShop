@@ -96,6 +96,10 @@
     },
     "repositories": [
         {
+            "type": "artifact",
+            "url": "/home/akozubski/Devel/comfino/lib/shop-plugins-lib-builder/packages/sunrise"
+        },
+        {
             "type": "vcs",
             "url": "git@github.com:comfino/shop-plugins-shared.git"
         }

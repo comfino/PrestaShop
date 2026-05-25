@@ -1,6 +1,6 @@
 <?php
 
-class ComposerAutoloaderInit24635c797d2fe66e451bae21f49f2f81
+class ComposerAutoloaderInitb9b1dd7adb02d0787cc39a81e60a319b
 {
     private static $loader;
 
@@ -20,17 +20,16 @@ class ComposerAutoloaderInit24635c797d2fe66e451bae21f49f2f81
             return self::$loader;
         }
 
-        spl_autoload_register(array('ComposerAutoloaderInit24635c797d2fe66e451bae21f49f2f81', 'loadClassLoader'), true, false);
+        spl_autoload_register(array('ComposerAutoloaderInitb9b1dd7adb02d0787cc39a81e60a319b', 'loadClassLoader'), true, false);
         self::$loader = $loader = new \Composer\Autoload\ClassLoader(\dirname(__DIR__));
-        spl_autoload_unregister(array('ComposerAutoloaderInit24635c797d2fe66e451bae21f49f2f81', 'loadClassLoader'));
+        spl_autoload_unregister(array('ComposerAutoloaderInitb9b1dd7adb02d0787cc39a81e60a319b', 'loadClassLoader'));
 
         require __DIR__ . '/autoload_static.php';
-        call_user_func(\Composer\Autoload\ComposerStaticInit24635c797d2fe66e451bae21f49f2f81::getInitializer($loader));
+        call_user_func(\Composer\Autoload\ComposerStaticInitb9b1dd7adb02d0787cc39a81e60a319b::getInitializer($loader));
 
-        $loader->setClassMapAuthoritative(true);
         $loader->register(false);
 
-        $filesToLoad = \Composer\Autoload\ComposerStaticInit24635c797d2fe66e451bae21f49f2f81::$files;
+        $filesToLoad = \Composer\Autoload\ComposerStaticInitb9b1dd7adb02d0787cc39a81e60a319b::$files;
         $requireFile = \Closure::bind(static function ($fileIdentifier, $file) {
             if (empty($GLOBALS['__composer_autoload_files'][$fileIdentifier])) {
                 $GLOBALS['__composer_autoload_files'][$fileIdentifier] = true;
