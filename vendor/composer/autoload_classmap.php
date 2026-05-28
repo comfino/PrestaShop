@@ -320,6 +320,7 @@ return array(
     'Comfino\\Order\\OrderManager' => $baseDir . '/src/Order/OrderManager.php',
     'Comfino\\Order\\ShopStatusManager' => $baseDir . '/src/Order/ShopStatusManager.php',
     'Comfino\\Order\\StatusAdapter' => $baseDir . '/src/Order/StatusAdapter.php',
+    'Comfino\\PaywallAuthTokenGenerator' => $baseDir . '/src/PaywallAuthTokenGenerator.php',
     'Comfino\\PluginShared\\CacheManager' => $vendorDir . '/comfino/shop-plugins-shared/src/PluginShared/CacheManager.php',
     'Comfino\\Shop\\Order\\Cart' => $vendorDir . '/comfino/shop-plugins-shared/src/Shop/Order/Cart.php',
     'Comfino\\Shop\\Order\\CartInterface' => $vendorDir . '/comfino/shop-plugins-shared/src/Shop/Order/CartInterface.php',

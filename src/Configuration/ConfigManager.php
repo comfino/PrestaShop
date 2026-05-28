@@ -355,6 +355,13 @@ final class ConfigManager
         return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_KEY');
     }
 
+    public static function getSdkScriptUrl(): string
+    {
+        return self::isSandboxMode()
+            ? 'https://widget.craty.pl/sdk/v1/comfino-sdk.min.js'
+            : 'https://widget.comfino.pl/sdk/v1/comfino-sdk.min.js';
+    }
+
     /**
      * @return string[]
      */

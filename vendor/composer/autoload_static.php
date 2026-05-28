@@ -618,6 +618,7 @@ class ComposerStaticInitb9b1dd7adb02d0787cc39a81e60a319b
         'Comfino\\Order\\OrderManager' => __DIR__ . '/../..' . '/src/Order/OrderManager.php',
         'Comfino\\Order\\ShopStatusManager' => __DIR__ . '/../..' . '/src/Order/ShopStatusManager.php',
         'Comfino\\Order\\StatusAdapter' => __DIR__ . '/../..' . '/src/Order/StatusAdapter.php',
+        'Comfino\\PaywallAuthTokenGenerator' => __DIR__ . '/../..' . '/src/PaywallAuthTokenGenerator.php',
         'Comfino\\PluginShared\\CacheManager' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/PluginShared/CacheManager.php',
         'Comfino\\Shop\\Order\\Cart' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Shop/Order/Cart.php',
         'Comfino\\Shop\\Order\\CartInterface' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Shop/Order/CartInterface.php',
