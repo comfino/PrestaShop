@@ -390,6 +390,7 @@ final class Main
             'productTypes' => $allowedProductTypes !== null
                 ? array_map('strval', $allowedProductTypes)
                 : null,
+            'allowedProductsConfig' => SettingsManager::getAllowedProductsConfigForFrontend(),
             'shopEnvironment' => $shopEnvironment,
             'scriptNonce' => self::getScriptNonce(),
         ];

@@ -26,6 +26,7 @@
 
 use Comfino\Api\ApiClient;
 use Comfino\Api\ApiService;
+use Comfino\Api\Dto\Payment\AllowedProductConfig;
 use Comfino\Api\Dto\Payment\LoanQueryCriteria;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\Common\Backend\Factory\OrderFactory;
@@ -396,7 +397,15 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
                 $shopCart
             );
-            $criteria = new LoanQueryCriteria($loanAmount, null, null, null, $allowedProductTypes);
+            $criteria = new LoanQueryCriteria(
+                $loanAmount,
+                null,
+                null,
+                null,
+                $allowedProductTypes,
+                null,
+                $this->buildAllowedProductsConfig()
+            );
 
             return ApiClient::getInstance()->getFinancialProducts($criteria)->financialProducts;
         } catch (\Throwable $e) {
@@ -428,7 +437,42 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             SettingsManager::getAllowedProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL, $shopCart),
             $shopCart->getDeliveryNetCost(),
             $shopCart->getDeliveryTaxRate(),
-            $shopCart->getDeliveryTaxValue()
+            $shopCart->getDeliveryTaxValue(),
+            null,
+            $this->buildAllowedProductsConfig()
         );
+    }
+
+    /**
+     * @return AllowedProductConfig[]|null
+     */
+    private function buildAllowedProductsConfig(): ?array
+    {
+        $normalized = SettingsManager::getAllowedProductsConfigForFrontend();
+
+        if ($normalized === null) {
+            return null;
+        }
+
+        $result = [];
+
+        foreach ($normalized as $entry) {
+            try {
+                $result[] = new AllowedProductConfig(
+                    new LoanTypeEnum($entry['type']),
+                    $entry['maxTerm'] ?? null,
+                    $entry['minTerm'] ?? null,
+                    $entry['terms'] ?? null
+                );
+            } catch (\Throwable $e) {
+                DebugLogger::logEvent(
+                    '[ALLOWED_PRODUCTS_CONFIG]',
+                    'Invalid allowed product config entry skipped.',
+                    ['$entry' => $entry, '$error' => $e->getMessage()]
+                );
+            }
+        }
+
+        return !empty($result) ? $result : null;
     }
 }

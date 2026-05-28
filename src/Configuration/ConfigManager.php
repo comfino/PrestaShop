@@ -56,6 +56,7 @@ final class ConfigManager
         ],
         'sale_settings' => [
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
         ],
         'widget_settings' => [
             'COMFINO_WIDGET_ENABLED' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
@@ -85,6 +86,8 @@ final class ConfigManager
             'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG_FORBIDDEN_PROD_TYPES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_IGNORED_STATUSES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
             'COMFINO_FORBIDDEN_STATUSES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
             'COMFINO_STATUS_MAP' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
@@ -109,6 +112,8 @@ final class ConfigManager
         'COMFINO_USE_ORDER_REFERENCE',
         // Sale settings
         'COMFINO_PRODUCT_CATEGORY_FILTERS',
+        'COMFINO_ALLOWED_PRODUCTS_CONFIG',
+        'COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED',
         // Widget settings
         'COMFINO_WIDGET_ENABLED',
         'COMFINO_WIDGET_KEY',
@@ -134,6 +139,7 @@ final class ConfigManager
         'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
         'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
         'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES',
+        'COMFINO_ALLOWED_PRODUCTS_CONFIG_FORBIDDEN_PROD_TYPES',
         'COMFINO_IGNORED_STATUSES',
         'COMFINO_FORBIDDEN_STATUSES',
         'COMFINO_STATUS_MAP',
@@ -562,6 +568,9 @@ final class ConfigManager
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' =>
                 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER,COMPANY_BNPL,COMPANY_INSTALLMENTS,LEASING,PAY_IN_PARTS',
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG' => null,
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG_FORBIDDEN_PROD_TYPES' => 'BLIK,PAY_LATER,PAY_IN_PARTS,INSTANT_PAYMENTS',
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED' => false,
             'COMFINO_WIDGET_ENABLED' => false,
             'COMFINO_WIDGET_KEY' => '',
             'COMFINO_WIDGET_PRICE_SELECTOR' => COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]',

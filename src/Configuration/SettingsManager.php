@@ -303,6 +303,87 @@ final class SettingsManager
         return $availProductTypes;
     }
 
+    public static function getAllowedProductsConfigForbiddenProductTypes(): array
+    {
+        if (!is_array($forbiddenProds = ConfigManager::getConfigurationValue('COMFINO_ALLOWED_PRODUCTS_CONFIG_FORBIDDEN_PROD_TYPES', []))) {
+            $forbiddenProds = array_map('trim', explode(',', $forbiddenProds));
+        }
+
+        return $forbiddenProds;
+    }
+
+    public static function getAllowedProductsConfigAvailProdTypes(): array
+    {
+        $productTypes = self::getProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL);
+
+        if (isset($productTypes['error'])) {
+            return [];
+        }
+
+        $allowedProductConfigForbiddenProductTypes = [];
+
+        foreach (self::getAllowedProductsConfigForbiddenProductTypes() as $productType) {
+            $allowedProductConfigForbiddenProductTypes[$productType] = null;
+        }
+
+        if (empty($availProductTypes = array_diff_key($productTypes, $allowedProductConfigForbiddenProductTypes))) {
+            $availProductTypes = $productTypes;
+        }
+
+        return $availProductTypes;
+    }
+
+    /**
+     * Returns the normalized `COMFINO_ALLOWED_PRODUCTS_CONFIG` payload ready for both the paywall iframe bootstrap
+     * (frontend) and the backend `AllowedProductConfig` DTO builder. Drops entries whose `type` is missing or not
+     * a known `LoanTypeEnum`, ensures `terms` are positive ints, returns `null` when the result is empty, so the
+     * SDK's `?.length` short-circuit matches the "no restrictions" semantics.
+     *
+     * @return array[]|null
+     */
+    public static function getAllowedProductsConfigForFrontend(): ?array
+    {
+        $raw = ConfigManager::getConfigurationValue('COMFINO_ALLOWED_PRODUCTS_CONFIG');
+
+        if (!is_array($raw) || empty($raw)) {
+            return null;
+        }
+
+        $validTypes = LoanTypeEnum::values();
+        $result = [];
+
+        foreach ($raw as $entry) {
+            if (!is_array($entry) || empty($entry['type']) || !in_array($entry['type'], $validTypes, true)) {
+                continue;
+            }
+
+            $normalized = ['type' => (string) $entry['type']];
+
+            if (isset($entry['minTerm']) && is_numeric($entry['minTerm'])) {
+                $normalized['minTerm'] = (int) $entry['minTerm'];
+            }
+
+            if (isset($entry['maxTerm']) && is_numeric($entry['maxTerm'])) {
+                $normalized['maxTerm'] = (int) $entry['maxTerm'];
+            }
+
+            if (isset($entry['terms']) && is_array($entry['terms'])) {
+                $terms = array_values(array_filter(
+                    array_map('intval', $entry['terms']),
+                    static function ($term) { return $term > 0; }
+                ));
+
+                if (!empty($terms)) {
+                    $normalized['terms'] = $terms;
+                }
+            }
+
+            $result[] = $normalized;
+        }
+
+        return !empty($result) ? $result : null;
+    }
+
     private static function getFilterManager(string $listType): ProductTypeFilterManager
     {
         if (self::$filterManager === null) {

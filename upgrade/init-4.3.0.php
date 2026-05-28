@@ -41,6 +41,22 @@ function upgrade_module_4_3_0(Comfino $module)
     @unlink(_PS_MODULE_DIR_ . $module->name . '/views/js/front/paywall-init.js');
     @unlink(_PS_MODULE_DIR_ . $module->name . '/views/js/front/paywall-init.min.js');
 
+    // Initialize allowed-products-config keys (no restrictions by default; admin UI hidden until enabled).
+    if (!Configuration::hasKey('COMFINO_ALLOWED_PRODUCTS_CONFIG')) {
+        Configuration::updateValue('COMFINO_ALLOWED_PRODUCTS_CONFIG', null);
+    }
+
+    if (!Configuration::hasKey('COMFINO_ALLOWED_PRODUCTS_CONFIG_FORBIDDEN_PROD_TYPES')) {
+        Configuration::updateValue(
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG_FORBIDDEN_PROD_TYPES',
+            'BLIK,PAY_LATER,PAY_IN_PARTS,INSTANT_PAYMENTS'
+        );
+    }
+
+    if (!Configuration::hasKey('COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED')) {
+        Configuration::updateValue('COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED', false);
+    }
+
     Main::updateUpgradeLog('Upgrade script for 4.3.0 executed.');
 
     return true;

@@ -272,6 +272,66 @@ final class SettingsForm
                     }
 
                     $configurationOptions['COMFINO_PRODUCT_CATEGORY_FILTERS'] = $productCategoryFilters;
+
+                    if (!ConfigManager::getConfigurationValue('COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED')) {
+                        break;
+                    }
+
+                    $allowedProductsConfig = [];
+                    $termLimitsData = \Tools::getValue('comfino_term_limits', []);
+                    $validProductTypes = \Comfino\Api\Dto\Payment\LoanTypeEnum::values();
+
+                    if (is_array($termLimitsData)) {
+                        foreach ($termLimitsData as $productType => $limits) {
+                            $productType = \Tools::safeOutput((string) $productType);
+
+                            if (!in_array($productType, $validProductTypes, true)) {
+                                $output[] = sprintf(
+                                    Main::translate('Unknown product type "%s" in term limits — entry skipped.'),
+                                    $productType
+                                );
+
+                                continue;
+                            }
+
+                            $maxTerm = isset($limits['maxTerm']) && $limits['maxTerm'] !== '' ? (int) $limits['maxTerm'] : null;
+                            $minTerm = isset($limits['minTerm']) && $limits['minTerm'] !== '' ? (int) $limits['minTerm'] : null;
+                            $termsRaw = isset($limits['terms']) && $limits['terms'] !== '' ? $limits['terms'] : null;
+                            $terms = null;
+
+                            if ($termsRaw !== null) {
+                                $terms = array_values(array_filter(
+                                    array_map('intval', explode(',', $termsRaw)),
+                                    static function ($term) { return $term > 0; }
+                                ));
+
+                                if (empty($terms)) {
+                                    $terms = null;
+                                }
+                            }
+
+                            if ($minTerm !== null && $maxTerm !== null && $minTerm > $maxTerm) {
+                                $output[] = sprintf(
+                                    Main::translate('Term limits for "%s": minTerm must not exceed maxTerm.'),
+                                    $productType
+                                );
+
+                                continue;
+                            }
+
+                            if ($maxTerm !== null || $minTerm !== null || $terms !== null) {
+                                $allowedProductsConfig[] = array_filter(
+                                    ['type' => $productType, 'maxTerm' => $maxTerm, 'minTerm' => $minTerm, 'terms' => $terms],
+                                    static function ($value) { return $value !== null; }
+                                );
+                            }
+                        }
+                    }
+
+                    $configurationOptions['COMFINO_ALLOWED_PRODUCTS_CONFIG'] = !empty($allowedProductsConfig)
+                        ? $allowedProductsConfig
+                        : null;
+
                     break;
 
                 case 'widget_settings':
@@ -516,6 +576,29 @@ final class SettingsForm
                             'product_categories',
                             $prodTypeCode,
                             $selectedCategories
+                        ),
+                    ];
+                }
+
+                if ((bool) ConfigManager::getConfigurationValue('COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED')) {
+                    $savedAllowedConfig = ConfigManager::getConfigurationValue('COMFINO_ALLOWED_PRODUCTS_CONFIG');
+                    $savedConfigByType = [];
+
+                    if (is_array($savedAllowedConfig)) {
+                        foreach ($savedAllowedConfig as $entry) {
+                            if (!empty($entry['type'])) {
+                                $savedConfigByType[$entry['type']] = $entry;
+                            }
+                        }
+                    }
+
+                    $productCategoryFilterInputs[] = [
+                        'type' => 'html',
+                        'name' => 'allowed_products_config',
+                        'required' => false,
+                        'html_content' => self::renderAllowedProductsConfig(
+                            SettingsManager::getAllowedProductsConfigAvailProdTypes(),
+                            $savedConfigByType
                         ),
                     ];
                 }
@@ -906,6 +989,22 @@ final class SettingsForm
         }
 
         return $fields;
+    }
+
+    /**
+     * @param array $productTypes [typeCode => typeName, ...]
+     * @param array $savedConfig  [typeCode => ['maxTerm' => ?int, 'minTerm' => ?int, 'terms' => ?int[]], ...]
+     */
+    private static function renderAllowedProductsConfig(array $productTypes, array $savedConfig): string
+    {
+        return TemplateManager::renderModuleView(
+            'allowed-products-config',
+            'admin/_configure',
+            [
+                'product_types' => $productTypes,
+                'saved_config' => $savedConfig,
+            ]
+        );
     }
 
     /**
