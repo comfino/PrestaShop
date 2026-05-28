@@ -80,6 +80,8 @@ final class ConfigManager
             'COMFINO_DEV_ENV_VARS' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
         ],
         'hidden_settings' => [
+            'COMFINO_CSP_ENABLED' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_CSP_REPORT_ONLY' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
@@ -127,6 +129,8 @@ final class ConfigManager
         'COMFINO_SERVICE_MODE',
         'COMFINO_DEV_ENV_VARS',
         // Hidden settings
+        'COMFINO_CSP_ENABLED',
+        'COMFINO_CSP_REPORT_ONLY',
         'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
         'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
         'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES',
@@ -321,17 +325,16 @@ final class ConfigManager
             . FrontendHelper::getLogoAuthHash('PS', _PS_VERSION_, COMFINO_VERSION, COMFINO_BUILD_TS);
     }
 
-    public static function getPaywallLogoUrl(): string
+    public static function getPaywallLogoAuthHash(): string
     {
-        return self::getLogoApiHost() . '/v1/get-paywall-logo?auth='
-            . FrontendHelper::getPaywallLogoAuthHash(
-                'PS',
-                _PS_VERSION_,
-                COMFINO_VERSION,
-                ApiClient::getInstance()->getApiKey(),
-                self::getWidgetKey(),
-                COMFINO_BUILD_TS
-            );
+        return FrontendHelper::getPaywallLogoAuthHash(
+            'PS',
+            _PS_VERSION_,
+            COMFINO_VERSION,
+            ApiClient::getInstance()->getApiKey(),
+            self::getWidgetKey(),
+            COMFINO_BUILD_TS
+        );
     }
 
     public static function getApiHost(?string $apiHost = null): ?string
@@ -587,6 +590,8 @@ final class ConfigManager
             'COMFINO_NEW_WIDGET_ACTIVE' => true,
             'COMFINO_PROD_CAT_CACHE_TTL' => 60 * 60, // Default cache TTL for product categories set to 1 hour.
             'COMFINO_DEV_ENV_VARS' => false,
+            'COMFINO_CSP_ENABLED' => false,
+            'COMFINO_CSP_REPORT_ONLY' => true,
         ];
     }
 

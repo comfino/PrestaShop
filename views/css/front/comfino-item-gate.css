@@ -1,0 +1,25 @@
+/* Hide the Comfino payment method item until the SDK signals it is operational.
+   The SDK adds comfino-payment-method-item--ready via DefaultPaymentMethodItemRenderer.setReady()
+   right after render() returns during PaywallManager.initialize() — proves the CDN bundle loaded
+   and the adapter is alive. The --active modifier is added after the iframe load + COMFINO_INIT
+   handshake (stage 2); visibility is gated on --ready only. */
+
+/* PrestaShop 1.7+ Classic / Hummingbird theme */
+[data-module-name="comfino"] {
+    display: none !important;
+}
+
+[data-module-name="comfino"].comfino-payment-method-item--ready {
+    display: block !important;
+}
+
+/* PrestaShop 1.6 (hookPayment / hookDisplayPaymentEU) */
+.payment_module.comfino,
+.payment-option.comfino {
+    display: none !important;
+}
+
+.payment_module.comfino.comfino-payment-method-item--ready,
+.payment-option.comfino.comfino-payment-method-item--ready {
+    display: block !important;
+}

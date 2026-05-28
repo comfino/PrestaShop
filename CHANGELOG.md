@@ -1,5 +1,28 @@
 # Changelog
 
+## [4.3.0](https://github.com/comfino/PrestaShop/tree/4.3.0)
+
+### Changed
+- Paywall frontend migrated from legacy V0 (`ComfinoPaywallFrontend`) to V3 SDK (`comfino-sdk.min.js` + `bootstrapPaywall('prestashop', data)`).
+- Auth token now generated server-side by the plugin (`PaywallAuthTokenGenerator`); passed to the frontend as raw base64.
+- Loan type and term now transmitted via hidden form fields (`comfino_loan_type` / `comfino_loan_term`) — no longer via PrestaShop cookie.
+- `paymentIsAvailable()` no longer reads loan/price-modifier cookies; loan amount is computed from `Cart::getOrderTotal(true) * 100`.
+- `Comfino-Track-Id` request header now carries the shop domain (via `setClientHostName`) instead of the OS hostname.
+
+### Added
+- `src/PaywallAuthTokenGenerator` — HMAC-SHA3-256 token generator for V3 paywall iframe auth.
+- `ConfigManager::getSdkScriptUrl()` — environment-aware CDN URL for `comfino-sdk.min.js`.
+- `views/css/front/comfino-item-gate.css` — hide-by-default gate for the Comfino payment tile until the SDK signals readiness.
+- Static render guard in `Main::renderPaywallIframe()` against duplicate hook invocations by OPC modules (SuperCheckout, TheCheckout).
+- `controllers/front/payment.php` emergency fallback that fetches the default financial product when loan parameters are missing.
+
+### Removed
+- `controllers/front/paymentstate.php` — V0 cookie state writer.
+- `controllers/front/paywall.php` — V0 server-side paywall HTML endpoint.
+- `views/js/front/paywall-init.js` / `.min.js` — replaced by the inline V3 SDK bootstrap in `payment.tpl`.
+- Legacy PaywallRenderer / PaywallIframeRenderer accessors from `FrontendManager`.
+- `COMFINO_SHOW_LOGO` configuration option — logo is now rendered entirely by the SDK.
+
 ## [4.2.9](https://github.com/comfino/PrestaShop/tree/4.2.9) (2026-03-18)
 
 [Full Changelog](https://github.com/comfino/PrestaShop/compare/4.2.8...4.2.9)

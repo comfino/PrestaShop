@@ -27,8 +27,6 @@
 namespace Comfino\View;
 
 use Comfino\Api\HttpErrorExceptionInterface;
-use Comfino\Common\Frontend\PaywallIframeRenderer;
-use Comfino\Common\Frontend\PaywallRenderer;
 use Comfino\Common\Frontend\WidgetInitScriptHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\DebugLogger;
@@ -42,22 +40,6 @@ if (!defined('_PS_VERSION_')) {
 
 final class FrontendManager
 {
-    public static function getPaywallRenderer(): PaywallRenderer
-    {
-        static $renderer = null;
-
-        if ($renderer === null) {
-            $renderer = new PaywallRenderer();
-        }
-
-        return $renderer;
-    }
-
-    public static function getPaywallIframeRenderer(): PaywallIframeRenderer
-    {
-        return new PaywallIframeRenderer();
-    }
-
     public static function getLocalScriptUrl(string $scriptFileName, bool $frontScript = true): string
     {
         $scriptDirectory = ($frontScript ? 'front' : 'admin');

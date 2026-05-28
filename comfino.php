@@ -37,7 +37,7 @@ if (!defined('COMFINO_MODULE_NAME')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.2.9');
+    define('COMFINO_VERSION', '4.3.0');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
@@ -63,7 +63,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '4.2.9';
+        $this->version = '4.3.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -79,8 +79,6 @@ class Comfino extends PaymentModule
             'configuration',
             'error',
             'payment',
-            'paymentstate',
-            'paywall',
             'paywallitemdetails',
             'script',
             'transactionstatus',
@@ -255,25 +253,89 @@ class Comfino extends PaymentModule
                 'defer'
             );
         } elseif (in_array($controller, ['cart', 'order', 'checkout'])) {
-            $iframeRenderer = Comfino\View\FrontendManager::getPaywallIframeRenderer();
-
-            $styles = Comfino\View\FrontendManager::registerExternalStyles($iframeRenderer->getStyles());
-            $scripts = Comfino\View\FrontendManager::registerExternalScripts($iframeRenderer->getScripts());
-
-            foreach ($scripts as $scriptId => $scriptUrl) {
-                Comfino\Main::addScriptLink($scriptId, $scriptUrl, 'head');
-            }
-
-            Comfino\Main::addScriptLink(
-                'comfino-paywall-init',
-                Comfino\View\FrontendManager::getLocalScriptUrl('paywall-init.js'),
-                'head'
+            // Hide-by-default gate for the Comfino payment tile until the SDK signals readiness.
+            Comfino\Main::addStyleLink(
+                'comfino-item-gate',
+                _MODULE_DIR_ . $this->name . '/views/css/front/comfino-item-gate.css'
             );
+        }
+    }
 
-            foreach ($styles as $styleId => $styleUrl) {
-                Comfino\Main::addStyleLink($styleId, $styleUrl);
+    /**
+     * Emits a Comfino-compatible Content-Security-Policy header on checkout pages when enabled.
+     * Opt-in via COMFINO_CSP_ENABLED; Report-Only by default (COMFINO_CSP_REPORT_ONLY).
+     * If another module already set a CSP header, the Comfino domains are merged into it.
+     *
+     * @return void
+     */
+    public function hookActionFrontControllerSetMedia(array $params)
+    {
+        if (!(bool) Configuration::get('COMFINO_CSP_ENABLED')) {
+            return;
+        }
+
+        if (headers_sent()) {
+            return;
+        }
+
+        $phpSelf = property_exists($this->context->controller, 'php_self')
+            ? (string) $this->context->controller->php_self
+            : '';
+
+        if (!in_array($phpSelf, ['order', 'order-opc', 'order-confirmation'], true)) {
+            return;
+        }
+
+        $isSandbox = Comfino\Configuration\ConfigManager::isSandboxMode();
+        $apiDomain = $isSandbox ? 'https://api-ecommerce.ecraty.pl' : 'https://api-ecommerce.comfino.pl';
+        $cdnDomain = $isSandbox ? 'https://widget.craty.pl' : 'https://widget.comfino.pl';
+
+        $existing = '';
+
+        foreach (headers_list() as $header) {
+            if (stripos($header, 'content-security-policy:') === 0) {
+                $existing = trim(substr($header, strpos($header, ':') + 1));
+
+                break;
             }
         }
+
+        $additions = [
+            'frame-src' => $apiDomain,
+            'script-src' => $cdnDomain,
+            'connect-src' => "$apiDomain $cdnDomain",
+            'style-src' => $cdnDomain,
+            'img-src' => $cdnDomain,
+        ];
+
+        if ($existing !== '') {
+            foreach ($additions as $directive => $domains) {
+                if (strpos($existing, $directive) !== false) {
+                    $existing = preg_replace("/({$directive}[^;]*)/", "\$1 $domains", $existing);
+                } else {
+                    $existing .= "; $directive 'self' $domains";
+                }
+            }
+
+            $cspHeader = $existing;
+        } else {
+            $cspHeader = implode('; ', [
+                "default-src 'self'",
+                "frame-src 'self' $apiDomain",
+                "script-src 'self' 'unsafe-inline' $cdnDomain",
+                "connect-src 'self' $apiDomain $cdnDomain",
+                "style-src 'self' 'unsafe-inline' $cdnDomain",
+                "img-src 'self' data: $cdnDomain",
+                "font-src 'self' data:",
+                "object-src 'none'",
+                "base-uri 'self'",
+            ]);
+        }
+
+        $reportOnly = (bool) Configuration::get('COMFINO_CSP_REPORT_ONLY');
+        $headerName = $reportOnly ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy';
+
+        header("$headerName: $cspHeader");
     }
 
     /**

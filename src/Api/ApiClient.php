@@ -82,6 +82,7 @@ final class ApiClient
             );
 
             self::$apiClient->addCustomHeader('Comfino-Build-Timestamp', (string) COMFINO_BUILD_TS);
+            self::$apiClient->setClientHostName(\Tools::getShopDomain());
         } else {
             self::$apiClient->setCustomApiHost(ConfigManager::getApiHost());
             self::$apiClient->setApiKey($apiKey);

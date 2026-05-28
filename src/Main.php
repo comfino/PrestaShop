@@ -56,6 +56,7 @@ final class Main
         'displayBackofficeComfinoForm',
         'actionOrderStatusPostUpdate',
         'header',
+        'actionFrontControllerSetMedia',
         'actionAdminControllerSetMedia',
         'displayBackOfficeHeader',
     ];
@@ -308,65 +309,125 @@ final class Main
      */
     public static function renderPaywallIframe(\Comfino $module, array $params)
     {
+        // §14.3: prevent duplicate render when OPC modules (SuperCheckout, TheCheckout, etc.)
+        // invoke the payment hook more than once per request.
+        static $rendered = false;
+
+        if ($rendered) {
+            return COMFINO_PS_17 ? [] : '';
+        }
+
         /** @var \Cart $cart */
         $cart = $params['cart'];
 
         if (!self::paymentIsAvailable($module, $cart)) {
             DebugLogger::logEvent(
                 '[PAYWALL]',
-                'renderPaywallIframe: paymentIsAvailable=FALSE or preparePaywallIframe=NULL'
+                'renderPaywallIframe: paymentIsAvailable=FALSE'
             );
 
             return COMFINO_PS_17 ? [] : '';
         }
 
-        $tools = new Tools(\Context::getContext());
+        $context = \Context::getContext();
 
         try {
-            $total = round($cart->getOrderTotal(), 2);
-            $totalFormatted = $tools->formatPrice($total, $cart->id_currency);
-        } catch (\Exception $e) {
+            // §14.5: getOrderTotal(true) already includes all price modifiers; never add priceModifier again.
+            $loanAmount = (int) round($cart->getOrderTotal(true) * 100);
+
+            $authToken = PaywallAuthTokenGenerator::generateAuthToken(
+                (string) ConfigManager::getWidgetKey(),
+                (string) ConfigManager::getApiKey()
+            );
+
+            $allowedProductTypes = null;
+
+            try {
+                $shopCart = OrderManager::getShopCart($cart, 0);
+                $allowedProductTypes = SettingsManager::getAllowedProductTypes(
+                    ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
+                    $shopCart
+                );
+            } catch (\Throwable $e) {
+                ErrorLogger::sendError(
+                    $e,
+                    'Product type filters',
+                    (string) $e->getCode(),
+                    $e->getMessage()
+                );
+            }
+
+            if ($allowedProductTypes === []) {
+                // All product types filtered out — do not render the payment method.
+                return COMFINO_PS_17 ? [] : '';
+            }
+        } catch (\Throwable $e) {
             FrontendManager::processError('Paywall rendering error', $e);
 
             return COMFINO_PS_17 ? [] : '';
         }
 
+        /* Browser-safe shop environment payload — mirrors the shape produced by
+           AbstractShopEnvironmentBuilder::buildForFrontend() in php-sdk (used by Magento via
+           MagentoShopEnvironmentBuilder). Replaces the deprecated `shopInfo` field — the SDK accepts this directly as
+           PaywallOptions.shopEnvironment with no compat shim involved. */
+        $shopEnvironment = [
+            'platform' => 'prestashop',
+            'platformName' => 'PrestaShop',
+            'platformDomain' => \Tools::getShopDomain(false, true),
+            'theme' => ['family' => 'prestashop'],
+            'language' => $context->language->iso_code,
+            'currency' => $context->currency->iso_code,
+            'pageContext' => ['type' => 'checkout'],
+        ];
+
+        $comfinoSettings = [
+            'authToken' => $authToken,
+            'loanAmount' => $loanAmount,
+            'paymentMethodAuth' => ConfigManager::getPaywallLogoAuthHash(),
+            'environment' => ConfigManager::isSandboxMode() ? 'sandbox' : 'production',
+            'sdkScriptUrl' => ConfigManager::getSdkScriptUrl(),
+            'productTypes' => $allowedProductTypes !== null
+                ? array_map('strval', $allowedProductTypes)
+                : null,
+            'shopEnvironment' => $shopEnvironment,
+            'scriptNonce' => self::getScriptNonce(),
+        ];
+
         $templateVariables = [
-            'paywall_url' => ApiService::getControllerUrl('paywall', [], false),
-            'payment_state_url' => ApiService::getControllerUrl('paymentstate', [], false),
-            'paywall_options' => [
-                'platform' => 'prestashop',
-                'platformName' => 'PrestaShop',
-                'platformVersion' => _PS_VERSION_,
-                'platformDomain' => \Tools::getShopDomain(),
-                'pluginVersion' => COMFINO_VERSION,
-                'language' => $tools->getLanguageIsoCode($cart->id_lang),
-                'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
-                'cartTotal' => $total,
-                'cartTotalFormatted' => $totalFormatted,
-                'productDetailsApiPath' => ApiService::getControllerPath('paywallitemdetails', [], false),
-            ],
+            'loan_amount' => $loanAmount,
+            'comfino_settings' => $comfinoSettings,
+            'checkout_script_url' => _MODULE_DIR_ . $module->name . '/views/js/front/comfino-checkout.js',
+            'script_nonce' => self::getScriptNonce(),
             'is_ps_16' => !COMFINO_PS_17,
-            'comfino_logo_url' => ConfigManager::getPaywallLogoUrl(),
             'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
             'comfino_redirect_url' => ApiService::getControllerUrl('payment'),
         ];
 
+        $rendered = true;
+
         $paywallIframe = TemplateManager::renderModuleView('payment', 'front', $templateVariables);
 
         if (COMFINO_PS_17) {
-            // PrestaShop 1.7+ uses object of class PaymentOption to represent a payment method.
             $comfinoPaymentOption = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
             $comfinoPaymentOption->setModuleName($module->name)
                 ->setAction(ApiService::getControllerUrl('payment'))
                 ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
-                ->setLogo(ConfigManager::getPaywallLogoUrl())
                 ->setAdditionalInformation($paywallIframe);
 
             return [$comfinoPaymentOption];
         }
 
         return $paywallIframe;
+    }
+
+    /**
+     * Returns CSP nonce for the dynamic SDK script element. Empty string when no nonce
+     * source is configured — shops that need strict CSP can populate via a custom hook.
+     */
+    public static function getScriptNonce(): string
+    {
+        return '';
     }
 
     public static function paymentIsAvailable(\Comfino $module, \Cart $cart): bool
@@ -387,10 +448,7 @@ final class Main
 
         ErrorLogger::init();
 
-        $loanAmount = (int) filter_var(\Context::getContext()->cookie->loan_amount, FILTER_VALIDATE_INT);
-        $priceModifier = (int) filter_var(\Context::getContext()->cookie->price_modifier, FILTER_VALIDATE_INT);
-
-        $shopCart = OrderManager::getShopCart($cart, $priceModifier);
+        $shopCart = OrderManager::getShopCart($cart, 0);
         $allowedProductTypes = SettingsManager::getAllowedProductTypes(
             ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
             $shopCart
@@ -403,8 +461,6 @@ final class Main
             [
                 '$paymentIsAvailable' => $paymentIsAvailable,
                 '$allowedProductTypes' => $allowedProductTypes,
-                '$loanAmount' => $loanAmount,
-                '$priceModifier' => $priceModifier,
                 '$cartTotalValue' => $shopCart->getTotalValue(),
             ]
         );
