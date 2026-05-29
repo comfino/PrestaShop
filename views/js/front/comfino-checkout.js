@@ -23,12 +23,13 @@
         platform: 'prestashop',
         environment: config.environment,
         productTypes: config.productTypes,
+        allowedProductsConfig: config.allowedProductsConfig,
         cart: config.cart,
         paywallSettings: config.paywallSettings,
         shopEnvironment: config.shopEnvironment,
         directRedirect: config.directRedirect,
         creditors: config.creditors,
-        allowedProductsConfig: config.allowedProductsConfig,
+        productTypeNames: config.productTypeNames,
         paymentMethodItem: { auth: config.paymentMethodAuth || '' }
     };
 

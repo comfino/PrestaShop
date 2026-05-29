@@ -392,6 +392,8 @@ final class Main
                 : null,
             'allowedProductsConfig' => SettingsManager::getAllowedProductsConfigForFrontend(),
             'shopEnvironment' => $shopEnvironment,
+            'creditors' => SettingsManager::getCreditors() ?: null,
+            'productTypeNames' => SettingsManager::getProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL) ?: null,
             'scriptNonce' => self::getScriptNonce(),
         ];
 

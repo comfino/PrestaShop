@@ -126,6 +126,43 @@ final class SettingsManager
     }
 
     /**
+     * Returns the creditors map (financial product type code => array of creditor codes) used by the SDK
+     * payment-method-item logo renderer. Cached with the same TTL/tag as the admin product-types list.
+     *
+     * @return array<string, string[]>
+     */
+    public static function getCreditors(): array
+    {
+        $cacheKey = 'creditors';
+
+        if (($creditors = CacheManager::get($cacheKey)) !== null) {
+            return is_array($creditors) ? $creditors : [];
+        }
+
+        if (empty(ApiClient::getInstance()->getApiKey())) {
+            return [];
+        }
+
+        try {
+            $response = ApiClient::getInstance()->getCreditors();
+            $creditorsList = $response->creditors;
+            $cacheTtl = (int) $response->getHeader('Cache-TTL', '0');
+
+            CacheManager::set($cacheKey, $creditorsList, $cacheTtl, ['admin_product_types']);
+
+            return $creditorsList;
+        } catch (FilesystemException $e) {
+            ErrorLogger::getLoggerInstance()->logError('Creditors cache error', $e->getMessage());
+
+            return $creditorsList ?? [];
+        } catch (\Throwable $e) {
+            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e);
+        }
+
+        return [];
+    }
+
+    /**
      * @return string[]
      */
     public static function getProductTypesStrings(string $listType): array
