@@ -100,9 +100,9 @@ final class OrderManager
                         $product['ean13'],
                         self::getProductImageUrl($product),
                         self::getProductCategoryIds($productEntity),
-                        $taxRulesGroupId !== 0 ? $netPrice : null,
+                        $taxRulesGroupId !== 0 ? $netPrice : $grossPrice,
                         $taxRulesGroupId !== 0 ? (int) $productEntity->getTaxesRate() : null,
-                        $taxRulesGroupId !== 0 ? $grossPrice - $netPrice : null
+                        $taxRulesGroupId !== 0 ? $grossPrice - $netPrice : 0
                     ),
                     $quantity
                 );
@@ -140,8 +140,11 @@ final class OrderManager
         }
 
         $deliveryCost = (int) round(round($cart->getOrderTotal(true, \Cart::ONLY_SHIPPING), 2) * 100);
-        $deliveryNetCost = null;
-        $deliveryTaxValue = null;
+
+        /* Paid delivery defaults to no-VAT semantics (net equals gross, tax value 0, rate null); the actual net
+           cost, tax value and rate are filled in below when the carrier has a tax rules group. Free delivery stays null. */
+        $deliveryNetCost = $deliveryCost > 0 ? $deliveryCost : null;
+        $deliveryTaxValue = $deliveryCost > 0 ? 0 : null;
         $deliveryTaxRate = null;
 
         if (\Validate::isLoadedObject($carrier = new \Carrier($cart->id_carrier))
@@ -157,8 +160,11 @@ final class OrderManager
                 $deliveryTaxRate = (int) $carrier->getTaxesRate($deliveryAddress);
             } elseif ($billingAddress !== null) {
                 $deliveryTaxRate = (int) $carrier->getTaxesRate($billingAddress);
+            } elseif ($deliveryNetCost > 0) {
+                // VAT rate is tax/net (not tax/gross); derive from net, falling back to gross only when net is 0.
+                $deliveryTaxRate = (int) round($deliveryTaxValue / $deliveryNetCost * 100);
             } elseif ($deliveryCost !== 0) {
-                $deliveryTaxRate = (int) (round($deliveryTaxValue / $deliveryCost, 2) * 100);
+                $deliveryTaxRate = (int) round($deliveryTaxValue / $deliveryCost * 100);
             }
         }
 
@@ -216,9 +222,9 @@ final class OrderManager
                         $product['ean13'],
                         self::getProductImageUrl($product),
                         self::getProductCategoryIds($productEntity),
-                        $taxRulesGroupId !== 0 ? $netPrice : null,
+                        $taxRulesGroupId !== 0 ? $netPrice : $grossPrice,
                         $taxRulesGroupId !== 0 ? (int) $productEntity->getTaxesRate() : null,
-                        $taxRulesGroupId !== 0 ? $grossPrice - $netPrice : null
+                        $taxRulesGroupId !== 0 ? $grossPrice - $netPrice : 0
                     ),
                     $quantity
                 );
@@ -235,9 +241,20 @@ final class OrderManager
         }
 
         $deliveryCost = (int) round(round($order->total_shipping, 2) * 100);
-        $deliveryNetCost = (int) round(round($order->total_shipping_tax_excl, 2) * 100);
-        $deliveryTaxValue = $deliveryCost - $deliveryNetCost;
-        $deliveryTaxRate = (int) round(round($order->carrier_tax_rate, 2) * 100);
+
+        if ($deliveryCost === 0) {
+            // Free delivery - no cost breakdown.
+            $deliveryNetCost = null;
+            $deliveryTaxValue = null;
+            $deliveryTaxRate = null;
+        } else {
+            $deliveryNetCost = (int) round(round($order->total_shipping_tax_excl, 2) * 100);
+            $deliveryTaxValue = $deliveryCost - $deliveryNetCost;
+            /* carrier_tax_rate is already a percentage (e.g., 23.0 for 23% VAT) - the same unit used for cart items
+               and the cart-level delivery rate - so it must NOT be multiplied by 100. Null when delivery is VAT-free
+               (net equals gross). */
+            $deliveryTaxRate = $deliveryNetCost < $deliveryCost ? (int) round($order->carrier_tax_rate) : null;
+        }
 
         return new Cart(
             $totalValue,
@@ -267,8 +284,8 @@ final class OrderManager
     {
         $taxRate = ($product->getIdTaxRulesGroup() !== 0 ? (int) $product->getTaxesRate() : null);
         $grossPrice = (int) round(round($product->getPrice(), 2) * 100);
-        $netPrice = (int) round(round($product->getPrice(false), 2) * 100);
-        $taxValue = ($taxRate !== null ? $grossPrice - $netPrice : null);
+        $netPrice = ($taxRate !== null ? (int) round(round($product->getPrice(false), 2) * 100) : $grossPrice);
+        $taxValue = ($taxRate !== null ? $grossPrice - $netPrice : 0);
 
         return new Cart(
             $grossPrice,
@@ -288,7 +305,7 @@ final class OrderManager
                         $product->ean13,
                         null,
                         self::getProductCategoryIds($product),
-                        $taxRate !== null ? $netPrice : null,
+                        $netPrice,
                         $taxRate,
                         $taxValue
                     ),

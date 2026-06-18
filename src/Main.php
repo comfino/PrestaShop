@@ -340,6 +340,13 @@ final class Main
                 (string) ConfigManager::getApiKey()
             );
 
+            $loggingToken = PaywallAuthTokenGenerator::generateLoggingToken(
+                (string) ConfigManager::getWidgetKey(),
+                (string) ConfigManager::getApiKey()
+            );
+
+            $trackId = ApiClient::getInstance()->getTrackId();
+
             $allowedProductTypes = null;
 
             try {
@@ -383,6 +390,8 @@ final class Main
 
         $comfinoSettings = [
             'authToken' => $authToken,
+            'loggingToken' => $loggingToken,
+            'trackId' => $trackId,
             'loanAmount' => $loanAmount,
             'paymentMethodAuth' => ConfigManager::getPaywallLogoAuthHash(),
             'environment' => ConfigManager::isSandboxMode() ? 'sandbox' : 'production',

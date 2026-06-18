@@ -38,6 +38,7 @@ use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
 use Comfino\Order\ShopStatusManager;
+use Comfino\PaywallAuthTokenGenerator;
 use Comfino\PluginShared\CacheManager;
 use Comfino\Tools;
 
@@ -537,6 +538,11 @@ final class ConfigManager
             'PRODUCT_CART_DETAILS' => $productData['product_cart_details'],
             'LANGUAGE' => \Context::getContext()->language->iso_code,
             'CURRENCY' => \Context::getContext()->currency->iso_code,
+            'LOGGING_TOKEN' => PaywallAuthTokenGenerator::generateLoggingToken(
+                (string) self::getConfigurationValue('COMFINO_WIDGET_KEY'),
+                (string) self::getApiKey()
+            ),
+            'TRACK_ID' => ApiClient::getInstance()->getTrackId(),
         ];
     }
 

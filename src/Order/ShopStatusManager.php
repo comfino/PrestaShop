@@ -117,6 +117,9 @@ final class ShopStatusManager
         ],
     ];
 
+    /** Flag to suppress cancel API call when a status change was initiated by Comfino API notification. */
+    private static $comfinoInitiatedCancellation = false;
+
     /**
      * Creates custom Comfino order statuses in PrestaShop database.
      *
@@ -461,6 +464,11 @@ final class ShopStatusManager
         return $resultStats;
     }
 
+    public static function setComfinoInitiatedCancellation(bool $value): void
+    {
+        self::$comfinoInitiatedCancellation = $value;
+    }
+
     /**
      * Handles PrestaShop order status update events for Comfino orders.
      *
@@ -504,6 +512,11 @@ final class ShopStatusManager
             $canceledOrderStateId = (int) \Configuration::get('PS_OS_CANCELED');
 
             if ($newOrderStateId === $canceledOrderStateId) {
+                if (self::$comfinoInitiatedCancellation) {
+                    // Cancellation originated from Comfino API notification - do not resend cancel request.
+                    return;
+                }
+
                 ErrorLogger::init();
 
                 // Get order ID or reference based on configuration.

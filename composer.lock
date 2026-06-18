@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b9b1dd7adb02d0787cc39a81e60a319b",
+    "content-hash": "00c6db970910ed15a7b210d46ca7abc2",
     "packages": [
         {
             "name": "cache/adapter-common",
@@ -344,12 +344,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:comfino/shop-plugins-shared.git",
-                "reference": "82e57590f76cf33cf32d52f453e7ee6145812b1c"
+                "reference": "587702b8660530adf286c91333229f2517ecc9b0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/82e57590f76cf33cf32d52f453e7ee6145812b1c",
-                "reference": "82e57590f76cf33cf32d52f453e7ee6145812b1c",
+                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/587702b8660530adf286c91333229f2517ecc9b0",
+                "reference": "587702b8660530adf286c91333229f2517ecc9b0",
                 "shasum": ""
             },
             "require": {
@@ -395,11 +395,7 @@
             ],
             "description": "Shared library for shop plugins with all dependencies cumulated from ecommerce packages.",
             "homepage": "https://github.com/comfino/shop-plugins-shared",
-            "support": {
-                "source": "https://github.com/comfino/shop-plugins-shared/tree/master",
-                "issues": "https://github.com/comfino/shop-plugins-shared/issues"
-            },
-            "time": "2026-05-27T08:34:21+00:00"
+            "time": "2026-06-09T06:03:29+00:00"
         },
         {
             "name": "fig/http-message-util",
@@ -3729,7 +3725,6 @@
                 "issues": "https://github.com/sebastianbergmann/php-token-stream/issues",
                 "source": "https://github.com/sebastianbergmann/php-token-stream/tree/master"
             },
-            "abandoned": true,
             "time": "2017-11-27T05:48:46+00:00"
         },
         {
@@ -4183,7 +4178,6 @@
                     "type": "github"
                 }
             ],
-            "abandoned": true,
             "time": "2024-03-01T13:45:45+00:00"
         },
         {
