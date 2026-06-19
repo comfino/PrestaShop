@@ -32,7 +32,16 @@
         directRedirect: config.directRedirect,
         creditors: config.creditors,
         productTypeNames: config.productTypeNames,
-        paymentMethodItem: { auth: config.paymentMethodAuth || '' }
+        paymentMethodItem: { auth: config.paymentMethodAuth || '' },
+        /* PS 1.6: reveal #comfino-payment-bar when the SDK selects the first payment type.
+           paywall-frontend.css hides it by default; the SDK never shows it on its own. */
+        onUpdateOrderPaymentState: function (params) {
+            const bar = document.getElementById('comfino-payment-bar');
+
+            if (bar && params && params.loanType) {
+                bar.style.display = 'block';
+            }
+        }
     };
 
     /* Resolve visible paywall container — guards against page-builder previews rendering a hidden duplicate of the

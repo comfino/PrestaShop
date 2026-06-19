@@ -34,12 +34,15 @@
 <div class="row">
     <div class="col-xs-12 col-md-12">
         <p class="payment_module comfino">
-            <a id="pay-with-comfino" class="comfino-payment-method">
+            <label id="pay-with-comfino" class="comfino-payment-method">
                 {$comfino_label|escape:"htmlall":"UTF-8"}
-            </a>
+            </label>
         </p>
     </div>
 </div>
+{* PS 1.6: form carries the SDK-populated hidden inputs to the payment controller via POST.
+   PS 1.7+: the inputs below are rendered inside PrestaShop's own payment option form. *}
+<form id="comfino-payment-form" method="post" action="{$comfino_redirect_url|escape:'htmlall':'UTF-8'}">
 {/if}
 
 {* Cart total in grosze; initial value set server-side, refreshed on cart/shipping changes by PrestaShopPaywallController. *}
@@ -52,10 +55,11 @@
 
 {if $is_ps_16}
 <div id="comfino-payment-bar" class="comfino-payment-bar">
-    <a id="comfino-go-to-payment" href="{$comfino_redirect_url|escape:"htmlall":"UTF-8"}" class="comfino-payment-btn">
+    <button type="submit" id="comfino-go-to-payment" class="comfino-payment-btn">
         {l s="Go to payment" mod="comfino"}
-    </a>
+    </button>
 </div>
+</form>
 {/if}
 
 <script data-cfasync="false"{if isset($script_nonce) && $script_nonce !== ''} nonce="{$script_nonce|escape:'javascript'}"{/if}>

@@ -23,3 +23,26 @@
 .payment-option.comfino.comfino-payment-method-item--ready {
     display: block !important;
 }
+
+/* PS 1.6 uses <label> instead of <a> to give the SDK a proper label target for logo insertion.
+   The Bootstrap theme only styles p.payment_module a — mirror those rules for label. */
+p.payment_module.comfino label.comfino-payment-method {
+    display: block;
+    border: 1px solid #d6d4d4;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    font-size: 17px;
+    line-height: 23px;
+    color: #333;
+    font-weight: bold;
+    padding: 33px 40px;
+    letter-spacing: -1px;
+    position: relative;
+    cursor: default;
+    margin: 0;
+}
+
+p.payment_module.comfino label.comfino-payment-method:hover {
+    background-color: #f6f6f6;
+}

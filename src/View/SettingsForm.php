@@ -169,9 +169,6 @@ final class SettingsForm
                         if (\Tools::isEmpty(\Tools::getValue('COMFINO_API_KEY'))) {
                             $output[] = sprintf($errorEmptyMsg, Main::translate('Production environment API key'));
                         }
-                        if (\Tools::isEmpty(\Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
-                            $output[] = sprintf($errorEmptyMsg, Main::translate('Payment text'));
-                        }
                         if (\Tools::isEmpty(\Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
                             $output[] = sprintf($errorEmptyMsg, Main::translate('Minimal amount in cart'));
                         } elseif (!is_numeric(\Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
@@ -454,7 +451,7 @@ final class SettingsForm
      * Generates form fields configuration for module settings.
      *
      * Builds form field definitions for different configuration tabs:
-     * - payment_settings: API key, payment text, minimal cart amount
+     * - payment_settings: API key, minimal cart amount, paywall settings
      * - sale_settings: Product category filters
      * - widget_settings: Widget configuration and appearance
      * - developer_settings: Sandbox mode, debug mode, service mode
@@ -500,12 +497,6 @@ final class SettingsForm
                             ],
                             [
                                 'type' => 'text',
-                                'label' => Main::translate('Payment text'),
-                                'name' => 'COMFINO_PAYMENT_TEXT',
-                                'required' => true,
-                            ],
-                            [
-                                'type' => 'text',
                                 'label' => Main::translate('Minimal amount in cart'),
                                 'name' => 'COMFINO_MINIMAL_CART_AMOUNT',
                                 'required' => true,
@@ -528,6 +519,38 @@ final class SettingsForm
                                         'label' => Main::translate('No'),
                                     ],
                                 ],
+                            ],
+                            [
+                                'type' => 'html',
+                                'name' => 'paywall_settings_section',
+                                'required' => false,
+                                'html_content' => '<h3>' . Main::translate('Paywall settings') . '</h3>',
+                            ],
+                            [
+                                'type' => 'switch',
+                                'label' => Main::translate('Direct redirect mode'),
+                                'name' => 'COMFINO_PAYWALL_DIRECT_REDIRECT',
+                                'desc' => Main::translate('When enabled, the full paywall offer browser is not displayed. The order is submitted with the default financial product and the customer is redirected directly to the Comfino payment gateway.'),
+                                'is_bool' => true,
+                                'values' => [
+                                    [
+                                        'id' => 'paywall_direct_redirect_on',
+                                        'value' => true,
+                                        'label' => Main::translate('Yes'),
+                                    ],
+                                    [
+                                        'id' => 'paywall_direct_redirect_off',
+                                        'value' => false,
+                                        'label' => Main::translate('No'),
+                                    ],
+                                ],
+                            ],
+                            [
+                                'type' => 'text',
+                                'label' => Main::translate('Custom paywall CSS style'),
+                                'name' => 'COMFINO_PAYWALL_CUSTOM_CSS_URL',
+                                'required' => false,
+                                'desc' => Main::translate('URL for a custom CSS file injected into the paywall iframe. Only links from your store domain are allowed.'),
                             ],
                         ],
                         'submit' => [

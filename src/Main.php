@@ -433,7 +433,7 @@ final class Main
             'checkout_script_url' => FrontendManager::getLocalScriptUrl('comfino-checkout.js'),
             'script_nonce' => self::getScriptNonce(),
             'is_ps_16' => !COMFINO_PS_17,
-            'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
+            'comfino_label' => 'Comfino',
             'comfino_redirect_url' => ApiService::getControllerUrl('payment'),
         ];
 
@@ -445,7 +445,7 @@ final class Main
             $comfinoPaymentOption = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
             $comfinoPaymentOption->setModuleName($module->name)
                 ->setAction(ApiService::getControllerUrl('payment'))
-                ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
+                ->setCallToActionText('Comfino')
                 ->setAdditionalInformation($paywallIframe);
 
             return [$comfinoPaymentOption];

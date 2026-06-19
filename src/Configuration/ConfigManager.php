@@ -51,7 +51,6 @@ final class ConfigManager
     public const CONFIG_OPTIONS = [
         'payment_settings' => [
             'COMFINO_API_KEY' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
-            'COMFINO_PAYMENT_TEXT' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_MINIMAL_CART_AMOUNT' => ConfigurationManager::OPT_VALUE_TYPE_FLOAT,
             'COMFINO_USE_ORDER_REFERENCE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_PAYWALL_DIRECT_REDIRECT' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
