@@ -20,41 +20,6 @@ class ComposerStaticInit00c6db970910ed15a7b210d46ca7abc2
     );
 
     public static $prefixLengthsPsr4 = array (
-        'S' => 
-        array (
-            'Symfony\\Polyfill\\Php80\\' => 23,
-            'Symfony\\Polyfill\\Php73\\' => 23,
-            'Symfony\\Polyfill\\Ctype\\' => 23,
-            'Symfony\\Component\\Yaml\\' => 23,
-            'Symfony\\Component\\OptionsResolver\\' => 34,
-            'Sunrise\\Uri\\' => 12,
-            'Sunrise\\Stream\\' => 15,
-            'Sunrise\\Http\\ServerRequest\\' => 27,
-            'Sunrise\\Http\\Message\\' => 21,
-            'Sunrise\\Http\\Header\\' => 20,
-            'Sunrise\\Http\\Factory\\' => 21,
-            'Sunrise\\Http\\Client\\Curl\\' => 25,
-        ),
-        'P' => 
-        array (
-            'Psr\\SimpleCache\\' => 16,
-            'Psr\\Log\\' => 8,
-            'Psr\\Http\\Message\\' => 17,
-            'Psr\\Http\\Client\\' => 16,
-            'Psr\\Cache\\' => 10,
-        ),
-        'M' => 
-        array (
-            'Monolog\\' => 8,
-        ),
-        'L' => 
-        array (
-            'League\\Flysystem\\' => 17,
-        ),
-        'F' => 
-        array (
-            'Fig\\Http\\Message\\' => 17,
-        ),
         'C' => 
         array (
             'Comfino\\' => 8,
@@ -83,96 +48,10 @@ class ComposerStaticInit00c6db970910ed15a7b210d46ca7abc2
             'ComfinoExternal\\Cache\\Adapter\\PHPArray\\' => 39,
             'ComfinoExternal\\Cache\\Adapter\\Filesystem\\' => 41,
             'ComfinoExternal\\Cache\\Adapter\\Common\\' => 37,
-            'Cache\\TagInterop\\' => 17,
-            'Cache\\Hierarchy\\' => 16,
-            'Cache\\Adapter\\PHPArray\\' => 23,
-            'Cache\\Adapter\\Filesystem\\' => 25,
-            'Cache\\Adapter\\Common\\' => 21,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Symfony\\Polyfill\\Php80\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-php80',
-        ),
-        'Symfony\\Polyfill\\Php73\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-php73',
-        ),
-        'Symfony\\Polyfill\\Ctype\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
-        ),
-        'Symfony\\Component\\Yaml\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/yaml',
-        ),
-        'Symfony\\Component\\OptionsResolver\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/options-resolver',
-        ),
-        'Sunrise\\Uri\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/sunrise/uri/src',
-        ),
-        'Sunrise\\Stream\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/sunrise/stream/src',
-        ),
-        'Sunrise\\Http\\ServerRequest\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/sunrise/http-server-request/src',
-        ),
-        'Sunrise\\Http\\Message\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/sunrise/http-message/src',
-        ),
-        'Sunrise\\Http\\Header\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/sunrise/http-header/src',
-        ),
-        'Sunrise\\Http\\Factory\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/sunrise/http-factory/src',
-        ),
-        'Sunrise\\Http\\Client\\Curl\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/sunrise/http-client-curl/src',
-        ),
-        'Psr\\SimpleCache\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/simple-cache/src',
-        ),
-        'Psr\\Log\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
-        ),
-        'Psr\\Http\\Message\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/http-factory/src',
-            1 => __DIR__ . '/..' . '/psr/http-message/src',
-        ),
-        'Psr\\Http\\Client\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/http-client/src',
-        ),
-        'Psr\\Cache\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/psr/cache/src',
-        ),
-        'Monolog\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
-        ),
-        'League\\Flysystem\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/league/flysystem/src',
-        ),
-        'Fig\\Http\\Message\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/fig/http-message-util/src',
-        ),
         'Comfino\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
@@ -276,26 +155,6 @@ class ComposerStaticInit00c6db970910ed15a7b210d46ca7abc2
             0 => __DIR__ . '/..' . '/cache/filesystem-adapter',
         ),
         'ComfinoExternal\\Cache\\Adapter\\Common\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/cache/adapter-common',
-        ),
-        'Cache\\TagInterop\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/cache/tag-interop',
-        ),
-        'Cache\\Hierarchy\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/cache/hierarchical-cache',
-        ),
-        'Cache\\Adapter\\PHPArray\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/cache/array-adapter',
-        ),
-        'Cache\\Adapter\\Filesystem\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/cache/filesystem-adapter',
-        ),
-        'Cache\\Adapter\\Common\\' => 
         array (
             0 => __DIR__ . '/..' . '/cache/adapter-common',
         ),
