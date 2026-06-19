@@ -54,6 +54,8 @@ final class ConfigManager
             'COMFINO_PAYMENT_TEXT' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_MINIMAL_CART_AMOUNT' => ConfigurationManager::OPT_VALUE_TYPE_FLOAT,
             'COMFINO_USE_ORDER_REFERENCE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_PAYWALL_DIRECT_REDIRECT' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_PAYWALL_CUSTOM_CSS_URL' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
         ],
         'sale_settings' => [
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
@@ -111,6 +113,8 @@ final class ConfigManager
         'COMFINO_PAYMENT_TEXT',
         'COMFINO_MINIMAL_CART_AMOUNT',
         'COMFINO_USE_ORDER_REFERENCE',
+        'COMFINO_PAYWALL_DIRECT_REDIRECT',
+        'COMFINO_PAYWALL_CUSTOM_CSS_URL',
         // Sale settings
         'COMFINO_PRODUCT_CATEGORY_FILTERS',
         'COMFINO_ALLOWED_PRODUCTS_CONFIG',
@@ -639,6 +643,8 @@ final class ConfigManager
             'COMFINO_DEV_ENV_VARS' => false,
             'COMFINO_CSP_ENABLED' => false,
             'COMFINO_CSP_REPORT_ONLY' => true,
+            'COMFINO_PAYWALL_DIRECT_REDIRECT' => false,
+            'COMFINO_PAYWALL_CUSTOM_CSS_URL' => '',
         ];
     }
 

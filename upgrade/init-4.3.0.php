@@ -57,6 +57,15 @@ function upgrade_module_4_3_0(Comfino $module)
         Configuration::updateValue('COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED', false);
     }
 
+    // Initialize paywall behavior keys added in 4.3.0.
+    if (!Configuration::hasKey('COMFINO_PAYWALL_DIRECT_REDIRECT')) {
+        Configuration::updateValue('COMFINO_PAYWALL_DIRECT_REDIRECT', false);
+    }
+
+    if (!Configuration::hasKey('COMFINO_PAYWALL_CUSTOM_CSS_URL')) {
+        Configuration::updateValue('COMFINO_PAYWALL_CUSTOM_CSS_URL', '');
+    }
+
     Main::updateUpgradeLog('Upgrade script for 4.3.0 executed.');
 
     return true;

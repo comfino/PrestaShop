@@ -37,6 +37,7 @@ use Comfino\Order\OrderManager;
 use Comfino\Order\ShopStatusManager;
 use Comfino\PluginShared\CacheManager;
 use Comfino\View\FrontendManager;
+use Comfino\View\PaywallCartSerializer;
 use Comfino\View\SettingsForm;
 use Comfino\View\TemplateManager;
 
@@ -348,6 +349,7 @@ final class Main
             $trackId = ApiClient::getInstance()->getTrackId();
 
             $allowedProductTypes = null;
+            $shopCart = null;
 
             try {
                 $shopCart = OrderManager::getShopCart($cart, 0);
@@ -372,6 +374,16 @@ final class Main
             FrontendManager::processError('Paywall rendering error', $e);
 
             return COMFINO_PS_17 ? [] : '';
+        }
+
+        $cartPayload = null;
+
+        if ($shopCart !== null) {
+            try {
+                $cartPayload = PaywallCartSerializer::toArray($shopCart);
+            } catch (\Throwable $e) {
+                ErrorLogger::sendError($e, 'serializeShopCart', (string) $e->getCode(), $e->getMessage());
+            }
         }
 
         /* Browser-safe shop environment payload — mirrors the shape produced by
@@ -402,9 +414,16 @@ final class Main
                 ? array_map('strval', $allowedProductTypes)
                 : null,
             'allowedProductsConfig' => SettingsManager::getAllowedProductsConfigForFrontend(),
+            'cart' => $cartPayload,
+            'paywallSettings' => [
+                'language' => $context->language->iso_code,
+                'currency' => $context->currency->iso_code,
+                'customPaywallCss' => ConfigManager::getConfigurationValue('COMFINO_PAYWALL_CUSTOM_CSS_URL') ?: null,
+            ],
             'shopEnvironment' => $shopEnvironment,
             'creditors' => SettingsManager::getCreditors() ?: null,
             'productTypeNames' => SettingsManager::getProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL) ?: null,
+            'directRedirect' => (bool) ConfigManager::getConfigurationValue('COMFINO_PAYWALL_DIRECT_REDIRECT'),
             'scriptNonce' => self::getScriptNonce(),
         ];
 
@@ -555,6 +574,15 @@ final class Main
     {
         if (COMFINO_PS_17) {
             \Context::getContext()->controller->registerStylesheet($id, $styleUrl, ['server' => 'remote']);
+        } else {
+            \Context::getContext()->controller->addCSS($styleUrl);
+        }
+    }
+
+    public static function addLocalStyleLink(string $id, string $styleUrl): void
+    {
+        if (COMFINO_PS_17) {
+            \Context::getContext()->controller->registerStylesheet($id, $styleUrl, ['server' => 'local']);
         } else {
             \Context::getContext()->controller->addCSS($styleUrl);
         }

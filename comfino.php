@@ -254,7 +254,7 @@ class Comfino extends PaymentModule
             );
         } elseif (in_array($controller, ['cart', 'order', 'checkout'])) {
             // Hide-by-default gate for the Comfino payment tile until the SDK signals readiness.
-            Comfino\Main::addStyleLink(
+            Comfino\Main::addLocalStyleLink(
                 'comfino-item-gate',
                 _MODULE_DIR_ . $this->name . '/views/css/front/comfino-item-gate.css'
             );
