@@ -367,9 +367,41 @@ final class ConfigManager
 
     public static function getSdkScriptUrl(): string
     {
-        return self::isSandboxMode()
-            ? 'https://widget.craty.pl/sdk/v1/comfino-sdk.min.js'
-            : 'https://widget.comfino.pl/sdk/v1/comfino-sdk.min.js';
+        return self::resolveSdkScriptUrl('comfino-sdk.min.js');
+    }
+
+    /**
+     * URL of the SDK's ESM build. The front-end loader uses this URL (instead of getSdkScriptUrl())
+     * when sdkScriptKind === 'module'.
+     */
+    public static function getSdkScriptUrlEsm(): string
+    {
+        return self::resolveSdkScriptUrl('comfino-sdk.esm.min.js');
+    }
+
+    /**
+     * Compose the CDN URL of an SDK bundle served from /sdk/v1/. The host comes from
+     * FrontendManager::getExternalResourcesBaseUrl(), so COMFINO_DEV_STATIC_RESOURCES_BASE_URL points
+     * the SDK at the local widget dev server, exactly like the external widget scripts/styles. The
+     * .min suffix is dropped when COMFINO_DEV_USE_UNMINIFIED_SCRIPTS is on.
+     */
+    private static function resolveSdkScriptUrl(string $scriptFileName): string
+    {
+        if (self::useDevEnvVars() && self::useUnminifiedScripts()) {
+            $scriptFileName = str_replace('.min.js', '.js', $scriptFileName);
+        }
+
+        return \Comfino\View\FrontendManager::getExternalResourcesBaseUrl() . "/sdk/v1/$scriptFileName";
+    }
+
+    /**
+     * Loader hint for the front-end bootstrap: 'module' (default — ESM bundle loaded via
+     * <script type="module">, no window.define = undefined trick needed) or 'umd' (legacy classic
+     * <script>).
+     */
+    public static function getSdkScriptKind(): string
+    {
+        return 'module';
     }
 
     /**

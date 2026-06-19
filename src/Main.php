@@ -396,6 +396,8 @@ final class Main
             'paymentMethodAuth' => ConfigManager::getPaywallLogoAuthHash(),
             'environment' => ConfigManager::isSandboxMode() ? 'sandbox' : 'production',
             'sdkScriptUrl' => ConfigManager::getSdkScriptUrl(),
+            'sdkScriptUrlEsm' => ConfigManager::getSdkScriptUrlEsm(),
+            'sdkScriptKind' => ConfigManager::getSdkScriptKind(),
             'productTypes' => $allowedProductTypes !== null
                 ? array_map('strval', $allowedProductTypes)
                 : null,
@@ -409,7 +411,7 @@ final class Main
         $templateVariables = [
             'loan_amount' => $loanAmount,
             'comfino_settings' => $comfinoSettings,
-            'checkout_script_url' => _MODULE_DIR_ . $module->name . '/views/js/front/comfino-checkout.js',
+            'checkout_script_url' => FrontendManager::getLocalScriptUrl('comfino-checkout.js'),
             'script_nonce' => self::getScriptNonce(),
             'is_ps_16' => !COMFINO_PS_17,
             'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),

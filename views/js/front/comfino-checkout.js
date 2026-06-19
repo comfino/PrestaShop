@@ -77,10 +77,16 @@
         return null;
     }
 
-    /* Load the Comfino web frontend SDK. The bundle is shipped as a UMD module — when RequireJS's global define()
-       is present (some PS themes ship it), the UMD wrapper would take the AMD branch and never populate window.Comfino.
-       We temporarily clear window.define for the duration of the script load to force the global-assignment branch and
-       restore it in both onload and onerror. */
+    /* Load the Comfino web frontend SDK. Two code paths based on config.sdkScriptKind:
+
+       - 'module' (default): the bundle is loaded as <script type="module">. ESM does not consult window.define,
+         so the clear-and-restore dance is skipped entirely. The CDN ESM bundle self-registers window.Comfino as
+         a side effect (a module script never exposes its exports on a global on its own), so onload resolves it
+         from there. crossOrigin='anonymous' is required because module scripts are fetched in CORS mode.
+       - 'umd' (legacy): the bundle is loaded as a classic <script>. When RequireJS's global define() is present
+         (some PS themes ship it), the UMD wrapper would take the AMD branch and never populate window.Comfino.
+         We temporarily clear window.define for the duration of the script load to force the global-assignment
+         branch and restore it in both onload and onerror. */
     function loadSdk(cfg)
     {
         // Idempotency guard — bypass injection if a previous mount already resolved the SDK on this page.
@@ -92,9 +98,12 @@
             return window.__comfinoSdkPromise;
         }
 
+        const kind = cfg.sdkScriptKind === 'umd' ? 'umd' : 'module';
+        const url = kind === 'module' ? (cfg.sdkScriptUrlEsm || cfg.sdkScriptUrl) : cfg.sdkScriptUrl;
+
         window.__comfinoSdkPromise = new Promise((resolve, reject) => {
             const script = document.createElement('script');
-            script.src = cfg.sdkScriptUrl;
+            script.src = url;
             script.setAttribute('data-comfino-sdk', '1');
             script.setAttribute('data-cfasync', 'false');
 
@@ -102,22 +111,36 @@
                 script.setAttribute('nonce', cfg.scriptNonce);
             }
 
-            /* Scope the define-clear to this single script load. Restore window.define on both load AND error so a
-               failed script tag never leaves AMD-aware modules broken. */
-            const savedDefine = window.define;
-            window.define = undefined;
+            if (kind === 'module') {
+                script.type = 'module';
+                script.crossOrigin = 'anonymous';
 
-            script.onload = () => {
-                window.define = savedDefine;
+                script.onload = () => {
+                    resolve(window.Comfino);
+                };
+                script.onerror = (error) => {
+                    window.__comfinoSdkPromise = null;
 
-                resolve(window.Comfino);
-            };
-            script.onerror = (error) => {
-                window.define = savedDefine;
-                window.__comfinoSdkPromise = null;
+                    reject(error);
+                };
+            } else {
+                /* Scope the define-clear to this single script load. Restore window.define on both load AND error
+                   so a failed script tag never leaves AMD-aware modules broken. */
+                const savedDefine = window.define;
+                window.define = undefined;
 
-                reject(error);
-            };
+                script.onload = () => {
+                    window.define = savedDefine;
+
+                    resolve(window.Comfino);
+                };
+                script.onerror = (error) => {
+                    window.define = savedDefine;
+                    window.__comfinoSdkPromise = null;
+
+                    reject(error);
+                };
+            }
 
             document.head.appendChild(script);
         });
