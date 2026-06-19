@@ -1,0 +1,48 @@
+<?php
+
+return
+"const script = document.createElement('script');
+script.onload = function () {
+    const sdk = window.Comfino.ComfinoSDK.getInstance();
+    const shopEnvironment = {SHOP_ENVIRONMENT};
+
+    sdk.init({
+        environment: {ENVIRONMENT},
+        platform: shopEnvironment.platform || 'generic',
+        widgetKey: {WIDGET_KEY},
+        loggingToken: {LOGGING_TOKEN},
+        trackId: {TRACK_ID}
+    });
+
+    sdk.bootstrapWidget({
+        widgetTargetSelector: {WIDGET_TARGET_SELECTOR},
+        priceSelector: {WIDGET_PRICE_SELECTOR},
+        priceObserverSelector: {WIDGET_PRICE_OBSERVER_SELECTOR},
+        priceObserverLevel: {WIDGET_PRICE_OBSERVER_LEVEL},
+        embedMethod: {EMBED_METHOD},
+        widgetType: {WIDGET_TYPE},
+        price: {PRODUCT_PRICE},
+        offerTypes: {OFFER_TYPES},
+        language: {LANGUAGE},
+        currency: {CURRENCY},
+        showProviderLogos: {SHOW_PROVIDER_LOGOS},
+        hasPriceInput: {HAS_PRICE_INPUT},
+        shopEnvironment: shopEnvironment,
+        availableProductTypes: {AVAILABLE_PRODUCT_TYPES},
+        productId: {PRODUCT_ID},
+        productCartDetails: {PRODUCT_CART_DETAILS},
+        customBannerCss: {CUSTOM_BANNER_CSS_URL},
+        customCalculatorCss: {CUSTOM_CALCULATOR_CSS_URL},
+        onWidgetBannerLoaded: function (loadedOffers) { },
+        onWidgetCalculatorLoaded: function (loadedOffers) { },
+        onWidgetCalculatorUpdated: function (activeOffer) { },
+        onWidgetBannerCustomCssLoaded: function (cssUrl) { },
+        onWidgetCalculatorCustomCssLoaded: function (cssUrl) { },
+        debugMode: window.location.hash && window.location.hash.substring(1) === 'comfino_debug'
+    });
+};
+script.src = {WIDGET_SCRIPT_URL};
+script.async = true;
+script.crossOrigin = 'anonymous';
+
+document.getElementsByTagName('head')[0].appendChild(script);";
