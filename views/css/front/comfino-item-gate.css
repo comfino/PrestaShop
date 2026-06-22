@@ -46,3 +46,41 @@ p.payment_module.comfino label.comfino-payment-method {
 p.payment_module.comfino label.comfino-payment-method:hover {
     background-color: #f6f6f6;
 }
+
+/* PS 1.6 post-SDK: the SDK converts <label> to <a> and inserts a logo <img> as a sibling before
+   the <a>. The Bootstrap theme's p.payment_module a { display: block } makes the <a> a full-width
+   block, pushing the logo above it. Fix: move border/padding to the <p> and make <a> inline so
+   logo and text appear side by side in a flex row. */
+p.payment_module.comfino.comfino-payment-method-item {
+    display: flex !important;
+    align-items: center;
+    border: 1px solid #d6d4d4;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    padding: 33px 40px;
+    cursor: pointer;
+}
+
+p.payment_module.comfino.comfino-payment-method-item:hover {
+    background-color: #f6f6f6;
+}
+
+p.payment_module.comfino.comfino-payment-method-item a.comfino-payment-method {
+    display: inline !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    font-size: 17px;
+    line-height: 23px;
+    color: #333;
+    font-weight: bold;
+    letter-spacing: -1px;
+    cursor: pointer;
+    text-decoration: none;
+    background: none !important;
+}
+
+p.payment_module.comfino.comfino-payment-method-item a.comfino-payment-method:hover {
+    background: none !important;
+}
