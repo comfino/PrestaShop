@@ -9,7 +9,8 @@
     display: none !important;
 }
 
-[data-module-name="comfino"].comfino-payment-method-item--ready {
+[data-module-name="comfino"].comfino-payment-method-item--ready,
+.comfino-payment-method-item--ready input[data-module-name="comfino"] {
     display: block !important;
 }
 
