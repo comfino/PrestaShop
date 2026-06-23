@@ -408,8 +408,6 @@ final class Main
             'paymentMethodAuth' => ConfigManager::getPaywallLogoAuthHash(),
             'environment' => ConfigManager::isSandboxMode() ? 'sandbox' : 'production',
             'sdkScriptUrl' => ConfigManager::getSdkScriptUrl(),
-            'sdkScriptUrlEsm' => ConfigManager::getSdkScriptUrlEsm(),
-            'sdkScriptKind' => ConfigManager::getSdkScriptKind(),
             'productTypes' => $allowedProductTypes !== null
                 ? array_map('strval', $allowedProductTypes)
                 : null,

@@ -41,6 +41,7 @@ use Comfino\Order\ShopStatusManager;
 use Comfino\PaywallAuthTokenGenerator;
 use Comfino\PluginShared\CacheManager;
 use Comfino\Tools;
+use Comfino\View\FrontendManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -370,15 +371,6 @@ final class ConfigManager
 
     public static function getSdkScriptUrl(): string
     {
-        return self::resolveSdkScriptUrl('comfino-sdk.min.js');
-    }
-
-    /**
-     * URL of the SDK's ESM build. The front-end loader uses this URL (instead of getSdkScriptUrl())
-     * when sdkScriptKind === 'module'.
-     */
-    public static function getSdkScriptUrlEsm(): string
-    {
         return self::resolveSdkScriptUrl('comfino-sdk.esm.min.js');
     }
 
@@ -394,17 +386,7 @@ final class ConfigManager
             $scriptFileName = str_replace('.min.js', '.js', $scriptFileName);
         }
 
-        return \Comfino\View\FrontendManager::getExternalResourcesBaseUrl() . "/sdk/v1/$scriptFileName";
-    }
-
-    /**
-     * Loader hint for the front-end bootstrap: 'module' (default — ESM bundle loaded via
-     * <script type="module">, no window.define = undefined trick needed) or 'umd' (legacy classic
-     * <script>).
-     */
-    public static function getSdkScriptKind(): string
-    {
-        return 'module';
+        return FrontendManager::getExternalResourcesBaseUrl() . "/sdk/v1/$scriptFileName";
     }
 
     /**
