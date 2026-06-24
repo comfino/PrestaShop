@@ -406,6 +406,7 @@ final class Main
             'trackId' => $trackId,
             'loanAmount' => $loanAmount,
             'paymentMethodAuth' => ConfigManager::getPaywallLogoAuthHash(),
+            'paymentMethodLabel' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT') ?: null,
             'environment' => ConfigManager::isSandboxMode() ? 'sandbox' : 'production',
             'sdkScriptUrl' => ConfigManager::getSdkScriptUrl(),
             'productTypes' => $allowedProductTypes !== null
@@ -428,10 +429,10 @@ final class Main
         $templateVariables = [
             'loan_amount' => $loanAmount,
             'comfino_settings' => $comfinoSettings,
-            'checkout_script_url' => FrontendManager::getLocalScriptUrl('comfino-checkout.js'),
+            'checkout_script_url' => ConfigManager::getCheckoutScriptUrl(),
             'script_nonce' => self::getScriptNonce(),
             'is_ps_16' => !COMFINO_PS_17,
-            'comfino_label' => 'Comfino',
+            'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
             'comfino_redirect_url' => ApiService::getControllerUrl('payment'),
         ];
 
@@ -443,7 +444,7 @@ final class Main
             $comfinoPaymentOption = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
             $comfinoPaymentOption->setModuleName($module->name)
                 ->setAction(ApiService::getControllerUrl('payment'))
-                ->setCallToActionText('Comfino')
+                ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
                 ->setAdditionalInformation($paywallIframe);
 
             return [$comfinoPaymentOption];

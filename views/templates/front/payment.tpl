@@ -26,8 +26,8 @@
 {*
  * Template for the Comfino payment method fields in checkout.
  *
- * Rendered by Main::renderPaywallIframe() as the container for the paywall. The web frontend SDK
- * (comfino-checkout.js) locates #comfino-paywall-container and renders the paywall iframe inside it.
+ * Rendered by Main::renderPaywallIframe() as the container for the paywall. The CDN-hosted checkout glue script
+ * (comfino-prestashop.min.js) locates #comfino-paywall-container and renders the paywall iframe inside it.
  * Hidden inputs carry the selected loan type and term to the order submit handler.
  *}
 {if $is_ps_16}
@@ -62,7 +62,5 @@
 </form>
 {/if}
 
-<script data-cfasync="false"{if isset($script_nonce) && $script_nonce !== ''} nonce="{$script_nonce|escape:'javascript'}"{/if}>
-window.comfinoSettings = {$comfino_settings|@json_encode nofilter};
-</script>
-<script data-cfasync="false" src="{$checkout_script_url|escape:'htmlall':'UTF-8'}" data-comfino-checkout="1"{if isset($script_nonce) && $script_nonce !== ''} nonce="{$script_nonce|escape:'javascript'}"{/if}></script>
+<script type="application/json" id="comfino-checkout-config">{$comfino_settings|@json_encode nofilter}</script>
+<script data-cfasync="false" src="{$checkout_script_url|escape:'htmlall':'UTF-8'}" data-comfino-checkout="1" crossorigin="anonymous"{if isset($script_nonce) && $script_nonce !== ''} nonce="{$script_nonce|escape:'javascript'}"{/if}></script>

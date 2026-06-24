@@ -66,6 +66,19 @@ final class FrontendManager
         return ConfigManager::isSandboxMode() ? 'https://widget.craty.pl' : 'https://widget.comfino.pl';
     }
 
+    /**
+     * Base URL for assets served from the dedicated SDK CDN host (sdk.*).
+     * COMFINO_DEV_STATIC_RESOURCES_BASE_URL overrides this for local dev, same as getExternalResourcesBaseUrl().
+     */
+    public static function getSdkCdnBaseUrl(): string
+    {
+        if (ConfigManager::useDevEnvVars() && getenv('COMFINO_DEV_STATIC_RESOURCES_BASE_URL')) {
+            return getenv('COMFINO_DEV_STATIC_RESOURCES_BASE_URL');
+        }
+
+        return ConfigManager::isSandboxMode() ? 'https://sdk.craty.pl' : 'https://sdk.comfino.pl';
+    }
+
     public static function getExternalScriptUrl(string $scriptFileName): string
     {
         if (empty($scriptFileName)) {

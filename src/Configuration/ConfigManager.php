@@ -52,6 +52,7 @@ final class ConfigManager
     public const CONFIG_OPTIONS = [
         'payment_settings' => [
             'COMFINO_API_KEY' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_PAYMENT_TEXT' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_MINIMAL_CART_AMOUNT' => ConfigurationManager::OPT_VALUE_TYPE_FLOAT,
             'COMFINO_USE_ORDER_REFERENCE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_PAYWALL_DIRECT_REDIRECT' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
@@ -371,14 +372,35 @@ final class ConfigManager
 
     public static function getSdkScriptUrl(): string
     {
-        return self::resolveSdkScriptUrl('comfino-sdk.esm.min.js');
+        return self::resolveSdkScriptUrl('comfino-sdk.min.js');
     }
 
     /**
-     * Compose the CDN URL of an SDK bundle served from /sdk/v1/. The host comes from
-     * FrontendManager::getExternalResourcesBaseUrl(), so COMFINO_DEV_STATIC_RESOURCES_BASE_URL points
-     * the SDK at the local widget dev server, exactly like the external widget scripts/styles. The
-     * .min suffix is dropped when COMFINO_DEV_USE_UNMINIFIED_SCRIPTS is on.
+     * CDN URL of the PrestaShop checkout-glue script served from the SDK host at /checkout/v1/.
+     * The .min suffix is dropped when COMFINO_DEV_USE_UNMINIFIED_SCRIPTS is on.
+     */
+    public static function getCheckoutScriptUrl(): string
+    {
+        $fileName = 'comfino-prestashop.min.js';
+
+        if (self::useDevEnvVars() && self::useUnminifiedScripts()) {
+            $fileName = str_replace('.min.js', '.js', $fileName);
+        }
+
+        return FrontendManager::getSdkCdnBaseUrl() . "/checkout/v1/$fileName";
+    }
+
+    /**
+     * CDN URL of the PrestaShop payment-tile gate stylesheet served from the SDK host.
+     */
+    public static function getCheckoutCssUrl(): string
+    {
+        return FrontendManager::getSdkCdnBaseUrl() . '/checkout/v1/css/comfino-item-gate-prestashop.css';
+    }
+
+    /**
+     * Compose the CDN URL of an SDK bundle served from /v1/ on the dedicated sdk.* host.
+     * The .min suffix is dropped when COMFINO_DEV_USE_UNMINIFIED_SCRIPTS is on.
      */
     private static function resolveSdkScriptUrl(string $scriptFileName): string
     {
@@ -386,7 +408,7 @@ final class ConfigManager
             $scriptFileName = str_replace('.min.js', '.js', $scriptFileName);
         }
 
-        return FrontendManager::getExternalResourcesBaseUrl() . "/sdk/v1/$scriptFileName";
+        return FrontendManager::getSdkCdnBaseUrl() . "/v1/$scriptFileName";
     }
 
     /**

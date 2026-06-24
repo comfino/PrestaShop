@@ -253,10 +253,10 @@ class Comfino extends PaymentModule
                 'defer'
             );
         } elseif (in_array($controller, ['cart', 'order', 'checkout'])) {
-            // Hide-by-default gate for the Comfino payment tile until the SDK signals readiness.
-            Comfino\Main::addLocalStyleLink(
+            // Hide-by-default gate for the Comfino payment tile until the SDK signals readiness - loaded from CDN.
+            Comfino\Main::addStyleLink(
                 'comfino-item-gate',
-                _MODULE_DIR_ . $this->name . '/views/css/front/comfino-item-gate.css'
+                Comfino\Configuration\ConfigManager::getCheckoutCssUrl()
             );
         }
     }

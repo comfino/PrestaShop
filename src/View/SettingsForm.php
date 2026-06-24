@@ -169,6 +169,9 @@ final class SettingsForm
                         if (\Tools::isEmpty(\Tools::getValue('COMFINO_API_KEY'))) {
                             $output[] = sprintf($errorEmptyMsg, Main::translate('Production environment API key'));
                         }
+                        if (\Tools::isEmpty(\Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
+                            $output[] = sprintf($errorEmptyMsg, Main::translate('Payment text'));
+                        }
                         if (\Tools::isEmpty(\Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
                             $output[] = sprintf($errorEmptyMsg, Main::translate('Minimal amount in cart'));
                         } elseif (!is_numeric(\Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
@@ -494,6 +497,12 @@ final class SettingsForm
                                 'name' => 'COMFINO_API_KEY',
                                 'required' => true,
                                 'placeholder' => Main::translate('Please enter the key provided during registration'),
+                            ],
+                            [
+                                'type' => 'text',
+                                'label' => Main::translate('Payment text'),
+                                'name' => 'COMFINO_PAYMENT_TEXT',
+                                'required' => true,
                             ],
                             [
                                 'type' => 'text',
