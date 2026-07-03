@@ -18,7 +18,9 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
+use Comfino\Configuration\ConfigManager;
 use Comfino\Main;
+use Comfino\Telemetry\ShopEnvironmentReporter;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -67,6 +69,11 @@ function upgrade_module_4_3_0(Comfino $module)
     }
 
     Main::updateUpgradeLog('Upgrade script for 4.3.0 executed.');
+
+    // Report the shop environment to Comfino on upgrade (fire-and-forget).
+    if (!empty(ConfigManager::getApiKey())) {
+        ShopEnvironmentReporter::report();
+    }
 
     return true;
 }

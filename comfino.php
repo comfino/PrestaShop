@@ -41,7 +41,7 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1781879758);
+    define('COMFINO_BUILD_TS', 1783069637);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
@@ -287,8 +287,8 @@ class Comfino extends PaymentModule
         }
 
         $isSandbox = Comfino\Configuration\ConfigManager::isSandboxMode();
-        $apiDomain = $isSandbox ? 'https://api-ecommerce.ecraty.pl' : 'https://api-ecommerce.comfino.pl';
-        $cdnDomain = $isSandbox ? 'https://widget.craty.pl' : 'https://widget.comfino.pl';
+        $apiDomain = $isSandbox ? 'https://api-ecommerce.craty.pl' : 'https://api-ecommerce.comfino.pl';
+        $cdnDomain = Comfino\View\FrontendManager::getSdkCdnBaseUrl();
 
         $existing = '';
 

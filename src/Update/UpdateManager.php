@@ -26,40 +26,31 @@
 
 namespace Comfino\Update;
 
+use Comfino\Api\ApiClient;
 use Comfino\PluginShared\CacheManager;
 use ComfinoExternal\Psr\Cache\InvalidArgumentException;
-use ComfinoExternal\Psr\Http\Message\ResponseInterface;
-use ComfinoExternal\Sunrise\Http\Client\Curl\Client;
-use ComfinoExternal\Sunrise\Http\Factory\RequestFactory;
-use ComfinoExternal\Sunrise\Http\Factory\ResponseFactory;
-use ComfinoExternal\Sunrise\Http\Factory\StreamFactory;
 
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
 /**
- * Manages automatic updates from GitHub releases.
+ * Manages update-availability checks for the plugin.
  *
- * This class handles:
- * - Checking for new versions on GitHub.
- * - Downloading release packages.
- * - Extracting and installing updates.
- * - Running upgrade scripts.
- * - Verifying update integrity.
+ * The latest available release is resolved through the centralized Comfino release API
+ * (GET /v1/plugin-releases/{platform}/latest) instead of polling GitHub directly. The API returns the release of the
+ * line compatible with this shop's PHP and PrestaShop version (derived from the client User-Agent), so the version we
+ * compare against is always installable here.
  */
 class UpdateManager
 {
-    private const GITHUB_REPOSITORY = 'comfino/PrestaShop';
-    private const GITHUB_URL = 'https://github.com/' . self::GITHUB_REPOSITORY;
-    private const GITHUB_API_URL = 'https://api.github.com/repos/' . self::GITHUB_REPOSITORY;
+    /** Base canonical platform slug polled on the Comfino release API; the API resolves the concrete line by User-Agent. */
+    private const PLATFORM = 'prestashop';
     private const CACHE_KEY = 'comfino_github_version_check';
     private const CACHE_TTL = 86400; // 24 hours
-    private const CONNECT_TIMEOUT = 5;
-    private const TRANSFER_TIMEOUT = 10;
 
     /**
-     * Check for available updates on GitHub.
+     * Check for available updates via the Comfino release API.
      *
      * @return array{
      *     update_available: bool,
@@ -67,6 +58,7 @@ class UpdateManager
      *     github_version?: string,
      *     download_url?: string,
      *     release_notes_url?: string,
+     *     description_html?: string,
      *     checked_at?: int,
      *     error?: string
      * }
@@ -111,91 +103,40 @@ class UpdateManager
     }
 
     /**
-     * Fetch latest release information from GitHub API.
+     * Fetch the latest release information from the Comfino release API.
      *
      * @return array Release information or error
      */
     private static function fetchLatestRelease(): array
     {
-        $response = self::sendRequest(
-            self::createClient(self::CONNECT_TIMEOUT, self::TRANSFER_TIMEOUT),
-            'GET',
-            self::GITHUB_API_URL . '/releases/latest',
-            ['Accept' => 'application/vnd.github.v3+json']
-        );
-
-        if ($response->getStatusCode() !== 200) {
+        try {
+            $release = ApiClient::getInstance()->getLatestPluginRelease(self::PLATFORM);
+        } catch (\Throwable $e) {
             return [
                 'update_available' => false,
                 'current_version' => COMFINO_VERSION,
-                'error' => 'Failed to fetch release information from GitHub.',
+                'error' => 'Failed to fetch release information from Comfino API: ' . $e->getMessage(),
                 'checked_at' => time(),
             ];
         }
 
-        $response->getBody()->rewind();
-        $responseBody = $response->getBody()->getContents();
-        $releaseInfo = json_decode($responseBody, true);
-
-        if (!is_array($releaseInfo) || !isset($releaseInfo['tag_name'])) {
+        if ($release === null) {
             return [
                 'update_available' => false,
                 'current_version' => COMFINO_VERSION,
-                'error' => 'Invalid GitHub API response.',
+                'error' => 'No release information available from Comfino API.',
                 'checked_at' => time(),
             ];
         }
-
-        $githubVersion = ltrim($releaseInfo['tag_name'], 'v');
-        $updateAvailable = version_compare($githubVersion, COMFINO_VERSION, '>');
 
         return [
-            'update_available' => $updateAvailable,
+            'update_available' => version_compare($release->version, COMFINO_VERSION, '>'),
             'current_version' => COMFINO_VERSION,
-            'github_version' => $githubVersion,
-            'download_url' => $releaseInfo['zipball_url'] ?? null,
-            'release_notes_url' => $releaseInfo['html_url'] ?? self::GITHUB_URL . '/releases',
+            'github_version' => $release->version,
+            'download_url' => $release->downloadUrl,
+            'release_notes_url' => $release->releaseUrl,
+            'description_html' => $release->descriptionHtml,
             'checked_at' => time(),
         ];
-    }
-
-    private static function createClient($connectionTimeout, $transferTimeout, $options = []): Client
-    {
-        $clientOptions = [CURLOPT_CONNECTTIMEOUT => $connectionTimeout, CURLOPT_TIMEOUT => $transferTimeout];
-
-        foreach ($options as $optionIdx => $valueValue) {
-            $clientOptions[$optionIdx] = $valueValue;
-        }
-
-        return new Client(new ResponseFactory(), $clientOptions);
-    }
-
-    /**
-     * @param string[] $headers
-     */
-    private static function sendRequest(
-        Client $client,
-        string $method,
-        string $requestUri,
-        array $headers = [],
-        ?string $requestBody = null
-    ): ResponseInterface {
-        $requestFactory = new RequestFactory();
-        $streamFactory = new StreamFactory();
-
-        $request = $requestFactory->createRequest($method, $requestUri)
-            ->withHeader('User-Agent', 'Comfino-PrestaShop-Plugin/' . COMFINO_VERSION);
-
-        if (count($headers) > 0) {
-            foreach ($headers as $headerName => $headerValue) {
-                $request = $request->withHeader($headerName, $headerValue);
-            }
-        }
-
-        if ($requestBody !== null) {
-            $request = $request->withBody($streamFactory->createStream($requestBody));
-        }
-
-        return $client->sendRequest($request);
     }
 }

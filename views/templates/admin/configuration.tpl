@@ -48,6 +48,10 @@
         <div class="panel">
             <div class="panel-body">
                 <img style="width: 300px" src="{$logo_url|escape:"htmlall":"UTF-8"}" alt="Comfino logo"> <span style="font-weight: bold; font-size: 16px; vertical-align: bottom">{$plugin_version|escape:"htmlall":"UTF-8"}</span>
+                {if $latest_release_description}
+                    {* "What's new" HTML of the latest available release. Purified with Tools::purifyHTML() in SettingsForm. *}
+                    <div class="comfino-release-description" style="margin-top: 10px">{$latest_release_description nofilter}</div>
+                {/if}
             </div>
             <div class="panel-body">
                 {$contact_msg1|escape:"htmlall":"UTF-8"}

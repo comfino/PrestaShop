@@ -37,6 +37,8 @@ use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Main;
 use Comfino\PluginShared\CacheManager;
+use Comfino\Telemetry\ShopEnvironmentReporter;
+use Comfino\Update\UpdateManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -415,6 +417,11 @@ final class SettingsForm
                 // Update plugin configuration.
                 ConfigManager::updateConfiguration($configurationOptions, false);
 
+                // Report the shop environment to Comfino after a successful settings save (fire-and-forget).
+                if (!empty(ConfigManager::getApiKey())) {
+                    ShopEnvironmentReporter::report();
+                }
+
                 $output[] = Main::translate('Settings updated.');
             }
 
@@ -447,7 +454,26 @@ final class SettingsForm
                 self::COMFINO_SUPPORT_PHONE
             ),
             'plugin_version' => COMFINO_VERSION,
+            /* "What's new" HTML of the latest release, shown in the config header next to the plugin version - but only
+               when a newer version is actually available (hidden when up to date). Server-sanitized already; re-purified
+               here with PrestaShop's HTML purifier, so the template output stays safe per marketplace requirements. */
+            'latest_release_description' => self::getLatestReleaseDescription(),
         ];
+    }
+
+    /**
+     * Purified "what's new" HTML of the latest available release, or an empty string when the plugin is up to date or
+     * no description is available.
+     */
+    private static function getLatestReleaseDescription(): string
+    {
+        $updateInfo = UpdateManager::checkForUpdates();
+
+        if (empty($updateInfo['update_available']) || empty($updateInfo['description_html'])) {
+            return '';
+        }
+
+        return \Tools::purifyHTML($updateInfo['description_html']);
     }
 
     /**

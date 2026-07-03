@@ -96,6 +96,9 @@ final class FormManager
                 $updateInfo = UpdateManager::checkForUpdates();
                 $githubVersion = !empty($updateInfo['github_version']) ? $updateInfo['github_version'] : null;
                 $githubVersionCheckedAt = !empty($updateInfo['checked_at']) ? $updateInfo['checked_at'] : null;
+                $releaseNotesUrl = !empty($updateInfo['release_notes_url'])
+                    ? $updateInfo['release_notes_url']
+                    : 'https://github.com/comfino/prestashop/releases';
 
                 $infoMessages[] = sprintf(
                     'PrestaShop Comfino %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
@@ -126,7 +129,7 @@ final class FormManager
                         version_compare($githubVersion, COMFINO_VERSION, '>') ? 'orange' : 'green',
                         $githubVersion,
                         version_compare($githubVersion, COMFINO_VERSION, '>')
-                            ? '<a href="https://github.com/comfino/PrestaShop/releases" target="_blank">Download from GitHub</a>'
+                            ? sprintf('<a href="%s" target="_blank">Download from GitHub</a>', $releaseNotesUrl)
                             : 'up to date'
                     );
 

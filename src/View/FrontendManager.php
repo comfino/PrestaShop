@@ -252,6 +252,12 @@ final class FrontendManager
             return '';
         }
 
+        /* "What's new" HTML of the available release. Server-sanitized already; re-purified here with PrestaShop's
+           HTML purifier, so the notice output stays safe per marketplace requirements. */
+        $updateInfo['description_html'] = !empty($updateInfo['description_html'])
+            ? \Tools::purifyHTML($updateInfo['description_html'])
+            : '';
+
         // Render the notice template.
         return TemplateManager::renderModuleView(
             'update-notice',

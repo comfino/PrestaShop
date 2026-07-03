@@ -36,6 +36,8 @@ use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
 use Comfino\Order\ShopStatusManager;
 use Comfino\PluginShared\CacheManager;
+use Comfino\Extended\Auth\PaywallAuthTokenGenerator;
+use Comfino\Telemetry\ShopEnvironmentReporter;
 use Comfino\View\FrontendManager;
 use Comfino\View\PaywallCartSerializer;
 use Comfino\View\SettingsForm;
@@ -82,6 +84,9 @@ final class Main
 
             // Register module API endpoints.
             ApiService::init();
+
+            // Refresh error logging access token in advance.
+            ConfigManager::refreshErrorLoggingTokenIfNeeded();
         } catch (\Throwable $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
@@ -343,7 +348,7 @@ final class Main
 
             $loggingToken = PaywallAuthTokenGenerator::generateLoggingToken(
                 (string) ConfigManager::getWidgetKey(),
-                (string) ConfigManager::getApiKey()
+                ConfigManager::getErrorLoggingAccessToken()
             );
 
             $trackId = ApiClient::getInstance()->getTrackId();

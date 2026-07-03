@@ -38,7 +38,7 @@ use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
 use Comfino\Order\ShopStatusManager;
-use Comfino\PaywallAuthTokenGenerator;
+use Comfino\Extended\Auth\PaywallAuthTokenGenerator;
 use Comfino\PluginShared\CacheManager;
 use Comfino\Tools;
 use Comfino\View\FrontendManager;
@@ -106,6 +106,8 @@ final class ConfigManager
             'COMFINO_PROD_CAT_CACHE_TTL' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_GITHUB_VERSION_CHECK_TIME' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_GITHUB_VERSION_INFO' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_ERROR_LOGGING_ACCESS_TOKEN' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
         ],
     ];
 
@@ -370,6 +372,38 @@ final class ConfigManager
         return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_KEY');
     }
 
+    public static function getErrorLoggingAccessToken(): string
+    {
+        return (string) (self::getInstance()->getConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN') ?? '');
+    }
+
+    public static function getErrorLoggingAccessTokenExpiresAt(): int
+    {
+        return (int) (self::getInstance()->getConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT') ?? 0);
+    }
+
+    public static function refreshErrorLoggingTokenIfNeeded(): void
+    {
+        if (empty(self::getApiKey())) {
+            return;
+        }
+
+        if (self::getErrorLoggingAccessToken() !== '' && self::getErrorLoggingAccessTokenExpiresAt() > time() + 3600) {
+            return;
+        }
+
+        try {
+            $response = ApiClient::getInstance()->claimErrorLoggingToken();
+
+            if ($response !== null) {
+                self::updateConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN', $response->accessToken);
+                self::updateConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT', strtotime($response->expiresAt));
+            }
+        } catch (\Throwable $e) {
+            // Silently ignore — CETS token claim is best-effort.
+        }
+    }
+
     public static function getSdkScriptUrl(): string
     {
         return self::resolveSdkScriptUrl('comfino-sdk.min.js');
@@ -579,7 +613,7 @@ final class ConfigManager
             'CURRENCY' => \Context::getContext()->currency->iso_code,
             'LOGGING_TOKEN' => PaywallAuthTokenGenerator::generateLoggingToken(
                 (string) self::getConfigurationValue('COMFINO_WIDGET_KEY'),
-                (string) self::getApiKey()
+                self::getErrorLoggingAccessToken()
             ),
             'TRACK_ID' => ApiClient::getInstance()->getTrackId(),
         ];
@@ -604,7 +638,7 @@ final class ConfigManager
     public static function getDefaultConfigurationValues(): array
     {
         return [
-            'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
+            'COMFINO_PAYMENT_TEXT' => 'Comfino',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_USE_ORDER_REFERENCE' => false,
             'COMFINO_IS_SANDBOX' => false,

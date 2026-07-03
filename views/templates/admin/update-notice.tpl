@@ -43,6 +43,10 @@
             <strong>{l s="Current version" mod="comfino"}:</strong> {$update_info.current_version|escape:"html":"UTF-8"}<br>
             <strong>{l s="New version" mod="comfino"}:</strong> {$update_info.github_version|escape:"html":"UTF-8"}
         </p>
+        {if $update_info.description_html}
+            {* "What's new" HTML of the available release. Purified with Tools::purifyHTML() in FrontendManager. *}
+            <div class="comfino-release-description" style="margin-bottom: 10px">{$update_info.description_html nofilter}</div>
+        {/if}
         <p style="margin-bottom: 15px">
             <a href="{$update_info.release_notes_url|escape:"html":"UTF-8"}" target="_blank" class="btn btn-link" style="padding-left: 0">
                 <i class="icon-external-link"></i>
