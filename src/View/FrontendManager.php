@@ -27,7 +27,7 @@
 namespace Comfino\View;
 
 use Comfino\Api\HttpErrorExceptionInterface;
-use Comfino\Common\Frontend\WidgetInitScriptHelper;
+use Comfino\Common\Frontend\WidgetSdkInitScriptHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
@@ -179,44 +179,50 @@ final class FrontendManager
         $serializer = new JsonSerializer();
 
         try {
-            return WidgetInitScriptHelper::renderWidgetInitScript(
-                ConfigManager::getCurrentWidgetCode($productId),
-                array_combine(
-                    [
-                        'WIDGET_KEY',
-                        'WIDGET_PRICE_SELECTOR',
-                        'WIDGET_TARGET_SELECTOR',
-                        'WIDGET_PRICE_OBSERVER_SELECTOR',
-                        'WIDGET_PRICE_OBSERVER_LEVEL',
-                        'WIDGET_TYPE',
-                        'OFFER_TYPES',
-                        'EMBED_METHOD',
-                        'SHOW_PROVIDER_LOGOS',
-                        'CUSTOM_BANNER_CSS_URL',
-                        'CUSTOM_CALCULATOR_CSS_URL',
-                    ],
-                    array_map(
-                        static function ($optionValue) use ($serializer) {
-                            return is_array($optionValue) ? $serializer->serialize($optionValue) : $optionValue;
-                        },
-                        ConfigManager::getConfigurationValues(
-                            'widget_settings',
-                            [
-                                'COMFINO_WIDGET_KEY',
-                                'COMFINO_WIDGET_PRICE_SELECTOR',
-                                'COMFINO_WIDGET_TARGET_SELECTOR',
-                                'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
-                                'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-                                'COMFINO_WIDGET_TYPE',
-                                'COMFINO_WIDGET_OFFER_TYPES',
-                                'COMFINO_WIDGET_EMBED_METHOD',
-                                'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
-                                'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
-                                'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
-                            ]
-                        )
+            $widgetParams = array_combine(
+                [
+                    'WIDGET_KEY',
+                    'WIDGET_TARGET_SELECTOR',
+                    'WIDGET_PRICE_SELECTOR',
+                    'WIDGET_PRICE_OBSERVER_SELECTOR',
+                    'WIDGET_PRICE_OBSERVER_LEVEL',
+                    'WIDGET_TYPE',
+                    'OFFER_TYPES',
+                    'EMBED_METHOD',
+                    'SHOW_PROVIDER_LOGOS',
+                    'CUSTOM_BANNER_CSS_URL',
+                    'CUSTOM_CALCULATOR_CSS_URL',
+                ],
+                array_map(
+                    static function ($optionValue) use ($serializer) {
+                        return is_array($optionValue) ? $serializer->serialize($optionValue) : $optionValue;
+                    },
+                    ConfigManager::getConfigurationValues(
+                        'widget_settings',
+                        [
+                            'COMFINO_WIDGET_KEY',
+                            'COMFINO_WIDGET_TARGET_SELECTOR',
+                            'COMFINO_WIDGET_PRICE_SELECTOR',
+                            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
+                            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+                            'COMFINO_WIDGET_TYPE',
+                            'COMFINO_WIDGET_OFFER_TYPES',
+                            'COMFINO_WIDGET_EMBED_METHOD',
+                            'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
+                            'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
+                            'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
+                        ]
                     )
-                ),
+                )
+            );
+
+            // New SDK-required params with no direct plugin setting yet.
+            $widgetParams['ENVIRONMENT'] = ConfigManager::isSandboxMode() ? 'sandbox' : 'production';
+            $widgetParams['HAS_PRICE_INPUT'] = false;
+
+            return WidgetSdkInitScriptHelper::renderWidgetInitScript(
+                ConfigManager::getCurrentWidgetCode($productId),
+                $widgetParams,
                 ConfigManager::getWidgetVariables($productId)
             );
         } catch (\Throwable $e) {

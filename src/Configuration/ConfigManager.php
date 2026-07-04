@@ -30,7 +30,7 @@ use Comfino\Api\ApiClient;
 use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Frontend\FrontendHelper;
-use Comfino\Common\Frontend\WidgetInitScriptHelper;
+use Comfino\Common\Frontend\WidgetSdkInitScriptHelper;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Common\Shop\Product\CategoryTree;
 use Comfino\ErrorLogger;
@@ -40,6 +40,7 @@ use Comfino\Order\OrderManager;
 use Comfino\Order\ShopStatusManager;
 use Comfino\Extended\Auth\PaywallAuthTokenGenerator;
 use Comfino\PluginShared\CacheManager;
+use Comfino\Telemetry\ShopEnvironmentReporter;
 use Comfino\Tools;
 use Comfino\View\FrontendManager;
 
@@ -529,7 +530,7 @@ final class ConfigManager
         ErrorLogger::init();
 
         try {
-            $initialWidgetCode = WidgetInitScriptHelper::getInitialWidgetCode();
+            $initialWidgetCode = WidgetSdkInitScriptHelper::getInitialWidgetCode();
             $currentWidgetCode = self::getCurrentWidgetCode();
 
             if ($lastWidgetCodeHash === null || md5($currentWidgetCode) === $lastWidgetCodeHash) {
@@ -574,7 +575,8 @@ final class ConfigManager
         if (count($optionsToInject) > 0) {
             $injectedInitOptions = implode(",\n", $optionsToInject) . ",\n";
 
-            return preg_replace('/\{\n(.*widgetKey:)/', "{\n$injectedInitOptions\$1", $widgetCode);
+            // productId/availableProductTypes live in the bootstrapWidget() call, anchored on its first param.
+            return preg_replace('/\{\n(.*widgetTargetSelector:)/', "{\n$injectedInitOptions\$1", $widgetCode);
         }
 
         return $widgetCode;
@@ -608,16 +610,16 @@ final class ConfigManager
         return [
             'WIDGET_SCRIPT_URL' => self::getWidgetScriptUrl(),
             'PRODUCT_ID' => $productData['product_id'],
-            'PRODUCT_PRICE' => $productData['price'],
-            'PLATFORM' => 'prestashop',
-            'PLATFORM_NAME' => 'PrestaShop',
-            'PLATFORM_VERSION' => _PS_VERSION_,
-            'PLATFORM_DOMAIN' => \Tools::getShopDomain(),
-            'PLUGIN_VERSION' => COMFINO_VERSION,
+            // SDK expects the price as an integer in the smallest currency unit (grosze), not a PLN float.
+            'PRODUCT_PRICE' => $productData['price'] === 'null'
+                ? 'null'
+                : (int) round(((float) $productData['price']) * 100),
             'AVAILABLE_PRODUCT_TYPES' => $productData['available_product_types'],
             'PRODUCT_CART_DETAILS' => $productData['product_cart_details'],
             'LANGUAGE' => \Context::getContext()->language->iso_code,
             'CURRENCY' => \Context::getContext()->currency->iso_code,
+            // Replaces the removed PLATFORM/PLATFORM_NAME/PLATFORM_VERSION/PLATFORM_DOMAIN/PLUGIN_VERSION params.
+            'SHOP_ENVIRONMENT' => ShopEnvironmentReporter::getFrontendEnvironment(),
             'LOGGING_TOKEN' => PaywallAuthTokenGenerator::generateLoggingToken(
                 (string) self::getConfigurationValue('COMFINO_WIDGET_KEY'),
                 self::getErrorLoggingAccessToken()
@@ -666,7 +668,7 @@ final class ConfigManager
             'COMFINO_WIDGET_TYPE' => 'standard',
             'COMFINO_WIDGET_OFFER_TYPES' => 'CONVENIENT_INSTALLMENTS',
             'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
-            'COMFINO_WIDGET_CODE' => WidgetInitScriptHelper::getInitialWidgetCode(),
+            'COMFINO_WIDGET_CODE' => WidgetSdkInitScriptHelper::getInitialWidgetCode(),
             'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => '',
             'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => '',
             'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,

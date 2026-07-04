@@ -103,6 +103,31 @@ final class ShopEnvironmentReporter
     }
 
     /**
+     * Builds the shop environment payload embedded in the widget init script's SHOP_ENVIRONMENT variable.
+     *
+     * Unlike report()/getReportArray(), this must never throw or block widget rendering, so failures degrade to an
+     * empty array rather than propagating.
+     *
+     * @return array<string, mixed>
+     */
+    public static function getFrontendEnvironment(): array
+    {
+        try {
+            $builder = new PrestaShopShopEnvironmentBuilder(new PrestaShopPlatformInfo(), self::createThemeRules());
+
+            return $builder->buildForFrontend();
+        } catch (\Throwable $e) {
+            DebugLogger::logEvent(
+                '[SHOP_ENVIRONMENT]',
+                'ShopEnvironmentReporter::getFrontendEnvironment: failed',
+                ['exceptionMessage' => $e->getMessage()]
+            );
+
+            return [];
+        }
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     private static function detectOpcModules(): array

@@ -149,6 +149,11 @@ $_MODULE['<{comfino}prestashop>module-reset_dc6cbd1f5136370699cc52309c2dc81a'] =
 $_MODULE['<{comfino}prestashop>module-reset_f26af8e606a623cb71d8df8c65a7b896'] = 'Czy na pewno chcesz zresetować moduł? Spowoduje to ponowną rejestrację hook-ów i odtworzenie statusów zamówień.';
 $_MODULE['<{comfino}prestashop>module-reset_817ea9c22e6b11ecd69691c1dd47ef1a'] = 'Zresetuj moduł';
 
+$_MODULE['<{comfino}prestashop>comfino_4d3b543f603dc243f4f1e122bd9f5007'] = 'Zresetuj kod inicjalizacyjny widgetu';
+
+$_MODULE['<{comfino}prestashop>widget-code-reset_205f915260f7e8910388b7236aa7ba5a'] = 'Przywróć domyślne';
+$_MODULE['<{comfino}prestashop>widget-code-reset_788d5c66ec4cd330c84b59ed510904e0'] = 'Czy na pewno chcesz przywrócić domyślną wartość kodu inicjalizacyjnego widgetu? Twoje zmiany zostaną utracone.';
+
 $_MODULE['<{comfino}prestashop>error-log_2ed282f505b8586cfd3487158b956fec'] = 'Wyczyść log błędów';
 $_MODULE['<{comfino}prestashop>error-log_b9c3dc098fa924c9748cf9a283f0d70d'] = 'Czy na pewno chcesz wyczyścić log błędów?';
 
@@ -168,6 +173,9 @@ $_MODULE['<{comfino}prestashop>comfino_3118c3d3aaca5d51ac8d52c960d76f63'] = 'Kon
 $_MODULE['<{comfino}prestashop>comfino_2f1458780e96adb1c81f66ef40da3a4a'] = 'Hooki: %d zarejestrowanych, %d nieudanych';
 $_MODULE['<{comfino}prestashop>comfino_42ee188afab598503289d1b0de299fe2'] = 'Statusy zamówień: %d utworzonych, %d zaktualizowanych, %d nieudanych';
 $_MODULE['<{comfino}prestashop>comfino_2051440020040b387e6ba9a7c1883548'] = 'Resetowanie modułu nie powiodło się';
+
+$_MODULE['<{comfino}prestashop>comfino_ce4aefa38d497199187e35a7b1f923ad'] = 'Kod inicjalizacyjny widgetu przywrócony do wartości domyślnej.';
+$_MODULE['<{comfino}prestashop>comfino_b8cbb681e37c30c7d620ce85f034dc59'] = 'Przywrócenie domyślnego kodu inicjalizacyjnego widgetu nie powiodło się';
 
 $_MODULE['<{comfino}prestashop>payment_0f7f7dbb9907ba5d256ef3e368d526b4'] = 'Przejdź do płatności';
 $_MODULE['<{comfino}prestashop>payment_e2b7dec8fa4b498156dfee6e4c84b156'] = 'Ta metoda płatności nie jest dostępna';

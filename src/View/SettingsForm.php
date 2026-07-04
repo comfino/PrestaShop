@@ -137,6 +137,18 @@ final class SettingsForm
                 $outputType = 'error';
                 $output[] = Main::translate('Debug log clearing failed') . ': ' . $e->getMessage();
             }
+        } elseif (\Tools::isSubmit('submit_reset_widget_code')) {
+            $activeTab = 'widget_settings';
+
+            try {
+                ConfigManager::updateWidgetCode();
+                CacheManager::getCachePool()->clear();
+
+                $output[] = Main::translate('Widget initialization code reset to default value.');
+            } catch (\Exception $e) {
+                $outputType = 'error';
+                $output[] = Main::translate('Widget initialization code reset failed') . ': ' . $e->getMessage();
+            }
         } elseif (\Tools::isSubmit('submit_configuration')) {
             $activeTab = \Tools::getValue('active_tab');
 
@@ -860,6 +872,12 @@ final class SettingsForm
                             'rows' => 15,
                             'cols' => 60,
                         ],
+                        [
+                            'type' => 'html',
+                            'label' => Main::translate('Reset widget initialization code'),
+                            'name' => 'COMFINO_WIDGET_CODE_RESET',
+                            'html_content' => self::renderWidgetCodeResetSection(),
+                        ],
                     ],
                     'submit' => [
                         'title' => Main::translate('Save'),
@@ -1172,7 +1190,19 @@ final class SettingsForm
     }
 
     /**
-     * Renders the error log section with textarea and clear button.
+     * Renders the widget initialization code reset section with the reset button.
+     */
+    private static function renderWidgetCodeResetSection(): string
+    {
+        return TemplateManager::renderModuleView(
+            'widget-code-reset',
+            'admin/_configure',
+            []
+        );
+    }
+
+    /**
+     * Renders the error log section with the textarea and clear the button.
      */
     private static function renderErrorLogSection(): string
     {
@@ -1184,7 +1214,7 @@ final class SettingsForm
     }
 
     /**
-     * Renders the debug log section with textarea and clear button.
+     * Renders the debug log section with a textarea and clear button.
      */
     private static function renderDebugLogSection(): string
     {
