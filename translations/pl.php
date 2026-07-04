@@ -28,6 +28,7 @@ $_MODULE = [];
 $_MODULE['<{comfino}prestashop>comfino_f5dbf6a997c0367dd2bcae89bd2b6c29'] = 'Nie można zainstalować modułu Comfino. Minimalna wymagana przez Comfino wersja PHP to %s. Używasz wersji %s.';
 $_MODULE['<{comfino}prestashop>comfino_eac9a551ae7f30033af2885e607f3991'] = 'Nie można zainstalować modułu Comfino. Wymaga rozszerzenia PHP cURL, które nie jest zainstalowane. Więcej szczegółów: https://www.php.net/manual/en/book.curl.php';
 $_MODULE['<{comfino}prestashop>comfino_f38f5974cdc23279ffe6d203641a8bdf'] = 'Ustawienia zaktualizowane.';
+$_MODULE['<{comfino}prestashop>comfino_6843ec032f1fc86d1f2bfef1e5557a9e'] = 'Nowa wersja modułu Comfino %s jest dostępna. Używasz wersji %s. Zaktualizuj moduł Comfino.';
 $_MODULE['<{comfino}prestashop>comfino_4b2e2ac9eae1a16beda68109acf0b384'] = 'Ustawienia nie zostały zaktualizowane.';
 $_MODULE['<{comfino}prestashop>comfino_3c2fdac9dae66f03386e5f229b090b69'] = 'Pole "%s" nie może być puste.';
 $_MODULE['<{comfino}prestashop>comfino_1e045eaae458b47ab7ac56b9cedaf194'] = 'Pole "%s" ma nieprawidłowy format numeryczny.';

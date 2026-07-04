@@ -347,8 +347,10 @@ class Comfino extends PaymentModule
     {
         $this->context->controller->addJS(_MODULE_DIR_ . "$this->name/views/js/admin/tree.min.js");
 
-        // Check for plugin updates once per day.
-        $this->checkGithubVersion();
+        Comfino\Main::addLocalStyleLink(
+            'comfino-release-description',
+            _MODULE_DIR_ . "$this->name/views/css/admin/release-description.css"
+        );
     }
 
     /**
@@ -470,40 +472,6 @@ class Comfino extends PaymentModule
 
         // Unknown or irrelevant controller.
         return '';
-    }
-
-    /**
-     * Check for available GitHub updates (information only in PrestaShop, full updates available).
-     * Checks once per day and caches the result.
-     *
-     * @return void
-     */
-    private function checkGithubVersion()
-    {
-        if (!class_exists('Comfino\Update\UpdateManager')) {
-            return;
-        }
-
-        // Check if we've already checked today.
-        $lastCheckTime = Configuration::get('COMFINO_GITHUB_VERSION_CHECK_TIME');
-
-        if ($lastCheckTime && (time() - (int) $lastCheckTime) < 86400) {
-            // Checked within last 24 hours - but bypass if the running version changed (e.g. after an update).
-            if (is_array($cachedInfo = json_decode(Configuration::get('COMFINO_GITHUB_VERSION_INFO'), true))
-                && (isset($cachedInfo['current_version']) ? $cachedInfo['current_version'] : '') === COMFINO_VERSION
-            ) {
-                return;
-            }
-
-            // Version changed since last cache - force refresh.
-            Comfino\Update\UpdateManager::forceCheckForUpdates();
-        }
-
-        $updateInfo = Comfino\Update\UpdateManager::checkForUpdates();
-
-        // Store the check time and update info.
-        Configuration::updateValue('COMFINO_GITHUB_VERSION_CHECK_TIME', time());
-        Configuration::updateValue('COMFINO_GITHUB_VERSION_INFO', json_encode($updateInfo));
     }
 
     /**

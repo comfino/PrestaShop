@@ -104,8 +104,6 @@ final class ConfigManager
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_NEW_WIDGET_ACTIVE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_PROD_CAT_CACHE_TTL' => ConfigurationManager::OPT_VALUE_TYPE_INT,
-            'COMFINO_GITHUB_VERSION_CHECK_TIME' => ConfigurationManager::OPT_VALUE_TYPE_INT,
-            'COMFINO_GITHUB_VERSION_INFO' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
         ],
@@ -160,8 +158,6 @@ final class ConfigManager
         'COMFINO_API_CONNECT_NUM_ATTEMPTS',
         'COMFINO_NEW_WIDGET_ACTIVE',
         'COMFINO_PROD_CAT_CACHE_TTL',
-        'COMFINO_GITHUB_VERSION_CHECK_TIME',
-        'COMFINO_GITHUB_VERSION_INFO',
     ];
 
     private const CONFIG_MANAGER_OPTIONS = ConfigurationManager::OPT_SERIALIZE_ARRAYS;
@@ -433,7 +429,18 @@ final class ConfigManager
     }
 
     /**
-     * Compose the CDN URL of an SDK bundle served from /v1/ on the dedicated sdk.* host.
+     * CDN URL of the single, SDK-hosted Comfino brand logo used as the default payment-tile placeholder across all shop
+     * plugins/platforms. Rendered by the plugin as the tile's initial logo; the SDK renderer swaps its src at runtime
+     * (e.g., to the auth-gated API Comfino logo). Hosting it centrally on the SDK CDN keeps the asset controllable
+     * without plugin updates.
+     */
+    public static function getDefaultLogoUrl(): string
+    {
+        return FrontendManager::getSdkCdnBaseUrl() . '/images/comfino/comfino_logo.svg';
+    }
+
+    /**
+     * Compose the CDN URL of an SDK bundle served from /sdk/v1/ on the dedicated sdk.* host.
      * The .min suffix is dropped when COMFINO_DEV_USE_UNMINIFIED_SCRIPTS is on.
      */
     private static function resolveSdkScriptUrl(string $scriptFileName): string
@@ -442,7 +449,7 @@ final class ConfigManager
             $scriptFileName = str_replace('.min.js', '.js', $scriptFileName);
         }
 
-        return FrontendManager::getSdkCdnBaseUrl() . "/v1/$scriptFileName";
+        return FrontendManager::getSdkCdnBaseUrl() . "/sdk/v1/$scriptFileName";
     }
 
     /**

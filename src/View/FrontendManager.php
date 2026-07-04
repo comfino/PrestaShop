@@ -33,6 +33,7 @@ use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\Main;
+use Comfino\Update\UpdateManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -226,24 +227,20 @@ final class FrontendManager
     }
 
     /**
-     * Display admin notice about available GitHub version.
+     * Display an admin notice about the available GitHub version.
      *
-     * @return string HTML content for update notice banner.
+     * @return string HTML content for update notice banner
      */
     public static function displayGithubVersionNotice(\Comfino $module): string
     {
         $dismissedVersion = \Configuration::get('COMFINO_UPDATE_NOTICE_DISMISSED');
-        $updateInfoJson = \Configuration::get('COMFINO_GITHUB_VERSION_INFO');
 
-        if (empty($updateInfoJson)) {
-            return '';
-        }
-
-        $updateInfo = json_decode($updateInfoJson, true);
+        /* Read directly from UpdateManager (its own 24h-cached result) instead of a separate Configuration-backed
+           cache, so this notice can never drift out of sync with the release info shown on the config page. */
+        $updateInfo = UpdateManager::checkForUpdates();
         $githubVersion = $updateInfo['github_version'] ?? '';
 
-        // Re-evaluate against current version to avoid showing stale cached notice after an update.
-        if (empty($githubVersion) || !version_compare($githubVersion, COMFINO_VERSION, '>')) {
+        if (empty($updateInfo['update_available']) || empty($githubVersion)) {
             return '';
         }
 

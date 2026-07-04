@@ -454,26 +454,36 @@ final class SettingsForm
                 self::COMFINO_SUPPORT_PHONE
             ),
             'plugin_version' => COMFINO_VERSION,
-            /* "What's new" HTML of the latest release, shown in the config header next to the plugin version - but only
-               when a newer version is actually available (hidden when up to date). Server-sanitized already; re-purified
-               here with PrestaShop's HTML purifier, so the template output stays safe per marketplace requirements. */
-            'latest_release_description' => self::getLatestReleaseDescription(),
-        ];
+        ] + self::getUpdateInfoForTemplate();
     }
 
     /**
-     * Purified "what's new" HTML of the latest available release, or an empty string when the plugin is up to date or
-     * no description is available.
+     * The latest available release version and "what's new" HTML, shown in the config header next to the plugin version
+     * - but only when a newer version is actually available (hidden when up to date).
      */
-    private static function getLatestReleaseDescription(): string
+    private static function getUpdateInfoForTemplate(): array
     {
         $updateInfo = UpdateManager::checkForUpdates();
 
-        if (empty($updateInfo['update_available']) || empty($updateInfo['description_html'])) {
-            return '';
+        if (empty($updateInfo['update_available']) || empty($updateInfo['github_version'])) {
+            return ['update_available_message' => '', 'latest_release_description' => ''];
         }
 
-        return \Tools::purifyHTML($updateInfo['description_html']);
+        return [
+            'update_available_message' => sprintf(
+                Main::translate(
+                    'New Comfino %s module version is available. You are using %s version. ' .
+                    'Please update your Comfino module.'
+                ),
+                $updateInfo['github_version'],
+                COMFINO_VERSION
+            ),
+            /* Server-sanitized already; re-purified here with PrestaShop's HTML purifier, so the template output
+               stays safe per marketplace requirements. */
+            'latest_release_description' => !empty($updateInfo['description_html'])
+                ? \Tools::purifyHTML($updateInfo['description_html'])
+                : '',
+        ];
     }
 
     /**

@@ -39,6 +39,10 @@ function upgrade_module_4_3_0(Comfino $module)
     Configuration::deleteByName('COMFINO_PAYWALL_URL');
     Configuration::deleteByName('COMFINO_SHOW_LOGO');
 
+    // Remove legacy GitHub-named update-check cache keys, superseded by UpdateManager's own cache pool.
+    Configuration::deleteByName('COMFINO_GITHUB_VERSION_CHECK_TIME');
+    Configuration::deleteByName('COMFINO_GITHUB_VERSION_INFO');
+
     // Remove legacy paywall-init JS files (replaced by the inline V3 SDK bootstrap in payment.tpl).
     @unlink(_PS_MODULE_DIR_ . $module->name . '/views/js/front/paywall-init.js');
     @unlink(_PS_MODULE_DIR_ . $module->name . '/views/js/front/paywall-init.min.js');

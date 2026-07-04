@@ -35,7 +35,12 @@
     <div class="col-xs-12 col-md-12">
         <p class="payment_module comfino">
             <label id="pay-with-comfino" class="comfino-payment-method">
+                <img class="comfino-payment-method-item__logo" data-comfino-logo src="{$comfino_default_logo_url|escape:'htmlall':'UTF-8'}" alt="{$comfino_label|escape:'htmlall':'UTF-8'}" />
                 {$comfino_label|escape:"htmlall":"UTF-8"}
+                {* Loading skeleton shown over the tile until the SDK adds --ready (comfino-item-gate-prestashop.css). *}
+                <span class="comfino-payment-method-item__loader" aria-hidden="true">
+                    <span class="comfino-payment-method-item__loader-spinner"><span></span></span>
+                </span>
             </label>
         </p>
     </div>

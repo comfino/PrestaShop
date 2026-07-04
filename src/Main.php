@@ -307,7 +307,7 @@ final class Main
     }
 
     /**
-     * Renders Comfino iframe with payment form and returns string with iframe HTML for PrestaShop 1.6 or array with
+     * Renders Comfino iframe with a payment form and returns string with iframe HTML for PrestaShop 1.6 or array with
      * \PrestaShop\PrestaShop\Core\Payment\PaymentOption object for PrestaShop 1.7+. Returns empty string/array in
      * case of errors.
      *
@@ -315,8 +315,8 @@ final class Main
      */
     public static function renderPaywallIframe(\Comfino $module, array $params)
     {
-        // §14.3: prevent duplicate render when OPC modules (SuperCheckout, TheCheckout, etc.)
-        // invoke the payment hook more than once per request.
+        /* Prevent duplicate render when OPC modules (SuperCheckout, TheCheckout, etc.) invoke the payment hook more
+           than once per request. */
         static $rendered = false;
 
         if ($rendered) {
@@ -338,8 +338,8 @@ final class Main
         $context = \Context::getContext();
 
         try {
-            // §14.5: getOrderTotal(true) already includes all price modifiers; never add priceModifier again.
-            $loanAmount = (int) round($cart->getOrderTotal(true) * 100);
+            // The getOrderTotal(true) already includes all price modifiers; never add priceModifier again.
+            $loanAmount = (int) round($cart->getOrderTotal() * 100);
 
             $authToken = PaywallAuthTokenGenerator::generateAuthToken(
                 (string) ConfigManager::getWidgetKey(),
@@ -438,6 +438,7 @@ final class Main
             'script_nonce' => self::getScriptNonce(),
             'is_ps_16' => !COMFINO_PS_17,
             'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
+            'comfino_default_logo_url' => ConfigManager::getDefaultLogoUrl(),
             'comfino_redirect_url' => ApiService::getControllerUrl('payment'),
         ];
 

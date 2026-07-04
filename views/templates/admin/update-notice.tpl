@@ -44,7 +44,9 @@
             <strong>{l s="New version" mod="comfino"}:</strong> {$update_info.github_version|escape:"html":"UTF-8"}
         </p>
         {if $update_info.description_html}
-            {* "What's new" HTML of the available release. Purified with Tools::purifyHTML() in FrontendManager. *}
+            {* "What's new" HTML of the available release. Purified with Tools::purifyHTML() in FrontendManager.
+               Styled by views/css/admin/release-description.css, loaded in hookActionAdminControllerSetMedia on every
+               admin page (this notice is injected client-side into #dashboard, so it needs the sheet already present). *}
             <div class="comfino-release-description" style="margin-bottom: 10px">{$update_info.description_html nofilter}</div>
         {/if}
         <p style="margin-bottom: 15px">
