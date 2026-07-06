@@ -79,8 +79,13 @@ final class Main
         }
 
         try {
+            /* Isolate cached API responses (creditors, product/widget types) per shop when multistore is active -
+               a single module installation can serve shops with different API keys/environments, and the cache must
+               not leak data between them. */
+            $cacheScope = \Shop::isFeatureActive() ? (string) \Shop::getContextShopID() : '';
+
             // Initialize cache system.
-            CacheManager::init(self::getCacheRootPath());
+            CacheManager::init(self::getCacheRootPath(), $cacheScope);
 
             // Register module API endpoints.
             ApiService::init();
