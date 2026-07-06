@@ -1,9 +1,8 @@
 <?php
 
 return
-"const script = document.createElement('script');
-script.onload = function () {
-    const sdk = window.Comfino.ComfinoSDK.getInstance();
+"import({WIDGET_SCRIPT_URL}).then(function (sdkModule) {
+    const sdk = sdkModule.ComfinoSDK.getInstance();
     const shopEnvironment = {SHOP_ENVIRONMENT};
 
     sdk.init({
@@ -40,9 +39,4 @@ script.onload = function () {
         onWidgetCalculatorCustomCssLoaded: function (cssUrl) { },
         debugMode: window.location.hash && window.location.hash.substring(1) === 'comfino_debug'
     });
-};
-script.src = {WIDGET_SCRIPT_URL};
-script.async = true;
-script.crossOrigin = 'anonymous';
-
-document.getElementsByTagName('head')[0].appendChild(script);";
+});";

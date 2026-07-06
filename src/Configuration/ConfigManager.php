@@ -422,6 +422,26 @@ final class ConfigManager
     }
 
     /**
+     * CDN URL of the PrestaShop product-page widget script served from the SDK host at /product/v1/. The product-page
+     * sibling of getCheckoutScriptUrl(): the classic-IIFE script reads the `#comfino-widget-config` JSON block and
+     * calls sdk.bootstrapWidget(). The .min suffix is dropped when COMFINO_DEV_USE_UNMINIFIED_SCRIPTS is on.
+     */
+    public static function getProductWidgetScriptUrl(): string
+    {
+        if (self::useDevEnvVars() && getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')) {
+            return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
+        }
+
+        $fileName = 'comfino-prestashop-widget.min.js';
+
+        if (self::useDevEnvVars() && self::useUnminifiedScripts()) {
+            $fileName = str_replace('.min.js', '.js', $fileName);
+        }
+
+        return FrontendManager::getSdkCdnBaseUrl() . "/product/v1/$fileName";
+    }
+
+    /**
      * CDN URL of the PrestaShop payment-tile gate stylesheet served from the SDK host.
      */
     public static function getCheckoutCssUrl(): string

@@ -41,7 +41,7 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1783069637);
+    define('COMFINO_BUILD_TS', 1783326992);
 }
 
 if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
@@ -80,7 +80,6 @@ class Comfino extends PaymentModule
             'error',
             'payment',
             'paywallitemdetails',
-            'script',
             'transactionstatus',
             'updatedismiss',
         ];
@@ -114,13 +113,62 @@ class Comfino extends PaymentModule
         }
 
         try {
-            // Initialize Comfino plugin.
-            Comfino\Main::init();
+            /* Initialize Comfino plugin (cache system, REST endpoints, error-logging token refresh) only when the
+               current request actually needs it - avoids unnecessary work on shop pages unrelated to the widget
+               banner, paywall, admin dashboard or the module's own REST/configuration controllers. */
+            if ($this->needsFullInit()) {
+                Comfino\Main::init();
+            }
         } catch (Exception $e) {
             if (!preg_match('/^(Class|Interface|Trait) [\'"][^\'"]+[\'"] not found$/', $e->getMessage())) {
                 $this->_errors[] = $e->getMessage();
             }
         }
+    }
+
+    /**
+     * Determines whether the current request needs full plugin initialization: the module's own REST/front controllers,
+     * the product page (widget banner), cart/order/checkout pages (paywall), the admin dashboard (update notifications)
+     * or the module's own configuration page.
+     *
+     * @return bool
+     */
+    private function needsFullInit()
+    {
+        if (!isset($this->context, $this->context->controller)) {
+            return true;
+        }
+
+        $controller = $this->context->controller;
+
+        if ($this->isOwnModuleController($controller)) {
+            return true;
+        }
+
+        if ($controller instanceof AdminController) {
+            return Tools::getValue('configure') === $this->name || Tools::getValue('controller') === 'AdminDashboard';
+        }
+
+        /* Broader than detectController() on purpose - covers order-opc, order-confirmation, order-detail, etc.,
+           which detectController() deliberately excludes for its own (CSS-gating) purpose but which still belong
+           to the checkout/paywall flow and therefore need full initialization. */
+        $rawPageName = $this->getRawPageName();
+
+        return $rawPageName === 'product' || $rawPageName === 'cart' || strpos($rawPageName, 'order') !== false ||
+            strpos($rawPageName, 'checkout') !== false;
+    }
+
+    /**
+     * Checks whether the currently dispatched controller is one of this module's own REST/front controllers
+     * (configuration sync, transaction status, cache invalidation, payment, script, etc.).
+     *
+     * @return bool
+     */
+    private function isOwnModuleController($controller)
+    {
+        $controllerClass = get_class($controller);
+
+        return strpos($controllerClass, 'Comfino') === 0 && substr($controllerClass, -21) === 'ModuleFrontController';
     }
 
     /**
@@ -246,13 +294,19 @@ class Comfino extends PaymentModule
                 return;
             }
 
+            /* Product-page widget via the CDN product widget script: register the deferred per-platform script and emit
+               the JSON config block it reads, directly in the page header. */
             Comfino\Main::addScriptLink(
                 'comfino-widget',
-                Comfino\Api\ApiService::getControllerUrl('script', ['product_id' => $product->id]),
+                Comfino\Configuration\ConfigManager::getProductWidgetScriptUrl(),
                 'bottom',
                 'defer'
             );
-        } elseif (in_array($controller, ['cart', 'order', 'checkout'])) {
+
+            return Comfino\View\FrontendManager::renderWidgetConfigElement((int) $product->id);
+        }
+
+        if (in_array($controller, ['cart', 'order', 'checkout'])) {
             // Hide-by-default gate for the Comfino payment tile until the SDK signals readiness - loaded from CDN.
             Comfino\Main::addStyleLink(
                 'comfino-item-gate',
@@ -339,27 +393,38 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * Page header script/style section renderer for backoffice admin pages.
+     * Page header script/style section renderer for the module's own configuration page and the admin dashboard.
      *
      * @return void
      */
     public function hookActionAdminControllerSetMedia(array $params)
     {
-        $this->context->controller->addJS(_MODULE_DIR_ . "$this->name/views/js/admin/tree.min.js");
+        $isConfigPage = Tools::getValue('configure') === $this->name;
 
-        Comfino\Main::addLocalStyleLink(
-            'comfino-release-description',
-            _MODULE_DIR_ . "$this->name/views/css/admin/release-description.css"
-        );
+        if ($isConfigPage) {
+            $this->context->controller->addJS(_MODULE_DIR_ . "$this->name/views/js/admin/tree.min.js");
+        }
+
+        if ($isConfigPage || Tools::getValue('controller') === 'AdminDashboard') {
+            Comfino\Main::addLocalStyleLink(
+                'comfino-release-description',
+                _MODULE_DIR_ . "$this->name/views/css/admin/release-description.css"
+            );
+        }
     }
 
     /**
-     * Renders admin header content including update notices.
+     * Renders admin header content including update notices. Restricted to the admin dashboard so the update-check
+     * template isn't rendered on every backoffice page.
      *
      * @return string
      */
     public function hookDisplayBackOfficeHeader(array $params)
     {
+        if (Tools::getValue('controller') !== 'AdminDashboard') {
+            return '';
+        }
+
         return Comfino\View\FrontendManager::displayGithubVersionNotice($this);
     }
 
@@ -406,11 +471,13 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * Detects current controller across all PrestaShop versions (1.6.1.11 - 9.0+).
+     * Returns the raw page/controller identifier across all PrestaShop versions (1.6.1.11 - 9.0+), e.g. "product",
+     * "order-opc", "orderconfirmation", "cms", etc. Unlike detectController(), this is not filtered down to a known
+     * whitelist - callers decide which raw identifiers are relevant to them.
      *
-     * @return string Controller identifier (product, cart, order, checkout) or empty string.
+     * @return string
      */
-    private function detectController()
+    private function getRawPageName()
     {
         $controller = '';
 
@@ -443,6 +510,18 @@ class Comfino extends PaymentModule
                 $controller = $controllerName;
             }
         }
+
+        return $controller;
+    }
+
+    /**
+     * Detects the current controller across all PrestaShop versions (1.6.1.11 - 9.0+).
+     *
+     * @return string Controller identifier (product, cart, order, checkout) or empty string.
+     */
+    private function detectController()
+    {
+        $controller = $this->getRawPageName();
 
         // Handle checkout variations (checkout, supercheckout, onepagecheckout, etc.)
         if (strpos($controller, 'checkout') !== false) {

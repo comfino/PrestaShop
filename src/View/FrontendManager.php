@@ -27,11 +27,10 @@
 namespace Comfino\View;
 
 use Comfino\Api\HttpErrorExceptionInterface;
-use Comfino\Common\Frontend\WidgetSdkInitScriptHelper;
+use Comfino\Common\Frontend\ProductWidgetScriptHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
-use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\Main;
 use Comfino\Update\UpdateManager;
 
@@ -174,59 +173,98 @@ final class FrontendManager
         return $registeredStyles;
     }
 
-    public static function renderWidgetInitCode(?int $productId): string
+    /**
+     * Renders the product-page widget config block consumed by the CDN product widget script (`comfino-prestashop-widget.min.js`).
+     * Emits a `<script type="application/json" id="comfino-widget-config">` element whose JSON matches the SDK's
+     * WidgetConfig contract; the deferred script reads it, imports the SDK, and calls sdk.bootstrapWidget().
+     * This is the recommended replacement for the removed inline `/script` front-controller endpoint: the config block
+     * is emitted directly into the product page via hookDisplayHeader, and the per-platform script is loaded with
+     * registerJavascript — no per-request JS-generating controller.
+     *
+     * The config array is filtered against the shared `ProductWidgetScriptHelper::WIDGET_CONFIG_KEYS` allowlist
+     * (also drops nulls) and JSON-encoded with the same defensive flags the SDK init helpers use, so any
+     * admin-controlled string (selectors, product names in productCartDetails) cannot terminate the script tag,
+     * escape the JSON string, or smuggle entity references.
+     *
+     * @param int|null $productId Current product id, or null when unavailable
+     *
+     * @return string The `<script type="application/json" id="comfino-widget-config">…</script>` block
+     */
+    public static function renderWidgetConfigElement(?int $productId): string
     {
-        $serializer = new JsonSerializer();
-
         try {
-            $widgetParams = array_combine(
+            $settings = ConfigManager::getConfigurationValues(
+                'widget_settings',
                 [
-                    'WIDGET_KEY',
-                    'WIDGET_TARGET_SELECTOR',
-                    'WIDGET_PRICE_SELECTOR',
-                    'WIDGET_PRICE_OBSERVER_SELECTOR',
-                    'WIDGET_PRICE_OBSERVER_LEVEL',
-                    'WIDGET_TYPE',
-                    'OFFER_TYPES',
-                    'EMBED_METHOD',
-                    'SHOW_PROVIDER_LOGOS',
-                    'CUSTOM_BANNER_CSS_URL',
-                    'CUSTOM_CALCULATOR_CSS_URL',
-                ],
-                array_map(
-                    static function ($optionValue) use ($serializer) {
-                        return is_array($optionValue) ? $serializer->serialize($optionValue) : $optionValue;
-                    },
-                    ConfigManager::getConfigurationValues(
-                        'widget_settings',
-                        [
-                            'COMFINO_WIDGET_KEY',
-                            'COMFINO_WIDGET_TARGET_SELECTOR',
-                            'COMFINO_WIDGET_PRICE_SELECTOR',
-                            'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
-                            'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-                            'COMFINO_WIDGET_TYPE',
-                            'COMFINO_WIDGET_OFFER_TYPES',
-                            'COMFINO_WIDGET_EMBED_METHOD',
-                            'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
-                            'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
-                            'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
-                        ]
-                    )
-                )
+                    'COMFINO_WIDGET_KEY',
+                    'COMFINO_WIDGET_TARGET_SELECTOR',
+                    'COMFINO_WIDGET_PRICE_SELECTOR',
+                    'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
+                    'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+                    'COMFINO_WIDGET_TYPE',
+                    'COMFINO_WIDGET_OFFER_TYPES',
+                    'COMFINO_WIDGET_EMBED_METHOD',
+                    'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
+                    'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
+                    'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
+                ]
             );
 
-            // New SDK-required params with no direct plugin setting yet.
-            $widgetParams['ENVIRONMENT'] = ConfigManager::isSandboxMode() ? 'sandbox' : 'production';
-            $widgetParams['HAS_PRICE_INPUT'] = false;
+            $variables = ConfigManager::getWidgetVariables($productId);
 
-            return WidgetSdkInitScriptHelper::renderWidgetInitScript(
-                ConfigManager::getCurrentWidgetCode($productId),
-                $widgetParams,
-                ConfigManager::getWidgetVariables($productId)
+            // getWidgetVariables() emits the string literal 'null' for absent numeric fields; normalize to real null.
+            $notNull = static function ($value) {
+                return $value === 'null' ? null : $value;
+            };
+
+            $offerTypes = array_values(array_filter(
+                array_map('trim', explode(',', (string) ($settings['COMFINO_WIDGET_OFFER_TYPES'] ?? ''))),
+                static function (string $type): bool {
+                    return $type !== '';
+                }
+            ));
+
+            $config = [
+                'sdkScriptUrl' => ConfigManager::getSdkScriptUrl(),
+                'environment' => ConfigManager::isSandboxMode() ? 'sandbox' : 'production',
+                'widgetKey' => $settings['COMFINO_WIDGET_KEY'] ?? null,
+                'loggingToken' => $variables['LOGGING_TOKEN'] ?? null,
+                'trackId' => $variables['TRACK_ID'] ?? null,
+                'widgetTargetSelector' => $settings['COMFINO_WIDGET_TARGET_SELECTOR'] ?? null,
+                'priceSelector' => $settings['COMFINO_WIDGET_PRICE_SELECTOR'] ?? null,
+                'priceObserverSelector' => $settings['COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR'] ?: null,
+                'priceObserverLevel' => (int) ($settings['COMFINO_WIDGET_PRICE_OBSERVER_LEVEL'] ?? 0),
+                'embedMethod' => $settings['COMFINO_WIDGET_EMBED_METHOD'] ?? null,
+                'widgetType' => $settings['COMFINO_WIDGET_TYPE'] ?? null,
+                'offerTypes' => $offerTypes !== [] ? $offerTypes : null,
+                'showProviderLogos' => (bool) ($settings['COMFINO_WIDGET_SHOW_PROVIDER_LOGOS'] ?? false),
+                'hasPriceInput' => false,
+                'bannerCssUrl' => ($settings['COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL'] ?? '') ?: null,
+                'calculatorCssUrl' => ($settings['COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL'] ?? '') ?: null,
+                'price' => $notNull($variables['PRODUCT_PRICE'] ?? null),
+                'productId' => $notNull($variables['PRODUCT_ID'] ?? null),
+                'availableProductTypes' => $variables['AVAILABLE_PRODUCT_TYPES'] ?? null,
+                'productCartDetails' => $variables['PRODUCT_CART_DETAILS'] ?? null,
+                'language' => $variables['LANGUAGE'] ?? null,
+                'currency' => $variables['CURRENCY'] ?? null,
+                'shopEnvironment' => $variables['SHOP_ENVIRONMENT'] ?? null,
+            ];
+
+            // Drops nulls and anything outside WIDGET_CONFIG_KEYS, so omitted options fall through to the SDK / CDN-profile defaults.
+            $config = ProductWidgetScriptHelper::buildConfig($config);
+
+            $json = json_encode(
+                $config,
+                JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES
             );
+
+            if ($json === false) {
+                return '';
+            }
+
+            return '<script type="application/json" id="' . ProductWidgetScriptHelper::CONFIG_ELEMENT_ID . '">' . $json . '</script>';
         } catch (\Throwable $e) {
-            self::processError('Widget script endpoint', $e);
+            self::processError('Widget config element', $e);
         }
 
         return '';
