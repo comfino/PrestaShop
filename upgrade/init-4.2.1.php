@@ -39,8 +39,6 @@ function upgrade_module_4_2_1(Comfino $module)
         return false;
     }
 
-    ConfigManager::updateWidgetCode(WIDGET_INIT_SCRIPT_LAST_HASH);
-
     // Initialize new configuration options and set widget type as extended-modal for all upgraded shops, update API connection timeouts.
     ConfigManager::updateConfiguration(
         [

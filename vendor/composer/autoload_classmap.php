@@ -292,8 +292,6 @@ return array(
     'Comfino\\Common\\Frontend\\PaywallRenderer' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/PaywallRenderer.php',
     'Comfino\\Common\\Frontend\\ProductWidgetScriptHelper' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/ProductWidgetScriptHelper.php',
     'Comfino\\Common\\Frontend\\WidgetIframeRenderer' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/WidgetIframeRenderer.php',
-    'Comfino\\Common\\Frontend\\WidgetInitScriptHelper' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/WidgetInitScriptHelper.php',
-    'Comfino\\Common\\Frontend\\WidgetSdkInitScriptHelper' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Frontend/WidgetSdkInitScriptHelper.php',
     'Comfino\\Common\\Shop\\Cart' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Shop/Cart.php',
     'Comfino\\Common\\Shop\\OrderStatusAdapterInterface' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Shop/OrderStatusAdapterInterface.php',
     'Comfino\\Common\\Shop\\Order\\StatusManager' => $vendorDir . '/comfino/shop-plugins-shared/src/Common/Shop/Order/StatusManager.php',

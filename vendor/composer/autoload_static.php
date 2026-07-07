@@ -449,8 +449,6 @@ class ComposerStaticInit00c6db970910ed15a7b210d46ca7abc2
         'Comfino\\Common\\Frontend\\PaywallRenderer' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/PaywallRenderer.php',
         'Comfino\\Common\\Frontend\\ProductWidgetScriptHelper' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/ProductWidgetScriptHelper.php',
         'Comfino\\Common\\Frontend\\WidgetIframeRenderer' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/WidgetIframeRenderer.php',
-        'Comfino\\Common\\Frontend\\WidgetInitScriptHelper' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/WidgetInitScriptHelper.php',
-        'Comfino\\Common\\Frontend\\WidgetSdkInitScriptHelper' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Frontend/WidgetSdkInitScriptHelper.php',
         'Comfino\\Common\\Shop\\Cart' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Shop/Cart.php',
         'Comfino\\Common\\Shop\\OrderStatusAdapterInterface' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Shop/OrderStatusAdapterInterface.php',
         'Comfino\\Common\\Shop\\Order\\StatusManager' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Shop/Order/StatusManager.php',

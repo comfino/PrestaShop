@@ -65,7 +65,7 @@ final class CacheManager
 
                 self::getCachePool()->save($item);
 
-                return; 
+                return;
             } catch (InvalidArgumentException $exception) {
                 return;
             } catch (\Throwable $exception) {

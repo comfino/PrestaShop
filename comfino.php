@@ -41,15 +41,7 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1783340034);
-}
-
-if (!defined('WIDGET_INIT_SCRIPT_HASH')) {
-    define('WIDGET_INIT_SCRIPT_HASH', 'f3c470be6afdb86ca1e87096f8eed622');
-}
-
-if (!defined('WIDGET_INIT_SCRIPT_LAST_HASH')) {
-    define('WIDGET_INIT_SCRIPT_LAST_HASH', 'c0af7eac44e1da646156fb12f2b7dbd7');
+    define('COMFINO_BUILD_TS', 1783415963);
 }
 
 /* Notice: source code of this script MUST be compatible with PHP 5.6 syntax. */

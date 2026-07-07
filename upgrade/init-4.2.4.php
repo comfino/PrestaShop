@@ -40,8 +40,6 @@ function upgrade_module_4_2_4(Comfino $module)
         return false;
     }
 
-    ConfigManager::updateWidgetCode();
-
     ConfigManager::updateConfiguration(
         [
             'COMFINO_WIDGET_TYPE' => 'standard',

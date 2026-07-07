@@ -30,10 +30,8 @@ use Comfino\Api\ApiClient;
 use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Frontend\FrontendHelper;
-use Comfino\Common\Frontend\WidgetSdkInitScriptHelper;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Common\Shop\Product\CategoryTree;
-use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
@@ -76,7 +74,6 @@ final class ConfigManager
             'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
-            'COMFINO_WIDGET_CODE' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
         ],
         'developer_settings' => [
             'COMFINO_IS_SANDBOX' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
@@ -134,7 +131,6 @@ final class ConfigManager
         'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
         'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
         'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
-        'COMFINO_WIDGET_CODE',
         // Developer settings
         'COMFINO_IS_SANDBOX',
         'COMFINO_DEBUG',
@@ -545,63 +541,6 @@ final class ConfigManager
         return $result;
     }
 
-    public static function updateWidgetCode(?string $lastWidgetCodeHash = null): bool
-    {
-        ErrorLogger::init();
-
-        try {
-            $initialWidgetCode = WidgetSdkInitScriptHelper::getInitialWidgetCode();
-            $currentWidgetCode = self::getCurrentWidgetCode();
-
-            if ($lastWidgetCodeHash === null || md5($currentWidgetCode) === $lastWidgetCodeHash) {
-                // Widget code not changed since last installed version - safely replace with new one.
-                self::updateConfigurationValue('COMFINO_WIDGET_CODE', $initialWidgetCode);
-
-                return true;
-            }
-        } catch (\Throwable $e) {
-            ErrorLogger::sendError(
-                $e,
-                'Widget code update',
-                (string) $e->getCode(),
-                $e->getMessage(),
-                null,
-                null,
-                null,
-                $e->getTraceAsString()
-            );
-        }
-
-        return false;
-    }
-
-    /**
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
-     */
-    public static function getCurrentWidgetCode(?int $productId = null): string
-    {
-        $widgetCode = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
-        $productData = self::getProductData($productId);
-
-        $optionsToInject = [];
-
-        if (strpos($widgetCode, 'productId') === false) {
-            $optionsToInject[] = "        productId: $productData[product_id]";
-        }
-        if (strpos($widgetCode, 'availableProductTypes') === false) {
-            $optionsToInject[] = '        availableProductTypes: ' . implode(',', $productData['available_product_types']);
-        }
-
-        if (count($optionsToInject) > 0) {
-            $injectedInitOptions = implode(",\n", $optionsToInject) . ",\n";
-
-            // productId/availableProductTypes live in the bootstrapWidget() call, anchored on its first param.
-            return preg_replace('/\{\n(.*widgetTargetSelector:)/', "{\n$injectedInitOptions\$1", $widgetCode);
-        }
-
-        return $widgetCode;
-    }
-
     public static function getWidgetScriptUrl(): string
     {
         if (self::useDevEnvVars() && getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')) {
@@ -688,7 +627,6 @@ final class ConfigManager
             'COMFINO_WIDGET_TYPE' => 'standard',
             'COMFINO_WIDGET_OFFER_TYPES' => 'CONVENIENT_INSTALLMENTS',
             'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
-            'COMFINO_WIDGET_CODE' => WidgetSdkInitScriptHelper::getInitialWidgetCode(),
             'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => '',
             'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => '',
             'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,

@@ -149,11 +149,6 @@ $_MODULE['<{comfino}prestashop>module-reset_dc6cbd1f5136370699cc52309c2dc81a'] =
 $_MODULE['<{comfino}prestashop>module-reset_f26af8e606a623cb71d8df8c65a7b896'] = 'Czy na pewno chcesz zresetować moduł? Spowoduje to ponowną rejestrację hook-ów i odtworzenie statusów zamówień.';
 $_MODULE['<{comfino}prestashop>module-reset_817ea9c22e6b11ecd69691c1dd47ef1a'] = 'Zresetuj moduł';
 
-$_MODULE['<{comfino}prestashop>comfino_4d3b543f603dc243f4f1e122bd9f5007'] = 'Zresetuj kod inicjalizacyjny widgetu';
-
-$_MODULE['<{comfino}prestashop>widget-code-reset_205f915260f7e8910388b7236aa7ba5a'] = 'Przywróć domyślne';
-$_MODULE['<{comfino}prestashop>widget-code-reset_788d5c66ec4cd330c84b59ed510904e0'] = 'Czy na pewno chcesz przywrócić domyślną wartość kodu inicjalizacyjnego widgetu? Twoje zmiany zostaną utracone.';
-
 $_MODULE['<{comfino}prestashop>error-log_2ed282f505b8586cfd3487158b956fec'] = 'Wyczyść log błędów';
 $_MODULE['<{comfino}prestashop>error-log_b9c3dc098fa924c9748cf9a283f0d70d'] = 'Czy na pewno chcesz wyczyścić log błędów?';
 

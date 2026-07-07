@@ -47,9 +47,6 @@ function upgrade_module_4_3_0(Comfino $module)
     @unlink(_PS_MODULE_DIR_ . $module->name . '/views/js/front/paywall-init.js');
     @unlink(_PS_MODULE_DIR_ . $module->name . '/views/js/front/paywall-init.min.js');
 
-    // Refresh the widget banner init script for the new CDN-hosted SDK.
-    ConfigManager::updateWidgetCode();
-
     // Initialize allowed-products-config keys (no restrictions by default; admin UI hidden until enabled).
     if (!Configuration::hasKey('COMFINO_ALLOWED_PRODUCTS_CONFIG')) {
         Configuration::updateValue('COMFINO_ALLOWED_PRODUCTS_CONFIG', null);

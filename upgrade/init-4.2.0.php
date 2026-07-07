@@ -40,8 +40,6 @@ function upgrade_module_4_2_0(Comfino $module)
         return false;
     }
 
-    ConfigManager::updateWidgetCode();
-
     // Initialize new configuration options.
     ConfigManager::updateConfiguration(
         [

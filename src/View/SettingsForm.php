@@ -137,18 +137,6 @@ final class SettingsForm
                 $outputType = 'error';
                 $output[] = Main::translate('Debug log clearing failed') . ': ' . $e->getMessage();
             }
-        } elseif (\Tools::isSubmit('submit_reset_widget_code')) {
-            $activeTab = 'widget_settings';
-
-            try {
-                ConfigManager::updateWidgetCode();
-                CacheManager::getCachePool()->clear();
-
-                $output[] = Main::translate('Widget initialization code reset to default value.');
-            } catch (\Exception $e) {
-                $outputType = 'error';
-                $output[] = Main::translate('Widget initialization code reset failed') . ': ' . $e->getMessage();
-            }
         } elseif (\Tools::isSubmit('submit_configuration')) {
             $activeTab = \Tools::getValue('active_tab');
 
@@ -864,20 +852,6 @@ final class SettingsForm
                                 'URL for the custom calculator style. Only links from your store domain are allowed.'
                             ),
                         ],
-                        [
-                            'type' => 'textarea',
-                            'label' => Main::translate('Widget initialization code'),
-                            'name' => 'COMFINO_WIDGET_CODE',
-                            'required' => false,
-                            'rows' => 15,
-                            'cols' => 60,
-                        ],
-                        [
-                            'type' => 'html',
-                            'label' => Main::translate('Reset widget initialization code'),
-                            'name' => 'COMFINO_WIDGET_CODE_RESET',
-                            'html_content' => self::renderWidgetCodeResetSection(),
-                        ],
                     ],
                     'submit' => [
                         'title' => Main::translate('Save'),
@@ -1184,18 +1158,6 @@ final class SettingsForm
     {
         return TemplateManager::renderModuleView(
             'module-reset',
-            'admin/_configure',
-            []
-        );
-    }
-
-    /**
-     * Renders the widget initialization code reset section with the reset button.
-     */
-    private static function renderWidgetCodeResetSection(): string
-    {
-        return TemplateManager::renderModuleView(
-            'widget-code-reset',
             'admin/_configure',
             []
         );

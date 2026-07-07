@@ -45,8 +45,5 @@ function upgrade_module_2_5_0(Comfino $module)
         false
     );
 
-    // Update code of widget initialization script.
-    ConfigManager::updateWidgetCode('e632ce7d5ec92ef9d0cd5c9f70e1914a');
-
     return true;
 }

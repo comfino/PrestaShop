@@ -60,7 +60,8 @@
 
 {if $is_ps_16}
 <div id="comfino-payment-bar" class="comfino-payment-bar">
-    <button type="submit" id="comfino-go-to-payment" class="comfino-payment-btn">
+    {* Starts disabled — comfino-checkout.ts only re-enables it once the paywall reports a real selected offer (onUpdateOrderPaymentState). *}
+    <button type="submit" id="comfino-go-to-payment" class="comfino-payment-btn" disabled="disabled">
         {l s="Go to payment" mod="comfino"}
     </button>
 </div>

@@ -217,8 +217,11 @@ final class FrontendManager
                 return $value === 'null' ? null : $value;
             };
 
+            $offerTypesValue = $settings['COMFINO_WIDGET_OFFER_TYPES'] ?? [];
+            $offerTypesList = is_array($offerTypesValue) ? $offerTypesValue : explode(',', (string) $offerTypesValue);
+
             $offerTypes = array_values(array_filter(
-                array_map('trim', explode(',', (string) ($settings['COMFINO_WIDGET_OFFER_TYPES'] ?? ''))),
+                array_map('trim', $offerTypesList),
                 static function (string $type): bool {
                     return $type !== '';
                 }
