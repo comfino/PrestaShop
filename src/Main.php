@@ -457,6 +457,17 @@ final class Main
                 ->setAction(ApiService::getControllerUrl('payment'))
                 ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
                 ->setLogo(ConfigManager::getDefaultLogoUrl())
+                /* PS core submits ONLY the form it renders from these inputs (`#pay-with-{option.id}-form`) on
+                   "place order" — it never submits setAdditionalInformation()'s markup (our own payment.tpl,
+                   #payment-option-1-additional-information), which is display-only. Without these, the loan
+                   type/term the shopper picked in the paywall iframe never reaches payment.php, which silently
+                   falls back to a default financial product. PrestaShopAdapter.updatePaymentState() keeps these
+                   values live as the shopper interacts with the iframe (matched by `name`, since PS core's
+                   template renders no `id` attribute for $option.inputs). */
+                ->setInputs([
+                    ['type' => 'hidden', 'name' => 'comfino_loan_type', 'value' => ''],
+                    ['type' => 'hidden', 'name' => 'comfino_loan_term', 'value' => ''],
+                ])
                 ->setAdditionalInformation($paywallIframe);
 
             return [$comfinoPaymentOption];
