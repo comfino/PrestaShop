@@ -456,6 +456,7 @@ final class Main
             $comfinoPaymentOption->setModuleName($module->name)
                 ->setAction(ApiService::getControllerUrl('payment'))
                 ->setCallToActionText(ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'))
+                ->setLogo(ConfigManager::getDefaultLogoUrl())
                 ->setAdditionalInformation($paywallIframe);
 
             return [$comfinoPaymentOption];
