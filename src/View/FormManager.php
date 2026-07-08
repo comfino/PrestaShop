@@ -181,10 +181,7 @@ final class FormManager
                                 $varName = "COMFINO_$envVariable";
                                 return "<li><b>$varName</b> = \"" . getenv($varName) . '"</li>';
                             },
-                            [
-                                'DEV_ENV', 'DEV_API_HOST', 'DEV_STATIC_RESOURCES_BASE_URL',
-                                'DEV_WIDGET_SCRIPT_URL', 'DEV_USE_UNMINIFIED_SCRIPTS',
-                            ]
+                            ['DEV_ENV', 'DEV_API_HOST', 'DEV_SDK_CDN_BASE_URL', 'DEV_USE_UNMINIFIED_SCRIPTS']
                         ))
                     );
 

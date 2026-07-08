@@ -57,120 +57,16 @@ final class FrontendManager
         return _MODULE_DIR_ . COMFINO_MODULE_NAME . "/views/js/$scriptDirectory/$scriptFileName";
     }
 
-    public static function getExternalResourcesBaseUrl(): string
-    {
-        if (ConfigManager::useDevEnvVars() && getenv('COMFINO_DEV_STATIC_RESOURCES_BASE_URL')) {
-            return getenv('COMFINO_DEV_STATIC_RESOURCES_BASE_URL');
-        }
-
-        return ConfigManager::isSandboxMode() ? 'https://widget.craty.pl' : 'https://widget.comfino.pl';
-    }
-
     /**
      * Base URL for assets served from the dedicated SDK CDN host (sdk.*).
-     * COMFINO_DEV_STATIC_RESOURCES_BASE_URL overrides this for local dev, same as getExternalResourcesBaseUrl().
      */
     public static function getSdkCdnBaseUrl(): string
     {
-        if (ConfigManager::useDevEnvVars() && getenv('COMFINO_DEV_STATIC_RESOURCES_BASE_URL')) {
-            return getenv('COMFINO_DEV_STATIC_RESOURCES_BASE_URL');
+        if (ConfigManager::useDevEnvVars() && getenv('COMFINO_DEV_SDK_CDN_BASE_URL')) {
+            return getenv('COMFINO_DEV_SDK_CDN_BASE_URL');
         }
 
         return ConfigManager::isSandboxMode() ? 'https://sdk.craty.pl' : 'https://sdk.comfino.pl';
-    }
-
-    public static function getExternalScriptUrl(string $scriptFileName): string
-    {
-        if (empty($scriptFileName)) {
-            return '';
-        }
-
-        if (ConfigManager::useDevEnvVars() && ConfigManager::useUnminifiedScripts()) {
-            $scriptFileName = str_replace('.min.js', '.js', $scriptFileName);
-        } elseif (strpos($scriptFileName, '.min.') === false) {
-            $scriptFileName = str_replace('.js', '.min.js', $scriptFileName);
-        }
-
-        if (ConfigManager::isSandboxMode()) {
-            $scriptPath = trim(ConfigManager::getConfigurationValue('COMFINO_JS_DEV_PATH', ''), '/');
-
-            if (strpos($scriptPath, '..') !== false) {
-                $scriptPath = trim(ConfigManager::getDefaultValue('COMFINO_JS_DEV_PATH'), '/');
-            }
-        } else {
-            $scriptPath = trim(ConfigManager::getConfigurationValue('COMFINO_JS_PROD_PATH', ''), '/');
-
-            if (strpos($scriptPath, '..') !== false) {
-                $scriptPath = trim(ConfigManager::getDefaultValue('COMFINO_JS_PROD_PATH'), '/');
-            }
-        }
-
-        if (!empty($scriptPath)) {
-            $scriptPath = "/$scriptPath";
-        }
-
-        return self::getExternalResourcesBaseUrl() . "$scriptPath/$scriptFileName";
-    }
-
-    public static function getExternalStyleUrl(string $styleFileName): string
-    {
-        if (empty($styleFileName)) {
-            return '';
-        }
-
-        if (ConfigManager::isSandboxMode()) {
-            $stylePath = trim(ConfigManager::getConfigurationValue('COMFINO_CSS_DEV_PATH', 'css'), '/');
-
-            if (strpos($stylePath, '..') !== false) {
-                $stylePath = trim(ConfigManager::getDefaultValue('COMFINO_CSS_DEV_PATH'), '/');
-            }
-        } else {
-            $stylePath = trim(ConfigManager::getConfigurationValue('COMFINO_CSS_PROD_PATH', 'css'), '/');
-
-            if (strpos($stylePath, '..') !== false) {
-                $stylePath = trim(ConfigManager::getDefaultValue('COMFINO_CSS_PROD_PATH'), '/');
-            }
-        }
-
-        if (!empty($stylePath)) {
-            $stylePath = "/$stylePath";
-        }
-
-        return self::getExternalResourcesBaseUrl() . "$stylePath/$styleFileName";
-    }
-
-    /**
-     * @param string[] $scripts
-     *
-     * @return string[]
-     */
-    public static function registerExternalScripts(array $scripts): array
-    {
-        $registeredScripts = [];
-
-        foreach ($scripts as $scriptName) {
-            $scriptId = 'comfino-script-' . str_replace('.', '-', strtolower(pathinfo($scriptName, PATHINFO_FILENAME)));
-            $registeredScripts[$scriptId] = self::getExternalScriptUrl($scriptName);
-        }
-
-        return $registeredScripts;
-    }
-
-    /**
-     * @param string[] $styles
-     *
-     * @return string[]
-     */
-    public static function registerExternalStyles(array $styles): array
-    {
-        $registeredStyles = [];
-
-        foreach ($styles as $styleName) {
-            $styleId = 'comfino-style-' . str_replace('.', '-', strtolower(pathinfo($styleName, PATHINFO_FILENAME)));
-            $registeredStyles[$styleId] = self::getExternalStyleUrl($styleName);
-        }
-
-        return $registeredStyles;
     }
 
     /**

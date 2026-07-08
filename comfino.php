@@ -253,7 +253,7 @@ class Comfino extends PaymentModule
     /**
      * Page header section renderer for cart and product pages.
      *
-     * @return void
+     * @return string|void
      */
     public function hookHeader()
     {
@@ -398,10 +398,7 @@ class Comfino extends PaymentModule
         }
 
         if ($isConfigPage || Tools::getValue('controller') === 'AdminDashboard') {
-            Comfino\Main::addLocalStyleLink(
-                'comfino-release-description',
-                _MODULE_DIR_ . "$this->name/views/css/admin/release-description.css"
-            );
+            $this->context->controller->addCSS(_MODULE_DIR_ . "$this->name/views/css/admin/release-description.css");
         }
     }
 

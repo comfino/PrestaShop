@@ -85,18 +85,12 @@ final class ConfigManager
         'hidden_settings' => [
             'COMFINO_CSP_ENABLED' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_CSP_REPORT_ONLY' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
-            'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
-            'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
             'COMFINO_ALLOWED_PRODUCTS_CONFIG_FORBIDDEN_PROD_TYPES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
             'COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_IGNORED_STATUSES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
             'COMFINO_FORBIDDEN_STATUSES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
             'COMFINO_STATUS_MAP' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
-            'COMFINO_JS_PROD_PATH' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
-            'COMFINO_CSS_PROD_PATH' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
-            'COMFINO_JS_DEV_PATH' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
-            'COMFINO_CSS_DEV_PATH' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_API_CONNECT_TIMEOUT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_API_TIMEOUT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => ConfigurationManager::OPT_VALUE_TYPE_INT,
@@ -139,17 +133,11 @@ final class ConfigManager
         // Hidden settings
         'COMFINO_CSP_ENABLED',
         'COMFINO_CSP_REPORT_ONLY',
-        'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
-        'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
         'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES',
         'COMFINO_ALLOWED_PRODUCTS_CONFIG_FORBIDDEN_PROD_TYPES',
         'COMFINO_IGNORED_STATUSES',
         'COMFINO_FORBIDDEN_STATUSES',
         'COMFINO_STATUS_MAP',
-        'COMFINO_JS_PROD_PATH',
-        'COMFINO_CSS_PROD_PATH',
-        'COMFINO_JS_DEV_PATH',
-        'COMFINO_CSS_DEV_PATH',
         'COMFINO_API_CONNECT_TIMEOUT',
         'COMFINO_API_TIMEOUT',
         'COMFINO_API_CONNECT_NUM_ATTEMPTS',
@@ -424,10 +412,6 @@ final class ConfigManager
      */
     public static function getProductWidgetScriptUrl(): string
     {
-        if (self::useDevEnvVars() && getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')) {
-            return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
-        }
-
         $fileName = 'comfino-prestashop-widget.min.js';
 
         if (self::useDevEnvVars() && self::useUnminifiedScripts()) {
@@ -541,24 +525,6 @@ final class ConfigManager
         return $result;
     }
 
-    public static function getWidgetScriptUrl(): string
-    {
-        if (self::useDevEnvVars() && getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')) {
-            return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
-        }
-
-        $widgetScriptUrl = self::isSandboxMode() ? 'https://widget.craty.pl' : 'https://widget.comfino.pl';
-        $widgetProdScriptVersion = self::getConfigurationValue('COMFINO_WIDGET_PROD_SCRIPT_VERSION');
-
-        if (empty($widgetProdScriptVersion)) {
-            $widgetScriptUrl .= '/v2/widget-frontend.min.js';
-        } else {
-            $widgetScriptUrl .= ('/' . trim($widgetProdScriptVersion, '/'));
-        }
-
-        return $widgetScriptUrl;
-    }
-
     /**
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
@@ -567,7 +533,6 @@ final class ConfigManager
         $productData = self::getProductData($productId);
 
         return [
-            'WIDGET_SCRIPT_URL' => self::getWidgetScriptUrl(),
             'PRODUCT_ID' => $productData['product_id'],
             // SDK expects the price as an integer in the smallest currency unit (grosze), not a PLN float.
             'PRODUCT_PRICE' => $productData['price'] === 'null'
@@ -627,18 +592,12 @@ final class ConfigManager
             'COMFINO_WIDGET_TYPE' => 'standard',
             'COMFINO_WIDGET_OFFER_TYPES' => 'CONVENIENT_INSTALLMENTS',
             'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
-            'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => '',
-            'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => '',
             'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
             'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL' => '',
             'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL' => '',
             'COMFINO_IGNORED_STATUSES' => implode(',', StatusManager::DEFAULT_IGNORED_STATUSES),
             'COMFINO_FORBIDDEN_STATUSES' => implode(',', StatusManager::DEFAULT_FORBIDDEN_STATUSES),
             'COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP),
-            'COMFINO_JS_PROD_PATH' => '',
-            'COMFINO_CSS_PROD_PATH' => 'css',
-            'COMFINO_JS_DEV_PATH' => '',
-            'COMFINO_CSS_DEV_PATH' => 'css',
             'COMFINO_API_CONNECT_TIMEOUT' => 3,
             'COMFINO_API_TIMEOUT' => 5,
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => 3,
