@@ -356,6 +356,8 @@ final class Main
                 ConfigManager::getErrorLoggingAccessToken()
             );
 
+            ApiClient::pinCheckoutTrackId();
+
             $trackId = ApiClient::getInstance()->getTrackId();
 
             $allowedProductTypes = null;

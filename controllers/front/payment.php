@@ -63,6 +63,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
+        // Reuse the trackId minted during this checkout session's paywall render, if any (see ApiClient::pinCheckoutTrackId()).
+        ApiClient::pinCheckoutTrackId();
+
         $cart = $this->context->cart;
 
         DebugLogger::logEvent('[PAYMENT GATEWAY]', 'postProcess', ['cart_id' => $cart->id]);
