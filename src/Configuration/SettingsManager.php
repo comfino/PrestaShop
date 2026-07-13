@@ -37,6 +37,7 @@ use Comfino\Common\Shop\Cart;
 use Comfino\Common\Shop\Product\CategoryFilter;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
+use Comfino\Extended\Api\Dto\Plugin\OperationContext;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Main;
 use Comfino\PluginShared\CacheManager;
@@ -115,7 +116,7 @@ final class SettingsManager
 
             return $productTypesList ?? [];
         } catch (\Throwable $e) {
-            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e);
+            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e, OperationContext::Configuration);
 
             if ($returnErrors) {
                 return ['error' => $e->getMessage()];
@@ -156,7 +157,7 @@ final class SettingsManager
 
             return $creditorsList ?? [];
         } catch (\Throwable $e) {
-            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e);
+            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e, OperationContext::Configuration);
         }
 
         return [];
@@ -224,7 +225,7 @@ final class SettingsManager
 
             return $widgetTypesList ?? [];
         } catch (\Throwable $e) {
-            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e);
+            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e, OperationContext::Configuration);
 
             if ($returnErrors) {
                 return ['error' => $e->getMessage()];

@@ -32,6 +32,7 @@ use Comfino\Api\ApiService;
 use Comfino\Common\Backend\FileUtils;
 use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
+use Comfino\Extended\Api\Dto\Plugin\OperationContext;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
 use Comfino\Order\ShopStatusManager;
@@ -372,7 +373,7 @@ final class Main
             } catch (\Throwable $e) {
                 ErrorLogger::sendError(
                     $e,
-                    'Product type filters',
+                    OperationContext::PaymentProcessing,
                     (string) $e->getCode(),
                     $e->getMessage()
                 );
@@ -383,7 +384,7 @@ final class Main
                 return COMFINO_PS_17 ? [] : '';
             }
         } catch (\Throwable $e) {
-            FrontendManager::processError('Paywall rendering error', $e);
+            FrontendManager::processError('Paywall rendering error', $e, null, null, null, '[ERROR]', OperationContext::PaywallRendering);
 
             return COMFINO_PS_17 ? [] : '';
         }
@@ -394,7 +395,7 @@ final class Main
             try {
                 $cartPayload = PaywallCartSerializer::toArray($shopCart);
             } catch (\Throwable $e) {
-                ErrorLogger::sendError($e, 'serializeShopCart', (string) $e->getCode(), $e->getMessage());
+                ErrorLogger::sendError($e, OperationContext::OrderCreation, (string) $e->getCode(), $e->getMessage());
             }
         }
 

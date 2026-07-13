@@ -26,6 +26,7 @@
 
 namespace Comfino\View;
 
+use Comfino\Extended\Api\Dto\Plugin\OperationContext;
 use Comfino\Main;
 
 if (!defined('_PS_VERSION_')) {
@@ -87,7 +88,7 @@ final class TemplateManager
                 $frontController->setTemplate("$name.tpl");
             }
         } catch (\Exception $e) {
-            FrontendManager::processError('Template rendering error', $e, 500, 'Template rendering error.');
+            FrontendManager::processError('Template rendering error', $e, 500, 'Template rendering error.', null, '[ERROR]', OperationContext::WidgetRendering);
         }
     }
 }
