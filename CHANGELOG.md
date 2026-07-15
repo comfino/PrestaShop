@@ -2,26 +2,26 @@
 
 ## [4.3.0](https://github.com/comfino/PrestaShop/tree/4.3.0)
 
-### Changed
-- Paywall frontend migrated from legacy V0 (`ComfinoPaywallFrontend`) to V3 SDK (`comfino-sdk.min.js` + `bootstrapPaywall('prestashop', data)`).
-- Auth token now generated server-side by the plugin (`PaywallAuthTokenGenerator`); passed to the frontend as raw base64.
-- Loan type and term now transmitted via hidden form fields (`comfino_loan_type` / `comfino_loan_term`) — no longer via PrestaShop cookie.
-- `paymentIsAvailable()` no longer reads loan/price-modifier cookies; loan amount is computed from `Cart::getOrderTotal(true) * 100`.
-- `Comfino-Track-Id` request header now carries the shop domain (via `setClientHostName`) instead of the OS hostname.
-
 ### Added
-- `src/PaywallAuthTokenGenerator` — HMAC-SHA3-256 token generator for V3 paywall iframe auth.
-- `ConfigManager::getSdkScriptUrl()` — environment-aware CDN URL for `comfino-sdk.min.js`.
-- `views/css/front/comfino-item-gate.css` — hide-by-default gate for the Comfino payment tile until the SDK signals readiness.
-- Static render guard in `Main::renderPaywallIframe()` against duplicate hook invocations by OPC modules (SuperCheckout, TheCheckout).
-- `controllers/front/payment.php` emergency fallback that fetches the default financial product when loan parameters are missing.
+- **Multistore support** — plugin configuration, cache and settings are now properly isolated per shop when running in PrestaShop multistore mode.
+- **Installment term limits per product type** — store admins can now configure minimum/maximum installment terms separately for each financial product type, with validation in the admin panel.
+- **Paywall customization** — new settings for custom CSS, configurable payment method text and a default logo, plus support for a direct-redirect checkout mode (skipping the paywall selection screen when only one offer applies).
+- Improved compatibility with PrestaShop's block-based checkout themes (PS 1.7/8.x "Checkout" module) and one-page checkout modules (SuperCheckout, TheCheckout) — the payment tile no longer renders twice.
+- New widget configuration option for selecting the product price CSS attribute, fixing cases where the installment widget showed a stale or incorrect price on pages that render the price asynchronously.
+- Payment tracking is now more reliable across the checkout flow (tracking ID kept consistent from cart to order), which also improves diagnostics when investigating payment issues.
+- Plugin update process improved: clearer release notes display and more reliable version checking.
+
+### Changed
+- Paywall frontend migrated from the legacy in-house iframe implementation to Comfino's V3 SDK, loaded from Comfino's CDN — improves loading speed, reliability and future compatibility.
+- Loan type/term selection is now submitted together with the order form, preventing the order from falling back to the default financing offer if the customer's selection wasn't otherwise transmitted.
+- Delivery/shipping tax handling in cart calculations improved for more accurate offer amounts.
+- Duplicate order-cancellation requests to Comfino are no longer sent for the same order.
+- Error logging sent to Comfino now includes more context (severity level, shop/platform environment details), speeding up support and troubleshooting.
+- Improved layout/styling of the Comfino payment option in PrestaShop 1.6 (Bootstrap) checkout themes.
 
 ### Removed
-- `controllers/front/paymentstate.php` — V0 cookie state writer.
-- `controllers/front/paywall.php` — V0 server-side paywall HTML endpoint.
-- `views/js/front/paywall-init.js` / `.min.js` — replaced by the inline V3 SDK bootstrap in `payment.tpl`.
-- Legacy PaywallRenderer / PaywallIframeRenderer accessors from `FrontendManager`.
-- `COMFINO_SHOW_LOGO` configuration option — logo is now rendered entirely by the SDK.
+- The `COMFINO_SHOW_LOGO` configuration option — the payment logo is now always rendered by the SDK and no longer separately toggleable.
+- Legacy V0/V1 paywall frontend files and widget-initialization scripts, replaced entirely by the new SDK-based integration.
 
 ## [4.2.9](https://github.com/comfino/PrestaShop/tree/4.2.9) (2026-03-18)
 

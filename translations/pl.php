@@ -173,6 +173,10 @@ $_MODULE['<{comfino}prestashop>comfino_2051440020040b387e6ba9a7c1883548'] = 'Res
 
 $_MODULE['<{comfino}prestashop>comfino_ce4aefa38d497199187e35a7b1f923ad'] = 'Kod inicjalizacyjny widgetu przywrócony do wartości domyślnej.';
 $_MODULE['<{comfino}prestashop>comfino_b8cbb681e37c30c7d620ce85f034dc59'] = 'Przywrócenie domyślnego kodu inicjalizacyjnego widgetu nie powiodło się';
+$_MODULE['<{comfino}prestashop>comfino_cc7e4f4c3fd75761a3af5cc44155e4c8'] = 'Opcje deweloperskie, limit czasu API, cache, statusy zamówień oraz CSP zawsze pozostają globalne i są współdzielone przez wszystkie sklepy.';
+$_MODULE['<{comfino}prestashop>comfino_d714241902e943bd6348b0dff00b8836'] = 'Edytujesz konfigurację Comfino dla sklepu "%s". %s';
+$_MODULE['<{comfino}prestashop>comfino_5244af701812558c930dff8f8b1052b6'] = 'Edytujesz konfigurację Comfino dla grupy sklepów "%s". %s';
+$_MODULE['<{comfino}prestashop>comfino_43f258c26de809dc95e40f7070392685'] = 'Tryb multistore PrestaShop jest aktywny. Edytujesz domyślną konfigurację Comfino (Wszystkie sklepy). Zapisane tutaj ustawienia obowiązują dla każdego sklepu, który ich nie nadpisuje; aby skonfigurować pojedynczy sklep, wybierz go na górnym pasku.';
 
 $_MODULE['<{comfino}prestashop>payment_0f7f7dbb9907ba5d256ef3e368d526b4'] = 'Przejdź do płatności';
 $_MODULE['<{comfino}prestashop>payment_e2b7dec8fa4b498156dfee6e4c84b156'] = 'Ta metoda płatności nie jest dostępna';

@@ -95,7 +95,6 @@ final class ConfigManager
             'COMFINO_API_CONNECT_TIMEOUT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_API_TIMEOUT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => ConfigurationManager::OPT_VALUE_TYPE_INT,
-            'COMFINO_NEW_WIDGET_ACTIVE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_PROD_CAT_CACHE_TTL' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
@@ -143,47 +142,123 @@ final class ConfigManager
         'COMFINO_API_CONNECT_TIMEOUT',
         'COMFINO_API_TIMEOUT',
         'COMFINO_API_CONNECT_NUM_ATTEMPTS',
-        'COMFINO_NEW_WIDGET_ACTIVE',
         'COMFINO_PROD_CAT_CACHE_TTL',
+    ];
+
+    /**
+     * Configuration options that stay installation-wide even under PrestaShop Multistore. These are never written to a
+     * single shop's scope: diagnostic/developer toggles, API transport tuning, caching/feature/CSP flags, and order-status
+     * mappings (PrestaShop order statuses are global entities). Everything else is shop-scoped and relies on PrestaShop's
+     * native shop -> group -> global fallback, so untouched shops keep inheriting the global value.
+     */
+    public const GLOBAL_CONFIG_OPTIONS = [
+        'COMFINO_DEBUG',
+        'COMFINO_SERVICE_MODE',
+        'COMFINO_DEV_ENV_VARS',
+        'COMFINO_API_CONNECT_TIMEOUT',
+        'COMFINO_API_TIMEOUT',
+        'COMFINO_API_CONNECT_NUM_ATTEMPTS',
+        'COMFINO_PROD_CAT_CACHE_TTL',
+        'COMFINO_CSP_ENABLED',
+        'COMFINO_CSP_REPORT_ONLY',
+        'COMFINO_IGNORED_STATUSES',
+        'COMFINO_FORBIDDEN_STATUSES',
+        'COMFINO_STATUS_MAP',
     ];
 
     private const CONFIG_MANAGER_OPTIONS = ConfigurationManager::OPT_SERIALIZE_ARRAYS;
 
-    /** @var ConfigurationManager */
-    private static $configurationManager;
+    /** @var ConfigurationManager[] One manager per shop-context scope, keyed by the scope string. */
+    private static $configurationManagers = [];
     /** @var int[] */
     private static $availConfigOptions;
 
     public static function getInstance(): ConfigurationManager
     {
-        if (self::$configurationManager === null) {
-            self::$configurationManager = ConfigurationManager::getInstance(
+        [$scope, $idShopGroup, $idShop] = self::getCurrentShopContext();
+
+        if (!isset(self::$configurationManagers[$scope])) {
+            self::$configurationManagers[$scope] = ConfigurationManager::getInstance(
                 self::getAvailableConfigOptions(),
                 self::ACCESSIBLE_CONFIG_OPTIONS,
                 self::CONFIG_MANAGER_OPTIONS,
-                new StorageAdapter(),
-                new JsonSerializer()
+                new StorageAdapter($idShopGroup, $idShop),
+                new JsonSerializer(),
+                $scope
             );
         }
 
-        return self::$configurationManager;
+        return self::$configurationManagers[$scope];
     }
 
-    public static function load(): array
+    public static function load(?int $idShopGroup = null, ?int $idShop = null): array
     {
         $configuration = [];
 
         foreach (self::getAvailableConfigOptions() as $optName => $optTypeFlags) {
-            $configuration[$optName] = \Configuration::get($optName, null, null, null, null);
+            if (self::isGlobalOption($optName)) {
+                // Installation-wide options always read from the global row, independent of shop context.
+                $configuration[$optName] = \Configuration::get($optName, null, 0, 0, null);
+            } else {
+                // Shop-scoped options use PrestaShop's native shop -> group -> global fallback.
+                $configuration[$optName] = \Configuration::get($optName, null, $idShopGroup, $idShop, null);
+            }
         }
 
         return $configuration;
     }
 
-    public static function save(array $configuration): void
+    public static function save(array $configuration, ?int $idShopGroup = null, ?int $idShop = null): void
     {
         foreach ($configuration as $optName => $optValue) {
-            \Configuration::updateValue($optName, $optValue);
+            if (self::isGlobalOption($optName)) {
+                /* Force the global row (id_shop_group = id_shop = 0). Passing null here would make PrestaShop resolve to
+                   the currently selected shop under active Multistore, silently shop-scoping an installation-wide option. */
+                \Configuration::updateValue($optName, $optValue, false, 0, 0);
+            } else {
+                \Configuration::updateValue($optName, $optValue, false, $idShopGroup, $idShop);
+            }
+        }
+    }
+
+    /**
+     * Whether a configuration option is installation-wide (always stored in the global scope) rather than shop-scoped.
+     */
+    public static function isGlobalOption(string $optionName): bool
+    {
+        return in_array($optionName, self::GLOBAL_CONFIG_OPTIONS, true);
+    }
+
+    /**
+     * Resolves the active shop-context scope for configuration storage.
+     *
+     * Returns a [scope, idShopGroup, idShop] triple: the scope string keys the per-tenant ConfigurationManager instance,
+     * while the shop/group IDs are forwarded to PrestaShop's Configuration layer. Single-shop installs (Multistore feature
+     * inactive) and the "All Shops" back-office context both resolve to the empty/global scope, so single-shop behavior is
+     * unchanged.
+     *
+     * @return array{0: string, 1: int|null, 2: int|null}
+     */
+    private static function getCurrentShopContext(): array
+    {
+        if (!\Shop::isFeatureActive()) {
+            return ['', null, null];
+        }
+
+        switch (\Shop::getContext()) {
+            case \Shop::CONTEXT_SHOP:
+                $idShop = (int) \Shop::getContextShopID(true);
+                $idShopGroup = (int) \Shop::getContextShopGroupID(true);
+
+                return ['s' . $idShop, $idShopGroup ?: null, $idShop ?: null];
+
+            case \Shop::CONTEXT_GROUP:
+                $idShopGroup = (int) \Shop::getContextShopGroupID(true);
+
+                return ['g' . $idShopGroup, $idShopGroup ?: null, null];
+
+            default: // Shop::CONTEXT_ALL
+                return ['', null, null];
         }
     }
 
@@ -604,7 +679,6 @@ final class ConfigManager
             'COMFINO_API_CONNECT_TIMEOUT' => 3,
             'COMFINO_API_TIMEOUT' => 5,
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => 3,
-            'COMFINO_NEW_WIDGET_ACTIVE' => true,
             'COMFINO_PROD_CAT_CACHE_TTL' => 60 * 60, // Default cache TTL for product categories set to 1 hour.
             'COMFINO_DEV_ENV_VARS' => false,
             'COMFINO_CSP_ENABLED' => false,

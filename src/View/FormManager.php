@@ -118,10 +118,6 @@ final class FormManager
                 );
                 $infoMessages[] = sprintf('<b>Shop domain:</b> %s', \Tools::getShopDomain());
                 $infoMessages[] = sprintf('<b>Widget key:</b> %s', ConfigManager::getWidgetKey());
-                $infoMessages[] = sprintf(
-                    '<b>New widget API:</b> %s',
-                    ConfigManager::getConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE') ? 'Active' : 'Inactive'
-                );
 
                 if ($githubVersion !== null) {
                     $versionInfoRow = sprintf(

@@ -61,6 +61,13 @@
                        Styled by views/css/admin/release-description.css, loaded in hookActionAdminControllerSetMedia. *}
                     <div class="comfino-release-description" style="margin-top: 10px">{$latest_release_description nofilter}</div>
                 {/if}
+                {if $multistore_scope_message}
+                    {* Shown only under active PrestaShop Multistore: tells the admin which shop-context scope (All Shops /
+                       group / single shop) the settings below are being saved to. *}
+                    <div class="alert alert-info" style="margin-top: 10px; margin-bottom: 0">
+                        {$multistore_scope_message|escape:"htmlall":"UTF-8"}
+                    </div>
+                {/if}
             </div>
             <div class="panel-body">
                 {$contact_msg1|escape:"htmlall":"UTF-8"}

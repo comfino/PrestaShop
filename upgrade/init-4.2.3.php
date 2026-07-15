@@ -44,7 +44,6 @@ function upgrade_module_4_2_3(Comfino $module)
         [
             'COMFINO_WIDGET_TYPE' => 'standard',
             'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
-            'COMFINO_NEW_WIDGET_ACTIVE' => true,
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => [
                 'INSTALLMENTS_ZERO_PERCENT',
                 'PAY_LATER',

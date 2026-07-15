@@ -39,6 +39,9 @@ function upgrade_module_4_3_0(Comfino $module)
     Configuration::deleteByName('COMFINO_PAYWALL_URL');
     Configuration::deleteByName('COMFINO_SHOW_LOGO');
 
+    // Remove legacy widget-API-selection flag, unused now that the plugin always uses the latest widget backend API and frontend SDK.
+    Configuration::deleteByName('COMFINO_NEW_WIDGET_ACTIVE');
+
     // Remove legacy GitHub-named update-check cache keys, superseded by UpdateManager's own cache pool.
     Configuration::deleteByName('COMFINO_GITHUB_VERSION_CHECK_TIME');
     Configuration::deleteByName('COMFINO_GITHUB_VERSION_INFO');

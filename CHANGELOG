@@ -1,3 +1,6 @@
+4.3.0
+ - FN-14461 Migrated paywall frontend to Comfino V3 SDK, added multistore support, installment term limits per product type, paywall customization (custom CSS, payment text, default logo, direct redirect mode), improved widget price detection, more reliable payment tracking, delivery tax fix, prevented duplicate cancellation requests, enhanced error logging and plugin update handling, improved PS 1.6 checkout compatibility.
+
 4.2.9
  - FN-14233 Fixed a bug in extra commission calculation for loan amount (priceModifier) and in plugin update notification display logic.
 

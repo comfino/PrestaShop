@@ -459,7 +459,49 @@ final class SettingsForm
                 self::COMFINO_SUPPORT_PHONE
             ),
             'plugin_version' => COMFINO_VERSION,
+            'multistore_scope_message' => self::getMultistoreScopeMessage(),
         ] + self::getUpdateInfoForTemplate();
+    }
+
+    /**
+     * Builds an informational banner describing which shop-context scope the settings form is currently editing, so the
+     * admin can tell "All Shops" (global/default) apart from a single shop or shop group. Returns an empty string when
+     * PrestaShop Multistore is inactive (single-shop installs render no banner and behave exactly as before).
+     */
+    private static function getMultistoreScopeMessage(): string
+    {
+        if (!\Shop::isFeatureActive()) {
+            return '';
+        }
+
+        $globalOptionsNote = Main::translate(
+            'Developer, API timeout, caching, order-status and CSP options always stay global and are shared by every shop.'
+        );
+
+        switch (\Shop::getContext()) {
+            case \Shop::CONTEXT_SHOP:
+                return sprintf(
+                    Main::translate('You are editing the Comfino configuration for shop "%s". %s'),
+                    \Context::getContext()->shop->name,
+                    $globalOptionsNote
+                );
+
+            case \Shop::CONTEXT_GROUP:
+                $shopGroup = new \ShopGroup((int) \Shop::getContextShopGroupID(true));
+
+                return sprintf(
+                    Main::translate('You are editing the Comfino configuration for shop group "%s". %s'),
+                    \Validate::isLoadedObject($shopGroup) ? $shopGroup->name : '',
+                    $globalOptionsNote
+                );
+
+            default: // Shop::CONTEXT_ALL
+                return Main::translate(
+                    'PrestaShop Multistore is active. You are editing the default (All Shops) Comfino configuration. ' .
+                    'Settings saved here apply to every shop that does not override them; select a shop in the top ' .
+                    'bar to configure it individually.'
+                );
+        }
     }
 
     /**
