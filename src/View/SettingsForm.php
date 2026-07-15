@@ -801,6 +801,17 @@ final class SettingsForm
                         ],
                         [
                             'type' => 'text',
+                            'label' => Main::translate('Widget price element attribute'),
+                            'name' => 'COMFINO_WIDGET_PRICE_ATTRIBUTE',
+                            'required' => false,
+                            'desc' => Main::translate(
+                                'Attribute of the price element holding the numeric price value. When set, the ' .
+                                'widget reads the price from this attribute instead of parsing the element text, ' .
+                                'which avoids a race with asynchronous price rendering. Leave empty to parse text.'
+                            ),
+                        ],
+                        [
+                            'type' => 'text',
                             'label' => Main::translate('Widget anchor element selector'),
                             'name' => 'COMFINO_WIDGET_TARGET_SELECTOR',
                             'required' => false,
