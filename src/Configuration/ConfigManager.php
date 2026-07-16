@@ -399,7 +399,7 @@ final class ConfigManager
 
     public static function getPaywallLogoAuthHash(): string
     {
-        return FrontendHelper::getPaywallLogoAuthHash(
+        return FrontendHelper::getPaywallLogoAuthHashRaw(
             'PS',
             _PS_VERSION_,
             COMFINO_VERSION,
