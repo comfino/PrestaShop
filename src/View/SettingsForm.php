@@ -278,6 +278,18 @@ final class SettingsForm
 
                     $configurationOptions['COMFINO_PRODUCT_CATEGORY_FILTERS'] = $productCategoryFilters;
 
+                    $productIdFilter = [];
+                    $productIdFilterInput = \Tools::getValue('comfino_product_id_filter');
+
+                    if (!empty($productIdFilterInput)) {
+                        $productIdFilter = array_values(array_unique(array_filter(
+                            array_map('intval', preg_split('/[\s,]+/', (string) $productIdFilterInput)),
+                            static function (int $id): bool { return $id > 0; }
+                        )));
+                    }
+
+                    $configurationOptions['COMFINO_PRODUCT_ID_FILTER'] = $productIdFilter;
+
                     if (!ConfigManager::getConfigurationValue('COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED')) {
                         break;
                     }
@@ -695,6 +707,13 @@ final class SettingsForm
                     ];
                 }
 
+                $productCategoryFilterInputs[] = [
+                    'type' => 'html',
+                    'name' => 'comfino_product_id_filter',
+                    'required' => false,
+                    'html_content' => self::renderProductIdFilter(SettingsManager::getProductIdFilter()),
+                ];
+
                 if ((bool) ConfigManager::getConfigurationValue('COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED')) {
                     $savedAllowedConfig = ConfigManager::getConfigurationValue('COMFINO_ALLOWED_PRODUCTS_CONFIG');
                     $savedConfigByType = [];
@@ -1107,6 +1126,18 @@ final class SettingsForm
         }
 
         return $fields;
+    }
+
+    /**
+     * @param int[] $productIds
+     */
+    private static function renderProductIdFilter(array $productIds): string
+    {
+        return TemplateManager::renderModuleView(
+            'product-id-filter',
+            'admin/_configure',
+            ['product_ids' => $productIds]
+        );
     }
 
     /**

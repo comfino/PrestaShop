@@ -59,6 +59,7 @@ final class ConfigManager
         ],
         'sale_settings' => [
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
+            'COMFINO_PRODUCT_ID_FILTER' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
             'COMFINO_ALLOWED_PRODUCTS_CONFIG' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
         ],
         'widget_settings' => [
@@ -110,6 +111,7 @@ final class ConfigManager
         'COMFINO_PAYWALL_CUSTOM_CSS_URL',
         // Sale settings
         'COMFINO_PRODUCT_CATEGORY_FILTERS',
+        'COMFINO_PRODUCT_ID_FILTER',
         'COMFINO_ALLOWED_PRODUCTS_CONFIG',
         'COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED',
         // Widget settings
@@ -655,6 +657,7 @@ final class ConfigManager
             'COMFINO_DEBUG' => false,
             'COMFINO_SERVICE_MODE' => false,
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
+            'COMFINO_PRODUCT_ID_FILTER' => '',
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' =>
                 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER,COMPANY_BNPL,COMPANY_INSTALLMENTS,LEASING,PAY_IN_PARTS',
             'COMFINO_ALLOWED_PRODUCTS_CONFIG' => null,

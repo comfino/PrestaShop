@@ -432,6 +432,7 @@ class ComposerStaticInit00c6db970910ed15a7b210d46ca7abc2
         'Comfino\\Common\\Backend\\Payment\\ProductTypeFilter\\FilterByCartValueLowerLimit' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/Payment/ProductTypeFilter/FilterByCartValueLowerLimit.php',
         'Comfino\\Common\\Backend\\Payment\\ProductTypeFilter\\FilterByCartValueUpperLimit' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/Payment/ProductTypeFilter/FilterByCartValueUpperLimit.php',
         'Comfino\\Common\\Backend\\Payment\\ProductTypeFilter\\FilterByExcludedCategory' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/Payment/ProductTypeFilter/FilterByExcludedCategory.php',
+        'Comfino\\Common\\Backend\\Payment\\ProductTypeFilter\\FilterByExcludedProductId' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/Payment/ProductTypeFilter/FilterByExcludedProductId.php',
         'Comfino\\Common\\Backend\\Payment\\ProductTypeFilter\\FilterByProductType' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/Payment/ProductTypeFilter/FilterByProductType.php',
         'Comfino\\Common\\Backend\\Payment\\ProductTypeTools' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/Payment/ProductTypeTools.php',
         'Comfino\\Common\\Backend\\RestEndpoint' => __DIR__ . '/..' . '/comfino/shop-plugins-shared/src/Common/Backend/RestEndpoint.php',
