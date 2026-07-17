@@ -1136,7 +1136,7 @@ final class SettingsForm
         return TemplateManager::renderModuleView(
             'product-id-filter',
             'admin/_configure',
-            ['product_ids' => $productIds]
+            ['product_ids' => implode(', ', $productIds)]
         );
     }
 
@@ -1146,6 +1146,14 @@ final class SettingsForm
      */
     private static function renderAllowedProductsConfig(array $productTypes, array $savedConfig): string
     {
+        foreach ($savedConfig as &$entry) {
+            $entry['termsStr'] = isset($entry['terms']) && is_array($entry['terms'])
+                ? implode(',', $entry['terms'])
+                : '';
+        }
+
+        unset($entry);
+
         return TemplateManager::renderModuleView(
             'allowed-products-config',
             'admin/_configure',
