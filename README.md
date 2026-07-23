@@ -4,6 +4,8 @@
 [![PHP Version](https://img.shields.io/badge/php-7.1%20to%208.4-blue.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-OSL--3.0-green.svg)](LICENSE)
 
+> **Notice:** Version 4.3.0 is the **last release compatible with PHP 7.1**. The upcoming version 5.0.0 will require **PHP 8.1 or higher** and **PrestaShop 1.7.7.0 or higher** (PrestaShop 1.6.x will no longer be supported). Please plan your environment upgrade accordingly — this is especially important for PrestaShop, where a majority of active shops still run an end-of-life PHP version.
+
 PrestaShop payment module for Comfino deferred payments gateway - installment payments, buy now pay later (BNPL) and corporate payments.
 
 ## Installation
@@ -18,9 +20,17 @@ PrestaShop payment module for Comfino deferred payments gateway - installment pa
 
 ## Compatibility
 
+### Current version (4.3.0 — last PHP 7.1 compatible release)
+
 - **PrestaShop**: 1.6.x, 1.7.x, 8.x, 9.x (minimal supported version of PrestaShop is 1.6.1.11)
 - **PHP**: 7.1 or higher
 - **PHP extensions**: ctype, curl, json, zlib
+
+### Upcoming version (5.0.0)
+
+- **PrestaShop**: 1.7.7.0 or higher, 8.x, 9.x (PrestaShop 1.6.x will not be supported)
+- **PHP**: 8.1 or higher
+- **PHP extensions**: ctype, curl, json, sodium, zlib
 
 For legacy environments the latest version of the plugin compatible with PHP 5.6 and PrestaShop 1.6.0.14+: [3.5.5](https://github.com/comfino/PrestaShop/releases/tag/3.5.5)   
 It can be downloaded from here: [comfino.zip](https://github.com/comfino/PrestaShop/releases/download/3.5.5/comfino.zip)  
@@ -85,7 +95,7 @@ XDEBUG_MODE=coverage ./bin/phpunit --coverage-html coverage
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-All pull requests are automatically tested against PHP 7.1-8.4 with both lowest and stable dependencies.
+All pull requests are automatically tested against PHP 7.1-8.4 with both lowest and stable dependencies. Starting with version 5.0.0, the minimum supported PHP version will be 8.1.
 
 ## License
 
