@@ -333,7 +333,12 @@ class Comfino extends PaymentModule
         }
 
         $isSandbox = Comfino\Configuration\ConfigManager::isSandboxMode();
-        $apiDomain = $isSandbox ? 'https://api-ecommerce.craty.pl' : 'https://api-ecommerce.comfino.pl';
+        /* Same default-host-plus-dev-override resolution as ConfigManager::getLogoApiHost(), so the CSP allowlist
+           matches whichever host the actual API calls use (COMFINO_DEV_API_HOST on dev/test environments), instead
+           of always falling back to the craty/production pair and blocking a custom sandbox host via connect-src. */
+        $apiDomain = Comfino\Configuration\ConfigManager::getApiHost(
+            $isSandbox ? 'https://api-ecommerce.craty.pl' : 'https://api-ecommerce.comfino.pl'
+        );
         $cdnDomain = Comfino\View\FrontendManager::getSdkCdnBaseUrl();
 
         $existing = '';
