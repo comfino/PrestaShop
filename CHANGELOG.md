@@ -1,6 +1,6 @@
 # Changelog
 
-## [4.3.0](https://github.com/comfino/PrestaShop/tree/4.3.0)
+## [4.3.0](https://github.com/comfino/PrestaShop/tree/4.3.0) (2026-07-23)
 
 ### Added
 - **Multistore support** — plugin configuration, cache and settings are now properly isolated per shop when running in PrestaShop multistore mode.
