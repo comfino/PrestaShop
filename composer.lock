@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "24635c797d2fe66e451bae21f49f2f81",
+    "content-hash": "00c6db970910ed15a7b210d46ca7abc2",
     "packages": [
         {
             "name": "cache/adapter-common",
@@ -344,12 +344,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:comfino/shop-plugins-shared.git",
-                "reference": "2fd36377577438e5b05a341fd9d7c6c98deee1ce"
+                "reference": "8ce117bc834d0f1d48895f50b9601580725c9c64"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/2fd36377577438e5b05a341fd9d7c6c98deee1ce",
-                "reference": "2fd36377577438e5b05a341fd9d7c6c98deee1ce",
+                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/8ce117bc834d0f1d48895f50b9601580725c9c64",
+                "reference": "8ce117bc834d0f1d48895f50b9601580725c9c64",
                 "shasum": ""
             },
             "require": {
@@ -395,11 +395,7 @@
             ],
             "description": "Shared library for shop plugins with all dependencies cumulated from ecommerce packages.",
             "homepage": "https://github.com/comfino/shop-plugins-shared",
-            "support": {
-                "source": "https://github.com/comfino/shop-plugins-shared/tree/master",
-                "issues": "https://github.com/comfino/shop-plugins-shared/issues"
-            },
-            "time": "2026-03-06T14:15:43+00:00"
+            "time": "2026-07-16T12:08:03+00:00"
         },
         {
             "name": "fig/http-message-util",
@@ -950,16 +946,10 @@
         {
             "name": "sunrise/http-client-curl",
             "version": "v1.4.6",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sunrise-php/http-client-curl.git",
-                "reference": "df3fa3f7f9bf9f88fb6afc6ce79866bc51e789f8"
-            },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sunrise-php/http-client-curl/zipball/df3fa3f7f9bf9f88fb6afc6ce79866bc51e789f8",
-                "reference": "df3fa3f7f9bf9f88fb6afc6ce79866bc51e789f8",
-                "shasum": ""
+                "url": "/home/akozubski/Devel/comfino/lib/shop-plugins-lib-builder/packages/sunrise/sunrise-http-client-curl-v1.4.6.zip",
+                "shasum": "54d02c18a2df79ad6c8bcb79cf096af21a4d39b6"
             },
             "require": {
                 "ext-curl": "*",
@@ -983,7 +973,17 @@
                     "Sunrise\\Http\\Client\\Curl\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "test": [
+                    "phpcs",
+                    "psalm",
+                    "XDEBUG_MODE=coverage phpunit --coverage-text --colors=always"
+                ],
+                "build": [
+                    "phpdoc -d src/ -t phpdoc/",
+                    "XDEBUG_MODE=coverage phpunit --coverage-html coverage/"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -1002,7 +1002,6 @@
             "description": "Simple HTTP cURL client for PHP 7.1+ based on PSR-18",
             "homepage": "https://github.com/sunrise-php/http-client-curl",
             "keywords": [
-                "PSR-2",
                 "client",
                 "curl",
                 "fenric",
@@ -1011,28 +1010,18 @@
                 "php-8",
                 "psr-17",
                 "psr-18",
+                "psr-2",
                 "psr-7",
                 "sunrise"
-            ],
-            "support": {
-                "issues": "https://github.com/sunrise-php/http-client-curl/issues",
-                "source": "https://github.com/sunrise-php/http-client-curl/tree/v1.4.6"
-            },
-            "time": "2022-04-19T19:08:14+00:00"
+            ]
         },
         {
             "name": "sunrise/http-factory",
             "version": "v2.0.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sunrise-php/http-factory.git",
-                "reference": "c923fcd8ac770f68e5070f06324d50713c6fe681"
-            },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sunrise-php/http-factory/zipball/c923fcd8ac770f68e5070f06324d50713c6fe681",
-                "reference": "c923fcd8ac770f68e5070f06324d50713c6fe681",
-                "shasum": ""
+                "url": "/home/akozubski/Devel/comfino/lib/shop-plugins-lib-builder/packages/sunrise/sunrise-http-factory-v2.0.3.zip",
+                "shasum": "5e2ab5ba5683e55ca0dea30fd4d6575966c235f0"
             },
             "require": {
                 "php": "^7.1|^8.0",
@@ -1054,7 +1043,17 @@
                     "Sunrise\\Http\\Factory\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "test": [
+                    "phpcs",
+                    "psalm",
+                    "XDEBUG_MODE=coverage phpunit --coverage-text --colors=always"
+                ],
+                "build": [
+                    "phpdoc -d src/ -t phpdoc/",
+                    "XDEBUG_MODE=coverage phpunit --coverage-html coverage/"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -1068,35 +1067,24 @@
             "description": "HTTP factory for PHP 7.1+ based on PSR-17",
             "homepage": "https://github.com/sunrise-php/http-factory",
             "keywords": [
-                "PHP7",
                 "factory",
                 "fenric",
                 "http",
+                "php7",
                 "php8",
                 "psr-17",
                 "psr-7",
                 "sunrise"
             ],
-            "support": {
-                "issues": "https://github.com/sunrise-php/http-factory/issues",
-                "source": "https://github.com/sunrise-php/http-factory/tree/v2.0.3"
-            },
-            "abandoned": "sunrise/http-message",
-            "time": "2022-12-31T01:52:59+00:00"
+            "abandoned": "sunrise/http-message"
         },
         {
             "name": "sunrise/http-header",
             "version": "v2.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sunrise-php/http-header.git",
-                "reference": "b291196b4f0b041e6f546d1eed91cbcdb1e773b8"
-            },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sunrise-php/http-header/zipball/b291196b4f0b041e6f546d1eed91cbcdb1e773b8",
-                "reference": "b291196b4f0b041e6f546d1eed91cbcdb1e773b8",
-                "shasum": ""
+                "url": "/home/akozubski/Devel/comfino/lib/shop-plugins-lib-builder/packages/sunrise/sunrise-http-header-v2.0.2.zip",
+                "shasum": "4343d56e96337f12a98a6e71a848dab8cc455667"
             },
             "require": {
                 "php": "^7.1|^8.0"
@@ -1110,7 +1098,12 @@
                     "Sunrise\\Http\\Header\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "test": [
+                    "phpcs",
+                    "psalm"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -1128,27 +1121,15 @@
                 "header",
                 "http",
                 "sunrise"
-            ],
-            "support": {
-                "issues": "https://github.com/sunrise-php/http-header/issues",
-                "source": "https://github.com/sunrise-php/http-header/tree/v2.0.2"
-            },
-            "abandoned": "sunrise/http-message",
-            "time": "2022-04-18T23:18:22+00:00"
+            ]
         },
         {
             "name": "sunrise/http-message",
             "version": "v2.1.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sunrise-php/http-message.git",
-                "reference": "cd6ebddf984ff2169c30c315a5d87ae88aa930da"
-            },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sunrise-php/http-message/zipball/cd6ebddf984ff2169c30c315a5d87ae88aa930da",
-                "reference": "cd6ebddf984ff2169c30c315a5d87ae88aa930da",
-                "shasum": ""
+                "url": "/home/akozubski/Devel/comfino/lib/shop-plugins-lib-builder/packages/sunrise/sunrise-http-message-v2.1.3.zip",
+                "shasum": "32618f35ca82ef6d32218a904840682a7cfc6ea5"
             },
             "require": {
                 "fig/http-message-util": "^1.1",
@@ -1175,7 +1156,17 @@
                     "Sunrise\\Http\\Message\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "test": [
+                    "phpcs",
+                    "psalm",
+                    "XDEBUG_MODE=coverage phpunit --coverage-text --colors=always"
+                ],
+                "build": [
+                    "phpdoc -d src/ -t phpdoc/",
+                    "XDEBUG_MODE=coverage phpunit --coverage-html coverage/"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -1200,26 +1191,15 @@
                 "response",
                 "rfc-7230",
                 "sunrise"
-            ],
-            "support": {
-                "issues": "https://github.com/sunrise-php/http-message/issues",
-                "source": "https://github.com/sunrise-php/http-message/tree/v2.1.3"
-            },
-            "time": "2022-04-19T19:10:25+00:00"
+            ]
         },
         {
             "name": "sunrise/http-server-request",
             "version": "v2.2.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sunrise-php/http-server-request.git",
-                "reference": "431ed2d5b27def62b23196987cd9db654dcda7ce"
-            },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sunrise-php/http-server-request/zipball/431ed2d5b27def62b23196987cd9db654dcda7ce",
-                "reference": "431ed2d5b27def62b23196987cd9db654dcda7ce",
-                "shasum": ""
+                "url": "/home/akozubski/Devel/comfino/lib/shop-plugins-lib-builder/packages/sunrise/sunrise-http-server-request-v2.2.2.zip",
+                "shasum": "095a5ac2b86635b0b2036cdff99934f05744244c"
             },
             "require": {
                 "php": "^7.1|^8.0",
@@ -1238,6 +1218,9 @@
             },
             "type": "library",
             "autoload": {
+                "psr-4": {
+                    "Sunrise\\Http\\ServerRequest\\": "src/"
+                },
                 "files": [
                     "constants/UPLOAD_ERRORS.php",
                     "functions/request_body.php",
@@ -1246,12 +1229,24 @@
                     "functions/request_method.php",
                     "functions/request_protocol.php",
                     "functions/request_uri.php"
-                ],
+                ]
+            },
+            "autoload-dev": {
                 "psr-4": {
-                    "Sunrise\\Http\\ServerRequest\\": "src/"
+                    "Sunrise\\Http\\ServerRequest\\Tests\\": "tests/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "test": [
+                    "phpcs",
+                    "psalm",
+                    "XDEBUG_MODE=coverage phpunit --coverage-text --colors=always"
+                ],
+                "build": [
+                    "phpdoc -d src/ -t phpdoc/",
+                    "XDEBUG_MODE=coverage phpunit --coverage-html coverage/"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -1270,9 +1265,9 @@
             "description": "HTTP server request wrapper for PHP 7.1+ based on PSR-7 and PSR-17",
             "homepage": "https://github.com/sunrise-php/http-server-request",
             "keywords": [
-                "PHP7",
                 "fenric",
                 "http",
+                "php7",
                 "php8",
                 "psr-17",
                 "psr-7",
@@ -1280,26 +1275,15 @@
                 "server",
                 "sunrise"
             ],
-            "support": {
-                "issues": "https://github.com/sunrise-php/http-server-request/issues",
-                "source": "https://github.com/sunrise-php/http-server-request/tree/v2.2.2"
-            },
-            "abandoned": "sunrise/http-message",
-            "time": "2022-12-31T01:57:49+00:00"
+            "abandoned": "sunrise/http-message"
         },
         {
             "name": "sunrise/stream",
             "version": "v1.3.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sunrise-php/stream.git",
-                "reference": "d1a4764f51b9b6710c0c216820accba3d43e5644"
-            },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sunrise-php/stream/zipball/d1a4764f51b9b6710c0c216820accba3d43e5644",
-                "reference": "d1a4764f51b9b6710c0c216820accba3d43e5644",
-                "shasum": ""
+                "url": "/home/akozubski/Devel/comfino/lib/shop-plugins-lib-builder/packages/sunrise/sunrise-stream-v1.3.4.zip",
+                "shasum": "8b5770353124ea9ad64c14caeaaf5d83ae8ac64f"
             },
             "require": {
                 "php": "^7.1|^8.0",
@@ -1319,7 +1303,17 @@
                     "Sunrise\\Stream\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "test": [
+                    "phpcs",
+                    "psalm",
+                    "XDEBUG_MODE=coverage phpunit --coverage-text --colors=always"
+                ],
+                "build": [
+                    "phpdoc -d src/ -t phpdoc/",
+                    "XDEBUG_MODE=coverage phpunit --coverage-html coverage/"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -1338,35 +1332,24 @@
             "description": "Stream wrapper for PHP 7.1+ based on PSR-7 and PSR-17",
             "homepage": "https://github.com/sunrise-php/stream",
             "keywords": [
-                "PHP7",
                 "fenric",
                 "http",
+                "php7",
                 "php8",
                 "psr-17",
                 "psr-7",
                 "stream",
                 "sunrise"
             ],
-            "support": {
-                "issues": "https://github.com/sunrise-php/stream/issues",
-                "source": "https://github.com/sunrise-php/stream/tree/v1.3.4"
-            },
-            "abandoned": "sunrise/http-message",
-            "time": "2022-12-31T02:00:59+00:00"
+            "abandoned": "sunrise/http-message"
         },
         {
             "name": "sunrise/uri",
             "version": "v1.2.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/sunrise-php/uri.git",
-                "reference": "cf636bb78bec0888ad0e0645588a1ee2d783adae"
-            },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sunrise-php/uri/zipball/cf636bb78bec0888ad0e0645588a1ee2d783adae",
-                "reference": "cf636bb78bec0888ad0e0645588a1ee2d783adae",
-                "shasum": ""
+                "url": "/home/akozubski/Devel/comfino/lib/shop-plugins-lib-builder/packages/sunrise/sunrise-uri-v1.2.5.zip",
+                "shasum": "77486809276d7ac592ad5a3ba14d779ec4df69b3"
             },
             "require": {
                 "php": "^7.1|^8.0",
@@ -1386,7 +1369,17 @@
                     "Sunrise\\Uri\\": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "scripts": {
+                "test": [
+                    "phpcs",
+                    "psalm",
+                    "XDEBUG_MODE=coverage phpunit --coverage-text --colors=always"
+                ],
+                "build": [
+                    "phpdoc -d src/ -t phpdoc/",
+                    "XDEBUG_MODE=coverage phpunit --coverage-html coverage/"
+                ]
+            },
             "license": [
                 "MIT"
             ],
@@ -1405,10 +1398,10 @@
             "description": "URI wrapper for PHP 7.1+ based on RFC-3986, PSR-7 and PSR-17",
             "homepage": "https://github.com/sunrise-php/uri",
             "keywords": [
-                "PHP7",
                 "fenric",
                 "http",
                 "parser",
+                "php7",
                 "php8",
                 "psr-17",
                 "psr-7",
@@ -1416,12 +1409,7 @@
                 "sunrise",
                 "uri"
             ],
-            "support": {
-                "issues": "https://github.com/sunrise-php/uri/issues",
-                "source": "https://github.com/sunrise-php/uri/tree/v1.2.5"
-            },
-            "abandoned": "sunrise/http-message",
-            "time": "2022-12-31T02:03:56+00:00"
+            "abandoned": "sunrise/http-message"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -3737,7 +3725,6 @@
                 "issues": "https://github.com/sebastianbergmann/php-token-stream/issues",
                 "source": "https://github.com/sebastianbergmann/php-token-stream/tree/master"
             },
-            "abandoned": true,
             "time": "2017-11-27T05:48:46+00:00"
         },
         {
@@ -4778,16 +4765,16 @@
         },
         {
             "name": "symfony/console",
-            "version": "v6.4.35",
+            "version": "v6.4.42",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "49257c96304c508223815ee965c251e7c79e614e"
+                "reference": "9ef84af84a7b66396da483634227650506428639"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/49257c96304c508223815ee965c251e7c79e614e",
-                "reference": "49257c96304c508223815ee965c251e7c79e614e",
+                "url": "https://api.github.com/repos/symfony/console/zipball/9ef84af84a7b66396da483634227650506428639",
+                "reference": "9ef84af84a7b66396da483634227650506428639",
                 "shasum": ""
             },
             "require": {
@@ -4852,7 +4839,7 @@
                 "terminal"
             ],
             "support": {
-                "source": "https://github.com/symfony/console/tree/v6.4.35"
+                "source": "https://github.com/symfony/console/tree/v6.4.42"
             },
             "funding": [
                 {
@@ -4872,20 +4859,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-03-06T13:31:08+00:00"
+            "time": "2026-06-15T05:35:29+00:00"
         },
         {
             "name": "symfony/event-dispatcher",
-            "version": "v6.4.32",
+            "version": "v6.4.37",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/event-dispatcher.git",
-                "reference": "99d7e101826e6610606b9433248f80c1997cd20b"
+                "reference": "2e3bf817ba9347341ab15926700fb6320367c0e1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/99d7e101826e6610606b9433248f80c1997cd20b",
-                "reference": "99d7e101826e6610606b9433248f80c1997cd20b",
+                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/2e3bf817ba9347341ab15926700fb6320367c0e1",
+                "reference": "2e3bf817ba9347341ab15926700fb6320367c0e1",
                 "shasum": ""
             },
             "require": {
@@ -4936,7 +4923,7 @@
             "description": "Provides tools that allow your application components to communicate with each other by dispatching events and listening to them",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/event-dispatcher/tree/v6.4.32"
+                "source": "https://github.com/symfony/event-dispatcher/tree/v6.4.37"
             },
             "funding": [
                 {
@@ -4956,20 +4943,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-01-05T11:13:48+00:00"
+            "time": "2026-04-13T14:11:12+00:00"
         },
         {
             "name": "symfony/event-dispatcher-contracts",
-            "version": "v3.6.0",
+            "version": "v3.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/event-dispatcher-contracts.git",
-                "reference": "59eb412e93815df44f05f342958efa9f46b1e586"
+                "reference": "c7de7a00ffb67842132da02ea92988a39ccd9f4e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/event-dispatcher-contracts/zipball/59eb412e93815df44f05f342958efa9f46b1e586",
-                "reference": "59eb412e93815df44f05f342958efa9f46b1e586",
+                "url": "https://api.github.com/repos/symfony/event-dispatcher-contracts/zipball/c7de7a00ffb67842132da02ea92988a39ccd9f4e",
+                "reference": "c7de7a00ffb67842132da02ea92988a39ccd9f4e",
                 "shasum": ""
             },
             "require": {
@@ -4983,7 +4970,7 @@
                     "name": "symfony/contracts"
                 },
                 "branch-alias": {
-                    "dev-main": "3.6-dev"
+                    "dev-main": "3.7-dev"
                 }
             },
             "autoload": {
@@ -5016,7 +5003,7 @@
                 "standards"
             ],
             "support": {
-                "source": "https://github.com/symfony/event-dispatcher-contracts/tree/v3.6.0"
+                "source": "https://github.com/symfony/event-dispatcher-contracts/tree/v3.7.1"
             },
             "funding": [
                 {
@@ -5028,24 +5015,28 @@
                     "type": "github"
                 },
                 {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
                     "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-25T14:21:43+00:00"
+            "time": "2026-06-05T06:23:12+00:00"
         },
         {
             "name": "symfony/filesystem",
-            "version": "v6.4.34",
+            "version": "v6.4.39",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
-                "reference": "01ffe0411b842f93c571e5c391f289c3fdd498c3"
+                "reference": "c507b077756b4e3e09adbbe7975fac81cd3722ca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/filesystem/zipball/01ffe0411b842f93c571e5c391f289c3fdd498c3",
-                "reference": "01ffe0411b842f93c571e5c391f289c3fdd498c3",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/c507b077756b4e3e09adbbe7975fac81cd3722ca",
+                "reference": "c507b077756b4e3e09adbbe7975fac81cd3722ca",
                 "shasum": ""
             },
             "require": {
@@ -5082,7 +5073,7 @@
             "description": "Provides basic utilities for the filesystem",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/filesystem/tree/v6.4.34"
+                "source": "https://github.com/symfony/filesystem/tree/v6.4.39"
             },
             "funding": [
                 {
@@ -5102,20 +5093,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-02-24T17:51:06+00:00"
+            "time": "2026-05-07T13:11:42+00:00"
         },
         {
             "name": "symfony/finder",
-            "version": "v6.4.34",
+            "version": "v6.4.42",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/finder.git",
-                "reference": "9590e86be1d1c57bfbb16d0dd040345378c20896"
+                "reference": "0b73dac42493acbadbba644207a715b254e9b029"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/finder/zipball/9590e86be1d1c57bfbb16d0dd040345378c20896",
-                "reference": "9590e86be1d1c57bfbb16d0dd040345378c20896",
+                "url": "https://api.github.com/repos/symfony/finder/zipball/0b73dac42493acbadbba644207a715b254e9b029",
+                "reference": "0b73dac42493acbadbba644207a715b254e9b029",
                 "shasum": ""
             },
             "require": {
@@ -5150,7 +5141,7 @@
             "description": "Finds files and directories via an intuitive fluent interface",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/finder/tree/v6.4.34"
+                "source": "https://github.com/symfony/finder/tree/v6.4.42"
             },
             "funding": [
                 {
@@ -5170,20 +5161,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-01-28T15:16:37+00:00"
+            "time": "2026-06-26T15:18:24+00:00"
         },
         {
             "name": "symfony/polyfill-intl-grapheme",
-            "version": "v1.33.0",
+            "version": "v1.38.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-intl-grapheme.git",
-                "reference": "380872130d3a5dd3ace2f4010d95125fde5d5c70"
+                "reference": "e9247d281d694a5120554d9afaf54e070e88a603"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-intl-grapheme/zipball/380872130d3a5dd3ace2f4010d95125fde5d5c70",
-                "reference": "380872130d3a5dd3ace2f4010d95125fde5d5c70",
+                "url": "https://api.github.com/repos/symfony/polyfill-intl-grapheme/zipball/e9247d281d694a5120554d9afaf54e070e88a603",
+                "reference": "e9247d281d694a5120554d9afaf54e070e88a603",
                 "shasum": ""
             },
             "require": {
@@ -5232,7 +5223,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-intl-grapheme/tree/v1.33.0"
+                "source": "https://github.com/symfony/polyfill-intl-grapheme/tree/v1.38.1"
             },
             "funding": [
                 {
@@ -5252,20 +5243,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-06-27T09:58:17+00:00"
+            "time": "2026-05-26T05:58:03+00:00"
         },
         {
             "name": "symfony/polyfill-intl-normalizer",
-            "version": "v1.33.0",
+            "version": "v1.38.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-intl-normalizer.git",
-                "reference": "3833d7255cc303546435cb650316bff708a1c75c"
+                "reference": "2d446c214bdbe5b71bde5011b060a05fece3ae6b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-intl-normalizer/zipball/3833d7255cc303546435cb650316bff708a1c75c",
-                "reference": "3833d7255cc303546435cb650316bff708a1c75c",
+                "url": "https://api.github.com/repos/symfony/polyfill-intl-normalizer/zipball/2d446c214bdbe5b71bde5011b060a05fece3ae6b",
+                "reference": "2d446c214bdbe5b71bde5011b060a05fece3ae6b",
                 "shasum": ""
             },
             "require": {
@@ -5317,7 +5308,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-intl-normalizer/tree/v1.33.0"
+                "source": "https://github.com/symfony/polyfill-intl-normalizer/tree/v1.38.0"
             },
             "funding": [
                 {
@@ -5337,20 +5328,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-09T11:45:10+00:00"
+            "time": "2026-05-25T13:48:31+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
-            "version": "v1.33.0",
+            "version": "v1.38.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-mbstring.git",
-                "reference": "6d857f4d76bd4b343eac26d6b539585d2bc56493"
+                "reference": "d3d318bad5e7a1bfbd026009c8bfb8d8f99ae6b6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/6d857f4d76bd4b343eac26d6b539585d2bc56493",
-                "reference": "6d857f4d76bd4b343eac26d6b539585d2bc56493",
+                "url": "https://api.github.com/repos/symfony/polyfill-mbstring/zipball/d3d318bad5e7a1bfbd026009c8bfb8d8f99ae6b6",
+                "reference": "d3d318bad5e7a1bfbd026009c8bfb8d8f99ae6b6",
                 "shasum": ""
             },
             "require": {
@@ -5402,7 +5393,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.33.0"
+                "source": "https://github.com/symfony/polyfill-mbstring/tree/v1.38.2"
             },
             "funding": [
                 {
@@ -5422,20 +5413,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-12-23T08:48:59+00:00"
+            "time": "2026-05-27T06:59:30+00:00"
         },
         {
             "name": "symfony/polyfill-php81",
-            "version": "v1.33.0",
+            "version": "v1.38.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-php81.git",
-                "reference": "4a4cfc2d253c21a5ad0e53071df248ed48c6ce5c"
+                "reference": "6bfb9c766cacffbc8e118cb87217d08ed84e5cd7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php81/zipball/4a4cfc2d253c21a5ad0e53071df248ed48c6ce5c",
-                "reference": "4a4cfc2d253c21a5ad0e53071df248ed48c6ce5c",
+                "url": "https://api.github.com/repos/symfony/polyfill-php81/zipball/6bfb9c766cacffbc8e118cb87217d08ed84e5cd7",
+                "reference": "6bfb9c766cacffbc8e118cb87217d08ed84e5cd7",
                 "shasum": ""
             },
             "require": {
@@ -5482,7 +5473,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-php81/tree/v1.33.0"
+                "source": "https://github.com/symfony/polyfill-php81/tree/v1.38.1"
             },
             "funding": [
                 {
@@ -5502,20 +5493,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-09-09T11:45:10+00:00"
+            "time": "2026-05-26T12:45:58+00:00"
         },
         {
             "name": "symfony/process",
-            "version": "v6.4.33",
+            "version": "v6.4.41",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "c46e854e79b52d07666e43924a20cb6dc546644e"
+                "reference": "c8fc09bdfe9fde9aaa89b415a4477feaccec16a7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/c46e854e79b52d07666e43924a20cb6dc546644e",
-                "reference": "c46e854e79b52d07666e43924a20cb6dc546644e",
+                "url": "https://api.github.com/repos/symfony/process/zipball/c8fc09bdfe9fde9aaa89b415a4477feaccec16a7",
+                "reference": "c8fc09bdfe9fde9aaa89b415a4477feaccec16a7",
                 "shasum": ""
             },
             "require": {
@@ -5547,7 +5538,7 @@
             "description": "Executes commands in sub-processes",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/process/tree/v6.4.33"
+                "source": "https://github.com/symfony/process/tree/v6.4.41"
             },
             "funding": [
                 {
@@ -5567,20 +5558,20 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-01-23T16:02:12+00:00"
+            "time": "2026-05-23T13:47:21+00:00"
         },
         {
             "name": "symfony/service-contracts",
-            "version": "v3.6.1",
+            "version": "v3.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/service-contracts.git",
-                "reference": "45112560a3ba2d715666a509a0bc9521d10b6c43"
+                "reference": "c0a284bab1ed8aa0417e3d69250ab437739563a0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/service-contracts/zipball/45112560a3ba2d715666a509a0bc9521d10b6c43",
-                "reference": "45112560a3ba2d715666a509a0bc9521d10b6c43",
+                "url": "https://api.github.com/repos/symfony/service-contracts/zipball/c0a284bab1ed8aa0417e3d69250ab437739563a0",
+                "reference": "c0a284bab1ed8aa0417e3d69250ab437739563a0",
                 "shasum": ""
             },
             "require": {
@@ -5598,7 +5589,7 @@
                     "name": "symfony/contracts"
                 },
                 "branch-alias": {
-                    "dev-main": "3.6-dev"
+                    "dev-main": "3.7-dev"
                 }
             },
             "autoload": {
@@ -5634,7 +5625,7 @@
                 "standards"
             ],
             "support": {
-                "source": "https://github.com/symfony/service-contracts/tree/v3.6.1"
+                "source": "https://github.com/symfony/service-contracts/tree/v3.7.1"
             },
             "funding": [
                 {
@@ -5654,7 +5645,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-07-15T11:30:57+00:00"
+            "time": "2026-06-16T09:55:08+00:00"
         },
         {
             "name": "symfony/stopwatch",
@@ -5724,16 +5715,16 @@
         },
         {
             "name": "symfony/string",
-            "version": "v7.4.6",
+            "version": "v7.4.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/string.git",
-                "reference": "9f209231affa85aa930a5e46e6eb03381424b30b"
+                "reference": "961683010db3b27ec6ebcd7308e6e1ee8fa7ffde"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/string/zipball/9f209231affa85aa930a5e46e6eb03381424b30b",
-                "reference": "9f209231affa85aa930a5e46e6eb03381424b30b",
+                "url": "https://api.github.com/repos/symfony/string/zipball/961683010db3b27ec6ebcd7308e6e1ee8fa7ffde",
+                "reference": "961683010db3b27ec6ebcd7308e6e1ee8fa7ffde",
                 "shasum": ""
             },
             "require": {
@@ -5791,7 +5782,7 @@
                 "utf8"
             ],
             "support": {
-                "source": "https://github.com/symfony/string/tree/v7.4.6"
+                "source": "https://github.com/symfony/string/tree/v7.4.13"
             },
             "funding": [
                 {
@@ -5811,7 +5802,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-02-09T09:33:46+00:00"
+            "time": "2026-05-23T15:23:29+00:00"
         },
         {
             "name": "webmozart/assert",

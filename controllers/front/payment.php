@@ -26,6 +26,8 @@
 
 use Comfino\Api\ApiClient;
 use Comfino\Api\ApiService;
+use Comfino\Api\Dto\Payment\AllowedProductConfig;
+use Comfino\Api\Dto\Payment\LoanQueryCriteria;
 use Comfino\Api\Dto\Payment\LoanTypeEnum;
 use Comfino\Common\Backend\Factory\OrderFactory;
 use Comfino\Configuration\ConfigManager;
@@ -61,6 +63,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
+        // Reuse the trackId minted during this checkout session's paywall render, if any (see ApiClient::pinCheckoutTrackId()).
+        ApiClient::pinCheckoutTrackId();
+
         $cart = $this->context->cart;
 
         DebugLogger::logEvent('[PAYMENT GATEWAY]', 'postProcess', ['cart_id' => $cart->id]);
@@ -75,15 +80,6 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $customer = new \Customer($cart->id_customer);
 
         if (!Validate::isLoadedObject($customer)) {
-            Tools::redirect('index.php?controller=order&step=1');
-
-            return;
-        }
-
-        $cookie = $this->context->cookie;
-
-        // Basic loan parameters validation.
-        if (!$cookie->loan_type || !$cookie->loan_term) {
             Tools::redirect('index.php?controller=order&step=1');
 
             return;
@@ -125,23 +121,17 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $initLoanAmount = (int) filter_var($cookie->loan_amount, FILTER_VALIDATE_INT);
-        $loanType = trim(filter_var($cookie->loan_type, FILTER_SANITIZE_STRING));
-        $loanTerm = (int) filter_var($cookie->loan_term, FILTER_VALIDATE_INT);
-
-        $priceModifier = filter_var($cookie->price_modifier, FILTER_VALIDATE_INT);
-
-        if ($priceModifier === false || $priceModifier < 0 || $priceModifier > 1000000) {
-            $priceModifier = 0;
-        }
+        // V3: loan type/term arrive as hidden POST inputs written by PrestaShopAdapter.updatePaymentState().
+        $loanType = trim((string) Tools::getValue('comfino_loan_type', ''));
+        $loanTerm = (int) Tools::getValue('comfino_loan_term', 0);
 
         $psOrder = new \Order($this->module->currentOrder);
 
         try {
             if (\Validate::isLoadedObject($psOrder)) {
-                $shopCart = OrderManager::getShopCartFromOrder($psOrder, $priceModifier, true);
+                $shopCart = OrderManager::getShopCartFromOrder($psOrder, 0, true);
             } else {
-                $shopCart = OrderManager::getShopCart($cart, $priceModifier, true);
+                $shopCart = OrderManager::getShopCart($cart, 0, true);
             }
         } catch (\Exception $e) {
             $this->errors = [$this->module->l('There was an error creating your cart. Please try again.')];
@@ -162,6 +152,26 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             }
 
             return;
+        }
+
+        // Emergency fallback: if loan parameters are missing, retrieve default product from API.
+        if (empty($loanType) || empty($loanTerm)) {
+            $financialProducts = $this->getFinancialProducts($shopCart->getTotalValue(), $shopCart);
+
+            if (empty($financialProducts)) {
+                $this->errors = [$this->module->l('Preselected financial offer data incomplete. Please try again.')];
+
+                if (COMFINO_PS_17) {
+                    $this->redirectWithNotifications('index.php?controller=order&step=1');
+                } else {
+                    $this->redirectWithNotificationsPs16('index.php?controller=order&step=1');
+                }
+
+                return;
+            }
+
+            $loanType = (string) $financialProducts[0]->type;
+            $loanTerm = $financialProducts[0]->loanTerm;
         }
 
         $shopCustomer = OrderManager::getShopCustomerFromCart($cart, $customer, $this->context);
@@ -207,8 +217,6 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             '[PAYMENT]',
             'Validation passed - proceeding with order creation',
             [
-                '$initLoanAmount' => $initLoanAmount,
-                '$priceModifier' => $priceModifier,
                 '$cartTotalValue' => $shopCart->getTotalValue(),
                 '$loanAmount' => $order->getCart()->getTotalAmount(),
                 '$loanType' => (string) $order->getLoanParameters()->getType(),
@@ -382,6 +390,34 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         Tools::redirect($url);
     }
 
+    /**
+     * @return \Comfino\Api\Dto\Payment\FinancialProduct[]
+     */
+    private function getFinancialProducts(int $loanAmount, Comfino\Common\Shop\Cart $shopCart): array
+    {
+        try {
+            $allowedProductTypes = SettingsManager::getAllowedProductTypes(
+                ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
+                $shopCart
+            );
+            $criteria = new LoanQueryCriteria(
+                $loanAmount,
+                null,
+                null,
+                null,
+                $allowedProductTypes,
+                null,
+                $this->buildAllowedProductsConfig()
+            );
+
+            return ApiClient::getInstance()->getFinancialProducts($criteria)->financialProducts;
+        } catch (\Throwable $e) {
+            FrontendManager::processError('Emergency financial offer retrieving error.', $e, null, null, [], '[PAYMENT]');
+
+            return [];
+        }
+    }
+
     private function createOrder(
         string $orderId,
         string $loanType,
@@ -404,7 +440,42 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             SettingsManager::getAllowedProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL, $shopCart),
             $shopCart->getDeliveryNetCost(),
             $shopCart->getDeliveryTaxRate(),
-            $shopCart->getDeliveryTaxValue()
+            $shopCart->getDeliveryTaxValue(),
+            null,
+            $this->buildAllowedProductsConfig()
         );
+    }
+
+    /**
+     * @return AllowedProductConfig[]|null
+     */
+    private function buildAllowedProductsConfig(): ?array
+    {
+        $normalized = SettingsManager::getAllowedProductsConfigForFrontend();
+
+        if ($normalized === null) {
+            return null;
+        }
+
+        $result = [];
+
+        foreach ($normalized as $entry) {
+            try {
+                $result[] = new AllowedProductConfig(
+                    new LoanTypeEnum($entry['type']),
+                    $entry['maxTerm'] ?? null,
+                    $entry['minTerm'] ?? null,
+                    $entry['terms'] ?? null
+                );
+            } catch (\Throwable $e) {
+                DebugLogger::logEvent(
+                    '[ALLOWED_PRODUCTS_CONFIG]',
+                    'Invalid allowed product config entry skipped.',
+                    ['$entry' => $entry, '$error' => $e->getMessage()]
+                );
+            }
+        }
+
+        return !empty($result) ? $result : null;
     }
 }

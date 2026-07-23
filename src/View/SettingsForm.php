@@ -34,9 +34,12 @@ use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
+use Comfino\Extended\Api\Dto\Plugin\OperationContext;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Main;
 use Comfino\PluginShared\CacheManager;
+use Comfino\Telemetry\ShopEnvironmentReporter;
+use Comfino\Update\UpdateManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -208,7 +211,8 @@ final class SettingsForm
                                 ApiClient::processApiError(
                                     ($activeTab === 'payment_settings' ? 'Payment' : 'Developer') .
                                     ' settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
-                                    $e
+                                    $e,
+                                    OperationContext::Configuration
                                 );
 
                                 $output[] = $e->getMessage();
@@ -230,7 +234,8 @@ final class SettingsForm
                             ApiClient::processApiError(
                                 ($activeTab === 'payment_settings' ? 'Payment' : 'Developer') .
                                 ' settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
-                                $e
+                                $e,
+                                OperationContext::Configuration
                             );
 
                             $outputType = 'error';
@@ -272,6 +277,78 @@ final class SettingsForm
                     }
 
                     $configurationOptions['COMFINO_PRODUCT_CATEGORY_FILTERS'] = $productCategoryFilters;
+
+                    $productIdFilter = [];
+                    $productIdFilterInput = \Tools::getValue('comfino_product_id_filter');
+
+                    if (!empty($productIdFilterInput)) {
+                        $productIdFilter = array_values(array_unique(array_filter(
+                            array_map('intval', preg_split('/[\s,]+/', (string) $productIdFilterInput)),
+                            static function (int $id): bool { return $id > 0; }
+                        )));
+                    }
+
+                    $configurationOptions['COMFINO_PRODUCT_ID_FILTER'] = $productIdFilter;
+
+                    if (!ConfigManager::getConfigurationValue('COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED')) {
+                        break;
+                    }
+
+                    $allowedProductsConfig = [];
+                    $termLimitsData = \Tools::getValue('comfino_term_limits', []);
+                    $validProductTypes = \Comfino\Api\Dto\Payment\LoanTypeEnum::values();
+
+                    if (is_array($termLimitsData)) {
+                        foreach ($termLimitsData as $productType => $limits) {
+                            $productType = \Tools::safeOutput((string) $productType);
+
+                            if (!in_array($productType, $validProductTypes, true)) {
+                                $output[] = sprintf(
+                                    Main::translate('Unknown product type "%s" in term limits — entry skipped.'),
+                                    $productType
+                                );
+
+                                continue;
+                            }
+
+                            $maxTerm = isset($limits['maxTerm']) && $limits['maxTerm'] !== '' ? (int) $limits['maxTerm'] : null;
+                            $minTerm = isset($limits['minTerm']) && $limits['minTerm'] !== '' ? (int) $limits['minTerm'] : null;
+                            $termsRaw = isset($limits['terms']) && $limits['terms'] !== '' ? $limits['terms'] : null;
+                            $terms = null;
+
+                            if ($termsRaw !== null) {
+                                $terms = array_values(array_filter(
+                                    array_map('intval', explode(',', $termsRaw)),
+                                    static function ($term) { return $term > 0; }
+                                ));
+
+                                if (empty($terms)) {
+                                    $terms = null;
+                                }
+                            }
+
+                            if ($minTerm !== null && $maxTerm !== null && $minTerm > $maxTerm) {
+                                $output[] = sprintf(
+                                    Main::translate('Term limits for "%s": minTerm must not exceed maxTerm.'),
+                                    $productType
+                                );
+
+                                continue;
+                            }
+
+                            if ($maxTerm !== null || $minTerm !== null || $terms !== null) {
+                                $allowedProductsConfig[] = array_filter(
+                                    ['type' => $productType, 'maxTerm' => $maxTerm, 'minTerm' => $minTerm, 'terms' => $terms],
+                                    static function ($value) { return $value !== null; }
+                                );
+                            }
+                        }
+                    }
+
+                    $configurationOptions['COMFINO_ALLOWED_PRODUCTS_CONFIG'] = !empty($allowedProductsConfig)
+                        ? $allowedProductsConfig
+                        : null;
+
                     break;
 
                 case 'widget_settings':
@@ -323,7 +400,8 @@ final class SettingsForm
                             } catch (\Throwable $e) {
                                 ApiClient::processApiError(
                                     'Widget settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
-                                    $e
+                                    $e,
+                                    OperationContext::Configuration
                                 );
 
                                 $output[] = $e->getMessage();
@@ -336,7 +414,8 @@ final class SettingsForm
                         } catch (\Throwable $e) {
                             ApiClient::processApiError(
                                 'Widget settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
-                                $e
+                                $e,
+                                OperationContext::Configuration
                             );
 
                             $outputType = 'error';
@@ -354,6 +433,11 @@ final class SettingsForm
             } else {
                 // Update plugin configuration.
                 ConfigManager::updateConfiguration($configurationOptions, false);
+
+                // Report the shop environment to Comfino after a successful settings save (fire-and-forget).
+                if (!empty(ConfigManager::getApiKey())) {
+                    ShopEnvironmentReporter::report();
+                }
 
                 $output[] = Main::translate('Settings updated.');
             }
@@ -387,6 +471,77 @@ final class SettingsForm
                 self::COMFINO_SUPPORT_PHONE
             ),
             'plugin_version' => COMFINO_VERSION,
+            'multistore_scope_message' => self::getMultistoreScopeMessage(),
+        ] + self::getUpdateInfoForTemplate();
+    }
+
+    /**
+     * Builds an informational banner describing which shop-context scope the settings form is currently editing, so the
+     * admin can tell "All Shops" (global/default) apart from a single shop or shop group. Returns an empty string when
+     * PrestaShop Multistore is inactive (single-shop installs render no banner and behave exactly as before).
+     */
+    private static function getMultistoreScopeMessage(): string
+    {
+        if (!\Shop::isFeatureActive()) {
+            return '';
+        }
+
+        $globalOptionsNote = Main::translate(
+            'Developer, API timeout, caching, order-status and CSP options always stay global and are shared by every shop.'
+        );
+
+        switch (\Shop::getContext()) {
+            case \Shop::CONTEXT_SHOP:
+                return sprintf(
+                    Main::translate('You are editing the Comfino configuration for shop "%s". %s'),
+                    \Context::getContext()->shop->name,
+                    $globalOptionsNote
+                );
+
+            case \Shop::CONTEXT_GROUP:
+                $shopGroup = new \ShopGroup((int) \Shop::getContextShopGroupID(true));
+
+                return sprintf(
+                    Main::translate('You are editing the Comfino configuration for shop group "%s". %s'),
+                    \Validate::isLoadedObject($shopGroup) ? $shopGroup->name : '',
+                    $globalOptionsNote
+                );
+
+            default: // Shop::CONTEXT_ALL
+                return Main::translate(
+                    'PrestaShop Multistore is active. You are editing the default (All Shops) Comfino configuration. ' .
+                    'Settings saved here apply to every shop that does not override them; select a shop in the top ' .
+                    'bar to configure it individually.'
+                );
+        }
+    }
+
+    /**
+     * The latest available release version and "what's new" HTML, shown in the config header next to the plugin version
+     * - but only when a newer version is actually available (hidden when up to date).
+     */
+    private static function getUpdateInfoForTemplate(): array
+    {
+        $updateInfo = UpdateManager::checkForUpdates();
+
+        if (empty($updateInfo['update_available']) || empty($updateInfo['github_version'])) {
+            return ['update_available_message' => '', 'latest_release_description' => ''];
+        }
+
+        return [
+            'update_available_message' => sprintf(
+                Main::translate(
+                    'New Comfino %s module version is available. You are using %s version. ' .
+                    'Please update your Comfino module.'
+                ),
+                $updateInfo['github_version'],
+                COMFINO_VERSION
+            ),
+            /* Server-sanitized already; re-purified here with PrestaShop's HTML purifier, so the template output
+               stays safe per marketplace requirements. */
+            'latest_release_description' => !empty($updateInfo['description_html'])
+                ? \Tools::purifyHTML($updateInfo['description_html'])
+                : '',
         ];
     }
 
@@ -394,7 +549,7 @@ final class SettingsForm
      * Generates form fields configuration for module settings.
      *
      * Builds form field definitions for different configuration tabs:
-     * - payment_settings: API key, payment text, minimal cart amount
+     * - payment_settings: API key, minimal cart amount, paywall settings
      * - sale_settings: Product category filters
      * - widget_settings: Widget configuration and appearance
      * - developer_settings: Sandbox mode, debug mode, service mode
@@ -469,6 +624,38 @@ final class SettingsForm
                                     ],
                                 ],
                             ],
+                            [
+                                'type' => 'html',
+                                'name' => 'paywall_settings_section',
+                                'required' => false,
+                                'html_content' => '<h3>' . Main::translate('Paywall settings') . '</h3>',
+                            ],
+                            [
+                                'type' => 'switch',
+                                'label' => Main::translate('Direct redirect mode'),
+                                'name' => 'COMFINO_PAYWALL_DIRECT_REDIRECT',
+                                'desc' => Main::translate('When enabled, the full paywall offer browser is not displayed. The order is submitted with the default financial product and the customer is redirected directly to the Comfino payment gateway.'),
+                                'is_bool' => true,
+                                'values' => [
+                                    [
+                                        'id' => 'paywall_direct_redirect_on',
+                                        'value' => true,
+                                        'label' => Main::translate('Yes'),
+                                    ],
+                                    [
+                                        'id' => 'paywall_direct_redirect_off',
+                                        'value' => false,
+                                        'label' => Main::translate('No'),
+                                    ],
+                                ],
+                            ],
+                            [
+                                'type' => 'text',
+                                'label' => Main::translate('Custom paywall CSS style'),
+                                'name' => 'COMFINO_PAYWALL_CUSTOM_CSS_URL',
+                                'required' => false,
+                                'desc' => Main::translate('URL for a custom CSS file injected into the paywall iframe. Only links from your store domain are allowed.'),
+                            ],
                         ],
                         'submit' => [
                             'title' => Main::translate('Save'),
@@ -516,6 +703,36 @@ final class SettingsForm
                             'product_categories',
                             $prodTypeCode,
                             $selectedCategories
+                        ),
+                    ];
+                }
+
+                $productCategoryFilterInputs[] = [
+                    'type' => 'html',
+                    'name' => 'comfino_product_id_filter',
+                    'required' => false,
+                    'html_content' => self::renderProductIdFilter(SettingsManager::getProductIdFilter()),
+                ];
+
+                if ((bool) ConfigManager::getConfigurationValue('COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED')) {
+                    $savedAllowedConfig = ConfigManager::getConfigurationValue('COMFINO_ALLOWED_PRODUCTS_CONFIG');
+                    $savedConfigByType = [];
+
+                    if (is_array($savedAllowedConfig)) {
+                        foreach ($savedAllowedConfig as $entry) {
+                            if (!empty($entry['type'])) {
+                                $savedConfigByType[$entry['type']] = $entry;
+                            }
+                        }
+                    }
+
+                    $productCategoryFilterInputs[] = [
+                        'type' => 'html',
+                        'name' => 'allowed_products_config',
+                        'required' => false,
+                        'html_content' => self::renderAllowedProductsConfig(
+                            SettingsManager::getAllowedProductsConfigAvailProdTypes(),
+                            $savedConfigByType
                         ),
                     ];
                 }
@@ -645,6 +862,17 @@ final class SettingsForm
                         ],
                         [
                             'type' => 'text',
+                            'label' => Main::translate('Widget price element attribute'),
+                            'name' => 'COMFINO_WIDGET_PRICE_ATTRIBUTE',
+                            'required' => false,
+                            'desc' => Main::translate(
+                                'Attribute of the price element holding the numeric price value. When set, the ' .
+                                'widget reads the price from this attribute instead of parsing the element text, ' .
+                                'which avoids a race with asynchronous price rendering. Leave empty to parse text.'
+                            ),
+                        ],
+                        [
+                            'type' => 'text',
                             'label' => Main::translate('Widget anchor element selector'),
                             'name' => 'COMFINO_WIDGET_TARGET_SELECTOR',
                             'required' => false,
@@ -700,14 +928,6 @@ final class SettingsForm
                             'desc' => Main::translate(
                                 'URL for the custom calculator style. Only links from your store domain are allowed.'
                             ),
-                        ],
-                        [
-                            'type' => 'textarea',
-                            'label' => Main::translate('Widget initialization code'),
-                            'name' => 'COMFINO_WIDGET_CODE',
-                            'required' => false,
-                            'rows' => 15,
-                            'cols' => 60,
                         ],
                     ],
                     'submit' => [
@@ -909,6 +1129,42 @@ final class SettingsForm
     }
 
     /**
+     * @param int[] $productIds
+     */
+    private static function renderProductIdFilter(array $productIds): string
+    {
+        return TemplateManager::renderModuleView(
+            'product-id-filter',
+            'admin/_configure',
+            ['product_ids' => implode(', ', $productIds)]
+        );
+    }
+
+    /**
+     * @param array $productTypes [typeCode => typeName, ...]
+     * @param array $savedConfig  [typeCode => ['maxTerm' => ?int, 'minTerm' => ?int, 'terms' => ?int[]], ...]
+     */
+    private static function renderAllowedProductsConfig(array $productTypes, array $savedConfig): string
+    {
+        foreach ($savedConfig as &$entry) {
+            $entry['termsStr'] = isset($entry['terms']) && is_array($entry['terms'])
+                ? implode(',', $entry['terms'])
+                : '';
+        }
+
+        unset($entry);
+
+        return TemplateManager::renderModuleView(
+            'allowed-products-config',
+            'admin/_configure',
+            [
+                'product_types' => $productTypes,
+                'saved_config' => $savedConfig,
+            ]
+        );
+    }
+
+    /**
      * @param int[] $selectedCategories
      */
     private static function renderCategoryTree(string $treeId, string $productType, array $selectedCategories): string
@@ -1005,7 +1261,7 @@ final class SettingsForm
     }
 
     /**
-     * Renders the error log section with textarea and clear button.
+     * Renders the error log section with the textarea and clear the button.
      */
     private static function renderErrorLogSection(): string
     {
@@ -1017,7 +1273,7 @@ final class SettingsForm
     }
 
     /**
-     * Renders the debug log section with textarea and clear button.
+     * Renders the debug log section with a textarea and clear button.
      */
     private static function renderDebugLogSection(): string
     {

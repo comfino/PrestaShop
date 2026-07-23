@@ -27,14 +27,13 @@
 namespace Comfino\View;
 
 use Comfino\Api\HttpErrorExceptionInterface;
-use Comfino\Common\Frontend\PaywallIframeRenderer;
-use Comfino\Common\Frontend\PaywallRenderer;
-use Comfino\Common\Frontend\WidgetInitScriptHelper;
+use Comfino\Common\Frontend\ProductWidgetScriptHelper;
 use Comfino\Configuration\ConfigManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
-use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
+use Comfino\Extended\Api\Dto\Plugin\OperationContext;
 use Comfino\Main;
+use Comfino\Update\UpdateManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -42,22 +41,6 @@ if (!defined('_PS_VERSION_')) {
 
 final class FrontendManager
 {
-    public static function getPaywallRenderer(): PaywallRenderer
-    {
-        static $renderer = null;
-
-        if ($renderer === null) {
-            $renderer = new PaywallRenderer();
-        }
-
-        return $renderer;
-    }
-
-    public static function getPaywallIframeRenderer(): PaywallIframeRenderer
-    {
-        return new PaywallIframeRenderer();
-    }
-
     public static function getLocalScriptUrl(string $scriptFileName, bool $frontScript = true): string
     {
         $scriptDirectory = ($frontScript ? 'front' : 'admin');
@@ -75,180 +58,135 @@ final class FrontendManager
         return _MODULE_DIR_ . COMFINO_MODULE_NAME . "/views/js/$scriptDirectory/$scriptFileName";
     }
 
-    public static function getExternalResourcesBaseUrl(): string
+    /**
+     * Base URL for assets served from the dedicated SDK CDN host (sdk.*).
+     */
+    public static function getSdkCdnBaseUrl(): string
     {
-        if (ConfigManager::useDevEnvVars() && getenv('COMFINO_DEV_STATIC_RESOURCES_BASE_URL')) {
-            return getenv('COMFINO_DEV_STATIC_RESOURCES_BASE_URL');
+        if (ConfigManager::useDevEnvVars() && getenv('COMFINO_DEV_SDK_CDN_BASE_URL')) {
+            return getenv('COMFINO_DEV_SDK_CDN_BASE_URL');
         }
 
-        return ConfigManager::isSandboxMode() ? 'https://widget.craty.pl' : 'https://widget.comfino.pl';
-    }
-
-    public static function getExternalScriptUrl(string $scriptFileName): string
-    {
-        if (empty($scriptFileName)) {
-            return '';
-        }
-
-        if (ConfigManager::useDevEnvVars() && ConfigManager::useUnminifiedScripts()) {
-            $scriptFileName = str_replace('.min.js', '.js', $scriptFileName);
-        } elseif (strpos($scriptFileName, '.min.') === false) {
-            $scriptFileName = str_replace('.js', '.min.js', $scriptFileName);
-        }
-
-        if (ConfigManager::isSandboxMode()) {
-            $scriptPath = trim(ConfigManager::getConfigurationValue('COMFINO_JS_DEV_PATH', ''), '/');
-
-            if (strpos($scriptPath, '..') !== false) {
-                $scriptPath = trim(ConfigManager::getDefaultValue('COMFINO_JS_DEV_PATH'), '/');
-            }
-        } else {
-            $scriptPath = trim(ConfigManager::getConfigurationValue('COMFINO_JS_PROD_PATH', ''), '/');
-
-            if (strpos($scriptPath, '..') !== false) {
-                $scriptPath = trim(ConfigManager::getDefaultValue('COMFINO_JS_PROD_PATH'), '/');
-            }
-        }
-
-        if (!empty($scriptPath)) {
-            $scriptPath = "/$scriptPath";
-        }
-
-        return self::getExternalResourcesBaseUrl() . "$scriptPath/$scriptFileName";
-    }
-
-    public static function getExternalStyleUrl(string $styleFileName): string
-    {
-        if (empty($styleFileName)) {
-            return '';
-        }
-
-        if (ConfigManager::isSandboxMode()) {
-            $stylePath = trim(ConfigManager::getConfigurationValue('COMFINO_CSS_DEV_PATH', 'css'), '/');
-
-            if (strpos($stylePath, '..') !== false) {
-                $stylePath = trim(ConfigManager::getDefaultValue('COMFINO_CSS_DEV_PATH'), '/');
-            }
-        } else {
-            $stylePath = trim(ConfigManager::getConfigurationValue('COMFINO_CSS_PROD_PATH', 'css'), '/');
-
-            if (strpos($stylePath, '..') !== false) {
-                $stylePath = trim(ConfigManager::getDefaultValue('COMFINO_CSS_PROD_PATH'), '/');
-            }
-        }
-
-        if (!empty($stylePath)) {
-            $stylePath = "/$stylePath";
-        }
-
-        return self::getExternalResourcesBaseUrl() . "$stylePath/$styleFileName";
+        return ConfigManager::isSandboxMode() ? 'https://sdk.craty.pl' : 'https://sdk.comfino.pl';
     }
 
     /**
-     * @param string[] $scripts
+     * Renders the product-page widget config block consumed by the CDN product widget script (`comfino-prestashop-widget.min.js`).
+     * Emits a `<script type="application/json" id="comfino-widget-config">` element whose JSON matches the SDK's
+     * WidgetConfig contract; the deferred script reads it, imports the SDK, and calls sdk.bootstrapWidget().
+     * This is the recommended replacement for the removed inline `/script` front-controller endpoint: the config block
+     * is emitted directly into the product page via hookDisplayHeader, and the per-platform script is loaded with
+     * registerJavascript — no per-request JS-generating controller.
      *
-     * @return string[]
-     */
-    public static function registerExternalScripts(array $scripts): array
-    {
-        $registeredScripts = [];
-
-        foreach ($scripts as $scriptName) {
-            $scriptId = 'comfino-script-' . str_replace('.', '-', strtolower(pathinfo($scriptName, PATHINFO_FILENAME)));
-            $registeredScripts[$scriptId] = self::getExternalScriptUrl($scriptName);
-        }
-
-        return $registeredScripts;
-    }
-
-    /**
-     * @param string[] $styles
+     * The config array is filtered against the shared `ProductWidgetScriptHelper::WIDGET_CONFIG_KEYS` allowlist
+     * (also drops nulls) and JSON-encoded with the same defensive flags the SDK init helpers use, so any
+     * admin-controlled string (selectors, product names in productCartDetails) cannot terminate the script tag,
+     * escape the JSON string, or smuggle entity references.
      *
-     * @return string[]
+     * @param int|null $productId Current product id, or null when unavailable
+     *
+     * @return string The `<script type="application/json" id="comfino-widget-config">…</script>` block
      */
-    public static function registerExternalStyles(array $styles): array
+    public static function renderWidgetConfigElement(?int $productId): string
     {
-        $registeredStyles = [];
-
-        foreach ($styles as $styleName) {
-            $styleId = 'comfino-style-' . str_replace('.', '-', strtolower(pathinfo($styleName, PATHINFO_FILENAME)));
-            $registeredStyles[$styleId] = self::getExternalStyleUrl($styleName);
-        }
-
-        return $registeredStyles;
-    }
-
-    public static function renderWidgetInitCode(?int $productId): string
-    {
-        $serializer = new JsonSerializer();
-
         try {
-            return WidgetInitScriptHelper::renderWidgetInitScript(
-                ConfigManager::getCurrentWidgetCode($productId),
-                array_combine(
-                    [
-                        'WIDGET_KEY',
-                        'WIDGET_PRICE_SELECTOR',
-                        'WIDGET_TARGET_SELECTOR',
-                        'WIDGET_PRICE_OBSERVER_SELECTOR',
-                        'WIDGET_PRICE_OBSERVER_LEVEL',
-                        'WIDGET_TYPE',
-                        'OFFER_TYPES',
-                        'EMBED_METHOD',
-                        'SHOW_PROVIDER_LOGOS',
-                        'CUSTOM_BANNER_CSS_URL',
-                        'CUSTOM_CALCULATOR_CSS_URL',
-                    ],
-                    array_map(
-                        static function ($optionValue) use ($serializer) {
-                            return is_array($optionValue) ? $serializer->serialize($optionValue) : $optionValue;
-                        },
-                        ConfigManager::getConfigurationValues(
-                            'widget_settings',
-                            [
-                                'COMFINO_WIDGET_KEY',
-                                'COMFINO_WIDGET_PRICE_SELECTOR',
-                                'COMFINO_WIDGET_TARGET_SELECTOR',
-                                'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
-                                'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
-                                'COMFINO_WIDGET_TYPE',
-                                'COMFINO_WIDGET_OFFER_TYPES',
-                                'COMFINO_WIDGET_EMBED_METHOD',
-                                'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
-                                'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
-                                'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
-                            ]
-                        )
-                    )
-                ),
-                ConfigManager::getWidgetVariables($productId)
+            $settings = ConfigManager::getConfigurationValues(
+                'widget_settings',
+                [
+                    'COMFINO_WIDGET_KEY',
+                    'COMFINO_WIDGET_TARGET_SELECTOR',
+                    'COMFINO_WIDGET_PRICE_SELECTOR',
+                    'COMFINO_WIDGET_PRICE_ATTRIBUTE',
+                    'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
+                    'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
+                    'COMFINO_WIDGET_TYPE',
+                    'COMFINO_WIDGET_OFFER_TYPES',
+                    'COMFINO_WIDGET_EMBED_METHOD',
+                    'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
+                    'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
+                    'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
+                ]
             );
+
+            $variables = ConfigManager::getWidgetVariables($productId);
+
+            // getWidgetVariables() emits the string literal 'null' for absent numeric fields; normalize to real null.
+            $notNull = static function ($value) {
+                return $value === 'null' ? null : $value;
+            };
+
+            $offerTypesValue = $settings['COMFINO_WIDGET_OFFER_TYPES'] ?? [];
+            $offerTypesList = is_array($offerTypesValue) ? $offerTypesValue : explode(',', (string) $offerTypesValue);
+
+            $offerTypes = array_values(array_filter(
+                array_map('trim', $offerTypesList),
+                static function (string $type): bool {
+                    return $type !== '';
+                }
+            ));
+
+            $config = [
+                'sdkScriptUrl' => ConfigManager::getSdkScriptUrl(),
+                'environment' => ConfigManager::isSandboxMode() ? 'sandbox' : 'production',
+                'widgetKey' => $settings['COMFINO_WIDGET_KEY'] ?? null,
+                'loggingToken' => $variables['LOGGING_TOKEN'] ?? null,
+                'trackId' => $variables['TRACK_ID'] ?? null,
+                'widgetTargetSelector' => $settings['COMFINO_WIDGET_TARGET_SELECTOR'] ?? null,
+                'priceSelector' => $settings['COMFINO_WIDGET_PRICE_SELECTOR'] ?? null,
+                'priceAttribute' => ($settings['COMFINO_WIDGET_PRICE_ATTRIBUTE'] ?? '') ?: null,
+                'priceObserverSelector' => $settings['COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR'] ?: null,
+                'priceObserverLevel' => (int) ($settings['COMFINO_WIDGET_PRICE_OBSERVER_LEVEL'] ?? 0),
+                'embedMethod' => $settings['COMFINO_WIDGET_EMBED_METHOD'] ?? null,
+                'widgetType' => $settings['COMFINO_WIDGET_TYPE'] ?? null,
+                'offerTypes' => $offerTypes !== [] ? $offerTypes : null,
+                'showProviderLogos' => (bool) ($settings['COMFINO_WIDGET_SHOW_PROVIDER_LOGOS'] ?? false),
+                'hasPriceInput' => false,
+                'bannerCssUrl' => ($settings['COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL'] ?? '') ?: null,
+                'calculatorCssUrl' => ($settings['COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL'] ?? '') ?: null,
+                'price' => $notNull($variables['PRODUCT_PRICE'] ?? null),
+                'productId' => $notNull($variables['PRODUCT_ID'] ?? null),
+                'availableProductTypes' => $variables['AVAILABLE_PRODUCT_TYPES'] ?? null,
+                'productCartDetails' => $variables['PRODUCT_CART_DETAILS'] ?? null,
+                'language' => $variables['LANGUAGE'] ?? null,
+                'currency' => $variables['CURRENCY'] ?? null,
+                'shopEnvironment' => $variables['SHOP_ENVIRONMENT'] ?? null,
+            ];
+
+            // Drops nulls and anything outside WIDGET_CONFIG_KEYS, so omitted options fall through to the SDK / CDN-profile defaults.
+            $config = ProductWidgetScriptHelper::buildConfig($config);
+
+            $json = json_encode(
+                $config,
+                JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES
+            );
+
+            if ($json === false) {
+                return '';
+            }
+
+            return '<script type="application/json" id="' . ProductWidgetScriptHelper::CONFIG_ELEMENT_ID . '">' . $json . '</script>';
         } catch (\Throwable $e) {
-            self::processError('Widget script endpoint', $e);
+            self::processError('Widget config element', $e, null, null, null, '[ERROR]', OperationContext::WidgetRendering);
         }
 
         return '';
     }
 
     /**
-     * Display admin notice about available GitHub version.
+     * Display an admin notice about the available GitHub version.
      *
-     * @return string HTML content for update notice banner.
+     * @return string HTML content for update notice banner
      */
     public static function displayGithubVersionNotice(\Comfino $module): string
     {
         $dismissedVersion = \Configuration::get('COMFINO_UPDATE_NOTICE_DISMISSED');
-        $updateInfoJson = \Configuration::get('COMFINO_GITHUB_VERSION_INFO');
 
-        if (empty($updateInfoJson)) {
-            return '';
-        }
-
-        $updateInfo = json_decode($updateInfoJson, true);
+        /* Read directly from UpdateManager (its own 24h-cached result) instead of a separate Configuration-backed
+           cache, so this notice can never drift out of sync with the release info shown on the config page. */
+        $updateInfo = UpdateManager::checkForUpdates();
         $githubVersion = $updateInfo['github_version'] ?? '';
 
-        // Re-evaluate against current version to avoid showing stale cached notice after an update.
-        if (empty($githubVersion) || !version_compare($githubVersion, COMFINO_VERSION, '>')) {
+        if (empty($updateInfo['update_available']) || empty($githubVersion)) {
             return '';
         }
 
@@ -256,6 +194,12 @@ final class FrontendManager
         if ($dismissedVersion === $githubVersion) {
             return '';
         }
+
+        /* "What's new" HTML of the available release. Server-sanitized already; re-purified here with PrestaShop's
+           HTML purifier, so the notice output stays safe per marketplace requirements. */
+        $updateInfo['description_html'] = !empty($updateInfo['description_html'])
+            ? \Tools::purifyHTML($updateInfo['description_html'])
+            : '';
 
         // Render the notice template.
         return TemplateManager::renderModuleView(
@@ -287,7 +231,8 @@ final class FrontendManager
         ?int $httpStatus = null,
         ?string $userErrorMessage = null,
         ?array $parameters = null,
-        string $eventPrefix = '[ERROR]'
+        string $eventPrefix = '[ERROR]',
+        string $context = OperationContext::Unknown
     ): array {
         DebugLogger::logEvent(
             $eventPrefix,
@@ -307,7 +252,7 @@ final class FrontendManager
 
         ErrorLogger::sendError(
             $exception,
-            $errorPrefix,
+            $context,
             (string) $exception->getCode(),
             $exception->getMessage(),
             $exception instanceof HttpErrorExceptionInterface ? $exception->getUrl() : null,

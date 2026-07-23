@@ -96,6 +96,9 @@ final class FormManager
                 $updateInfo = UpdateManager::checkForUpdates();
                 $githubVersion = !empty($updateInfo['github_version']) ? $updateInfo['github_version'] : null;
                 $githubVersionCheckedAt = !empty($updateInfo['checked_at']) ? $updateInfo['checked_at'] : null;
+                $releaseNotesUrl = !empty($updateInfo['release_notes_url'])
+                    ? $updateInfo['release_notes_url']
+                    : 'https://github.com/comfino/prestashop/releases';
 
                 $infoMessages[] = sprintf(
                     'PrestaShop Comfino %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
@@ -115,10 +118,6 @@ final class FormManager
                 );
                 $infoMessages[] = sprintf('<b>Shop domain:</b> %s', \Tools::getShopDomain());
                 $infoMessages[] = sprintf('<b>Widget key:</b> %s', ConfigManager::getWidgetKey());
-                $infoMessages[] = sprintf(
-                    '<b>New widget API:</b> %s',
-                    ConfigManager::getConfigurationValue('COMFINO_NEW_WIDGET_ACTIVE') ? 'Active' : 'Inactive'
-                );
 
                 if ($githubVersion !== null) {
                     $versionInfoRow = sprintf(
@@ -126,7 +125,7 @@ final class FormManager
                         version_compare($githubVersion, COMFINO_VERSION, '>') ? 'orange' : 'green',
                         $githubVersion,
                         version_compare($githubVersion, COMFINO_VERSION, '>')
-                            ? '<a href="https://github.com/comfino/PrestaShop/releases" target="_blank">Download from GitHub</a>'
+                            ? sprintf('<a href="%s" target="_blank">Download from GitHub</a>', $releaseNotesUrl)
                             : 'up to date'
                     );
 
@@ -178,10 +177,7 @@ final class FormManager
                                 $varName = "COMFINO_$envVariable";
                                 return "<li><b>$varName</b> = \"" . getenv($varName) . '"</li>';
                             },
-                            [
-                                'DEV_ENV', 'DEV_API_HOST', 'DEV_STATIC_RESOURCES_BASE_URL',
-                                'DEV_WIDGET_SCRIPT_URL', 'DEV_USE_UNMINIFIED_SCRIPTS',
-                            ]
+                            ['DEV_ENV', 'DEV_API_HOST', 'DEV_SDK_CDN_BASE_URL', 'DEV_USE_UNMINIFIED_SCRIPTS']
                         ))
                     );
 

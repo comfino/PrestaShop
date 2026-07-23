@@ -34,13 +34,29 @@ if (!defined('_PS_VERSION_')) {
 
 class StorageAdapter implements StorageAdapterInterface
 {
+    /** @var int|null */
+    private $idShopGroup;
+    /** @var int|null */
+    private $idShop;
+
+    /**
+     * The shop group/shop IDs are captured at construction time (i.e., when the per-scope ConfigurationManager instance
+     * is created) so that lazy load/persist calls target a fixed scope instead of PrestaShop's ambient shop context, which
+     * may drift within a single request. Both nulls mean the global scope (single-shop installs / "All Shops" context).
+     */
+    public function __construct(?int $idShopGroup = null, ?int $idShop = null)
+    {
+        $this->idShopGroup = $idShopGroup;
+        $this->idShop = $idShop;
+    }
+
     public function load(): array
     {
-        return ConfigManager::load();
+        return ConfigManager::load($this->idShopGroup, $this->idShop);
     }
 
     public function save($configurationOptions): void
     {
-        ConfigManager::save($configurationOptions);
+        ConfigManager::save($configurationOptions, $this->idShopGroup, $this->idShop);
     }
 }

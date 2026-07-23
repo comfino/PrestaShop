@@ -31,6 +31,7 @@ use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Configuration\ConfigManager;
 use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
+use Comfino\Extended\Api\Dto\Plugin\OperationContext;
 use Comfino\Main;
 use Comfino\View\FrontendManager;
 
@@ -117,6 +118,9 @@ final class ShopStatusManager
         ],
     ];
 
+    /** Flag to suppress cancel API call when a status change was initiated by Comfino API notification. */
+    private static $comfinoInitiatedCancellation = false;
+
     /**
      * Creates custom Comfino order statuses in PrestaShop database.
      *
@@ -156,7 +160,7 @@ final class ShopStatusManager
                 } catch (\PrestaShopDatabaseException|\PrestaShopException $e) {
                     FrontendManager::processError(
                         sprintf('Order status loading error: %d', (int) $comfinoStatusId),
-                        $e, null, 'Order status loading error.'
+                        $e, null, 'Order status loading error.', null, '[ERROR]', OperationContext::Configuration
                     );
 
                     continue;
@@ -173,7 +177,7 @@ final class ShopStatusManager
                     } catch (\PrestaShopDatabaseException|\PrestaShopException $e) {
                         FrontendManager::processError(
                             sprintf('Order status update error: %d', (int) $orderStatus->id),
-                            $e, null, 'Order status update error.'
+                            $e, null, 'Order status update error.', null, '[ERROR]', OperationContext::Configuration
                         );
 
                         $resultStats['statuses_update_failed']++;
@@ -226,7 +230,7 @@ final class ShopStatusManager
             } catch (\PrestaShopDatabaseException|\PrestaShopException $e) {
                 FrontendManager::processError(
                     sprintf('Order status adding error: %s, %d.', $statusCode, (int) $orderStatus->id),
-                    $e, null, 'Order status adding error.'
+                    $e, null, 'Order status adding error.', null, '[ERROR]', OperationContext::Configuration
                 );
 
                 $resultStats['statuses_create_failed']++;
@@ -272,7 +276,7 @@ final class ShopStatusManager
                 } catch (\PrestaShopDatabaseException|\PrestaShopException $e) {
                     FrontendManager::processError(
                         sprintf('Order status loading error: %s, %d', $statusCode, (int) $comfinoStatusId),
-                        $e, null, 'Order status loading error.'
+                        $e, null, 'Order status loading error.', null, '[ERROR]', OperationContext::Configuration
                     );
 
                     continue;
@@ -297,7 +301,7 @@ final class ShopStatusManager
                     } catch (\PrestaShopException $e) {
                         FrontendManager::processError(
                             sprintf('Order status saving error: %s', $statusDetails['name']),
-                            $e, null, 'Order status saving error.'
+                            $e, null, 'Order status saving error.', null, '[ERROR]', OperationContext::Configuration
                         );
 
                         $resultStats['statuses_update_failed']++;
@@ -389,7 +393,10 @@ final class ShopStatusManager
                 'Order status removal transaction failed',
                 $e,
                 null,
-                'Order status removal error.'
+                'Order status removal error.',
+                null,
+                '[ERROR]',
+                OperationContext::Configuration
             );
 
             if ($statusesUsed) {
@@ -461,6 +468,11 @@ final class ShopStatusManager
         return $resultStats;
     }
 
+    public static function setComfinoInitiatedCancellation(bool $value): void
+    {
+        self::$comfinoInitiatedCancellation = $value;
+    }
+
     /**
      * Handles PrestaShop order status update events for Comfino orders.
      *
@@ -486,7 +498,7 @@ final class ShopStatusManager
         } catch (\PrestaShopDatabaseException|\PrestaShopException $e) {
             FrontendManager::processError(
                 sprintf('Order loading error during cancel event: %s', $params['id_order']),
-                $e, null, 'Order loading error during cancel event.'
+                $e, null, 'Order loading error during cancel event.', null, '[ERROR]', OperationContext::OrderStatusChange
             );
 
             return;
@@ -504,6 +516,11 @@ final class ShopStatusManager
             $canceledOrderStateId = (int) \Configuration::get('PS_OS_CANCELED');
 
             if ($newOrderStateId === $canceledOrderStateId) {
+                if (self::$comfinoInitiatedCancellation) {
+                    // Cancellation originated from Comfino API notification - do not resend cancel request.
+                    return;
+                }
+
                 ErrorLogger::init();
 
                 // Get order ID or reference based on configuration.
@@ -518,7 +535,8 @@ final class ShopStatusManager
                     ApiClient::getInstance()->cancelOrder($orderId);
                 } catch (\Throwable $e) {
                     ApiClient::processApiError(
-                        'Order cancellation error on page "' . Main::getRequestUri() . '" (Comfino API)', $e
+                        'Order cancellation error on page "' . Main::getRequestUri() . '" (Comfino API)', $e,
+                        OperationContext::OrderCancellation
                     );
                 }
             }
@@ -715,7 +733,7 @@ SQL
 SQL
             );
         } catch (\PrestaShopDatabaseException $e) {
-            FrontendManager::processError('Comfino order statuses loading error', $e);
+            FrontendManager::processError('Comfino order statuses loading error', $e, null, null, null, '[ERROR]', OperationContext::Configuration);
         }
 
         return false;

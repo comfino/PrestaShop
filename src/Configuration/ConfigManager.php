@@ -30,16 +30,17 @@ use Comfino\Api\ApiClient;
 use Comfino\CategoryTree\BuildStrategy;
 use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Frontend\FrontendHelper;
-use Comfino\Common\Frontend\WidgetInitScriptHelper;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Common\Shop\Product\CategoryTree;
-use Comfino\ErrorLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
 use Comfino\Order\ShopStatusManager;
+use Comfino\Extended\Auth\PaywallAuthTokenGenerator;
 use Comfino\PluginShared\CacheManager;
+use Comfino\Telemetry\ShopEnvironmentReporter;
 use Comfino\Tools;
+use Comfino\View\FrontendManager;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -53,14 +54,19 @@ final class ConfigManager
             'COMFINO_PAYMENT_TEXT' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_MINIMAL_CART_AMOUNT' => ConfigurationManager::OPT_VALUE_TYPE_FLOAT,
             'COMFINO_USE_ORDER_REFERENCE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_PAYWALL_DIRECT_REDIRECT' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_PAYWALL_CUSTOM_CSS_URL' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
         ],
         'sale_settings' => [
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
+            'COMFINO_PRODUCT_ID_FILTER' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
         ],
         'widget_settings' => [
             'COMFINO_WIDGET_ENABLED' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_WIDGET_KEY' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_WIDGET_PRICE_SELECTOR' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_WIDGET_PRICE_ATTRIBUTE' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_WIDGET_TARGET_SELECTOR' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => ConfigurationManager::OPT_VALUE_TYPE_INT,
@@ -70,7 +76,6 @@ final class ConfigManager
             'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
-            'COMFINO_WIDGET_CODE' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
         ],
         'developer_settings' => [
             'COMFINO_IS_SANDBOX' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
@@ -80,23 +85,20 @@ final class ConfigManager
             'COMFINO_DEV_ENV_VARS' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
         ],
         'hidden_settings' => [
-            'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
-            'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_CSP_ENABLED' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_CSP_REPORT_ONLY' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG_FORBIDDEN_PROD_TYPES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_IGNORED_STATUSES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
             'COMFINO_FORBIDDEN_STATUSES' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
             'COMFINO_STATUS_MAP' => ConfigurationManager::OPT_VALUE_TYPE_JSON,
-            'COMFINO_JS_PROD_PATH' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
-            'COMFINO_CSS_PROD_PATH' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
-            'COMFINO_JS_DEV_PATH' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
-            'COMFINO_CSS_DEV_PATH' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_API_CONNECT_TIMEOUT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_API_TIMEOUT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => ConfigurationManager::OPT_VALUE_TYPE_INT,
-            'COMFINO_NEW_WIDGET_ACTIVE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_PROD_CAT_CACHE_TTL' => ConfigurationManager::OPT_VALUE_TYPE_INT,
-            'COMFINO_GITHUB_VERSION_CHECK_TIME' => ConfigurationManager::OPT_VALUE_TYPE_INT,
-            'COMFINO_GITHUB_VERSION_INFO' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_ERROR_LOGGING_ACCESS_TOKEN' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
+            'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
         ],
     ];
 
@@ -105,12 +107,18 @@ final class ConfigManager
         'COMFINO_PAYMENT_TEXT',
         'COMFINO_MINIMAL_CART_AMOUNT',
         'COMFINO_USE_ORDER_REFERENCE',
+        'COMFINO_PAYWALL_DIRECT_REDIRECT',
+        'COMFINO_PAYWALL_CUSTOM_CSS_URL',
         // Sale settings
         'COMFINO_PRODUCT_CATEGORY_FILTERS',
+        'COMFINO_PRODUCT_ID_FILTER',
+        'COMFINO_ALLOWED_PRODUCTS_CONFIG',
+        'COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED',
         // Widget settings
         'COMFINO_WIDGET_ENABLED',
         'COMFINO_WIDGET_KEY',
         'COMFINO_WIDGET_PRICE_SELECTOR',
+        'COMFINO_WIDGET_PRICE_ATTRIBUTE',
         'COMFINO_WIDGET_TARGET_SELECTOR',
         'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR',
         'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL',
@@ -120,69 +128,139 @@ final class ConfigManager
         'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
         'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
         'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
-        'COMFINO_WIDGET_CODE',
         // Developer settings
         'COMFINO_IS_SANDBOX',
         'COMFINO_DEBUG',
         'COMFINO_SERVICE_MODE',
         'COMFINO_DEV_ENV_VARS',
         // Hidden settings
-        'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
-        'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
+        'COMFINO_CSP_ENABLED',
+        'COMFINO_CSP_REPORT_ONLY',
         'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES',
+        'COMFINO_ALLOWED_PRODUCTS_CONFIG_FORBIDDEN_PROD_TYPES',
         'COMFINO_IGNORED_STATUSES',
         'COMFINO_FORBIDDEN_STATUSES',
         'COMFINO_STATUS_MAP',
-        'COMFINO_JS_PROD_PATH',
-        'COMFINO_CSS_PROD_PATH',
-        'COMFINO_JS_DEV_PATH',
-        'COMFINO_CSS_DEV_PATH',
         'COMFINO_API_CONNECT_TIMEOUT',
         'COMFINO_API_TIMEOUT',
         'COMFINO_API_CONNECT_NUM_ATTEMPTS',
-        'COMFINO_NEW_WIDGET_ACTIVE',
         'COMFINO_PROD_CAT_CACHE_TTL',
-        'COMFINO_GITHUB_VERSION_CHECK_TIME',
-        'COMFINO_GITHUB_VERSION_INFO',
+    ];
+
+    /**
+     * Configuration options that stay installation-wide even under PrestaShop Multistore. These are never written to a
+     * single shop's scope: diagnostic/developer toggles, API transport tuning, caching/feature/CSP flags, and order-status
+     * mappings (PrestaShop order statuses are global entities). Everything else is shop-scoped and relies on PrestaShop's
+     * native shop -> group -> global fallback, so untouched shops keep inheriting the global value.
+     */
+    public const GLOBAL_CONFIG_OPTIONS = [
+        'COMFINO_DEBUG',
+        'COMFINO_SERVICE_MODE',
+        'COMFINO_DEV_ENV_VARS',
+        'COMFINO_API_CONNECT_TIMEOUT',
+        'COMFINO_API_TIMEOUT',
+        'COMFINO_API_CONNECT_NUM_ATTEMPTS',
+        'COMFINO_PROD_CAT_CACHE_TTL',
+        'COMFINO_CSP_ENABLED',
+        'COMFINO_CSP_REPORT_ONLY',
+        'COMFINO_IGNORED_STATUSES',
+        'COMFINO_FORBIDDEN_STATUSES',
+        'COMFINO_STATUS_MAP',
     ];
 
     private const CONFIG_MANAGER_OPTIONS = ConfigurationManager::OPT_SERIALIZE_ARRAYS;
 
-    /** @var ConfigurationManager */
-    private static $configurationManager;
+    /** @var ConfigurationManager[] One manager per shop-context scope, keyed by the scope string. */
+    private static $configurationManagers = [];
     /** @var int[] */
     private static $availConfigOptions;
 
     public static function getInstance(): ConfigurationManager
     {
-        if (self::$configurationManager === null) {
-            self::$configurationManager = ConfigurationManager::getInstance(
+        [$scope, $idShopGroup, $idShop] = self::getCurrentShopContext();
+
+        if (!isset(self::$configurationManagers[$scope])) {
+            self::$configurationManagers[$scope] = ConfigurationManager::getInstance(
                 self::getAvailableConfigOptions(),
                 self::ACCESSIBLE_CONFIG_OPTIONS,
                 self::CONFIG_MANAGER_OPTIONS,
-                new StorageAdapter(),
-                new JsonSerializer()
+                new StorageAdapter($idShopGroup, $idShop),
+                new JsonSerializer(),
+                $scope
             );
         }
 
-        return self::$configurationManager;
+        return self::$configurationManagers[$scope];
     }
 
-    public static function load(): array
+    public static function load(?int $idShopGroup = null, ?int $idShop = null): array
     {
         $configuration = [];
 
         foreach (self::getAvailableConfigOptions() as $optName => $optTypeFlags) {
-            $configuration[$optName] = \Configuration::get($optName, null, null, null, null);
+            if (self::isGlobalOption($optName)) {
+                // Installation-wide options always read from the global row, independent of shop context.
+                $configuration[$optName] = \Configuration::get($optName, null, 0, 0, null);
+            } else {
+                // Shop-scoped options use PrestaShop's native shop -> group -> global fallback.
+                $configuration[$optName] = \Configuration::get($optName, null, $idShopGroup, $idShop, null);
+            }
         }
 
         return $configuration;
     }
 
-    public static function save(array $configuration): void
+    public static function save(array $configuration, ?int $idShopGroup = null, ?int $idShop = null): void
     {
         foreach ($configuration as $optName => $optValue) {
-            \Configuration::updateValue($optName, $optValue);
+            if (self::isGlobalOption($optName)) {
+                /* Force the global row (id_shop_group = id_shop = 0). Passing null here would make PrestaShop resolve to
+                   the currently selected shop under active Multistore, silently shop-scoping an installation-wide option. */
+                \Configuration::updateValue($optName, $optValue, false, 0, 0);
+            } else {
+                \Configuration::updateValue($optName, $optValue, false, $idShopGroup, $idShop);
+            }
+        }
+    }
+
+    /**
+     * Whether a configuration option is installation-wide (always stored in the global scope) rather than shop-scoped.
+     */
+    public static function isGlobalOption(string $optionName): bool
+    {
+        return in_array($optionName, self::GLOBAL_CONFIG_OPTIONS, true);
+    }
+
+    /**
+     * Resolves the active shop-context scope for configuration storage.
+     *
+     * Returns a [scope, idShopGroup, idShop] triple: the scope string keys the per-tenant ConfigurationManager instance,
+     * while the shop/group IDs are forwarded to PrestaShop's Configuration layer. Single-shop installs (Multistore feature
+     * inactive) and the "All Shops" back-office context both resolve to the empty/global scope, so single-shop behavior is
+     * unchanged.
+     *
+     * @return array{0: string, 1: int|null, 2: int|null}
+     */
+    private static function getCurrentShopContext(): array
+    {
+        if (!\Shop::isFeatureActive()) {
+            return ['', null, null];
+        }
+
+        switch (\Shop::getContext()) {
+            case \Shop::CONTEXT_SHOP:
+                $idShop = (int) \Shop::getContextShopID(true);
+                $idShopGroup = (int) \Shop::getContextShopGroupID(true);
+
+                return ['s' . $idShop, $idShopGroup ?: null, $idShop ?: null];
+
+            case \Shop::CONTEXT_GROUP:
+                $idShopGroup = (int) \Shop::getContextShopGroupID(true);
+
+                return ['g' . $idShopGroup, $idShopGroup ?: null, null];
+
+            default: // Shop::CONTEXT_ALL
+                return ['', null, null];
         }
     }
 
@@ -321,17 +399,16 @@ final class ConfigManager
             . FrontendHelper::getLogoAuthHash('PS', _PS_VERSION_, COMFINO_VERSION, COMFINO_BUILD_TS);
     }
 
-    public static function getPaywallLogoUrl(): string
+    public static function getPaywallLogoAuthHash(): string
     {
-        return self::getLogoApiHost() . '/v1/get-paywall-logo?auth='
-            . FrontendHelper::getPaywallLogoAuthHash(
-                'PS',
-                _PS_VERSION_,
-                COMFINO_VERSION,
-                ApiClient::getInstance()->getApiKey(),
-                self::getWidgetKey(),
-                COMFINO_BUILD_TS
-            );
+        return FrontendHelper::getPaywallLogoAuthHashRaw(
+            'PS',
+            _PS_VERSION_,
+            COMFINO_VERSION,
+            ApiClient::getInstance()->getApiKey(),
+            self::getWidgetKey(),
+            COMFINO_BUILD_TS
+        );
     }
 
     public static function getApiHost(?string $apiHost = null): ?string
@@ -353,6 +430,106 @@ final class ConfigManager
     public static function getWidgetKey(): ?string
     {
         return self::getInstance()->getConfigurationValue('COMFINO_WIDGET_KEY');
+    }
+
+    public static function getErrorLoggingAccessToken(): string
+    {
+        return (string) (self::getInstance()->getConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN') ?? '');
+    }
+
+    public static function getErrorLoggingAccessTokenExpiresAt(): int
+    {
+        return (int) (self::getInstance()->getConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT') ?? 0);
+    }
+
+    public static function refreshErrorLoggingTokenIfNeeded(): void
+    {
+        if (empty(self::getApiKey())) {
+            return;
+        }
+
+        if (self::getErrorLoggingAccessToken() !== '' && self::getErrorLoggingAccessTokenExpiresAt() > time() + 3600) {
+            return;
+        }
+
+        try {
+            $response = ApiClient::getInstance()->claimErrorLoggingToken();
+
+            if ($response !== null) {
+                self::updateConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN', $response->accessToken);
+                self::updateConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT', strtotime($response->expiresAt));
+            }
+        } catch (\Throwable $e) {
+            // Silently ignore — CETS token claim is best-effort.
+        }
+    }
+
+    public static function getSdkScriptUrl(): string
+    {
+        return self::resolveSdkScriptUrl('comfino-sdk.min.js');
+    }
+
+    /**
+     * CDN URL of the PrestaShop checkout-glue script served from the SDK host at /checkout/v1/.
+     * The .min suffix is dropped when COMFINO_DEV_USE_UNMINIFIED_SCRIPTS is on.
+     */
+    public static function getCheckoutScriptUrl(): string
+    {
+        $fileName = 'comfino-prestashop.min.js';
+
+        if (self::useDevEnvVars() && self::useUnminifiedScripts()) {
+            $fileName = str_replace('.min.js', '.js', $fileName);
+        }
+
+        return FrontendManager::getSdkCdnBaseUrl() . "/checkout/v1/$fileName";
+    }
+
+    /**
+     * CDN URL of the PrestaShop product-page widget script served from the SDK host at /product/v1/. The product-page
+     * sibling of getCheckoutScriptUrl(): the classic-IIFE script reads the `#comfino-widget-config` JSON block and
+     * calls sdk.bootstrapWidget(). The .min suffix is dropped when COMFINO_DEV_USE_UNMINIFIED_SCRIPTS is on.
+     */
+    public static function getProductWidgetScriptUrl(): string
+    {
+        $fileName = 'comfino-prestashop-widget.min.js';
+
+        if (self::useDevEnvVars() && self::useUnminifiedScripts()) {
+            $fileName = str_replace('.min.js', '.js', $fileName);
+        }
+
+        return FrontendManager::getSdkCdnBaseUrl() . "/product/v1/$fileName";
+    }
+
+    /**
+     * CDN URL of the PrestaShop payment-tile gate stylesheet served from the SDK host.
+     */
+    public static function getCheckoutCssUrl(): string
+    {
+        return FrontendManager::getSdkCdnBaseUrl() . '/checkout/v1/css/comfino-item-gate-prestashop.css';
+    }
+
+    /**
+     * CDN URL of the single, SDK-hosted Comfino brand logo used as the default payment-tile placeholder across all shop
+     * plugins/platforms. Rendered by the plugin as the tile's initial logo; the SDK renderer swaps its src at runtime
+     * (e.g., to the auth-gated API Comfino logo). Hosting it centrally on the SDK CDN keeps the asset controllable
+     * without plugin updates.
+     */
+    public static function getDefaultLogoUrl(): string
+    {
+        return FrontendManager::getSdkCdnBaseUrl() . '/images/comfino/comfino_logo.svg';
+    }
+
+    /**
+     * Compose the CDN URL of an SDK bundle served from /sdk/v1/ on the dedicated sdk.* host.
+     * The .min suffix is dropped when COMFINO_DEV_USE_UNMINIFIED_SCRIPTS is on.
+     */
+    private static function resolveSdkScriptUrl(string $scriptFileName): string
+    {
+        if (self::useDevEnvVars() && self::useUnminifiedScripts()) {
+            $scriptFileName = str_replace('.min.js', '.js', $scriptFileName);
+        }
+
+        return FrontendManager::getSdkCdnBaseUrl() . "/sdk/v1/$scriptFileName";
     }
 
     /**
@@ -427,80 +604,6 @@ final class ConfigManager
         return $result;
     }
 
-    public static function updateWidgetCode(?string $lastWidgetCodeHash = null): bool
-    {
-        ErrorLogger::init();
-
-        try {
-            $initialWidgetCode = WidgetInitScriptHelper::getInitialWidgetCode();
-            $currentWidgetCode = self::getCurrentWidgetCode();
-
-            if ($lastWidgetCodeHash === null || md5($currentWidgetCode) === $lastWidgetCodeHash) {
-                // Widget code not changed since last installed version - safely replace with new one.
-                self::updateConfigurationValue('COMFINO_WIDGET_CODE', $initialWidgetCode);
-
-                return true;
-            }
-        } catch (\Throwable $e) {
-            ErrorLogger::sendError(
-                $e,
-                'Widget code update',
-                (string) $e->getCode(),
-                $e->getMessage(),
-                null,
-                null,
-                null,
-                $e->getTraceAsString()
-            );
-        }
-
-        return false;
-    }
-
-    /**
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
-     */
-    public static function getCurrentWidgetCode(?int $productId = null): string
-    {
-        $widgetCode = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
-        $productData = self::getProductData($productId);
-
-        $optionsToInject = [];
-
-        if (strpos($widgetCode, 'productId') === false) {
-            $optionsToInject[] = "        productId: $productData[product_id]";
-        }
-        if (strpos($widgetCode, 'availableProductTypes') === false) {
-            $optionsToInject[] = '        availableProductTypes: ' . implode(',', $productData['available_product_types']);
-        }
-
-        if (count($optionsToInject) > 0) {
-            $injectedInitOptions = implode(",\n", $optionsToInject) . ",\n";
-
-            return preg_replace('/\{\n(.*widgetKey:)/', "{\n$injectedInitOptions\$1", $widgetCode);
-        }
-
-        return $widgetCode;
-    }
-
-    public static function getWidgetScriptUrl(): string
-    {
-        if (self::useDevEnvVars() && getenv('COMFINO_DEV_WIDGET_SCRIPT_URL')) {
-            return getenv('COMFINO_DEV_WIDGET_SCRIPT_URL');
-        }
-
-        $widgetScriptUrl = self::isSandboxMode() ? 'https://widget.craty.pl' : 'https://widget.comfino.pl';
-        $widgetProdScriptVersion = self::getConfigurationValue('COMFINO_WIDGET_PROD_SCRIPT_VERSION');
-
-        if (empty($widgetProdScriptVersion)) {
-            $widgetScriptUrl .= '/v2/widget-frontend.min.js';
-        } else {
-            $widgetScriptUrl .= ('/' . trim($widgetProdScriptVersion, '/'));
-        }
-
-        return $widgetScriptUrl;
-    }
-
     /**
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
@@ -509,18 +612,22 @@ final class ConfigManager
         $productData = self::getProductData($productId);
 
         return [
-            'WIDGET_SCRIPT_URL' => self::getWidgetScriptUrl(),
             'PRODUCT_ID' => $productData['product_id'],
-            'PRODUCT_PRICE' => $productData['price'],
-            'PLATFORM' => 'prestashop',
-            'PLATFORM_NAME' => 'PrestaShop',
-            'PLATFORM_VERSION' => _PS_VERSION_,
-            'PLATFORM_DOMAIN' => \Tools::getShopDomain(),
-            'PLUGIN_VERSION' => COMFINO_VERSION,
+            // SDK expects the price as an integer in the smallest currency unit (grosze), not a PLN float.
+            'PRODUCT_PRICE' => $productData['price'] === 'null'
+                ? 'null'
+                : (int) round(((float) $productData['price']) * 100),
             'AVAILABLE_PRODUCT_TYPES' => $productData['available_product_types'],
             'PRODUCT_CART_DETAILS' => $productData['product_cart_details'],
             'LANGUAGE' => \Context::getContext()->language->iso_code,
             'CURRENCY' => \Context::getContext()->currency->iso_code,
+            // Replaces the removed PLATFORM/PLATFORM_NAME/PLATFORM_VERSION/PLATFORM_DOMAIN/PLUGIN_VERSION params.
+            'SHOP_ENVIRONMENT' => ShopEnvironmentReporter::getFrontendEnvironment(),
+            'LOGGING_TOKEN' => PaywallAuthTokenGenerator::generateLoggingToken(
+                (string) self::getConfigurationValue('COMFINO_WIDGET_KEY'),
+                self::getErrorLoggingAccessToken()
+            ),
+            'TRACK_ID' => ApiClient::getInstance()->getTrackId(),
         ];
     }
 
@@ -543,43 +650,44 @@ final class ConfigManager
     public static function getDefaultConfigurationValues(): array
     {
         return [
-            'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
+            'COMFINO_PAYMENT_TEXT' => 'Comfino',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_USE_ORDER_REFERENCE' => false,
             'COMFINO_IS_SANDBOX' => false,
             'COMFINO_DEBUG' => false,
             'COMFINO_SERVICE_MODE' => false,
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
+            'COMFINO_PRODUCT_ID_FILTER' => '',
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' =>
                 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER,COMPANY_BNPL,COMPANY_INSTALLMENTS,LEASING,PAY_IN_PARTS',
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG' => null,
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG_FORBIDDEN_PROD_TYPES' => 'BLIK,PAY_LATER,PAY_IN_PARTS,INSTANT_PAYMENTS',
+            'COMFINO_ALLOWED_PRODUCTS_CONFIG_ENABLED' => false,
             'COMFINO_WIDGET_ENABLED' => false,
             'COMFINO_WIDGET_KEY' => '',
             'COMFINO_WIDGET_PRICE_SELECTOR' => COMFINO_PS_17 ? 'span.current-price-value' : 'span[itemprop=price]',
+            'COMFINO_WIDGET_PRICE_ATTRIBUTE' => 'content',
             'COMFINO_WIDGET_TARGET_SELECTOR' => 'div.product-actions',
             'COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR' => '',
             'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 0,
             'COMFINO_WIDGET_TYPE' => 'standard',
             'COMFINO_WIDGET_OFFER_TYPES' => 'CONVENIENT_INSTALLMENTS',
             'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
-            'COMFINO_WIDGET_CODE' => WidgetInitScriptHelper::getInitialWidgetCode(),
-            'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => '',
-            'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => '',
             'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
             'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL' => '',
             'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL' => '',
             'COMFINO_IGNORED_STATUSES' => implode(',', StatusManager::DEFAULT_IGNORED_STATUSES),
             'COMFINO_FORBIDDEN_STATUSES' => implode(',', StatusManager::DEFAULT_FORBIDDEN_STATUSES),
             'COMFINO_STATUS_MAP' => json_encode(ShopStatusManager::DEFAULT_STATUS_MAP),
-            'COMFINO_JS_PROD_PATH' => '',
-            'COMFINO_CSS_PROD_PATH' => 'css',
-            'COMFINO_JS_DEV_PATH' => '',
-            'COMFINO_CSS_DEV_PATH' => 'css',
             'COMFINO_API_CONNECT_TIMEOUT' => 3,
             'COMFINO_API_TIMEOUT' => 5,
             'COMFINO_API_CONNECT_NUM_ATTEMPTS' => 3,
-            'COMFINO_NEW_WIDGET_ACTIVE' => true,
             'COMFINO_PROD_CAT_CACHE_TTL' => 60 * 60, // Default cache TTL for product categories set to 1 hour.
             'COMFINO_DEV_ENV_VARS' => false,
+            'COMFINO_CSP_ENABLED' => false,
+            'COMFINO_CSP_REPORT_ONLY' => true,
+            'COMFINO_PAYWALL_DIRECT_REDIRECT' => false,
+            'COMFINO_PAYWALL_CUSTOM_CSS_URL' => '',
         ];
     }
 

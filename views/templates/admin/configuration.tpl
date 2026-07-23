@@ -47,7 +47,27 @@
     <div class="col-md-12">
         <div class="panel">
             <div class="panel-body">
-                <img style="width: 300px" src="{$logo_url|escape:"htmlall":"UTF-8"}" alt="Comfino logo"> <span style="font-weight: bold; font-size: 16px; vertical-align: bottom">{$plugin_version|escape:"htmlall":"UTF-8"}</span>
+                <div style="display: flex; align-items: center; overflow: hidden">
+                    <img style="width: 300px; display: block" src="{$logo_url|escape:"htmlall":"UTF-8"}" alt="Comfino logo">
+                    <span style="font-weight: bold; font-size: 16px; margin-left: 10px">{$plugin_version|escape:"htmlall":"UTF-8"}</span>
+                </div>
+                {if $update_available_message}
+                    <div class="alert alert-warning" style="margin-top: 10px; margin-bottom: 0">
+                        {$update_available_message|escape:"htmlall":"UTF-8"}
+                    </div>
+                {/if}
+                {if $latest_release_description}
+                    {* "What's new" HTML of the latest available release. Purified with Tools::purifyHTML() in SettingsForm.
+                       Styled by views/css/admin/release-description.css, loaded in hookActionAdminControllerSetMedia. *}
+                    <div class="comfino-release-description" style="margin-top: 10px">{$latest_release_description nofilter}</div>
+                {/if}
+                {if $multistore_scope_message}
+                    {* Shown only under active PrestaShop Multistore: tells the admin which shop-context scope (All Shops /
+                       group / single shop) the settings below are being saved to. *}
+                    <div class="alert alert-info" style="margin-top: 10px; margin-bottom: 0">
+                        {$multistore_scope_message|escape:"htmlall":"UTF-8"}
+                    </div>
+                {/if}
             </div>
             <div class="panel-body">
                 {$contact_msg1|escape:"htmlall":"UTF-8"}

@@ -146,25 +146,41 @@ class StatusAdapter implements OrderStatusAdapterInterface
             "current internal status ID: $currentInternalStatusId, new custom status ID: $newCustomStatusId"
         );
 
-        if ($newCustomStatusId !== $currentInternalStatusId) {
-            $statusIdsHistory = array_unique(array_column($order->getHistory(0), 'id_order_state'), SORT_NUMERIC);
+        $isCancellationStatus = in_array($inputStatus, [
+            StatusManager::STATUS_CANCELLED,
+            StatusManager::STATUS_CANCELLED_BY_SHOP,
+            StatusManager::STATUS_REJECTED,
+        ], true);
 
-            if (!in_array($newCustomStatusId, $statusIdsHistory, true)) {
-                $order->setCurrentState($newCustomStatusId);
+        if ($isCancellationStatus) {
+            ShopStatusManager::setComfinoInitiatedCancellation(true);
+        }
+
+        try {
+            if ($newCustomStatusId !== $currentInternalStatusId) {
+                $statusIdsHistory = array_unique(array_column($order->getHistory(0), 'id_order_state'), SORT_NUMERIC);
+
+                if (!in_array($newCustomStatusId, $statusIdsHistory, true)) {
+                    $order->setCurrentState($newCustomStatusId);
+                }
+
+                $statusMap = ConfigManager::getStatusMap();
+
+                if (!array_key_exists($inputStatus, $statusMap)) {
+                    return;
+                }
+
+                $newInternalStatusId = (int) \Configuration::get($statusMap[$inputStatus]);
+
+                DebugLogger::logEvent('[ORDER_STATUS_UPDATE]', "new internal status ID: $newInternalStatusId");
+
+                if (!in_array($newInternalStatusId, $statusIdsHistory, true)) {
+                    $order->setCurrentState($newInternalStatusId);
+                }
             }
-
-            $statusMap = ConfigManager::getStatusMap();
-
-            if (!array_key_exists($inputStatus, $statusMap)) {
-                return;
-            }
-
-            $newInternalStatusId = (int) \Configuration::get($statusMap[$inputStatus]);
-
-            DebugLogger::logEvent('[ORDER_STATUS_UPDATE]', "new internal status ID: $newInternalStatusId");
-
-            if (!in_array($newInternalStatusId, $statusIdsHistory, true)) {
-                $order->setCurrentState($newInternalStatusId);
+        } finally {
+            if ($isCancellationStatus) {
+                ShopStatusManager::setComfinoInitiatedCancellation(false);
             }
         }
     }

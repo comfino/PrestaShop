@@ -30,6 +30,8 @@ use Comfino\Api\ApiClient;
 use Comfino\Api\Exception\AuthorizationError;
 use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Configuration\ConfigManager;
+use Comfino\Extended\Api\Dto\Plugin\ErrorSeverity;
+use Comfino\Extended\Api\Dto\Plugin\OperationContext;
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -69,7 +71,7 @@ final class ErrorLogger
 
     public static function sendError(
         \Throwable $exception,
-        string $errorPrefix,
+        string $context,
         string $errorCode,
         string $errorMessage,
         ?string $apiRequestUrl = null,
@@ -84,7 +86,15 @@ final class ErrorLogger
         }
 
         self::getLoggerInstance()->sendError(
-            $errorPrefix, $errorCode, $errorMessage, $apiRequestUrl, $apiRequest, $apiResponse, $stackTrace
+            Common\Backend\ErrorLogger::classifyException($exception),
+            ErrorSeverity::from(ErrorSeverity::Error),
+            OperationContext::from($context),
+            $errorCode,
+            $errorMessage,
+            $apiRequestUrl,
+            $apiRequest,
+            $apiResponse,
+            $stackTrace
         );
     }
 

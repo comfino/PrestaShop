@@ -36,6 +36,7 @@ use Comfino\Configuration\ConfigManager;
 use Comfino\DebugLogger;
 use Comfino\Order\StatusAdapter;
 use Comfino\PluginShared\CacheManager;
+use Comfino\Telemetry\ShopEnvironmentReporter;
 use Comfino\View\SettingsForm;
 
 if (!defined('_PS_VERSION_')) {
@@ -72,7 +73,13 @@ final class ApiService
                             ['shop_version', 'plugin_version', 'plugin_build_ts', 'database_version']
                         )
                     ),
-                    [SettingsForm::DEBUG_LOG_NUM_LINES] // $debugLogNumLines
+                    [SettingsForm::DEBUG_LOG_NUM_LINES], // $debugLogNumLines
+                    [null], // $shopExtraVariables
+                    [
+                        static function (): ?array {
+                            return ShopEnvironmentReporter::getReportArray();
+                        },
+                    ] // $shopEnvironmentReportProvider
                 )
             )
         );
