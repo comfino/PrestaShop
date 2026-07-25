@@ -47,7 +47,13 @@ class UpdateManager
     /** Base canonical platform slug polled on the Comfino release API; the API resolves the concrete line by User-Agent. */
     private const PLATFORM = 'prestashop';
     private const CACHE_KEY = 'comfino_github_version_check';
-    private const CACHE_TTL = 86400; // 24 hours
+    private const LOCK_KEY = 'comfino_github_version_check_lock';
+    private const LOCK_TTL = 300; // 5 minutes
+    /* Jittered ~1 day interval (20-28h): shops tend to install/upgrade around the same calendar moments, so a fixed 24h
+       TTL would make every installation re-check the shared release API at the same clustered hour indefinitely.
+       Randomizing lets each installation's check hour drift day to day instead. */
+    private const CACHE_TTL_MIN = 72000; // 20 hours
+    private const CACHE_TTL_MAX = 100800; // 28 hours
 
     /**
      * Check for available updates via the Comfino release API.
@@ -74,12 +80,25 @@ class UpdateManager
             return $cacheItem->get();
         }
 
-        // Fetch latest release from GitHub API.
+        /* Claim a short-lived exclusive lock before hitting the API. Without it, concurrent backoffice requests (e.g.,
+           multiple admins, or a page load racing an ajax refresh) can each observe the cache as a miss before the first
+           one writes its result back, firing duplicate release-check calls. */
+        $lockItem = $cacheManager->getItem(self::LOCK_KEY);
+
+        if ($lockItem->isHit()) {
+            return ['update_available' => false, 'current_version' => COMFINO_VERSION];
+        }
+
+        $lockItem->set(true);
+        $lockItem->expiresAfter(self::LOCK_TTL);
+        $cacheManager->save($lockItem);
+
+        // Fetch latest release from the Comfino release API.
         $lastReleaseInfo = self::fetchLatestRelease();
 
         // Cache the result.
         $cacheItem->set($lastReleaseInfo);
-        $cacheItem->expiresAfter(self::CACHE_TTL);
+        $cacheItem->expiresAfter(random_int(self::CACHE_TTL_MIN, self::CACHE_TTL_MAX));
 
         $cacheManager->save($cacheItem);
 

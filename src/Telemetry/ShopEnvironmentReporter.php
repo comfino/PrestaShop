@@ -53,10 +53,7 @@ final class ShopEnvironmentReporter
     {
         try {
             $builder = new PrestaShopShopEnvironmentBuilder(new PrestaShopPlatformInfo(), self::createThemeRules());
-            $report = $builder->buildForBackendReport(
-                self::resolveTestProductUrl(),
-                ['opc_modules' => self::detectOpcModules()]
-            );
+            $report = $builder->buildForBackendReport(self::resolveTestProductUrl(), self::buildMeta());
 
             $result = ApiClient::getInstance()->reportShopEnvironment($report);
 
@@ -87,10 +84,7 @@ final class ShopEnvironmentReporter
         try {
             $builder = new PrestaShopShopEnvironmentBuilder(new PrestaShopPlatformInfo(), self::createThemeRules());
 
-            return $builder->buildReportArray(
-                self::resolveTestProductUrl(),
-                ['opc_modules' => self::detectOpcModules()]
-            );
+            return $builder->buildReportArray(self::resolveTestProductUrl(), self::buildMeta());
         } catch (\Throwable $e) {
             DebugLogger::logEvent(
                 '[SHOP_ENVIRONMENT]',
@@ -128,6 +122,47 @@ final class ShopEnvironmentReporter
     }
 
     /**
+     * Builds the custom metadata passed into the shop environment report: installed one-page-checkout modules known
+     * to replace/alter PrestaShop's native checkout flow, and installed caching modules.
+     *
+     * The API's 'meta' field only accepts a flat map of scalar values (@see ReportShopEnvironment::sanitizeMeta() in
+     * the shop-plugins-shared library) - any nested array value is silently dropped before the request is sent, so
+     * detectOpcModules()'s/detectCacheModules()'s list-of-modules results are flattened to scalar keys here before
+     * being returned.
+     *
+     * @return array<string, bool|int|string>
+     */
+    private static function buildMeta(): array
+    {
+        $opcModules = self::detectOpcModules();
+        $cacheModules = self::detectCacheModules();
+
+        return [
+            'opc_modules_count' => count($opcModules),
+            'opc_modules_names' => self::formatDetectedModules($opcModules),
+            'cache_modules_count' => count($cacheModules),
+            'cache_modules_names' => self::formatDetectedModules($cacheModules),
+        ];
+    }
+
+    /**
+     * Formats detected modules as "Name:Version" (or just "Name" when no version was resolved), joined with commas
+     * (no spaces), for the flattened scalar-only 'meta' field (@see buildMeta()).
+     *
+     * @param array<int, array<string, mixed>> $modules
+     */
+    private static function formatDetectedModules(array $modules): string
+    {
+        $formatted = [];
+
+        foreach ($modules as $module) {
+            $formatted[] = empty($module['version']) ? $module['name'] : $module['name'] . ':' . $module['version'];
+        }
+
+        return implode(',', $formatted);
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     private static function detectOpcModules(): array
@@ -152,6 +187,51 @@ final class ShopEnvironmentReporter
         $detected = [];
 
         foreach ($knownOpcModules as $moduleName) {
+            try {
+                if (!\Module::isInstalled($moduleName)) {
+                    continue;
+                }
+
+                $instance = \Module::getInstanceByName($moduleName);
+                $detected[] = [
+                    'name' => $moduleName,
+                    'version' => ($instance !== false && $instance !== null) ? $instance->version : null,
+                    'active' => (bool) \Module::isEnabled($moduleName),
+                ];
+            } catch (\Throwable $e) {
+                // Skip modules that can't be inspected.
+            }
+        }
+
+        return $detected;
+    }
+
+    /**
+     * Detects well-known PrestaShop caching modules, since aggressive full-page caching can serve stale paywall/widget
+     * markup if not properly excluded by the merchant.
+     *
+     * PrestaShop's third-party module ecosystem for full-page/object caching is much smaller than WordPress's - most
+     * caching here is handled at infrastructure level (Varnish, Nginx FastCGI cache, Redis) rather than via an
+     * installable module. Detection is best-effort and matches by module technical name; this data is diagnostic
+     * only and feeds into the shop environment report's 'meta' field.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private static function detectCacheModules(): array
+    {
+        $knownCacheModules = [
+            'dreamcache', // DreamCache - Full Page Cache
+            'litespeedcache', // LiteSpeed Cache
+            'pagecacheultimate', // Page Cache Ultimate (JPresta)
+            'jprestapagecache', // JPresta Page Cache (legacy identifier)
+            'advancedpagecache', // Advanced Page Cache (Sunnytoo)
+            'superspeed', // SuperSpeed (PrestaHero)
+            'speedpack', // Speed Pack - Cache + Minify (Knowband)
+        ];
+
+        $detected = [];
+
+        foreach ($knownCacheModules as $moduleName) {
             try {
                 if (!\Module::isInstalled($moduleName)) {
                     continue;
