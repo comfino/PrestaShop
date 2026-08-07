@@ -36,8 +36,6 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
  */
 function upgrade_module_3_5_5($module)
 {
-    $config_manager = new \Comfino\ConfigManager($module);
-
     // Initialize new configuration options.
     (new \Comfino\ConfigManager($module))->updateConfiguration([
         'COMFINO_WIDGET_TYPE' => 'standard',
@@ -46,9 +44,6 @@ function upgrade_module_3_5_5($module)
         'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL' => '',
         'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL' => '',
     ]);
-
-    // Update code of widget initialization script.
-    $config_manager->updateWidgetCode();
 
     return true;
 }

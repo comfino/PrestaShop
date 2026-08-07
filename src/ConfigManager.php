@@ -34,6 +34,8 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/Product/CategoryFilter.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Product/CategoryTree/BuildStrategy.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Product/CategoryTree.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/PaywallAuthTokenGenerator.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ShopEnvironmentReporter.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
 use Comfino\Order\Cart;
@@ -65,13 +67,22 @@ class ConfigManager
             'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
             'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
             'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
-            'COMFINO_WIDGET_CODE',
         ],
         'developer_settings' => [
             'COMFINO_IS_SANDBOX',
             'COMFINO_SANDBOX_API_KEY',
         ],
     ];
+
+    /** Obsolete options removed together with the UMD widget/paywall integration. */
+    const OBSOLETE_CONFIG_OPTIONS = [
+        'COMFINO_WIDGET_CODE',
+        'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
+        'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
+    ];
+
+    /** Short-lived error logging token is renewed when it expires in less than one hour. */
+    const ERROR_LOGGING_TOKEN_REFRESH_MARGIN = 3600;
 
     const ACCESSIBLE_CONFIG_OPTIONS = [
         'COMFINO_PAYMENT_TEXT',
@@ -88,9 +99,6 @@ class ConfigManager
         'COMFINO_WIDGET_TYPE',
         'COMFINO_WIDGET_OFFER_TYPES',
         'COMFINO_WIDGET_EMBED_METHOD',
-        'COMFINO_WIDGET_CODE',
-        'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
-        'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
         'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS',
         'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
         'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
@@ -193,12 +201,11 @@ class ConfigManager
             'COMFINO_WIDGET_TYPE' => 'with-modal',
             'COMFINO_WIDGET_OFFER_TYPES' => 'CONVENIENT_INSTALLMENTS',
             'COMFINO_WIDGET_EMBED_METHOD' => 'INSERT_INTO_LAST',
-            'COMFINO_WIDGET_CODE' => $this->getInitialWidgetCode(),
-            'COMFINO_WIDGET_PROD_SCRIPT_VERSION' => '',
-            'COMFINO_WIDGET_DEV_SCRIPT_VERSION' => '',
             'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
             'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL' => '',
             'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL' => '',
+            'COMFINO_ERROR_LOGGING_ACCESS_TOKEN' => '',
+            'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => 0,
             'COMFINO_JS_PROD_PATH' => '',
             'COMFINO_CSS_PROD_PATH' => 'css',
             'COMFINO_JS_DEV_PATH' => '',
@@ -339,119 +346,137 @@ class ConfigManager
     }
 
     /**
+     * Removes configuration options left behind by the UMD widget/paywall integration.
+     *
+     * @return void
+     */
+    public function deleteObsoleteConfigurationValues()
+    {
+        foreach (self::OBSOLETE_CONFIG_OPTIONS as $option_name) {
+            \Configuration::deleteByName($option_name);
+        }
+    }
+
+    /**
+     * Returns a valid error logging access token, claiming or renewing it when needed.
+     *
+     * The token authorizes browser-side error reports; failures are silent because neither the paywall
+     * nor the widget may be blocked by it.
+     *
+     * @return string empty string when no token could be obtained
+     */
+    public function getErrorLoggingAccessToken()
+    {
+        $token = (string) $this->getConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN');
+        $expires_at = (int) $this->getConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT');
+
+        if ($token !== '' && $expires_at > (time() + self::ERROR_LOGGING_TOKEN_REFRESH_MARGIN)) {
+            return $token;
+        }
+
+        $claimed_token = Api::claimErrorLoggingToken();
+
+        if (!is_array($claimed_token)) {
+            // Keep serving the current token (if any) until a renewal succeeds.
+            return $token;
+        }
+
+        $expiry_timestamp = strtotime($claimed_token['expires_at']);
+
+        \Configuration::updateValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN', $claimed_token['access_token']);
+        \Configuration::updateValue(
+            'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT',
+            $expiry_timestamp !== false ? $expiry_timestamp : 0
+        );
+
+        return $claimed_token['access_token'];
+    }
+
+    /**
+     * Builds the product page widget configuration consumed by the CDN widget bridge script.
+     *
+     * Only keys the SDK knows are emitted, and null values are dropped so omitted options fall back to the
+     * SDK defaults instead of overriding them with empty values.
+     *
+     * @param int|null $product_id
+     *
      * @return array
      *
      * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
      */
-    public function getWidgetVariables($product_id = null)
+    public function getWidgetConfig($product_id = null)
     {
+        $settings = $this->getConfigurationValues('widget_settings');
         $product_data = $this->getProductData($product_id);
+        $widget_key = (string) $settings['COMFINO_WIDGET_KEY'];
 
-        return [
-            'WIDGET_SCRIPT_URL' => Api::getWidgetScriptUrl(),
-            'PRODUCT_ID' => $product_data['product_id'],
-            'PRODUCT_PRICE' => $product_data['price'],
-            'PLATFORM' => 'prestashop',
-            'PLATFORM_NAME' => 'PrestaShop',
-            'PLATFORM_VERSION' => _PS_VERSION_,
-            'PLATFORM_DOMAIN' => \Tools::getShopDomain(),
-            'PLUGIN_VERSION' => COMFINO_VERSION,
-            'AVAILABLE_PRODUCT_TYPES' => $product_data['available_product_types'],
-            'PRODUCT_CART_DETAILS' => $product_data['product_cart_details'],
-            'LANGUAGE' => \Context::getContext()->language->iso_code,
-            'CURRENCY' => \Context::getContext()->currency->iso_code,
+        $offer_types = array_values(array_filter(
+            array_map('trim', explode(',', (string) $settings['COMFINO_WIDGET_OFFER_TYPES'])),
+            static function ($offer_type) { return $offer_type !== ''; }
+        ));
+
+        $config = [
+            'sdkScriptUrl' => Api::getSdkScriptUrl(),
+            'environment' => Api::isSandboxMode() ? 'sandbox' : 'production',
+            'widgetKey' => $widget_key !== '' ? $widget_key : null,
+            'loggingToken' => PaywallAuthTokenGenerator::generateLoggingToken(
+                $widget_key,
+                $this->getErrorLoggingAccessToken()
+            ),
+            'widgetTargetSelector' => $settings['COMFINO_WIDGET_TARGET_SELECTOR'],
+            'priceSelector' => $settings['COMFINO_WIDGET_PRICE_SELECTOR'],
+            'priceObserverSelector' => $settings['COMFINO_WIDGET_PRICE_OBSERVER_SELECTOR'] ?: null,
+            'priceObserverLevel' => (int) $settings['COMFINO_WIDGET_PRICE_OBSERVER_LEVEL'],
+            'embedMethod' => $settings['COMFINO_WIDGET_EMBED_METHOD'],
+            'widgetType' => $settings['COMFINO_WIDGET_TYPE'],
+            'offerTypes' => count($offer_types) ? $offer_types : null,
+            'showProviderLogos' => (bool) $settings['COMFINO_WIDGET_SHOW_PROVIDER_LOGOS'],
+            'hasPriceInput' => false,
+            'bannerCssUrl' => $settings['COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL'] ?: null,
+            'calculatorCssUrl' => $settings['COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL'] ?: null,
+            'price' => $product_data['price'],
+            'productId' => $product_data['product_id'],
+            'availableProductTypes' => $product_data['available_product_types'],
+            'productCartDetails' => $product_data['product_cart_details'],
+            'language' => \Context::getContext()->language->iso_code,
+            'currency' => \Context::getContext()->currency->iso_code,
+            'shopEnvironment' => ShopEnvironmentReporter::getFrontendEnvironment(['type' => 'product']),
         ];
+
+        return array_filter(
+            $config,
+            static function ($value) { return $value !== null; }
+        );
     }
 
     /**
-     * @param string $last_widget_code_hash
+     * Renders the JSON configuration block read by the widget bridge script loaded from the SDK CDN.
      *
-     * @return void
-     */
-    public function updateWidgetCode($last_widget_code_hash = null)
-    {
-        $initial_widget_code = $this->getInitialWidgetCode();
-        $current_widget_code = $this->getCurrentWidgetCode();
-
-        if ($last_widget_code_hash === null || md5($current_widget_code) === $last_widget_code_hash) {
-            // Widget code not changed since last installed version - safely replace with new one.
-            \Configuration::updateValue('COMFINO_WIDGET_CODE', $initial_widget_code);
-        }
-    }
-
-    public function getCurrentWidgetCode($product_id = null)
-    {
-        $widget_code = trim(str_replace("\r", '', \Configuration::get('COMFINO_WIDGET_CODE')));
-        $product_data = $this->getProductData($product_id);
-        $available_product_types = $product_data['available_product_types'];
-
-        $options_to_inject = [];
-
-        if (strpos($widget_code, 'productId') === false) {
-            $options_to_inject[] = "        productId: $product_data[product_id]";
-        }
-        if (is_array($available_product_types) && strpos($widget_code, 'availableProductTypes') === false) {
-            $options_to_inject[] = '        availableProductTypes: ' . implode(',', $available_product_types);
-        }
-
-        if (count($options_to_inject) > 0) {
-            $injected_init_options = implode(",\n", $options_to_inject) . ",\n";
-
-            return preg_replace('/\{\n(.*widgetKey:)/', "{\n$injected_init_options\$1", $widget_code);
-        }
-
-        return $widget_code;
-    }
-
-    /**
+     * The JSON is encoded defensively so no admin-controlled value (selectors, product names) can terminate
+     * the script tag or smuggle entity references into the page.
+     *
+     * @param int|null $product_id
+     *
      * @return string
      */
-    public function getInitialWidgetCode()
+    public function renderWidgetConfigElement($product_id = null)
     {
-        return trim("
-const script = document.createElement('script');
-script.onload = function () {
-    ComfinoWidgetFrontend.init({
-        widgetKey: '{WIDGET_KEY}',
-        priceSelector: '{WIDGET_PRICE_SELECTOR}',
-        widgetTargetSelector: '{WIDGET_TARGET_SELECTOR}',
-        priceObserverSelector: '{WIDGET_PRICE_OBSERVER_SELECTOR}',
-        priceObserverLevel: {WIDGET_PRICE_OBSERVER_LEVEL},
-        type: '{WIDGET_TYPE}',
-        offerTypes: {OFFER_TYPES},
-        embedMethod: '{EMBED_METHOD}',
-        numOfInstallments: 0,
-        price: null,
-        productId: {PRODUCT_ID},
-        productPrice: {PRODUCT_PRICE},
-        platform: '{PLATFORM}',
-        platformName: '{PLATFORM_NAME}',
-        platformVersion: '{PLATFORM_VERSION}',
-        platformDomain: '{PLATFORM_DOMAIN}',
-        pluginVersion: '{PLUGIN_VERSION}',
-        availableProductTypes: {AVAILABLE_PRODUCT_TYPES},
-        productCartDetails: {PRODUCT_CART_DETAILS},
-        language: '{LANGUAGE}',
-        currency: '{CURRENCY}',
-        showProviderLogos: {SHOW_PROVIDER_LOGOS},
-        customBannerCss: '{CUSTOM_BANNER_CSS_URL}',
-        customCalculatorCss: '{CUSTOM_CALCULATOR_CSS_URL}',
-        callbackBefore: function () {},
-        callbackAfter: function () {},
-        onOfferRendered: function (jsonResponse, widgetTarget, widgetNode) { },
-        onWidgetBannerLoaded: function (loadedOffers) { },
-        onWidgetCalculatorLoaded: function (loadedOffers) { },
-        onWidgetCalculatorUpdated: function (activeOffer) { },
-        onWidgetBannerCustomCssLoaded: function (cssUrl) { },
-        onWidgetCalculatorCustomCssLoaded: function (cssUrl) { },
-        onGetPriceElement: function (priceSelector, priceObserverSelector) { return null; },
-        debugMode: window.location.hash && window.location.hash.substring(1) === 'comfino_debug'
-    });
-};
-script.src = '{WIDGET_SCRIPT_URL}';
-script.async = true;
-document.getElementsByTagName('head')[0].appendChild(script);
-");
+        try {
+            $config = $this->getWidgetConfig($product_id);
+        } catch (\Exception $e) {
+            return '';
+        }
+
+        $json = json_encode(
+            $config,
+            JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES
+        );
+
+        if ($json === false) {
+            return '';
+        }
+
+        return '<script type="application/json" id="comfino-widget-config">' . $json . '</script>';
     }
 
     /**
@@ -689,8 +714,8 @@ document.getElementsByTagName('head')[0].appendChild(script);
      */
     private function getProductData($product_id)
     {
-        $price = 'null';
-        $product_cart_details = 'null';
+        $price = null;
+        $product_cart_details = null;
 
         if ($product_id !== null) {
             $product = new \Product($product_id);
@@ -700,7 +725,10 @@ document.getElementsByTagName('head')[0].appendChild(script);
             } else {
                 $shop_cart = OrderManager::getShopCartFromProduct($product);
 
-                $price = (new Tools(\Context::getContext()))->getFormattedPrice($product->getPrice());
+                // The SDK expects the price in the smallest currency unit (grosze), not as a formatted amount.
+                $price = (int) round(
+                    (new Tools(\Context::getContext()))->getFormattedPrice($product->getPrice()) * 100
+                );
                 $available_product_types = $this->getAllowedProductTypes('widget', $shop_cart, true);
                 $product_cart_details = $shop_cart->getAsArray();
             }
@@ -709,7 +737,7 @@ document.getElementsByTagName('head')[0].appendChild(script);
         }
 
         return [
-            'product_id' => $product_id !== null ? $product_id : 'null',
+            'product_id' => $product_id !== null ? (int) $product_id : null,
             'price' => $price,
             'available_product_types' => $available_product_types,
             'product_cart_details' => $product_cart_details,

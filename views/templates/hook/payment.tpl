@@ -23,84 +23,48 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
-<style>
-    a.comfino-payment-method {
-        padding: 25px 20px !important;
-        cursor: pointer;
-    }
-
-    a.comfino-payment-method:after {
-        width: 14px;
-        height: 22px;
-        display: block;
-        content: "\f078";
-        font-family: 'FontAwesome';
-        font-size: 25px;
-        color: #777777;
-        position: absolute;
-        right: 25px;
-        margin-top: -11px;
-        top: 50%;
-    }
-</style>
+{*
+ * Comfino payment method fields in checkout (PrestaShop 1.6).
+ *
+ * The CDN checkout script (comfino-prestashop.min.js) reads the JSON configuration block, imports the ESM SDK
+ * and renders the paywall into #comfino-paywall-container. PrestaShop 1.6 has no payment option form of its
+ * own, so the hidden inputs the SDK populates are submitted by the form below.
+ *
+ * The tile layout, the logo swap and the loading state are driven by the SDK stylesheet served from the same
+ * CDN (comfino-item-gate-prestashop.css), registered in hookHeader().
+ *}
 <div class="row">
     <div class="col-xs-12 col-md-12">
-        <p class="payment_module">
-            <a id="pay-with-comfino" class="comfino-payment-method">
-                <img style="height: 49px" src="{$logo_url}" alt="{l s="Pay with comfino" mod="comfino"}" loading="lazy" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')" />
-                {$pay_with_comfino_text|escape:"htmlall":"UTF-8"}
-            </a>
+        <p class="payment_module comfino">
+            <label id="pay-with-comfino" class="comfino-payment-method">
+                {* Placeholder logo adopted by the SDK, which swaps its source for the authorized one. *}
+                <img class="comfino-payment-method-item__logo" data-comfino-logo src="{$comfino_default_logo_url|escape:'htmlall':'UTF-8'}" alt="{$pay_with_comfino_text|escape:'htmlall':'UTF-8'}" />
+                {$pay_with_comfino_text|escape:'htmlall':'UTF-8'}
+                {* Loading skeleton covering the tile until the SDK marks it ready. *}
+                <span class="comfino-payment-method-item__loader" aria-hidden="true">
+                    <span class="comfino-payment-method-item__loader-spinner"><span></span></span>
+                </span>
+            </label>
         </p>
     </div>
 </div>
-<iframe id="comfino-paywall-container" src="{$paywall_api_url}" referrerpolicy="strict-origin" loading="lazy" class="comfino-paywall" scrolling="no" onload="ComfinoPaywallFrontend.onload(this, '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}', '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}')"></iframe>
-<div id="comfino-payment-bar" class="comfino-payment-bar">
-    <a id="comfino-go-to-payment" href="{$go_to_payment_url|escape:"htmlall":"UTF-8"}" class="comfino-payment-btn">
-        {l s="Go to payment" mod="comfino"}
-    </a>
-</div>
-<script>
-    const script = document.createElement('script');
-    script.onload = function () {
-        if (ComfinoPaywallFrontend.isInitialized()) {
-            Comfino.init();
-        } else {
-            window.Comfino = {
-                paywallOptions: {$paywall_options|@json_encode nofilter},
-                init: () => {
-                    ComfinoPaywallFrontend.init(
-                        document.getElementById('pay-with-comfino'),
-                        document.getElementById('comfino-paywall-container'),
-                        Comfino.paywallOptions
-                    );
-                }
-            }
 
-            Comfino.paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
-                ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
+<form id="comfino-payment-form" method="post" action="{$go_to_payment_url|escape:'htmlall':'UTF-8'}">
+    {* Cart total in grosze. *}
+    <input id="comfino-loan-amount" name="comfino_loan_amount" type="hidden" value="{$loan_amount|intval}" />
+    {* Loan parameters written by the SDK, read on order placement. *}
+    <input id="comfino-loan-type" name="comfino_loan_type" type="hidden" value="" />
+    <input id="comfino-loan-term" name="comfino_loan_term" type="hidden" value="" />
+    {* The SDK renders the paywall iframe here. *}
+    <div id="comfino-paywall-container"></div>
 
-                let offersUrl = '{$offers_url}'.replace(/&amp;/g, '&');
-                let urlParams = new URLSearchParams({ loan_type: loanParams.loanType, loan_term: loanParams.loanTerm });
+    <div id="comfino-payment-bar" class="comfino-payment-bar">
+        {* Enabled by the SDK once the customer selects a financing offer. *}
+        <button type="submit" id="comfino-go-to-payment" class="comfino-payment-btn" disabled="disabled">
+            {l s="Go to payment" mod="comfino"}
+        </button>
+    </div>
+</form>
 
-                offersUrl += (offersUrl.indexOf('?') > 0 ? '&' : '?') + urlParams.toString();
-
-                fetch(offersUrl, { method: 'POST' }).then(response => {
-                    ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', offersUrl, response);
-                });
-            }
-
-            if (document.readyState === 'complete') {
-                Comfino.init();
-            } else {
-                document.addEventListener('readystatechange', () => {
-                    if (document.readyState === 'complete') {
-                        Comfino.init();
-                    }
-                });
-            }
-        }
-    };
-    script.src = '{$paywall_script_url}';
-    script.async = true;
-    document.getElementsByTagName('head')[0].appendChild(script);
-</script>
+<script type="application/json" id="comfino-checkout-config">{$comfino_settings|@json_encode nofilter}</script>
+<script data-cfasync="false" src="{$checkout_script_url|escape:'htmlall':'UTF-8'}" data-comfino-checkout="1" crossorigin="anonymous"></script>

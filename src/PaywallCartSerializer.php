@@ -23,23 +23,41 @@
  * @copyright Since 2007 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
+
+namespace Comfino;
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Api/Cart.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Cart.php';
+
+use Comfino\Order\Cart as ShopCart;
 
 /**
- * @param Comfino $module
- *
- * @return bool
+ * Produces the "cart" payload carried by the paywall bootstrap config, in the same shape the order creation
+ * request sends to the API, so the paywall renders offers for exactly the cart the order will be created from.
  */
-function upgrade_module_3_4_4($module)
+class PaywallCartSerializer
 {
-    $config_manager = new \Comfino\ConfigManager($module);
-
-    // Update code of widget initialization script.
-    $config_manager->updateWidgetCode('2928bbaf4ef9e8437a46c9f76eec4e90');
-
-    return true;
+    /**
+     * @param ShopCart $shopCart
+     *
+     * @return array
+     */
+    public static function toArray(ShopCart $shopCart)
+    {
+        return Api::getCartAsArray(
+            new Api\Cart(
+                $shopCart->getCartItems(),
+                $shopCart->getTotalValue(),
+                $shopCart->getDeliveryCost(),
+                $shopCart->getDeliveryNetCost(),
+                $shopCart->getDeliveryTaxRate(),
+                $shopCart->getDeliveryTaxValue()
+            )
+        );
+    }
 }

@@ -72,9 +72,12 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        $cookie = Context::getContext()->cookie;
+        /* Loan parameters are written into hidden form inputs by the frontend SDK when the customer selects an offer,
+           and submitted together with the order. */
+        $loan_type = trim((string) Tools::getValue('comfino_loan_type', ''));
+        $loan_term = (int) Tools::getValue('comfino_loan_term', 0);
 
-        if (!$cookie->loan_type || !$cookie->loan_term) {
+        if ($loan_type === '' || $loan_term <= 0) {
             Tools::redirect('index.php?controller=order&step=1');
 
             return;
@@ -149,6 +152,16 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $shop_cart = OrderManager::getShopCart($cart);
         }
 
+        $config_manager = new Comfino\ConfigManager($this->module);
+        $allowed_product_types = $config_manager->getAllowedProductTypes('paywall', $shop_cart);
+
+        /* Only a financial product available for this cart may be submitted, regardless of what was posted. */
+        if (is_array($allowed_product_types) && !in_array($loan_type, $allowed_product_types, true)) {
+            Tools::redirect('index.php?controller=order&step=1');
+
+            return;
+        }
+
         $this->module->validateOrder(
             (int) $cart->id,
             (int) Configuration::get('COMFINO_CREATED'),
@@ -212,8 +225,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $order_id,
             $shop_cart->getTotalValue(),
             $shop_cart->getDeliveryCost(),
-            (int) $cookie->loan_term,
-            $cookie->loan_type,
+            $loan_term,
+            $loan_type,
             $shop_cart->getCartItems(),
             new Comfino\Order\Customer(
                 $first_name,
@@ -235,15 +248,25 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             ),
             $return_url,
             $notify_url,
-            (new Comfino\ConfigManager($this->module))->getAllowedProductTypes('paywall', $shop_cart),
+            $allowed_product_types,
             $shop_cart->getDeliveryNetCost(),
             $shop_cart->getDeliveryTaxRate(),
             $shop_cart->getDeliveryTaxValue()
         );
 
         $order_response = Api::createOrder($order);
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? Tools::safeOutput($_SERVER['REQUEST_URI']) : '';
 
-        if (!is_array($order_response) || !isset($order_response['applicationUrl'])) {
+        $application_url = is_array($order_response) && isset($order_response['applicationUrl'])
+            ? (string) $order_response['applicationUrl']
+            : '';
+
+        // Never redirect anywhere but an absolute HTTP(S) address returned by the API.
+        if (!preg_match('#^https?://#i', $application_url)) {
+            $application_url = '';
+        }
+
+        if ($application_url === '') {
             $ps_order->setCurrentState(Configuration::get('PS_OS_ERROR'));
             $ps_order->save();
 
@@ -252,7 +275,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 0,
                 'Wrong Comfino API response.',
                 Api::getLastResponseCode(),
-                $_SERVER['REQUEST_URI'],
+                $request_uri,
                 Api::getLastRequestBody(),
                 is_array($order_response) ? json_encode($order_response) : Api::getLastResponseBody()
             );
@@ -269,7 +292,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             ));
         }
 
-        Tools::redirect($order_response['applicationUrl']);
+        Tools::redirect($application_url);
     }
 
     // FIXME Implement proper logic for PrestaShop 1.6.

@@ -31,6 +31,9 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/OrderManager.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/PaywallAuthTokenGenerator.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/PaywallCartSerializer.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ShopEnvironmentReporter.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
@@ -39,7 +42,7 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.5.5', false);
+    define('COMFINO_VERSION', '3.6.0', false);
 }
 
 class Comfino extends PaymentModule
@@ -52,7 +55,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.5.5';
+        $this->version = '3.6.0';
         $this->author = 'Comfino';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -64,7 +67,7 @@ class Comfino extends PaymentModule
         $this->currencies_mode = 'checkbox';
 
         $this->controllers = [
-            'payment', 'offer', 'notify', 'error', 'script', 'configuration', 'availableoffertypes',
+            'payment', 'notify', 'error', 'configuration', 'availableoffertypes',
         ];
 
         parent::__construct();
@@ -335,6 +338,9 @@ class Comfino extends PaymentModule
                 // Update plugin configuration.
                 $config_manager->updateConfiguration($configuration_options, false);
 
+                /* Fire-and-forget environment report - diagnostics only, never allowed to affect the save. */
+                Comfino\ShopEnvironmentReporter::report();
+
                 $output[] = $this->l('Settings updated.');
             }
         } elseif (Tools::isSubmit('submit_registration')) {
@@ -549,7 +555,15 @@ class Comfino extends PaymentModule
         $comfino_payment_option->setModuleName($this->name)
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
             ->setCallToActionText($config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'))
-            ->setLogo(Comfino\Api::getPaywallLogoUrl())
+            ->setLogo(Comfino\Api::getDefaultLogoUrl())
+            /* On order placement PrestaShop submits only the form it builds from these inputs - the markup
+               passed to setAdditionalInformation() (the paywall container) is display-only and never
+               submitted. The SDK keeps these inputs in sync with the offer selected in the paywall, matching
+               them by name, so without them the selected loan parameters never reach the payment controller. */
+            ->setInputs([
+                ['type' => 'hidden', 'name' => 'comfino_loan_type', 'value' => ''],
+                ['type' => 'hidden', 'name' => 'comfino_loan_term', 'value' => ''],
+            ])
             ->setAdditionalInformation(
                 $this->preparePaywallIframe(
                     (int) ($this->context->cart->getOrderTotal() * 100),
@@ -668,7 +682,7 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * @return void
+     * @return string|void
      */
     public function hookHeader()
     {
@@ -690,10 +704,13 @@ class Comfino extends PaymentModule
                 Comfino\ErrorLogger::init();
                 Comfino\Api::init($this);
 
-                $widget_settings = $config_manager->getConfigurationValues('widget_settings');
-
                 // Check product category filters.
                 $product = $this->context->controller->getProduct();
+
+                if (!Validate::isLoadedObject($product)) {
+                    return;
+                }
+
                 $allowed_product_types = $config_manager->getAllowedProductTypes(
                     'widget',
                     Comfino\OrderManager::getShopCartFromProduct($product)
@@ -704,19 +721,20 @@ class Comfino extends PaymentModule
                     return;
                 }
 
-                $config_crc = crc32(implode($widget_settings));
+                /* Product page widget: a deferred bridge script served from the SDK CDN reads the JSON config
+                   block emitted below and imports the ESM SDK - no widget initialization code is generated. */
                 $this->addScriptLink(
                     'comfino-widget',
-                    $this->context->link->getModuleLink(
-                        $this->name, 'script', ['product_id' => $product->id, 'crc' => $config_crc], true
-                    ),
+                    Comfino\Api::getProductWidgetScriptUrl(),
                     'bottom',
                     'defer'
                 );
+
+                return $config_manager->renderWidgetConfigElement((int) $product->id);
             }
         } elseif (preg_match('/order|cart|checkout/', $controller)) {
             Comfino\Api::init($this);
-            $this->addStyleLink('comfino-paywall-frontend-style', Comfino\Api::getPaywallFrontendStyleUrl());
+            $this->addStyleLink('comfino-item-gate', Comfino\Api::getCheckoutStyleUrl());
         }
     }
 
@@ -1244,14 +1262,6 @@ class Comfino extends PaymentModule
                                 'name' => 'name',
                             ],
                         ],
-                        [
-                            'type' => 'textarea',
-                            'label' => $this->l('Widget initialization code'),
-                            'name' => 'COMFINO_WIDGET_CODE',
-                            'required' => false,
-                            'rows' => 15,
-                            'cols' => 60,
-                        ],
                     ],
                     'submit' => [
                         'title' => $this->l('Save'),
@@ -1378,11 +1388,8 @@ class Comfino extends PaymentModule
 
         return [
             'pay_with_comfino_text' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'),
-            'logo_url' => Comfino\Api::getPaywallLogoUrl(),
+            'comfino_default_logo_url' => Comfino\Api::getDefaultLogoUrl(),
             'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
-            'paywall_options' => $this->getPaywallOptions(),
-            'paywall_script_url' => Comfino\Api::getPaywallFrontendScriptUrl(),
-            'offers_url' => $this->context->link->getModuleLink($this->name, 'offer', [], true),
         ];
     }
 
@@ -1399,6 +1406,12 @@ class Comfino extends PaymentModule
             }
         }
 
+        foreach (Comfino\ConfigManager::OBSOLETE_CONFIG_OPTIONS as $option_name) {
+            $result &= Configuration::deleteByName($option_name);
+        }
+
+        $result &= Configuration::deleteByName('COMFINO_ERROR_LOGGING_ACCESS_TOKEN');
+        $result &= Configuration::deleteByName('COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT');
         $result &= Configuration::deleteByName('COMFINO_REGISTERED_AT');
         $result &= Configuration::deleteByName('COMFINO_SANDBOX_REGISTERED_AT');
 
@@ -1426,31 +1439,6 @@ class Comfino extends PaymentModule
         $int = $int_sum % 11;
 
         return ($int === 10 ? 0 : $int) === (int) $tax_id[9];
-    }
-
-    /**
-     * @return array
-     *
-     * @throws \PrestaShop\PrestaShop\Core\Localization\Exception\LocalizationException
-     */
-    private function getPaywallOptions()
-    {
-        $cart = $this->context->cart;
-        $total = $cart->getOrderTotal();
-
-        $tools = new Comfino\Tools($this->context);
-
-        return [
-            'platform' => 'prestashop',
-            'platformName' => 'PrestaShop',
-            'platformVersion' => _PS_VERSION_,
-            'platformDomain' => \Tools::getShopDomain(),
-            'pluginVersion' => COMFINO_VERSION,
-            'language' => $tools->getLanguageIsoCode($cart->id_lang),
-            'currency' => $tools->getCurrencyIsoCode($cart->id_currency),
-            'cartTotal' => (float) $total,
-            'cartTotalFormatted' => $tools->formatPrice($total, $cart->id_currency),
-        ];
     }
 
     /**
@@ -1616,7 +1604,10 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * @param int $loan_amount
+     * Renders the paywall placeholder consumed by the Comfino frontend SDK: the container the SDK renders the
+     * paywall into, the JSON bootstrap configuration, and the CDN checkout script which imports the SDK.
+     *
+     * @param int $loan_amount cart total in grosze
      * @param array|null $product_types_filter
      * @param string|null $widget_key
      *
@@ -1626,22 +1617,6 @@ class Comfino extends PaymentModule
      */
     private function preparePaywallIframe($loan_amount, $product_types_filter, $widget_key)
     {
-        if (is_array($product_types_filter)) {
-            if (count($product_types_filter)) {
-                // Filters active - product types available conditionally.
-                $product_types = implode(',', $product_types_filter);
-                $product_types_length = strlen($product_types);
-            } else {
-                // Filters active - all product types disabled.
-                $product_types = "\0";
-                $product_types_length = 1;
-            }
-        } else {
-            // No active filters - all product types available unconditionally.
-            $product_types = '';
-            $product_types_length = 0;
-        }
-
         if (empty($widget_key)) {
             if (($widget_key = Comfino\Api::getWidgetKey()) !== false) {
                 \Configuration::updateValue('COMFINO_WIDGET_KEY', $widget_key);
@@ -1650,21 +1625,62 @@ class Comfino extends PaymentModule
             }
         }
 
-        $request_data = $loan_amount . $product_types . $widget_key;
-        $request_params = pack('V', $loan_amount) . pack('v', $product_types_length) . $product_types . $widget_key;
+        $config_manager = new Comfino\ConfigManager($this);
+        $cart_payload = null;
 
-        $hash = hash_hmac(current(Comfino\Api::getHashAlgos()), $request_data, Comfino\Api::getApiKey(), true);
-        $auth = urlencode(base64_encode($request_params . $hash));
-        $paywall_api_url = Comfino\Api::getPaywallApiHost() . '/v1/paywall?auth=' . $auth;
-
-        $this->smarty->assign(array_merge($this->getTemplateVars(), ['paywall_api_url' => $paywall_api_url]));
-
-        if (COMFINO_PS_17) {
-            $iframeTemplate = $this->fetch('module:comfino/views/templates/front/payment.tpl');
-        } else {
-            $iframeTemplate = $this->display(__FILE__, 'payment.tpl');
+        try {
+            $cart_payload = Comfino\PaywallCartSerializer::toArray(
+                Comfino\OrderManager::getShopCart($this->context->cart)
+            );
+        } catch (Exception $e) {
+            Comfino\ErrorLogger::sendError(
+                'Paywall cart serialization error',
+                $e->getCode(),
+                $e->getMessage()
+            );
         }
 
-        return $iframeTemplate;
+        $tools = new Comfino\Tools($this->context);
+        $language = $tools->getLanguageIsoCode($this->context->cart->id_lang);
+        $currency = $tools->getCurrencyIsoCode($this->context->cart->id_currency);
+
+        $comfino_settings = [
+            'authToken' => Comfino\PaywallAuthTokenGenerator::generateAuthToken(
+                $widget_key,
+                Comfino\Api::getApiKey()
+            ),
+            'loggingToken' => Comfino\PaywallAuthTokenGenerator::generateLoggingToken(
+                $widget_key,
+                $config_manager->getErrorLoggingAccessToken()
+            ),
+            'loanAmount' => (int) $loan_amount,
+            'environment' => Comfino\Api::isSandboxMode() ? 'sandbox' : 'production',
+            'sdkScriptUrl' => Comfino\Api::getSdkScriptUrl(),
+            'productTypes' => is_array($product_types_filter)
+                ? array_map('strval', $product_types_filter)
+                : null,
+            'cart' => $cart_payload,
+            'paywallSettings' => [
+                'language' => $language,
+                'currency' => $currency,
+            ],
+            'shopEnvironment' => Comfino\ShopEnvironmentReporter::getFrontendEnvironment(['type' => 'checkout']),
+            'paymentMethodLabel' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT') ?: null,
+        ];
+
+        $this->smarty->assign(array_merge(
+            $this->getTemplateVars(),
+            [
+                'loan_amount' => (int) $loan_amount,
+                'comfino_settings' => $comfino_settings,
+                'checkout_script_url' => Comfino\Api::getCheckoutScriptUrl(),
+            ]
+        ));
+
+        if (COMFINO_PS_17) {
+            return $this->fetch('module:comfino/views/templates/front/payment.tpl');
+        }
+
+        return $this->display(__FILE__, 'payment.tpl');
     }
 }

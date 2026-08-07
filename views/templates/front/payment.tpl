@@ -23,80 +23,21 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *}
 
-<div id="comfino-iframe-container"></div>
-<script>
-    window.Comfino = {
-        paywallOptions: {$paywall_options|@json_encode nofilter},
-        init: () => {
-            var iframe = document.createElement('iframe');
-            iframe.id = 'comfino-paywall-container';
-            iframe.className = 'comfino-paywall';
-            iframe.onload = function () {
-                ComfinoPaywallFrontend.onload(
-                    this,
-                    '{$paywall_options.platformName|escape:"htmlall":"UTF-8"}',
-                    '{$paywall_options.platformVersion|escape:"htmlall":"UTF-8"}'
-                );
-            };
-            iframe.src = '{$paywall_api_url}';
-            iframe.referrerPolicy = 'strict-origin';
-            iframe.loading = 'lazy';
-            iframe.scrolling = 'no';
+{*
+ * Comfino payment method fields in checkout (PrestaShop 1.7+).
+ *
+ * The CDN checkout script (comfino-prestashop.min.js) reads the JSON configuration block, imports the ESM SDK
+ * and renders the paywall into #comfino-paywall-container. The hidden inputs are populated by the SDK with the
+ * offer selected by the customer and are submitted with PrestaShop's own payment option form.
+ *}
 
-            let frontendInitElement = document.querySelector('input[data-module-name="comfino"]');
+{* Cart total in grosze. *}
+<input id="comfino-loan-amount" name="comfino_loan_amount" type="hidden" value="{$loan_amount|intval}" />
+{* Loan parameters written by the SDK, read on order placement. *}
+<input id="comfino-loan-type" name="comfino_loan_type" type="hidden" value="" />
+<input id="comfino-loan-term" name="comfino_loan_term" type="hidden" value="" />
+{* The SDK renders the paywall iframe here. *}
+<div id="comfino-paywall-container"></div>
 
-            if ('priceModifier' in frontendInitElement.dataset) {
-                let priceModifier = parseFloat(frontendInitElement.dataset.priceModifier);
-
-                if (!Number.isNaN(priceModifier)) {
-                    iframe.src += ('&priceModifier=' + priceModifier);
-                }
-            }
-
-            document.getElementById('comfino-iframe-container').appendChild(iframe);
-
-            ComfinoPaywallFrontend.init(
-                frontendInitElement,
-                document.getElementById('comfino-paywall-container'),
-                Comfino.paywallOptions
-            );
-        }
-    }
-
-    var script = document.createElement('script');
-    script.onload = function () {
-        if (ComfinoPaywallFrontend.isInitialized()) {
-            Comfino.init();
-        } else {
-            Comfino.paywallOptions.onUpdateOrderPaymentState = (loanParams) => {
-                ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', loanParams);
-
-                let offersUrl = '{$offers_url}'.replace(/&amp;/g, '&');
-                let urlParams = new URLSearchParams({
-                    loan_amount: loanParams.loanAmount,
-                    loan_type: loanParams.loanType,
-                    loan_term: loanParams.loanTerm
-                });
-
-                offersUrl += (offersUrl.indexOf('?') > 0 ? '&' : '?') + urlParams.toString();
-
-                fetch(offersUrl, { method: 'POST' }).then(response => {
-                    ComfinoPaywallFrontend.logEvent('updateOrderPaymentState PrestaShop', 'debug', offersUrl, response);
-                });
-            }
-
-            if (document.readyState === 'complete') {
-                Comfino.init();
-            } else {
-                document.addEventListener('readystatechange', () => {
-                    if (document.readyState === 'complete') {
-                        Comfino.init();
-                    }
-                });
-            }
-        }
-    };
-    script.src = '{$paywall_script_url}';
-    script.async = true;
-    document.getElementsByTagName('head')[0].appendChild(script);
-</script>
+<script type="application/json" id="comfino-checkout-config">{$comfino_settings|@json_encode nofilter}</script>
+<script data-cfasync="false" src="{$checkout_script_url|escape:'htmlall':'UTF-8'}" data-comfino-checkout="1" crossorigin="anonymous"></script>

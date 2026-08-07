@@ -1,3 +1,6 @@
+3.6.0
+ - FN-14835 Final release of the legacy 3.x line for PHP 5.6 / PrestaShop 1.6 shops: paywall migrated to the Comfino V3 API and the new web frontend SDK loaded from Comfino's CDN, product widget migrated to the CDN bridge script, loan type/term now submitted with the order form, added frontend error logging token and shop environment reporting, removed the deprecated V1 paywall and V2 UMD widget scripts together with the manual widget initialization code.
+
 3.5.5
  - FN-12012 Fix bug with empty host in API calls from widget logic, fixed bugs in product category filters logic and payment transaction processing, integration with new widget banner/calculator based on iframe. End of official support for plugins 3.x version compatible with PHP 5.6 and PrestaShop versions below 1.6.1.11.
 

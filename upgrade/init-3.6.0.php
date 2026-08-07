@@ -30,16 +30,28 @@ if (!defined('_PS_VERSION_')) {
 require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 
 /**
+ * Migrates the shop from the deprecated UMD paywall/widget integration to the frontend SDK.
+ *
  * @param Comfino $module
  *
  * @return bool
  */
-function upgrade_module_2_4_3($module)
+function upgrade_module_3_6_0($module)
 {
     $config_manager = new \Comfino\ConfigManager($module);
 
-    // Update code of widget initialization script.
-    $config_manager->updateWidgetCode('f4107dede201847d84a372002e748767');
+    // Initialize configuration options added together with the frontend SDK integration.
+    $config_manager->updateConfiguration(
+        [
+            'COMFINO_ERROR_LOGGING_ACCESS_TOKEN' => '',
+            'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => 0,
+        ],
+        false
+    );
+
+    /* Drop the manually editable widget initialization code and the widget script version overrides - the
+       widget is now bootstrapped by a bridge script served from the SDK CDN. */
+    $config_manager->deleteObsoleteConfigurationValues();
 
     return true;
 }
