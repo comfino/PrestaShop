@@ -56,6 +56,9 @@ class Api
     const COMFINO_WIDGET_JS_SANDBOX_HOST = 'https://widget.craty.pl';
     const COMFINO_WIDGET_JS_PRODUCTION_HOST = 'https://widget.comfino.pl';
 
+    const COMFINO_SDK_PRODUCTION_HOST = 'https://sdk.comfino.pl';
+    const COMFINO_SDK_SANDBOX_HOST = 'https://sdk.craty.pl';
+
     const INSTALLMENTS_ZERO_PERCENT = 'INSTALLMENTS_ZERO_PERCENT';
     const CONVENIENT_INSTALLMENTS = 'CONVENIENT_INSTALLMENTS';
     const PAY_LATER = 'PAY_LATER';
@@ -442,6 +445,95 @@ class Api
         }
 
         return self::$widget_script_url;
+    }
+
+    /**
+     * Resolves the base URL of the frontend SDK CDN (checkout glue, ESM SDK, product widget bridge,
+     * checkout CSS). A local-development override may be supplied via the COMFINO_DEV_SDK_CDN_BASE_URL
+     * environment variable (only honoured in dev mode); it always points at the SDK CDN host, never at
+     * generic static resources.
+     *
+     * @return string base URL without a trailing slash
+     */
+    public static function getSdkCdnBaseUrl()
+    {
+        $devOverride = self::getSdkCdnDevOverride();
+
+        if ($devOverride !== null) {
+            return $devOverride;
+        }
+
+        return self::$is_sandbox_mode ? self::COMFINO_SDK_SANDBOX_HOST : self::COMFINO_SDK_PRODUCTION_HOST;
+    }
+
+    /**
+     * Checkout glue script that dynamically imports the ESM SDK into the paywall container.
+     *
+     * @return string
+     */
+    public static function getCheckoutScriptUrl()
+    {
+        return self::getSdkCdnBaseUrl() . '/checkout/v1/' . self::sdkScriptFileName('comfino-prestashop');
+    }
+
+    /**
+     * ESM SDK bundle imported by the checkout glue and the product widget bridge; also passed to the
+     * frontend in the config blob as "sdkScriptUrl".
+     *
+     * @return string
+     */
+    public static function getSdkScriptUrl()
+    {
+        return self::getSdkCdnBaseUrl() . '/v1/' . self::sdkScriptFileName('comfino-sdk');
+    }
+
+    /**
+     * Product-page widget bridge script (self-bootstraps and imports the same ESM SDK).
+     *
+     * @return string
+     */
+    public static function getProductWidgetScriptUrl()
+    {
+        return self::getSdkCdnBaseUrl() . '/product/v1/' . self::sdkScriptFileName('comfino-prestashop-widget');
+    }
+
+    /**
+     * Optional checkout item-gate stylesheet served from the SDK CDN.
+     *
+     * @return string
+     */
+    public static function getCheckoutStyleUrl()
+    {
+        return self::getSdkCdnBaseUrl() . '/checkout/v1/css/comfino-item-gate-prestashop.css';
+    }
+
+    /**
+     * Returns the dev-mode SDK CDN base URL override (without a trailing slash), or null when it is
+     * not applicable. Matches the COMFINO_DEV gating used by the other dev overrides in this class.
+     *
+     * @return string|null
+     */
+    private static function getSdkCdnDevOverride()
+    {
+        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') && getenv('COMFINO_DEV_SDK_CDN_BASE_URL')
+            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
+        ) {
+            return rtrim(getenv('COMFINO_DEV_SDK_CDN_BASE_URL'), '/');
+        }
+
+        return null;
+    }
+
+    /**
+     * Builds an SDK script file name; serves the unminified variant when a dev CDN override is active.
+     *
+     * @param string $baseName
+     *
+     * @return string
+     */
+    private static function sdkScriptFileName($baseName)
+    {
+        return $baseName . (self::getSdkCdnDevOverride() !== null ? '.js' : '.min.js');
     }
 
     /**
