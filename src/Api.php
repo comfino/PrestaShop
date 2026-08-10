@@ -480,7 +480,7 @@ class Api
      */
     public static function getSdkScriptUrl()
     {
-        return self::getSdkCdnBaseUrl() . '/v1/' . self::sdkScriptFileName('comfino-sdk');
+        return self::getSdkCdnBaseUrl() . '/sdk/v1/' . self::sdkScriptFileName('comfino-sdk');
     }
 
     /**
