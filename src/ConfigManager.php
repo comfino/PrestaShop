@@ -48,6 +48,7 @@ class ConfigManager
     const COMFINO_SETTINGS_OPTIONS = [
         'payment_settings' => [
             'COMFINO_API_KEY',
+            'COMFINO_PAYMENT_TEXT_ENABLED',
             'COMFINO_PAYMENT_TEXT',
             'COMFINO_MINIMAL_CART_AMOUNT',
         ],
@@ -85,7 +86,9 @@ class ConfigManager
     const ERROR_LOGGING_TOKEN_REFRESH_MARGIN = 3600;
 
     const ACCESSIBLE_CONFIG_OPTIONS = [
+        'COMFINO_PAYMENT_TEXT_ENABLED',
         'COMFINO_PAYMENT_TEXT',
+        'COMFINO_CHECKOUT_PRODUCT_TYPES',
         'COMFINO_MINIMAL_CART_AMOUNT',
         'COMFINO_IS_SANDBOX',
         'COMFINO_PRODUCT_CATEGORY_FILTERS',
@@ -111,6 +114,7 @@ class ConfigManager
     const CONFIG_OPTIONS_TYPES = [
         'COMFINO_MINIMAL_CART_AMOUNT' => 'float',
         'COMFINO_IS_SANDBOX' => 'bool',
+        'COMFINO_PAYMENT_TEXT_ENABLED' => 'bool',
         'COMFINO_WIDGET_ENABLED' => 'bool',
         'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 'int',
     ];
@@ -188,7 +192,9 @@ class ConfigManager
         }
 
         $initial_config_values = [
+            'COMFINO_PAYMENT_TEXT_ENABLED' => true,
             'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
+            'COMFINO_CHECKOUT_PRODUCT_TYPES' => '',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
@@ -206,6 +212,8 @@ class ConfigManager
             'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL' => '',
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN' => '',
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => 0,
+            'COMFINO_REMOTE_FLAGS' => '',
+            'COMFINO_REMOTE_FLAG_ATTRIBUTES' => '',
             'COMFINO_JS_PROD_PATH' => '',
             'COMFINO_CSS_PROD_PATH' => 'css',
             'COMFINO_JS_DEV_PATH' => '',
@@ -389,7 +397,67 @@ class ConfigManager
             $expiry_timestamp !== false ? $expiry_timestamp : 0
         );
 
+        $this->refreshRemoteFlagsIfChanged(Api::getLastResponseHeader('Comfino-Flags'));
+
         return $claimed_token['access_token'];
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getRemoteFlags()
+    {
+        $flags = explode(',', (string) $this->getConfigurationValue('COMFINO_REMOTE_FLAGS'));
+
+        return array_values(array_filter(array_map('trim', $flags), static function ($flag) {
+            return $flag !== '';
+        }));
+    }
+
+    /**
+     * @return array
+     */
+    public function getRemoteFlagAttributes()
+    {
+        $flag_attributes = json_decode((string) $this->getConfigurationValue('COMFINO_REMOTE_FLAG_ATTRIBUTES'), true);
+
+        return is_array($flag_attributes) ? $flag_attributes : [];
+    }
+
+    /**
+     * Updates the stored remote flags from the "Comfino-Flags" header of the error logging token response.
+     *
+     * Flag attributes are only ever set/changed together with their flag, so the dedicated attributes
+     * endpoint is only re-fetched when the flag list itself changed - this saves an extra API call on
+     * every other token refresh.
+     *
+     * @param string $flags_header_value
+     *
+     * @return void
+     */
+    private function refreshRemoteFlagsIfChanged($flags_header_value)
+    {
+        $remote_flags = array_values(array_unique(array_filter(
+            array_map('trim', explode(',', (string) $flags_header_value)),
+            static function ($flag) { return $flag !== ''; }
+        )));
+        sort($remote_flags);
+
+        $stored_flags = $this->getRemoteFlags();
+        sort($stored_flags);
+
+        if ($remote_flags === $stored_flags) {
+            return;
+        }
+
+        \Configuration::updateValue('COMFINO_REMOTE_FLAGS', implode(',', $remote_flags));
+
+        $flag_attributes = Api::getUserSettingsFlags();
+
+        \Configuration::updateValue(
+            'COMFINO_REMOTE_FLAG_ATTRIBUTES',
+            is_array($flag_attributes) ? json_encode($flag_attributes) : ''
+        );
     }
 
     /**
@@ -503,10 +571,12 @@ class ConfigManager
 
     /**
      * @param string $list_type
+     * @param bool $use_public_names When true, returns customer-facing names for the frontend SDK instead
+     *                               of the admin-facing names used in the plugin's own settings UI.
      *
      * @return array
      */
-    public function getOfferTypes($list_type = 'sale_settings')
+    public function getOfferTypes($list_type = 'sale_settings', $use_public_names = false)
     {
         if ($list_type === 'sale_settings') {
             $list_type = 'paywall';
@@ -514,7 +584,7 @@ class ConfigManager
             $list_type = 'widget';
         }
 
-        $product_types = Api::getProductTypes($list_type);
+        $product_types = Api::getProductTypes($list_type, $use_public_names);
 
         if ($product_types !== false) {
             $offer_types = [];
@@ -537,6 +607,50 @@ class ConfigManager
         }
 
         return $offer_types;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getCheckoutProductTypes()
+    {
+        $product_types = explode(',', (string) $this->getConfigurationValue('COMFINO_CHECKOUT_PRODUCT_TYPES'));
+
+        return array_values(array_filter(array_map('trim', $product_types), static function ($product_type) {
+            return $product_type !== '';
+        }));
+    }
+
+    /**
+     * Returns the checkout payment method item label: either the merchant's custom text
+     * (COMFINO_PAYMENT_TEXT) when COMFINO_PAYMENT_TEXT_ENABLED is on, or the display names of the selected
+     * financial product types (COMFINO_CHECKOUT_PRODUCT_TYPES, at most 2) joined into a single label.
+     *
+     * @return string|null
+     */
+    public function getPaymentMethodLabel()
+    {
+        if ($this->getConfigurationValue('COMFINO_PAYMENT_TEXT_ENABLED')) {
+            $text = (string) $this->getConfigurationValue('COMFINO_PAYMENT_TEXT');
+
+            return $text !== '' ? $text : null;
+        }
+
+        $selected_product_types = $this->getCheckoutProductTypes();
+
+        if (empty($selected_product_types) || !is_array($product_type_names = Api::getProductTypes('paywall', true))) {
+            return null;
+        }
+
+        $labels = [];
+
+        foreach ($selected_product_types as $product_type_code) {
+            if (isset($product_type_names[$product_type_code])) {
+                $labels[] = $product_type_names[$product_type_code];
+            }
+        }
+
+        return $labels ? implode(' | ', $labels) : null;
     }
 
     /**

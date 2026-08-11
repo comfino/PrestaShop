@@ -199,6 +199,22 @@ class Comfino extends PaymentModule
                 }
             }
 
+            if ($active_tab === 'payment_settings') {
+                $checkout_product_types = [];
+
+                foreach ($config_manager->getOfferTypes('sale_settings') as $offer_type) {
+                    if (Tools::getValue('COMFINO_CHECKOUT_PRODUCT_TYPES_' . $offer_type['key'])) {
+                        $checkout_product_types[] = $offer_type['key'];
+                    }
+                }
+
+                // At most two financial product types can be displayed on the payment method list item.
+                $configuration_options['COMFINO_CHECKOUT_PRODUCT_TYPES'] = implode(
+                    ',',
+                    array_slice($checkout_product_types, 0, 2)
+                );
+            }
+
             switch ($active_tab) {
                 case 'payment_settings':
                 case 'developer_settings':
@@ -216,8 +232,15 @@ class Comfino extends PaymentModule
                         if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
                             $output[] = sprintf($error_empty_msg, $this->l('Production environment API key'));
                         }
-                        if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
-                            $output[] = sprintf($error_empty_msg, $this->l('Payment text'));
+                        if (Tools::getValue('COMFINO_PAYMENT_TEXT_ENABLED')) {
+                            if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
+                                $output[] = sprintf($error_empty_msg, $this->l('Payment text'));
+                            }
+                        } elseif (empty($configuration_options['COMFINO_CHECKOUT_PRODUCT_TYPES'])) {
+                            $output[] = $this->l(
+                                'Please select at least one financial product type to display on the payment ' .
+                                'method list item.'
+                            );
                         }
                         if (Tools::isEmpty(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
                             $output[] = sprintf($error_empty_msg, $this->l('Minimal amount in cart'));
@@ -554,7 +577,7 @@ class Comfino extends PaymentModule
         $comfino_payment_option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
         $comfino_payment_option->setModuleName($this->name)
             ->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
-            ->setCallToActionText($config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'))
+            ->setCallToActionText($config_manager->getPaymentMethodLabel() ?: $this->displayName)
             ->setLogo(Comfino\Api::getDefaultLogoUrl())
             /* On order placement PrestaShop submits only the form it builds from these inputs - the markup
                passed to setAdditionalInformation() (the paywall container) is display-only and never
@@ -741,6 +764,7 @@ class Comfino extends PaymentModule
     public function hookActionAdminControllerSetMedia($params)
     {
         $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/tree.min.js');
+        $this->context->controller->addJS(_MODULE_DIR_ . $this->name . '/views/js/payment-settings.js');
     }
 
     /**
@@ -773,6 +797,16 @@ class Comfino extends PaymentModule
         }
 
         $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = Comfino\ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES);
+
+        $selected_checkout_product_types = $config_manager->getCheckoutProductTypes();
+
+        foreach ($config_manager->getOfferTypes('sale_settings') as $offer_type) {
+            $helper->fields_value['COMFINO_CHECKOUT_PRODUCT_TYPES_' . $offer_type['key']] = in_array(
+                $offer_type['key'],
+                $selected_checkout_product_types,
+                true
+            );
+        }
 
         $messages = [];
 
@@ -846,6 +880,10 @@ class Comfino extends PaymentModule
             case 'payment_settings':
                 if ($config_manager->getConfigurationValue('COMFINO_IS_SANDBOX')) {
                     $messages['warning'] = $this->l('Developer mode is active. You are using test environment.');
+                }
+
+                if (!isset($params['offer_types']['payment_settings'])) {
+                    $params['offer_types']['payment_settings'] = $config_manager->getOfferTypes('sale_settings');
                 }
 
                 break;
@@ -1058,10 +1096,47 @@ class Comfino extends PaymentModule
                                 'placeholder' => $this->l('Please enter the key provided during registration'),
                             ],
                             [
+                                'type' => 'switch',
+                                'label' => $this->l('Use custom payment label text'),
+                                'name' => 'COMFINO_PAYMENT_TEXT_ENABLED',
+                                'values' => [
+                                    [
+                                        'id' => 'payment_text_enabled',
+                                        'value' => true,
+                                        'label' => $this->l('Enabled'),
+                                    ],
+                                    [
+                                        'id' => 'payment_text_disabled',
+                                        'value' => false,
+                                        'label' => $this->l('Disabled'),
+                                    ],
+                                ],
+                                'desc' => $this->l(
+                                    'When disabled, the payment text below is ignored and the checkout item ' .
+                                    'label is built from the financial product types selected below instead.'
+                                ),
+                            ],
+                            [
                                 'type' => 'text',
                                 'label' => $this->l('Payment text'),
                                 'name' => 'COMFINO_PAYMENT_TEXT',
                                 'required' => true,
+                            ],
+                            [
+                                'type' => 'checkbox',
+                                'label' => $this->l('Payment label product types'),
+                                'name' => 'COMFINO_CHECKOUT_PRODUCT_TYPES',
+                                'class' => 'js-comfino-max-select-2',
+                                'values' => [
+                                    'query' => $params['offer_types']['payment_settings'],
+                                    'id' => 'key',
+                                    'name' => 'name',
+                                ],
+                                'desc' => $this->l(
+                                    'Used only when the custom payment label above is disabled. Select up to ' .
+                                    'two financial product types to show their names in the checkout payment ' .
+                                    'method label.'
+                                ),
                             ],
                             [
                                 'type' => 'text',
@@ -1387,7 +1462,7 @@ class Comfino extends PaymentModule
         $config_manager = new Comfino\ConfigManager($this);
 
         return [
-            'pay_with_comfino_text' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT'),
+            'pay_with_comfino_text' => $config_manager->getPaymentMethodLabel() ?: $this->displayName,
             'comfino_default_logo_url' => Comfino\Api::getDefaultLogoUrl(),
             'go_to_payment_url' => $this->context->link->getModuleLink($this->name, 'payment', [], true),
         ];
@@ -1644,6 +1719,16 @@ class Comfino extends PaymentModule
         $language = $tools->getLanguageIsoCode($this->context->cart->id_lang);
         $currency = $tools->getCurrencyIsoCode($this->context->cart->id_currency);
 
+        $product_type_names = [];
+
+        foreach ($config_manager->getOfferTypes('sale_settings', true) as $product_type) {
+            $product_type_names[$product_type['key']] = $product_type['name'];
+        }
+
+        if (is_array($product_types_filter)) {
+            $product_type_names = array_intersect_key($product_type_names, array_flip($product_types_filter));
+        }
+
         $comfino_settings = [
             'authToken' => Comfino\PaywallAuthTokenGenerator::generateAuthToken(
                 $widget_key,
@@ -1659,13 +1744,16 @@ class Comfino extends PaymentModule
             'productTypes' => is_array($product_types_filter)
                 ? array_map('strval', $product_types_filter)
                 : null,
+            'productTypeNames' => $product_type_names ?: null,
+            'flags' => $config_manager->getRemoteFlags(),
+            'flagAttributes' => $config_manager->getRemoteFlagAttributes(),
             'cart' => $cart_payload,
             'paywallSettings' => [
                 'language' => $language,
                 'currency' => $currency,
             ],
             'shopEnvironment' => Comfino\ShopEnvironmentReporter::getFrontendEnvironment(['type' => 'checkout']),
-            'paymentMethodLabel' => $config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT') ?: null,
+            'paymentMethodLabel' => $config_manager->getPaymentMethodLabel(),
         ];
 
         $this->smarty->assign(array_merge(

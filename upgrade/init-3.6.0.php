@@ -45,6 +45,10 @@ function upgrade_module_3_6_0($module)
         [
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN' => '',
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => 0,
+            'COMFINO_REMOTE_FLAGS' => '',
+            'COMFINO_REMOTE_FLAG_ATTRIBUTES' => '',
+            'COMFINO_PAYMENT_TEXT_ENABLED' => true,
+            'COMFINO_CHECKOUT_PRODUCT_TYPES' => '',
         ],
         false
     );

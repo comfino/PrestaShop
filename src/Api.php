@@ -73,6 +73,9 @@ class Api
     private static $last_response_code;
 
     /** @var array */
+    private static $last_response_headers = [];
+
+    /** @var array */
     private static $last_errors = [];
 
     /**
@@ -177,10 +180,14 @@ class Api
 
     /**
      * @param string $list_type
+     * @param bool $use_public_names When true, returns customer-facing names (for the frontend SDK) instead of the
+     *                               admin-facing names used in the plugin's own settings UI. The API may return either
+     *                               a plain name string per product type code, or a [internalName, publicName] tuple -
+     *                               both shapes are supported
      *
      * @return string[]|bool
      */
-    public static function getProductTypes($list_type)
+    public static function getProductTypes($list_type, $use_public_names = false)
     {
         static $product_types = [];
 
@@ -193,10 +200,23 @@ class Api
                 return false;
             }
 
-            $product_types[$list_type] = $prod_types;
+            $internal_names = [];
+            $public_names = [];
+
+            foreach ((array) $prod_types as $product_type_code => $names) {
+                if (is_array($names)) {
+                    $internal_names[$product_type_code] = isset($names[0]) ? $names[0] : '';
+                    $public_names[$product_type_code] = isset($names[1]) ? $names[1] : $internal_names[$product_type_code];
+                } else {
+                    $internal_names[$product_type_code] = $names;
+                    $public_names[$product_type_code] = $names;
+                }
+            }
+
+            $product_types[$list_type] = ['internal' => $internal_names, 'public' => $public_names];
         }
 
-        return $product_types[$list_type];
+        return $product_types[$list_type][$use_public_names ? 'public' : 'internal'];
     }
 
     /**
@@ -324,6 +344,34 @@ class Api
     }
 
     /**
+     * Fetches remote feature-flag attributes. Called only when the flag list carried by the
+     * "Comfino-Flags" header on the error-logging-token response has changed, since attributes are
+     * never modified independently of their flag.
+     *
+     * @return array|bool assoc array [flagName => attributes] or false on failure
+     */
+    public static function getUserSettingsFlags()
+    {
+        if (empty(self::getApiKey())) {
+            return false;
+        }
+
+        $response = self::sendRequest(self::getApiHost() . '/v1/user/settings/flags', 'GET', [], null, false);
+
+        if ($response === false || count(self::$last_errors)) {
+            return false;
+        }
+
+        $decoded = json_decode($response, true);
+
+        if (!is_array($decoded) || !isset($decoded['flags']) || !is_array($decoded['flags'])) {
+            return false;
+        }
+
+        return $decoded['flags'];
+    }
+
+    /**
      * Fire-and-forget shop environment report. Failures are never propagated to the caller.
      *
      * @param array $report
@@ -417,6 +465,19 @@ class Api
     public static function getLastResponseBody()
     {
         return self::$last_response_body;
+    }
+
+    /**
+     * @param string $name
+     * @param string $default
+     *
+     * @return string
+     */
+    public static function getLastResponseHeader($name, $default = '')
+    {
+        $name = \Tools::strtolower($name);
+
+        return isset(self::$last_response_headers[$name]) ? self::$last_response_headers[$name] : $default;
     }
 
     /**
@@ -619,6 +680,7 @@ class Api
         self::$last_request_body = null;
         self::$last_response_body = null;
         self::$last_response_code = null;
+        self::$last_response_headers = [];
         self::$last_errors = [];
 
         $method = \Tools::strtoupper($request_type);
@@ -628,6 +690,16 @@ class Api
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_HTTPHEADER => self::getRequestHeaders($method, $data),
             CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADERFUNCTION => static function ($curl_handle, $header_line) {
+                $separator_pos = strpos($header_line, ':');
+
+                if ($separator_pos !== false) {
+                    $header_name = \Tools::strtolower(trim(substr($header_line, 0, $separator_pos)));
+                    self::$last_response_headers[$header_name] = trim(substr($header_line, $separator_pos + 1));
+                }
+
+                return strlen($header_line);
+            },
         ];
 
         switch ($options[CURLOPT_CUSTOMREQUEST]) {
