@@ -232,15 +232,10 @@ class Comfino extends PaymentModule
                         if (Tools::isEmpty(Tools::getValue('COMFINO_API_KEY'))) {
                             $output[] = sprintf($error_empty_msg, $this->l('Production environment API key'));
                         }
-                        if (Tools::getValue('COMFINO_PAYMENT_TEXT_ENABLED')) {
-                            if (Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_TEXT'))) {
-                                $output[] = sprintf($error_empty_msg, $this->l('Payment text'));
-                            }
-                        } elseif (empty($configuration_options['COMFINO_CHECKOUT_PRODUCT_TYPES'])) {
-                            $output[] = $this->l(
-                                'Please select at least one financial product type to display on the payment ' .
-                                'method list item.'
-                            );
+                        if (Tools::getValue('COMFINO_PAYMENT_TEXT_ENABLED')
+                            && Tools::isEmpty(Tools::getValue('COMFINO_PAYMENT_TEXT'))
+                        ) {
+                            $output[] = sprintf($error_empty_msg, $this->l('Payment text'));
                         }
                         if (Tools::isEmpty(Tools::getValue('COMFINO_MINIMAL_CART_AMOUNT'))) {
                             $output[] = sprintf($error_empty_msg, $this->l('Minimal amount in cart'));
@@ -1112,8 +1107,8 @@ class Comfino extends PaymentModule
                                     ],
                                 ],
                                 'desc' => $this->l(
-                                    'When disabled, the payment text below is ignored and the checkout item ' .
-                                    'label is built from the financial product types selected below instead.'
+                                    'When disabled, the text below is ignored and the checkout item label is ' .
+                                    'built from the financial product types selected below instead.'
                                 ),
                             ],
                             [

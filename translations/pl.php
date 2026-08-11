@@ -161,3 +161,7 @@ $_MODULE['<{comfino}prestashop>comfino_d4aad807f5cb785b565800d6dd1d1221'] = 'Bł
 $_MODULE['<{comfino}prestashop>payment_d8a4cff35b23d669be2e30f7248feac0'] = 'O ile dni chcesz odroczyć płatność?';
 $_MODULE['<{comfino}prestashop>payment_5d121eca7f83ea19196e05f70f393d47'] = 'Prowizja operatora';
 $_MODULE['<{comfino}prestashop>payment_3ab26cb61868b4325b4b142b3d39a25a'] = 'Łączna kwota do spłaty';
+$_MODULE['<{comfino}prestashop>comfino_7e3b3d6575a58b8d9d8f77eb1c88652d'] = 'Użyj niestandardowego tekstu etykiety płatności';
+$_MODULE['<{comfino}prestashop>comfino_a59304f35ca15cb1f54bab632c9a2897'] = 'Gdy opcja jest wyłączona, poniższy tekst jest ignorowany, a etykieta pozycji płatności w zamówieniu jest budowana na podstawie wybranych poniżej rodzajów produktów finansowych.';
+$_MODULE['<{comfino}prestashop>comfino_f548461b51487c63ffa1de02f0d051cf'] = 'Rodzaje produktów w etykiecie płatności';
+$_MODULE['<{comfino}prestashop>comfino_9023fe30da18d4c4399dc59c824557c6'] = 'Używane tylko wtedy, gdy powyższa niestandardowa etykieta płatności jest wyłączona. Wybierz maksymalnie dwa rodzaje produktów finansowych, których nazwy zostaną wyświetlone w etykiecie metody płatności w zamówieniu.';
