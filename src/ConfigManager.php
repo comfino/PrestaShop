@@ -192,9 +192,9 @@ class ConfigManager
         }
 
         $initial_config_values = [
-            'COMFINO_PAYMENT_TEXT_ENABLED' => true,
-            'COMFINO_PAYMENT_TEXT' => '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)',
-            'COMFINO_CHECKOUT_PRODUCT_TYPES' => '',
+            'COMFINO_PAYMENT_TEXT_ENABLED' => false,
+            'COMFINO_PAYMENT_TEXT' => 'Comfino',
+            'COMFINO_CHECKOUT_PRODUCT_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
             'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',

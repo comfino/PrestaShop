@@ -47,11 +47,20 @@ function upgrade_module_3_6_0($module)
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => 0,
             'COMFINO_REMOTE_FLAGS' => '',
             'COMFINO_REMOTE_FLAG_ATTRIBUTES' => '',
-            'COMFINO_PAYMENT_TEXT_ENABLED' => true,
-            'COMFINO_CHECKOUT_PRODUCT_TYPES' => '',
+            /* Switch the checkout payment method label to the financial-product-types-based label by
+               default, matching the WooCommerce plugin's default: custom text present but inactive, with
+               the two highest-priority financial product types selected for the SDK-rendered label. */
+            'COMFINO_PAYMENT_TEXT_ENABLED' => false,
+            'COMFINO_CHECKOUT_PRODUCT_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
         ],
         false
     );
+
+    /* Only replace the payment text with the new WooCommerce-aligned default if the shop still has the old
+       pre-3.6.0 default value - a merchant's own custom text must never be overwritten by an upgrade. */
+    if ($config_manager->getConfigurationValue('COMFINO_PAYMENT_TEXT') === '(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)') {
+        $config_manager->updateConfiguration(['COMFINO_PAYMENT_TEXT' => 'Comfino'], false);
+    }
 
     /* Drop the manually editable widget initialization code and the widget script version overrides - the
        widget is now bootstrapped by a bridge script served from the SDK CDN. */
