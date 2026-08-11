@@ -192,7 +192,7 @@ class Api
         static $product_types = [];
 
         if (!isset($product_types[$list_type])) {
-            $prod_types = self::sendRequest(self::getApiHost() . '/v1/product-types?listType=' . $list_type, 'GET');
+            $prod_types = self::sendRequest(self::getApiHost() . '/v2/product-types?listType=' . $list_type, 'GET');
 
             if ($prod_types !== false && !count(self::$last_errors) && strpos($prod_types, 'errors') === false) {
                 $prod_types = json_decode($prod_types, true);
