@@ -213,6 +213,14 @@ class Comfino extends PaymentModule
                     ',',
                     array_slice($checkout_product_types, 0, 2)
                 );
+
+                if (!Tools::getValue('COMFINO_PAYMENT_TEXT_ENABLED')) {
+                    /* The text field is disabled client-side when the toggle is off, so it's absent
+                      from the submitted form - keep the previously saved value instead of wiping it. */
+                    $configuration_options['COMFINO_PAYMENT_TEXT'] = $config_manager->getConfigurationValue(
+                        'COMFINO_PAYMENT_TEXT'
+                    );
+                }
             }
 
             switch ($active_tab) {
