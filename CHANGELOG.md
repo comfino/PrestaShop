@@ -11,7 +11,6 @@ able to run PHP 7.1+ should move to the 4.x line.
 - Shop environment reporting — after the module configuration is saved, a description of the shop (platform and plugin version, theme, language, currency) is sent to Comfino to speed up diagnostics. It is best-effort and never delays or blocks saving the settings.
 - Improved support for development and testing setups, aligned with the newer plugin versions.
 - Log of changes to the module settings, shown in the plugin diagnostics tab. Every change is recorded with the time it happened and whether it was made in the shop's administration panel or requested by Comfino, so a merchant can always see what was changed and when. Keys and tokens are never written to it.
-- Support for customer data requests — the module now cooperates with PrestaShop's official GDPR module, so requests to view, export or delete a customer's data also cover the payment records this module stores.
 - Guide for shops running Nginx and other web servers that do not read Apache configuration files, describing how to block direct access to the module's files.
 
 ### Changed

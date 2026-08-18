@@ -69,13 +69,5 @@ function upgrade_module_3_6_0($module)
        widget is now bootstrapped by a bridge script served from the SDK CDN. */
     $config_manager->deleteObsoleteConfigurationValues();
 
-    /* Data subject rights hooks are new in 3.6.0 - existing installations have to be subscribed to them so that
-       PrestaShop's GDPR module can see the data this plugin stores. */
-    foreach (['registerGDPRConsent', 'actionExportGDPRData', 'actionDeleteGDPRCustomer'] as $hook_name) {
-        if (!$module->isRegisteredInHook($hook_name)) {
-            $module->registerHook($hook_name);
-        }
-    }
-
     return true;
 }

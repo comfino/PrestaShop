@@ -119,13 +119,6 @@ class Comfino extends PaymentModule
         $this->registerHook('header');
         $this->registerHook('actionAdminControllerSetMedia');
 
-        /* Data subject rights (GDPR/RODO art. 15, 17, 20). Registering these makes the module visible to
-           PrestaShop's official GDPR module, so access, erasure and portability requests can reach the data
-           this module stores. */
-        $this->registerHook('registerGDPRConsent');
-        $this->registerHook('actionExportGDPRData');
-        $this->registerHook('actionDeleteGDPRCustomer');
-
         return true;
     }
 
@@ -153,9 +146,6 @@ class Comfino extends PaymentModule
             $this->unregisterHook('actionValidateCustomerAddressForm');
             $this->unregisterHook('header');
             $this->unregisterHook('actionAdminControllerSetMedia');
-            $this->unregisterHook('registerGDPRConsent');
-            $this->unregisterHook('actionExportGDPRData');
-            $this->unregisterHook('actionDeleteGDPRCustomer');
 
             Comfino\Api::notifyPluginRemoval();
 
@@ -652,114 +642,6 @@ class Comfino extends PaymentModule
         }
 
         return '1';
-    }
-
-    /**
-     * Declares the module in the consent list of PrestaShop's official GDPR module, so the merchant can describe
-     * what is processed and why.
-     *
-     * @return array
-     */
-    public function hookRegisterGDPRConsent()
-    {
-        return [
-            'name' => $this->displayName,
-            'message' => $this->l(
-                'To process a financing application, the order data (contact details, delivery address, cart ' .
-                'contents and, where the selected financing product requires it, the tax identification ' .
-                'number) is sent to Comperia.pl S.A., which acts as a separate controller for the financing ' .
-                'process. The shop stores the identifier of the financing application together with the order.'
-            ),
-        ];
-    }
-
-    /**
-     * Data portability / right of access (GDPR art. 15 and 20). Returns everything this module stores about a
-     * customer, as JSON, for PrestaShop's GDPR module to hand over.
-     *
-     * @param array $params
-     *
-     * @return string|void JSON payload, or nothing when there is no data for this customer.
-     */
-    public function hookActionExportGDPRData($params)
-    {
-        $customer_id = isset($params['id_customer']) ? (int) $params['id_customer'] : 0;
-
-        if ($customer_id === 0) {
-            return;
-        }
-
-        try {
-            $records = Db::getInstance()->executeS(
-                'SELECT `id_comfino`, `order_status`, `legalize_link`, `self_link`, `cancel_link`'
-                . ' FROM `' . _DB_PREFIX_ . 'comfino_orders`'
-                . ' WHERE `id_customer` = ' . $customer_id
-            );
-        } catch (Exception $e) {
-            Comfino\ErrorLogger::sendError(
-                'GDPR data export error',
-                $e->getCode(),
-                $e->getMessage(),
-                0,
-                null,
-                null,
-                null,
-                $e->getTraceAsString()
-            );
-
-            return;
-        }
-
-        if (!is_array($records) || !count($records)) {
-            return;
-        }
-
-        return json_encode([
-            'comfino_financing_applications' => $records,
-            'note' => $this->l(
-                'The financing applications themselves are held by Comperia.pl S.A. as a separate ' .
-                'controller. Requests concerning that data have to be addressed to Comfino.'
-            ),
-        ]);
-    }
-
-    /**
-     * Right to erasure (GDPR art. 17). Removes the customer's financing application records held by this module.
-     *
-     * @param array $params
-     *
-     * @return string|bool JSON error description on failure, true on success.
-     */
-    public function hookActionDeleteGDPRCustomer($params)
-    {
-        $customer_id = isset($params['id_customer']) ? (int) $params['id_customer'] : 0;
-
-        if ($customer_id === 0) {
-            return json_encode($this->l('Comfino: no customer identifier supplied, nothing was deleted.'));
-        }
-
-        try {
-            $deleted = Db::getInstance()->delete('comfino_orders', 'id_customer = ' . $customer_id);
-        } catch (Exception $e) {
-            Comfino\ErrorLogger::sendError(
-                'GDPR data deletion error',
-                $e->getCode(),
-                $e->getMessage(),
-                0,
-                null,
-                null,
-                null,
-                $e->getTraceAsString()
-            );
-
-            return json_encode($this->l('Comfino: the stored financing application data could not be deleted.'));
-        }
-
-        if (!$deleted) {
-            return json_encode($this->l('Comfino: the stored financing application data could not be deleted.'));
-        }
-
-        return true;
     }
 
     /**

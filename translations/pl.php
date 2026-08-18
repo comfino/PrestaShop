@@ -59,10 +59,6 @@ $_MODULE['<{comfino}prestashop>payment_return_decce112a9e64363c997b04aa71b7cb8']
 $_MODULE['<{comfino}prestashop>comfino_90e7796dead41b55c2063846c52a0826'] = 'Comfino to nowatorska metoda płatności dla klientów sklepów ecommerce! To płatności ratalne, odroczone (kup teraz, zapłać później) oraz płatności dla firm dostępne na jednej platformie za pomocą szybkiej integracji. Rozwijaj swój biznes z Comfino!';
 $_MODULE['<{comfino}prestashop>comfino_3e1759db51250b5b214727fbdf60f739'] = 'Płatności Comfino';
 $_MODULE['<{comfino}prestashop>comfino_c58c4371152e7a7d857ca26127c91169'] = 'Czy na pewno chcesz odinstalować płatności Comfino?';
-$_MODULE['<{comfino}prestashop>comfino_bd66e28c9d583047aaf71b7458fd000c'] = 'W celu obsługi wniosku o finansowanie dane zamówienia (dane kontaktowe, adres dostawy, zawartość koszyka, a także numer NIP, jeżeli wymaga tego wybrany produkt finansowy) są przekazywane do Comperia.pl S.A., które występuje jako odrębny administrator danych w procesie finansowania. Sklep przechowuje identyfikator wniosku o finansowanie wraz z zamówieniem.';
-$_MODULE['<{comfino}prestashop>comfino_fda3b2696210bd4ccf0a64cb8b855406'] = 'Same wnioski o finansowanie są przechowywane przez Comperia.pl S.A., które występuje jako odrębny administrator danych. Żądania dotyczące tych danych należy kierować do Comfino.';
-$_MODULE['<{comfino}prestashop>comfino_fc5f8d32cfe4c8e9e5408147aa804b08'] = 'Comfino: nie podano identyfikatora klienta, żadne dane nie zostały usunięte.';
-$_MODULE['<{comfino}prestashop>comfino_ce3562bd90289a9fcc52a8e84e06991d'] = 'Comfino: nie udało się usunąć zapisanych danych wniosków o finansowanie.';
 $_MODULE['<{comfino}prestashop>comfino_7c56edeb05dc5eb669f01e7e3a4e285a'] = 'Widget włączony?';
 $_MODULE['<{comfino}prestashop>comfino_5921cc2a86a8ea51a9b427600dc2e8cc'] = 'Klucz widgetu';
 $_MODULE['<{comfino}prestashop>comfino_3389688e6723e27a287b6ea68b63803c'] = 'Selektor elementu ceny widgetu';
