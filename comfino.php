@@ -51,8 +51,7 @@ class Comfino extends PaymentModule
 {
     const ERROR_LOG_NUM_LINES = 100;
 
-    /* Configuration options holding API keys. They are write-only in the settings form: never pre-filled, and an
-       empty submission keeps the stored value. */
+    // Configuration options holding API keys
     const API_KEY_OPTIONS = ['COMFINO_API_KEY', 'COMFINO_SANDBOX_API_KEY'];
 
     const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
@@ -202,18 +201,6 @@ class Comfino extends PaymentModule
 
             foreach (Comfino\ConfigManager::COMFINO_SETTINGS_OPTIONS[$active_tab] as $option_name) {
                 if ($option_name === 'COMFINO_WIDGET_KEY') {
-                    continue;
-                }
-
-                if (in_array($option_name, self::API_KEY_OPTIONS, true) &&
-                    Tools::isEmpty(Tools::getValue($option_name))
-                ) {
-                    /* The key fields are write-only: an empty submission means "keep the stored key", not
-                       "clear the key". */
-                    $configuration_options[$option_name] = (string) $config_manager->getConfigurationValue(
-                        $option_name
-                    );
-
                     continue;
                 }
 
@@ -724,13 +711,6 @@ class Comfino extends PaymentModule
 
         foreach (Comfino\ConfigManager::COMFINO_SETTINGS_OPTIONS as $options) {
             foreach ($options as $option_name) {
-                if (in_array($option_name, self::API_KEY_OPTIONS, true)) {
-                    // The stored key must not reach the rendered HTML - the field shows a masked hint instead.
-                    $helper->fields_value[$option_name] = '';
-
-                    continue;
-                }
-
                 $helper->fields_value[$option_name] = $config_manager->getConfigurationValue($option_name);
             }
         }
@@ -905,26 +885,6 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * Builds the hint shown under an API key field. The stored key is never rendered in full - only the last four
-     * characters are exposed, which is enough for a merchant to tell which key is configured.
-     *
-     * @param string|null $stored_key
-     *
-     * @return string
-     */
-    private function getApiKeyFieldDescription($stored_key)
-    {
-        if (empty($stored_key)) {
-            return '';
-        }
-
-        return sprintf(
-            $this->l('A key ending in %s is already saved. Leave this field empty to keep it unchanged.'),
-            str_repeat('*', 8) . Tools::substr($stored_key, -4)
-        );
-    }
-
-    /**
      * Tells whether the submitted settings change the API credentials or the environment the module talks to.
      *
      * @param Comfino\ConfigManager $config_manager
@@ -985,17 +945,12 @@ class Comfino extends PaymentModule
                                 'required' => false,
                             ],
                             [
-                                /* The key is never rendered back into the page - only a masked hint is shown,
-                                   and an empty submission leaves the stored key untouched. */
-                                'type' => 'password',
+                                'type' => 'text',
                                 'label' => $this->l('Production environment API key'),
                                 'name' => 'COMFINO_API_KEY',
-                                'required' => false,
+                                'required' => true,
                                 'autocomplete' => false,
                                 'placeholder' => $this->l('Please enter the key provided during registration'),
-                                'desc' => $this->getApiKeyFieldDescription(
-                                    $config_manager->getConfigurationValue('COMFINO_API_KEY')
-                                ),
                             ],
                             [
                                 'type' => 'switch',
@@ -1292,7 +1247,7 @@ class Comfino extends PaymentModule
                                 ),
                             ],
                             [
-                                'type' => 'password',
+                                'type' => 'text',
                                 'label' => $this->l('Test environment API key'),
                                 'name' => 'COMFINO_SANDBOX_API_KEY',
                                 'required' => false,
@@ -1300,8 +1255,6 @@ class Comfino extends PaymentModule
                                 'desc' => $this->l(
                                     'Ask the supervisor for access to the test environment (key, login, password, ' .
                                     'link). Remember, the test key is different from the production key.'
-                                ) . ' ' . $this->getApiKeyFieldDescription(
-                                    $config_manager->getConfigurationValue('COMFINO_SANDBOX_API_KEY')
                                 ),
                             ],
                         ],
