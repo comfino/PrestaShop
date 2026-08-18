@@ -194,8 +194,8 @@ class Comfino extends PaymentModule
             $widget_key_error = false;
             $widget_key = '';
 
-            $error_empty_msg = $this->l("Field '%s' can not be empty.");
-            $error_numeric_format_msg = $this->l("Field '%s' has wrong numeric format.");
+            $error_empty_msg = $this->l('Field "%s" can not be empty.');
+            $error_numeric_format_msg = $this->l('Field "%s" has wrong numeric format.');
 
             $configuration_options = [];
 
@@ -261,6 +261,21 @@ class Comfino extends PaymentModule
                     } else {
                         $is_sandbox_mode = (bool) Tools::getValue('COMFINO_IS_SANDBOX');
 
+                        if (Tools::getIsset('COMFINO_DEV_ENV_VARS')) {
+                            /* Persist and apply immediately, so the API key validation below (same request)
+                               already honors it instead of requiring a second save to take effect. */
+                            $configuration_options['COMFINO_DEV_ENV_VARS'] = (bool) Tools::getValue(
+                                'COMFINO_DEV_ENV_VARS'
+                            );
+                            $config_manager->setConfigurationValue(
+                                'COMFINO_DEV_ENV_VARS',
+                                $configuration_options['COMFINO_DEV_ENV_VARS']
+                            );
+                            Comfino\Api::setUseDevEnvVars(
+                                getenv('COMFINO_DEV_ENV') === 'TRUE' && $configuration_options['COMFINO_DEV_ENV_VARS']
+                            );
+                        }
+
                         $api_host = $is_sandbox_mode
                             ? Comfino\Api::getApiHost(Comfino\Api::COMFINO_SANDBOX_HOST)
                             : Comfino\Api::getApiHost(Comfino\Api::COMFINO_PRODUCTION_HOST);
@@ -277,7 +292,7 @@ class Comfino extends PaymentModule
                         Comfino\Api::setApiKey($api_key);
 
                         if (!Comfino\Api::isApiKeyValid()) {
-                            $output[] = $this->l('The configured API key is not valid.');
+                            $output[] = sprintf($this->l('API key %s is not valid.'), $api_key);
                         } else {
                             $widget_key = Comfino\Api::getWidgetKey();
 
@@ -347,7 +362,7 @@ class Comfino extends PaymentModule
                             Comfino\Api::setApiKey($api_key);
 
                             if (!Comfino\Api::isApiKeyValid()) {
-                                $output[] = $this->l('The configured API key is not valid.');
+                                $output[] = sprintf($this->l('API key %s is not valid.'), $api_key);
                             } else {
                                 $widget_key = Comfino\Api::getWidgetKey();
 

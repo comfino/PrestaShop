@@ -516,6 +516,20 @@ class Api
     }
 
     /**
+     * Lets the config save handler (comfino.php) refresh the dev-env-vars gate right after persisting a change
+     * to COMFINO_DEV_ENV_VARS, so the very same request's API key validation call already honors it instead of
+     * requiring a second save.
+     *
+     * @param bool $use_dev_env_vars
+     *
+     * @return void
+     */
+    public static function setUseDevEnvVars($use_dev_env_vars)
+    {
+        self::$use_dev_env_vars = $use_dev_env_vars;
+    }
+
+    /**
      * @return string|null
      */
     public static function getLastRequestBody()
