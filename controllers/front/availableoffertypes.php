@@ -49,15 +49,15 @@ class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontControl
         );
 
         if (!Tools::getIsset('product_id')) {
-            echo json_encode($available_product_types);
-            exit;
+            $this->renderJsonResponse($available_product_types);
         }
 
-        $product = new \Product(Tools::getValue('product_id'));
+        $product = new \Product((int) Tools::getValue('product_id'));
 
         if (!\Validate::isLoadedObject($product)) {
-            echo json_encode($available_product_types);
-            exit;
+            /* An unknown product yields the same response as a missing product_id, so this endpoint cannot be
+               used to probe which product IDs exist. */
+            $this->renderJsonResponse($available_product_types);
         }
 
         $filtered_product_types = [];
@@ -68,7 +68,22 @@ class ComfinoAvailableOfferTypesModuleFrontController extends ModuleFrontControl
             }
         }
 
-        echo json_encode($filtered_product_types);
+        $this->renderJsonResponse($filtered_product_types);
+    }
+
+    /**
+     * Emits the response with an explicit content type, so it is never interpreted as HTML by the browser.
+     *
+     * @param string[] $product_types
+     *
+     * @return void
+     */
+    private function renderJsonResponse(array $product_types)
+    {
+        header('Content-Type: application/json');
+        header('X-Content-Type-Options: nosniff');
+
+        echo json_encode($product_types);
 
         exit;
     }

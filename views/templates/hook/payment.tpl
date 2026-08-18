@@ -66,5 +66,5 @@
     </div>
 </form>
 
-<script type="application/json" id="comfino-checkout-config">{$comfino_settings|@json_encode nofilter}</script>
+<script type="application/json" id="comfino-checkout-config">{$comfino_settings_json nofilter}</script>
 <script data-cfasync="false" src="{$checkout_script_url|escape:'htmlall':'UTF-8'}" data-comfino-checkout="1" crossorigin="anonymous"></script>

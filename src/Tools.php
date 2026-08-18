@@ -42,6 +42,21 @@ class Tools
      */
     private $locale;
 
+    /**
+     * Reads a $_SERVER entry without assuming it is present. The superglobal is populated by the SAPI, so on
+     * CLI, FastCGI, and some reverse-proxy setups several of the entries the module reports on are simply
+     * absent.
+     *
+     * @param string $key
+     * @param string $default
+     *
+     * @return string
+     */
+    public static function getServerValue($key, $default = 'n/a')
+    {
+        return isset($_SERVER[$key]) && $_SERVER[$key] !== '' ? (string) $_SERVER[$key] : $default;
+    }
+
     public function __construct(\Context $context)
     {
         $this->context = $context;

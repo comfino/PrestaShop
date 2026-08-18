@@ -33,6 +33,8 @@ if (!defined('_PS_VERSION_')) {
 require_once _PS_MODULE_DIR_ . 'comfino/src/Product/CategoryFilter.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Product/CategoryTree/BuildStrategy.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Product/CategoryTree.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ApiCache.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/AuditLogger.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/PaywallAuthTokenGenerator.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ShopEnvironmentReporter.php';
@@ -72,14 +74,20 @@ class ConfigManager
         'developer_settings' => [
             'COMFINO_IS_SANDBOX',
             'COMFINO_SANDBOX_API_KEY',
+            'COMFINO_DEV_ENV_VARS',
         ],
     ];
 
-    /** Obsolete options removed together with the UMD widget/paywall integration. */
+    /**
+     * Obsolete options removed together with the UMD widget/paywall integration and with the withdrawn in-plugin
+     * shop account registration form. They are deleted on upgrade and on uninstall.
+     */
     const OBSOLETE_CONFIG_OPTIONS = [
         'COMFINO_WIDGET_CODE',
         'COMFINO_WIDGET_PROD_SCRIPT_VERSION',
         'COMFINO_WIDGET_DEV_SCRIPT_VERSION',
+        'COMFINO_REGISTERED_AT',
+        'COMFINO_SANDBOX_REGISTERED_AT',
     ];
 
     /** Short-lived error logging token is renewed when it expires in less than one hour. */
@@ -91,6 +99,7 @@ class ConfigManager
         'COMFINO_CHECKOUT_PRODUCT_TYPES',
         'COMFINO_MINIMAL_CART_AMOUNT',
         'COMFINO_IS_SANDBOX',
+        'COMFINO_DEV_ENV_VARS',
         'COMFINO_PRODUCT_CATEGORY_FILTERS',
         'COMFINO_CAT_FILTER_AVAIL_PROD_TYPES',
         'COMFINO_WIDGET_ENABLED',
@@ -111,9 +120,16 @@ class ConfigManager
         'COMFINO_CSS_DEV_PATH',
     ];
 
+    /** Options whose value is a URL loaded by the customer's browser. Validated on every write path. */
+    const ASSET_URL_CONFIG_OPTIONS = [
+        'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL',
+        'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL',
+    ];
+
     const CONFIG_OPTIONS_TYPES = [
         'COMFINO_MINIMAL_CART_AMOUNT' => 'float',
         'COMFINO_IS_SANDBOX' => 'bool',
+        'COMFINO_DEV_ENV_VARS' => 'bool',
         'COMFINO_PAYMENT_TEXT_ENABLED' => 'bool',
         'COMFINO_WIDGET_ENABLED' => 'bool',
         'COMFINO_WIDGET_PRICE_OBSERVER_LEVEL' => 'int',
@@ -150,7 +166,16 @@ class ConfigManager
      */
     public function setConfigurationValue($opt_name, $opt_value)
     {
+        $old_value = \Configuration::hasKey($opt_name) ? \Configuration::get($opt_name) : null;
+
         \Configuration::updateValue($opt_name, $opt_value);
+
+        if ((string) $old_value !== (string) $opt_value) {
+            AuditLogger::logConfigurationChanges(
+                AuditLogger::ACTOR_ADMIN,
+                [$opt_name => ['old' => $old_value, 'new' => $opt_value]]
+            );
+        }
     }
 
     /**
@@ -182,6 +207,27 @@ class ConfigManager
     }
 
     /**
+     * Gates the COMFINO_DEV_* environment variable overrides (API host, SDK CDN base URL, unminified
+     * scripts): both the COMFINO_DEV_ENV environment flag and the admin-controlled COMFINO_DEV_ENV_VARS
+     * option must be active, so a stray env var left set on a shared/production host cannot silently
+     * redirect traffic.
+     *
+     * @return bool
+     */
+    public function useDevEnvVars()
+    {
+        return getenv('COMFINO_DEV_ENV') === 'TRUE' && (bool) $this->getConfigurationValue('COMFINO_DEV_ENV_VARS');
+    }
+
+    /**
+     * @return bool
+     */
+    public static function useUnminifiedScripts()
+    {
+        return getenv('COMFINO_DEV_USE_UNMINIFIED_SCRIPTS') === 'TRUE';
+    }
+
+    /**
      * @return void
      */
     public function initConfigurationValues()
@@ -210,8 +256,11 @@ class ConfigManager
             'COMFINO_WIDGET_SHOW_PROVIDER_LOGOS' => false,
             'COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL' => '',
             'COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL' => '',
+            'COMFINO_DEV_ENV_VARS' => false,
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN' => '',
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => 0,
+            ApiCache::CACHE_STORAGE_KEY => '',
+            ApiCache::BREAKER_STORAGE_KEY => '',
             'COMFINO_REMOTE_FLAGS' => '',
             'COMFINO_REMOTE_FLAG_ATTRIBUTES' => '',
             'COMFINO_JS_PROD_PATH' => '',
@@ -258,18 +307,96 @@ class ConfigManager
     /**
      * @param array $configuration_options
      * @param bool $only_accessible_options
+     * @param string $audit_actor One of the AuditLogger::ACTOR_* labels; identifies who requested the change.
      *
      * @return void
      */
-    public function updateConfiguration($configuration_options, $only_accessible_options = true)
-    {
+    public function updateConfiguration(
+        $configuration_options,
+        $only_accessible_options = true,
+        $audit_actor = AuditLogger::ACTOR_UPGRADE
+    ) {
+        $changes = [];
+
         foreach ($configuration_options as $opt_name => $opt_value) {
             if ($only_accessible_options && !in_array($opt_name, self::ACCESSIBLE_CONFIG_OPTIONS, true)) {
                 continue;
             }
 
+            if (in_array($opt_name, self::ASSET_URL_CONFIG_OPTIONS, true)) {
+                /* Enforced here rather than in the admin form so that the remote configuration endpoint is
+                   covered by the same rule. */
+                $opt_value = self::sanitizeAssetUrl($opt_value);
+            }
+
+            $old_value = \Configuration::hasKey($opt_name) ? \Configuration::get($opt_name) : null;
+
             \Configuration::updateValue($opt_name, $opt_value);
+
+            if ((string) $old_value !== (string) $opt_value) {
+                $changes[$opt_name] = ['old' => $old_value, 'new' => $opt_value];
+            }
         }
+
+        AuditLogger::logConfigurationChanges($audit_actor, $changes);
+    }
+
+    /**
+     * Accepts only an HTTPS URL served either by Comfino or by the shop itself. Anything else is reduced to an
+     * empty string, which the widget configuration turns into "no custom stylesheet". In PrestaShop's dev mode
+     * (`_PS_MODE_DEV_`), HTTP is also accepted so a local development shop without TLS can still be used as an
+     * allowed host.
+     *
+     * CSS is not inert - an attacker-controlled stylesheet on the product and paywall pages allows data
+     * exfiltration through attribute selectors and `url()` callbacks, and clickjacking overlays.
+     *
+     * @param string $url
+     *
+     * @return string
+     */
+    public static function sanitizeAssetUrl($url)
+    {
+        $url = trim((string) $url);
+
+        if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)) {
+            return '';
+        }
+
+        $url_parts = parse_url($url);
+
+        if (!isset($url_parts['scheme'], $url_parts['host'])
+            || !in_array(\Tools::strtolower($url_parts['scheme']), self::getAllowedAssetUrlSchemes(), true)
+        ) {
+            return '';
+        }
+
+        return in_array(\Tools::strtolower($url_parts['host']), self::getAllowedAssetHosts(), true) ? $url : '';
+    }
+
+    /**
+     * @return string[]
+     */
+    private static function getAllowedAssetUrlSchemes()
+    {
+        return (defined('_PS_MODE_DEV_') && _PS_MODE_DEV_) ? ['https', 'http'] : ['https'];
+    }
+
+    /**
+     * Hosts allowed to serve custom widget stylesheets: Comfino's own CDN endpoints and the shop's own
+     * domains, so a merchant can keep the file next to the theme.
+     *
+     * @return string[]
+     */
+    private static function getAllowedAssetHosts()
+    {
+        $hosts = [
+            \Tools::strtolower((string) parse_url(Api::COMFINO_SDK_PRODUCTION_HOST, PHP_URL_HOST)),
+            \Tools::strtolower((string) parse_url(Api::COMFINO_SDK_SANDBOX_HOST, PHP_URL_HOST)),
+            \Tools::strtolower((string) \Configuration::get('PS_SHOP_DOMAIN')),
+            \Tools::strtolower((string) \Configuration::get('PS_SHOP_DOMAIN_SSL')),
+        ];
+
+        return array_values(array_filter(array_unique($hosts)));
     }
 
     /**
@@ -500,8 +627,12 @@ class ConfigManager
             'offerTypes' => count($offer_types) ? $offer_types : null,
             'showProviderLogos' => (bool) $settings['COMFINO_WIDGET_SHOW_PROVIDER_LOGOS'],
             'hasPriceInput' => false,
-            'bannerCssUrl' => $settings['COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL'] ?: null,
-            'calculatorCssUrl' => $settings['COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL'] ?: null,
+            /* Re-validated on read as well, so a value stored before the write-side check was introduced
+               cannot reach the customer's browser. */
+            'bannerCssUrl' => self::sanitizeAssetUrl($settings['COMFINO_WIDGET_CUSTOM_BANNER_CSS_URL']) ?: null,
+            'calculatorCssUrl' => self::sanitizeAssetUrl(
+                $settings['COMFINO_WIDGET_CUSTOM_CALCULATOR_CSS_URL']
+            ) ?: null,
             'price' => $product_data['price'],
             'productId' => $product_data['product_id'],
             'availableProductTypes' => $product_data['available_product_types'],
@@ -790,6 +921,21 @@ class ConfigManager
     }
 
     /**
+     * Product type codes for a list type, or an empty array when the list cannot be obtained. Callers must not
+     * pass the raw `Api::getProductTypes()` result to `array_keys()` - it returns false on failure.
+     *
+     * @param string $list_type
+     *
+     * @return string[]
+     */
+    private static function productTypeCodes($list_type)
+    {
+        $product_types = Api::getProductTypes($list_type);
+
+        return is_array($product_types) ? array_keys($product_types) : [];
+    }
+
+    /**
      * @param string $list_type
      * @param Cart $cart
      * @param bool $return_only_array
@@ -798,7 +944,15 @@ class ConfigManager
      */
     public function getAllowedProductTypes($list_type, Cart $cart, $return_only_array = false)
     {
-        $available_product_types = array_keys(Api::getProductTypes($list_type));
+        $product_types = Api::getProductTypes($list_type);
+
+        if (!is_array($product_types)) {
+            /* The list of financial products is unavailable - report an empty allowlist so callers withdraw the
+               payment method or the widget instead of filtering against nothing. */
+            return [];
+        }
+
+        $available_product_types = array_keys($product_types);
         $category_filter = new CategoryFilter($this->getCategoriesTree());
 
         $allowed_product_types = [];
@@ -835,7 +989,7 @@ class ConfigManager
             $product = new \Product($product_id);
 
             if (!\Validate::isLoadedObject($product)) {
-                $available_product_types = array_keys(Api::getProductTypes('widget'));
+                $available_product_types = self::productTypeCodes('widget');
             } else {
                 $shop_cart = OrderManager::getShopCartFromProduct($product);
 
@@ -847,7 +1001,7 @@ class ConfigManager
                 $product_cart_details = $shop_cart->getAsArray();
             }
         } else {
-            $available_product_types = array_keys(Api::getProductTypes('widget'));
+            $available_product_types = self::productTypeCodes('widget');
         }
 
         return [

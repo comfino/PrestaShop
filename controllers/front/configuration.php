@@ -46,7 +46,7 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
 
         $config_manager = new ConfigManager($this->module);
 
-        switch ($_SERVER['REQUEST_METHOD']) {
+        switch (\Comfino\Tools::getServerValue('REQUEST_METHOD', '')) {
             case 'GET':
                 if (!Tools::getIsset('vkey')) {
                     exit($this->setResponse(403, 'Access not allowed.'));
@@ -56,7 +56,7 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
                 $hash_algorithm = $this->getHashAlgorithm();
 
                 if (in_array($hash_algorithm, Api::getHashAlgos(), true)) {
-                    if (!hash_equals(hash($hash_algorithm, Api::getApiKey() . $verification_key), $this->getSignature())) {
+                    if (!hash_equals(Api::hashSha3256(Api::getApiKey() . $verification_key), $this->getSignature())) {
                         exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
                     }
                 } else {
@@ -71,9 +71,9 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
                             ? \Symfony\Component\HttpKernel\Kernel::VERSION
                             : 'n/a',
                         'php_version' => PHP_VERSION,
-                        'server_software' => $_SERVER['SERVER_SOFTWARE'],
-                        'server_name' => $_SERVER['SERVER_NAME'],
-                        'server_addr' => $_SERVER['SERVER_ADDR'],
+                        'server_software' => \Comfino\Tools::getServerValue('SERVER_SOFTWARE'),
+                        'server_name' => \Comfino\Tools::getServerValue('SERVER_NAME'),
+                        'server_addr' => \Comfino\Tools::getServerValue('SERVER_ADDR'),
                         'database_version' => Db::getInstance()->getVersion(),
                     ],
                     'shop_configuration' => $config_manager->returnConfigurationOptions(),
@@ -85,10 +85,9 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
             case 'PUT':
                 $json_data = Tools::file_get_contents('php://input');
                 $hash_algorithm = $this->getHashAlgorithm();
-                $hash_algos = array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
 
-                if (in_array($hash_algorithm, $hash_algos, true)) {
-                    if (!hash_equals(hash($hash_algorithm, Api::getApiKey() . $json_data), $this->getSignature())) {
+                if (in_array($hash_algorithm, Api::getHashAlgos(), true)) {
+                    if (!hash_equals(Api::hashSha3256(Api::getApiKey() . $json_data), $this->getSignature())) {
                         exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
                     }
                 } else {
@@ -98,7 +97,11 @@ class ComfinoConfigurationModuleFrontController extends ModuleFrontController
                 $configuration_options = json_decode($json_data, true);
 
                 if (is_array($configuration_options)) {
-                    $config_manager->updateConfiguration($configuration_options);
+                    $config_manager->updateConfiguration(
+                        $configuration_options,
+                        true,
+                        \Comfino\AuditLogger::ACTOR_REMOTE_API
+                    );
 
                     exit($this->setResponse(204, ''));
                 }

@@ -47,7 +47,7 @@ class ComfinoNotifyModuleFrontController extends ModuleFrontController
         $hash_algorithm = $this->getHashAlgorithm();
 
         if (in_array($hash_algorithm, Api::getHashAlgos(), true)) {
-            if (!hash_equals(hash($hash_algorithm, Api::getApiKey() . $json_data), $this->getSignature())) {
+            if (!hash_equals(Api::hashSha3256(Api::getApiKey() . $json_data), $this->getSignature())) {
                 exit($this->setResponse(400, 'Failed comparison of CR-Signature and shop hash.'));
             }
         } else {

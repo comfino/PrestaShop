@@ -32,9 +32,12 @@ if (!defined('_PS_VERSION_')) {
 
 require_once _PS_MODULE_DIR_ . 'comfino/src/ShopPluginErrorRequest.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/ApiCache.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Order.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Crypto/Sha3.php';
 
 use Comfino\Api\CartInterface;
+use Comfino\Crypto\Sha3;
 use Comfino\ErrorLogger;
 use Comfino\Order\Order;
 use Comfino\ShopPluginErrorRequest;
@@ -47,12 +50,19 @@ class Api
     const COMFINO_SDK_PRODUCTION_HOST = 'https://sdk.comfino.pl';
     const COMFINO_SDK_SANDBOX_HOST = 'https://sdk.craty.pl';
 
+    /* Bounds for the synchronous outbound calls made while shop pages are being rendered. */
+    const CONNECT_TIMEOUT = 3;
+    const REQUEST_TIMEOUT = 10;
+
     const INSTALLMENTS_ZERO_PERCENT = 'INSTALLMENTS_ZERO_PERCENT';
     const CONVENIENT_INSTALLMENTS = 'CONVENIENT_INSTALLMENTS';
     const PAY_LATER = 'PAY_LATER';
 
     /** @var bool */
     private static $is_sandbox_mode;
+
+    /** @var bool */
+    private static $use_dev_env_vars = false;
 
     /** @var string */
     private static $api_host;
@@ -90,6 +100,7 @@ class Api
         $config_manager = new ConfigManager($module);
 
         self::$is_sandbox_mode = (bool) $config_manager->getConfigurationValue('COMFINO_IS_SANDBOX');
+        self::$use_dev_env_vars = $config_manager->useDevEnvVars();
         self::$widget_key = $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY');
 
         if (self::$is_sandbox_mode) {
@@ -116,24 +127,14 @@ class Api
      */
     public static function createOrder(Order $order)
     {
+        /* Redirects are not followed here on purpose: the endpoint is known and must not be able to replay the
+           Api-Key header and the customer data of the request body to another host. */
         $response = self::sendRequest(
             self::getApiHost() . '/v1/orders',
             'POST',
-            [CURLOPT_FOLLOWLOCATION => true],
+            [],
             self::prepareCreateOrderRequestBody($order)
         );
-
-        return $response !== false ? json_decode($response, true) : false;
-    }
-
-    /**
-     * @param $self_link
-     *
-     * @return array|bool
-     */
-    public static function getOrder($self_link)
-    {
-        $response = self::sendRequest(str_replace('https', 'http', $self_link), 'GET');
 
         return $response !== false ? json_decode($response, true) : false;
     }
@@ -163,16 +164,39 @@ class Api
      */
     public static function getWidgetKey()
     {
-        $widget_key = '';
+        if (empty(self::getApiKey())) {
+            return '';
+        }
 
-        if (!empty(self::getApiKey())) {
-            $widget_key = self::sendRequest(self::getApiHost() . '/v1/widget-key', 'GET');
+        $cache_key = self::cacheKey('widget_key');
+        $cached_key = ApiCache::get($cache_key);
 
-            if (!count(self::$last_errors)) {
-                $widget_key = json_decode($widget_key, true);
-            } else {
-                $widget_key = false;
-            }
+        if (is_string($cached_key)) {
+            return $cached_key;
+        }
+
+        if (ApiCache::isCircuitOpen()) {
+            $stale_key = ApiCache::getStale($cache_key);
+
+            return is_string($stale_key) ? $stale_key : false;
+        }
+
+        $widget_key = self::sendRequest(self::getApiHost() . '/v1/widget-key', 'GET');
+
+        if (count(self::$last_errors)) {
+            ApiCache::recordFailure();
+
+            $stale_key = ApiCache::getStale($cache_key);
+
+            return is_string($stale_key) ? $stale_key : false;
+        }
+
+        ApiCache::recordSuccess();
+
+        $widget_key = json_decode($widget_key, true);
+
+        if (is_string($widget_key)) {
+            ApiCache::set($cache_key, $widget_key, ApiCache::WIDGET_KEY_TTL);
         }
 
         return $widget_key;
@@ -192,31 +216,108 @@ class Api
         static $product_types = [];
 
         if (!isset($product_types[$list_type])) {
-            $prod_types = self::sendRequest(self::getApiHost() . '/v2/product-types?listType=' . $list_type, 'GET');
+            $names = self::fetchProductTypeNames($list_type);
 
-            if ($prod_types !== false && !count(self::$last_errors) && strpos($prod_types, 'errors') === false) {
-                $prod_types = json_decode($prod_types, true);
-            } else {
+            if ($names === false) {
                 return false;
             }
 
-            $internal_names = [];
-            $public_names = [];
-
-            foreach ((array) $prod_types as $product_type_code => $names) {
-                if (is_array($names)) {
-                    $internal_names[$product_type_code] = isset($names[0]) ? $names[0] : '';
-                    $public_names[$product_type_code] = isset($names[1]) ? $names[1] : $internal_names[$product_type_code];
-                } else {
-                    $internal_names[$product_type_code] = $names;
-                    $public_names[$product_type_code] = $names;
-                }
-            }
-
-            $product_types[$list_type] = ['internal' => $internal_names, 'public' => $public_names];
+            $product_types[$list_type] = $names;
         }
 
         return $product_types[$list_type][$use_public_names ? 'public' : 'internal'];
+    }
+
+    /**
+     * Resolves the internal/public product type names for a list type, preferring the cache and never calling the
+     * API while the circuit is open. A stale entry is served in preference to failing, because the alternative is
+     * withdrawing the payment method over a transient upstream problem.
+     *
+     * @param string $list_type
+     *
+     * @return array|bool Array with the `internal` and `public` keys, or false when no data can be resolved.
+     */
+    private static function fetchProductTypeNames($list_type)
+    {
+        $cache_key = self::cacheKey('product_types_' . $list_type);
+        $cached_names = ApiCache::get($cache_key);
+
+        if (self::isProductTypeNames($cached_names)) {
+            return $cached_names;
+        }
+
+        if (ApiCache::isCircuitOpen()) {
+            $stale_names = ApiCache::getStale($cache_key);
+
+            return self::isProductTypeNames($stale_names) ? $stale_names : false;
+        }
+
+        $prod_types = self::sendRequest(self::getApiHost() . '/v2/product-types?listType=' . $list_type, 'GET');
+
+        if ($prod_types === false || count(self::$last_errors) || strpos($prod_types, 'errors') !== false) {
+            ApiCache::recordFailure();
+
+            $stale_names = ApiCache::getStale($cache_key);
+
+            return self::isProductTypeNames($stale_names) ? $stale_names : false;
+        }
+
+        ApiCache::recordSuccess();
+
+        $internal_names = [];
+        $public_names = [];
+
+        foreach ((array) json_decode($prod_types, true) as $product_type_code => $names) {
+            if (is_array($names)) {
+                $internal_names[$product_type_code] = isset($names[0]) ? $names[0] : '';
+                $public_names[$product_type_code] = isset($names[1]) ? $names[1] : $internal_names[$product_type_code];
+            } else {
+                $internal_names[$product_type_code] = $names;
+                $public_names[$product_type_code] = $names;
+            }
+        }
+
+        if (!count($internal_names)) {
+            // An empty list is not cached - it would silently disable the payment method for a full TTL.
+            return false;
+        }
+
+        $product_type_names = ['internal' => $internal_names, 'public' => $public_names];
+
+        ApiCache::set($cache_key, $product_type_names, ApiCache::PRODUCT_TYPES_TTL);
+
+        return $product_type_names;
+    }
+
+    /**
+     * @param mixed $names
+     *
+     * @return bool
+     */
+    private static function isProductTypeNames($names)
+    {
+        return is_array($names) && isset($names['internal'], $names['public']) && count($names['internal']);
+    }
+
+    /**
+     * Cache keys are scoped by the environment and by a fingerprint of the API key in use. Both the available
+     * financial products and the widget key belong to a specific merchant account, so data fetched with one set
+     * of credentials must never be served after the credentials change - including within the same request,
+     * where the admin settings form validates a freshly submitted key.
+     *
+     * The fingerprint is a truncated digest, never the key itself.
+     *
+     * @param string $name
+     *
+     * @return string
+     */
+    private static function cacheKey($name)
+    {
+        $api_key = (string) self::getApiKey();
+
+        return $name .
+            (self::$is_sandbox_mode ? '_sandbox_' : '_production_') .
+            ($api_key !== '' ? substr(sha1($api_key), 0, 12) : 'nokey');
     }
 
     /**
@@ -239,43 +340,6 @@ class Api
         }
 
         return $product_types;
-    }
-
-    /**
-     * @param string $name
-     * @param string $url
-     * @param string $contact_name
-     * @param string $email
-     * @param string $phone
-     * @param array $agreements
-     *
-     * @return array|bool
-     */
-    public static function registerShopAccount($name, $url, $contact_name, $email, $phone, $agreements)
-    {
-        $data = [
-            'name' => $name,
-            'webSiteUrl' => $url,
-            'contactName' => $contact_name,
-            'contactEmail' => $email,
-            'contactPhone' => $phone,
-            'platformId' => 11,
-            'agreements' => $agreements,
-        ];
-
-        $response = self::sendRequest(self::getApiHost() . '/v1/user', 'POST', $data);
-
-        return !count(self::$last_errors) ? json_decode($response, true) : false;
-    }
-
-    /**
-     * @return array|bool
-     */
-    public static function getShopAccountAgreements()
-    {
-        $response = self::sendRequest(self::getApiHost() . '/v1/fetch-agreements', 'GET');
-
-        return !count(self::$last_errors) ? json_decode($response, true) : false;
     }
 
     /**
@@ -410,7 +474,7 @@ class Api
      */
     public static function getLogoUrl()
     {
-        return self::getApiHost(true) . '/v1/get-logo-url?auth=' . self::getLogoAuthHash();
+        return self::getApiHost() . '/v1/get-logo-url?auth=' . self::getLogoAuthHash();
     }
 
     /**
@@ -418,7 +482,7 @@ class Api
      */
     public static function getPaywallLogoUrl()
     {
-        return self::getApiHost(true) . '/v1/get-paywall-logo?auth=' . self::getLogoAuthHash(true);
+        return self::getApiHost() . '/v1/get-paywall-logo?auth=' . self::getLogoAuthHash(true);
     }
 
     /**
@@ -566,15 +630,14 @@ class Api
 
     /**
      * Returns the dev-mode SDK CDN base URL override (without a trailing slash), or null when it is
-     * not applicable. Matches the COMFINO_DEV gating used by the other dev overrides in this class.
+     * not applicable. Gated by ConfigManager::useDevEnvVars() (COMFINO_DEV_ENV + the admin-controlled
+     * COMFINO_DEV_ENV_VARS option), matching the other COMFINO_DEV_* overrides in this class.
      *
      * @return string|null
      */
     private static function getSdkCdnDevOverride()
     {
-        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN') && getenv('COMFINO_DEV_SDK_CDN_BASE_URL')
-            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
-        ) {
+        if (self::$use_dev_env_vars && getenv('COMFINO_DEV_SDK_CDN_BASE_URL')) {
             return rtrim(getenv('COMFINO_DEV_SDK_CDN_BASE_URL'), '/');
         }
 
@@ -582,7 +645,8 @@ class Api
     }
 
     /**
-     * Builds an SDK script file name; serves the unminified variant when a dev CDN override is active.
+     * Builds an SDK script file name; serves the unminified variant when dev env vars are active and
+     * COMFINO_DEV_USE_UNMINIFIED_SCRIPTS is set.
      *
      * @param string $baseName
      *
@@ -590,7 +654,9 @@ class Api
      */
     private static function sdkScriptFileName($baseName)
     {
-        return $baseName . (self::getSdkCdnDevOverride() !== null ? '.js' : '.min.js');
+        $useUnminified = self::$use_dev_env_vars && ConfigManager::useUnminifiedScripts();
+
+        return $baseName . ($useUnminified ? '.js' : '.min.js');
     }
 
     /**
@@ -604,34 +670,45 @@ class Api
     }
 
     /**
-     * @param bool $frontend_host
      * @param string|null $api_host
      *
      * @return string
      */
-    public static function getApiHost($frontend_host = false, $api_host = null)
+    public static function getApiHost($api_host = null)
     {
-        if (getenv('COMFINO_DEV') && getenv('PS_DOMAIN')
-            && getenv('COMFINO_DEV') === 'PS_' . _PS_VERSION_ . '_' . getenv('PS_DOMAIN')
-        ) {
-            if ($frontend_host) {
-                if (getenv('COMFINO_DEV_API_HOST_FRONTEND')) {
-                    return getenv('COMFINO_DEV_API_HOST_FRONTEND');
-                }
-            } elseif (getenv('COMFINO_DEV_API_HOST_BACKEND')) {
-                return getenv('COMFINO_DEV_API_HOST_BACKEND');
-            }
+        if (self::$use_dev_env_vars && getenv('COMFINO_DEV_API_HOST')) {
+            return getenv('COMFINO_DEV_API_HOST');
         }
 
         return $api_host !== null ? $api_host : self::$api_host;
     }
 
     /**
+     * SHA3-256 is always available: natively on PHP >= 7.1, via the pure-PHP fallback
+     * (Comfino\Crypto\Sha3) below that.
+     *
      * @return string[]
      */
     public static function getHashAlgos()
     {
-        return array_intersect(array_merge(['sha3-256'], PHP_VERSION_ID < 70100 ? ['sha512'] : []), hash_algos());
+        return ['sha3-256'];
+    }
+
+    /**
+     * SHA3-256 of the given string, using the native implementation when available (PHP 7.1+) and the
+     * pure-PHP fallback otherwise (PHP 5.6/7.0). Both produce byte-identical output.
+     *
+     * @param string $data
+     *
+     * @return string 64 lowercase hex chars
+     */
+    public static function hashSha3256($data)
+    {
+        if (in_array('sha3-256', hash_algos(), true)) {
+            return hash('sha3-256', $data);
+        }
+
+        return Sha3::hash256($data);
     }
 
     /**
@@ -685,11 +762,25 @@ class Api
 
         $method = \Tools::strtoupper($request_type);
 
+        // The development environment may be served over plain HTTP; production traffic never is.
+        $allowed_protocols = self::$use_dev_env_vars
+            ? CURLPROTO_HTTP | CURLPROTO_HTTPS
+            : CURLPROTO_HTTPS;
+
         $options = [
             CURLOPT_URL => $url,
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_HTTPHEADER => self::getRequestHeaders($method, $data),
             CURLOPT_RETURNTRANSFER => true,
+            /* An unresponsive upstream must never be able to hold a PHP worker open indefinitely - these calls
+               are made synchronously while front office pages are being rendered. */
+            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT,
+            CURLOPT_TIMEOUT => self::REQUEST_TIMEOUT,
+            // Set explicitly so that a permissive php.ini cannot weaken the TLS verification.
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_PROTOCOLS => $allowed_protocols,
+            CURLOPT_REDIR_PROTOCOLS => $allowed_protocols,
             CURLOPT_HEADERFUNCTION => static function ($curl_handle, $header_line) {
                 $separator_pos = strpos($header_line, ':');
 
@@ -835,7 +926,16 @@ class Api
      */
     private static function getHeadersForLog(array $headers)
     {
-        return implode(', ', $headers);
+        // The API key must never leave the module in a log message, local or remote.
+        return implode(
+            ', ',
+            array_map(
+                static function ($header) {
+                    return preg_replace('/^(Api-Key:\s*).*$/i', '$1[REDACTED]', $header);
+                },
+                $headers
+            )
+        );
     }
 
     /**
@@ -892,9 +992,10 @@ class Api
         $authHash = "PS$platformVersionLength$pluginVersionLength$packedPlatformVersion$packedPluginVersion";
 
         if ($paywallLogo) {
-            $hashAlgorithm = current(self::getHashAlgos());
             $authHash .= self::$widget_key;
-            $authHash .= hash_hmac($hashAlgorithm, $authHash, self::getApiKey(), true);
+            $authHash .= in_array('sha3-256', hash_algos(), true)
+                ? hash_hmac('sha3-256', $authHash, self::getApiKey(), true)
+                : Sha3::hmac256($authHash, self::getApiKey(), true);
         }
 
         return urlencode(base64_encode($authHash));

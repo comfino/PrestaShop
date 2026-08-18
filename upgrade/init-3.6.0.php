@@ -43,8 +43,11 @@ function upgrade_module_3_6_0($module)
     // Initialize configuration options added together with the frontend SDK integration.
     $config_manager->updateConfiguration(
         [
+            'COMFINO_DEV_ENV_VARS' => false,
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN' => '',
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => 0,
+            \Comfino\ApiCache::CACHE_STORAGE_KEY => '',
+            \Comfino\ApiCache::BREAKER_STORAGE_KEY => '',
             'COMFINO_REMOTE_FLAGS' => '',
             'COMFINO_REMOTE_FLAG_ATTRIBUTES' => '',
             /* Switch the checkout payment method label to the financial-product-types-based label by
@@ -65,6 +68,14 @@ function upgrade_module_3_6_0($module)
     /* Drop the manually editable widget initialization code and the widget script version overrides - the
        widget is now bootstrapped by a bridge script served from the SDK CDN. */
     $config_manager->deleteObsoleteConfigurationValues();
+
+    /* Data subject rights hooks are new in 3.6.0 - existing installations have to be subscribed to them so that
+       PrestaShop's GDPR module can see the data this plugin stores. */
+    foreach (['registerGDPRConsent', 'actionExportGDPRData', 'actionDeleteGDPRCustomer'] as $hook_name) {
+        if (!$module->isRegisteredInHook($hook_name)) {
+            $module->registerHook($hook_name);
+        }
+    }
 
     return true;
 }

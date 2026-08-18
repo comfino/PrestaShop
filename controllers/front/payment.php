@@ -31,6 +31,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/Api.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Api/Cart.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ConfigManager.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/PaymentErrorCode.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Customer/Address.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Customer.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Order/LoanParameters.php';
@@ -46,6 +47,10 @@ use Comfino\OrderManager;
 
 class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
+    /* Upper bound for the submitted loan term. No Comfino financing product spans more than this many months,
+       so anything above it is a manipulated form field rather than a customer choice. */
+    const MAX_LOAN_TERM = 120;
+
     /**
      * @throws Exception
      */
@@ -77,7 +82,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $loan_type = trim((string) Tools::getValue('comfino_loan_type', ''));
         $loan_term = (int) Tools::getValue('comfino_loan_term', 0);
 
-        if ($loan_type === '' || $loan_term <= 0) {
+        if ($loan_type === '' || $loan_term <= 0 || $loan_term > self::MAX_LOAN_TERM) {
             Tools::redirect('index.php?controller=order&step=1');
 
             return;
@@ -153,10 +158,34 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         $config_manager = new Comfino\ConfigManager($this->module);
+        $available_product_types = Api::getProductTypes('paywall');
+
+        if (!is_array($available_product_types)) {
+            /* The list of financial products could not be fetched, so the submitted type cannot be verified.
+               Fail closed rather than forwarding an unvalidated value to the order creation call. */
+            $this->errors[] = $this->module->l(
+                'Payment method is temporarily unavailable. Please try again in a moment.'
+            );
+
+            if (COMFINO_PS_17) {
+                $this->redirectWithNotifications('index.php?controller=order&step=1');
+            } else {
+                $this->redirectWithNotificationsPs16('index.php?controller=order&step=1');
+            }
+
+            return;
+        }
+
         $allowed_product_types = $config_manager->getAllowedProductTypes('paywall', $shop_cart);
 
-        /* Only a financial product available for this cart may be submitted, regardless of what was posted. */
-        if (is_array($allowed_product_types) && !in_array($loan_type, $allowed_product_types, true)) {
+        /* Only a financial product available for this cart may be submitted, regardless of what was posted.
+           A null value from getAllowedProductTypes() means "no category filter narrows the list", not
+           "no validation required" - the full available list is used as the allowlist in that case. */
+        $product_type_allowlist = is_array($allowed_product_types)
+            ? $allowed_product_types
+            : array_keys($available_product_types);
+
+        if (!in_array($loan_type, $product_type_allowlist, true)) {
             Tools::redirect('index.php?controller=order&step=1');
 
             return;
@@ -174,6 +203,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $customer->secure_key
         );
 
+        /* validateOrder() sets a new currentOrder, so the object read before the call is stale from this point
+           on - reload it to be able to update the order state further down. */
+        $ps_order = new Order($this->module->currentOrder);
         $order_id = (string) $this->module->currentOrder;
 
         if (!empty(trim(isset($billing_address->firstname) ? $billing_address->firstname : ''))) {
@@ -267,8 +299,10 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         if ($application_url === '') {
-            $ps_order->setCurrentState(Configuration::get('PS_OS_ERROR'));
-            $ps_order->save();
+            if (\ValidateCore::isLoadedObject($ps_order)) {
+                $ps_order->setCurrentState(Configuration::get('PS_OS_ERROR'));
+                $ps_order->save();
+            }
 
             ErrorLogger::sendError(
                 'Order creation error',
@@ -280,14 +314,12 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 is_array($order_response) ? json_encode($order_response) : Api::getLastResponseBody()
             );
 
+            /* Only a code from the controller's fixed catalogue travels in the URL - the API error details have
+               already been logged and reported above. */
             Tools::redirect($this->context->link->getModuleLink(
                 $this->module->name,
                 'error',
-                [
-                    'error' => is_array($order_response) && isset($order_response['errors'])
-                        ? implode(',', $order_response['errors'])
-                        : 'Order creation error.',
-                ],
+                ['error_code' => Comfino\PaymentErrorCode::ORDER_CREATION],
                 true
             ));
         }
