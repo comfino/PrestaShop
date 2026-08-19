@@ -47,6 +47,10 @@ if (!defined('COMFINO_VERSION')) {
     define('COMFINO_VERSION', '3.6.0', false);
 }
 
+if (!defined('COMFINO_BUILD_TS')) {
+    define('COMFINO_BUILD_TS', 1787148308, false);
+}
+
 class Comfino extends PaymentModule
 {
     const ERROR_LOG_NUM_LINES = 100;
@@ -794,6 +798,56 @@ class Comfino extends PaymentModule
                         PHP_VERSION,
                         Comfino\Tools::getServerValue('SERVER_SOFTWARE'),
                         Db::getInstance()->getVersion()
+                    );
+                }
+
+                $info_messages[] = sprintf('<b>Comfino API host:</b> %s', Comfino\Api::getApiHost());
+                $info_messages[] = sprintf(
+                    '<b>Plugin build time:</b> %s UTC',
+                    gmdate('Y-m-d H:i:s', COMFINO_BUILD_TS)
+                );
+                $info_messages[] = sprintf('<b>Shop domain:</b> %s', Tools::getShopDomain());
+                $info_messages[] = sprintf(
+                    '<b>Widget key:</b> %s',
+                    $config_manager->getConfigurationValue('COMFINO_WIDGET_KEY')
+                );
+
+                if (getenv('COMFINO_DEV_ENV') === 'TRUE') {
+                    $info_messages[] = sprintf(
+                        '<b>Plugin dev-debug mode:</b> %s',
+                        $config_manager->useDevEnvVars() ? 'Yes' : 'No'
+                    );
+
+                    $ps_env_variables = ['PS_LANGUAGE', 'PS_COUNTRY', 'PS_DOMAIN', 'PS_VERSION', 'PS_DEV_MODE'];
+
+                    $info_messages[] = sprintf(
+                        '<b>PrestaShop environment variables:</b><ul>%s</ul>',
+                        implode('', array_map(
+                            static function ($env_variable) {
+                                return '<li><b>' . $env_variable . '</b> = "' . getenv($env_variable) . '"</li>';
+                            },
+                            $ps_env_variables
+                        ))
+                    );
+
+                    $comfino_dev_env_variables = [
+                        'COMFINO_DEV_ENV',
+                        'COMFINO_DEV_API_HOST',
+                        'COMFINO_DEV_SDK_CDN_BASE_URL',
+                        'COMFINO_DEV_USE_UNMINIFIED_SCRIPTS',
+                    ];
+
+                    $info_messages[] = sprintf(
+                        '<b>Development environment variables:</b><ul>%s</ul>',
+                        implode('', array_map(
+                            static function ($env_variable) {
+                                $value = getenv($env_variable);
+
+                                return '<li><b>' . $env_variable . '</b> = "' . ($value !== false ? $value : '')
+                                    . '"</li>';
+                            },
+                            $comfino_dev_env_variables
+                        ))
                     );
                 }
 
