@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.6.0](https://github.com/comfino/PrestaShop/tree/3.6.0) (2026-08-19)
+## [3.6.0](https://github.com/comfino/PrestaShop/tree/3.6.0) (2026-08-21)
 
 **Final release of the legacy 3.x line.** It exists so shops still running PHP 5.6 and PrestaShop 1.6 keep
 working after the deprecated V1/V2 Comfino frontend is switched off. No further updates will follow; shops
