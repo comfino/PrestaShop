@@ -293,8 +293,11 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             ? (string) $order_response['applicationUrl']
             : '';
 
-        // Never redirect anywhere but an absolute HTTP(S) address returned by the API.
-        if (!preg_match('#^https?://#i', $application_url)) {
+        /* Never redirect anywhere but an absolute HTTPS address on the domain of the configured API host - the
+           URL comes from the API response, so it is only as trustworthy as that response. */
+        $application_url_rejected = $application_url !== ''  && !$this->isAllowedApplicationUrl($application_url, $config_manager);
+
+        if ($application_url_rejected) {
             $application_url = '';
         }
 
@@ -307,7 +310,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             ErrorLogger::sendError(
                 'Order creation error',
                 0,
-                'Wrong Comfino API response.',
+                $application_url_rejected
+                    ? 'Rejected payment application URL received from the Comfino API.'
+                    : 'Wrong Comfino API response.',
                 Api::getLastResponseCode(),
                 $request_uri,
                 Api::getLastRequestBody(),
@@ -325,6 +330,80 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         }
 
         Tools::redirect($application_url);
+    }
+
+    /**
+     * Checks whether an API supplied payment application URL is safe to redirect the customer to.
+     *
+     * To be accepted, it must be an absolute HTTPS URL pointing at the same registrable domain as the configured
+     * API host, which keeps a spoofed or tampered response from turning the shop checkout into an open redirect.
+     *
+     * @param string|null $application_url
+     * @param \Comfino\ConfigManager $config_manager
+     *
+     * @return bool
+     */
+    private function isAllowedApplicationUrl($application_url, $config_manager)
+    {
+        if (empty($application_url) || !is_string($application_url)) {
+            return false;
+        }
+
+        $url_parts = parse_url($application_url);
+
+        if (!is_array($url_parts) || empty($url_parts['host']) || empty($url_parts['scheme'])) {
+            return false;
+        }
+
+        /* Plain HTTP is tolerated only in a development environment, where the Comfino services are usually
+           served over an unencrypted connection - the same exception the API client itself makes. */
+        if (\Tools::strtolower($url_parts['scheme']) !== 'https' && !$config_manager->useDevEnvVars()) {
+            return false;
+        }
+
+        /* In a local development environment the API host, paywall host and application URL host are
+           typically separate ad-hoc container/tunnel hostnames that share no common registrable domain,
+           so the same-domain check below does not apply there. */
+        if ($config_manager->useDevEnvVars()) {
+            return true;
+        }
+
+        $host = \Tools::strtolower($url_parts['host']);
+        $allowed_domain = $this->getApplicationUrlDomain(Api::getApiHost());
+
+        if ($allowed_domain === '') {
+            return false;
+        }
+
+        return $host === $allowed_domain
+            || substr($host, -(strlen($allowed_domain) + 1)) === '.' . $allowed_domain;
+    }
+
+    /**
+     * Reduces an API host to the registrable domain every Comfino service of that environment shares,
+     * so that the payment gateway host does not have to be configured separately from the API host.
+     *
+     * @param string|null $api_host
+     *
+     * @return string
+     */
+    private function getApplicationUrlDomain($api_host)
+    {
+        $host = parse_url((string) $api_host, PHP_URL_HOST);
+
+        if (!is_string($host) || $host === '') {
+            // A bare host name without a scheme is not recognized by parse_url() as a host component.
+            $host = preg_replace('#^.*://|[:/].*$#', '', (string) $api_host);
+        }
+
+        $host = \Tools::strtolower(trim((string) $host));
+        $labels = explode('.', $host);
+
+        if (count($labels) < 2) {
+            return $host;
+        }
+
+        return implode('.', array_slice($labels, -2));
     }
 
     // FIXME Implement proper logic for PrestaShop 1.6.

@@ -296,7 +296,7 @@ class Comfino extends PaymentModule
                         Comfino\Api::setApiKey($api_key);
 
                         if (!Comfino\Api::isApiKeyValid()) {
-                            $output[] = sprintf($this->l('API key %s is not valid.'), $api_key);
+                            $output[] = $this->l('API key is not valid.');
                         } else {
                             $widget_key = Comfino\Api::getWidgetKey();
 
@@ -366,7 +366,7 @@ class Comfino extends PaymentModule
                             Comfino\Api::setApiKey($api_key);
 
                             if (!Comfino\Api::isApiKeyValid()) {
-                                $output[] = sprintf($this->l('API key %s is not valid.'), $api_key);
+                                $output[] = $this->l('API key is not valid.');
                             } else {
                                 $widget_key = Comfino\Api::getWidgetKey();
 
