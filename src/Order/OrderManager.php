@@ -408,7 +408,7 @@ final class OrderManager
                 $street,
                 $buildingNumber,
                 null,
-                !empty($deliveryAddress->postcode),
+                $deliveryAddress->postcode !== null ? trim((string) $deliveryAddress->postcode) : null,
                 $deliveryAddress->city,
                 (new Tools($context))->getCountryIsoCode($deliveryAddress->id_country)
             )

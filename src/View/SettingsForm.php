@@ -225,7 +225,7 @@ final class SettingsForm
                             }
                         } catch (AuthorizationError|AccessDenied $e) {
                             $outputType = 'warning';
-                            $output[] = sprintf(Main::translate('API key %s is not valid.'), $apiKey);
+                            $output[] = Main::translate('API key is not valid.');
 
                             if (!empty(getenv('COMFINO_DEV'))) {
                                 $output[] = sprintf('Comfino API host: %s', $apiClient->getApiHost());
@@ -410,7 +410,7 @@ final class SettingsForm
                             }
                         } catch (AuthorizationError|AccessDenied $e) {
                             $outputType = 'warning';
-                            $output[] = sprintf(Main::translate('API key %s is not valid.'), $apiKey);
+                            $output[] = Main::translate('API key is not valid.');
                         } catch (\Throwable $e) {
                             ApiClient::processApiError(
                                 'Widget settings error on page "' . Main::getRequestUri() . '" (Comfino API)',

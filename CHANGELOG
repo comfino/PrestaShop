@@ -1,3 +1,6 @@
+4.3.1
+ - Security release: hardened the verification of requests coming from Comfino, so requests are rejected when the store has no matching key configured, and the test environment key is accepted only while test mode is enabled. The address a customer is redirected to after placing an order is now checked before the customer is sent there. The payment key is no longer repeated back in settings page messages. Fixed the customer postal code sent with an order.
+
 4.3.0
  - FN-14461 Migrated paywall frontend to Comfino V3 SDK, added multistore support, installment term limits per product type, paywall customization (custom CSS, payment text, default logo, direct redirect mode), improved widget price detection, more reliable payment tracking, delivery tax fix, prevented duplicate cancellation requests, enhanced error logging and plugin update handling, improved PS 1.6 checkout compatibility.
 

@@ -271,7 +271,21 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $order = $this->createOrder($orderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer);
 
         try {
-            Tools::redirect(ApiClient::getInstance()->createOrder($order)->applicationUrl);
+            $applicationUrl = ApiClient::getInstance()->createOrder($order)->applicationUrl;
+
+            if (!$this->isAllowedApplicationUrl($applicationUrl)) {
+                DebugLogger::logEvent(
+                    '[CREATE_ORDER_APPLICATION_URL_REJECTED]',
+                    'postProcess',
+                    ['$applicationUrl' => $applicationUrl, '$apiHost' => ApiClient::getInstance()->getApiHost()]
+                );
+
+                /* Handled exactly like a missing application URL: the order is moved to PS_OS_ERROR and the
+                   customer is sent to the module error page by the catch block below. */
+                throw new RuntimeException('Invalid payment application URL received from the Comfino API.');
+            }
+
+            Tools::redirect($applicationUrl);
         } catch (Throwable $e) {
             $psOrder = new \Order($this->module->currentOrder);
             $psOrder->setCurrentState((int) Configuration::get('PS_OS_ERROR'));
@@ -416,6 +430,73 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
             return [];
         }
+    }
+
+    /**
+     * Checks whether an API supplied payment application URL is safe to redirect the customer to.
+     *
+     * The URL is taken from the Comfino API response, so it is only as trustworthy as that response. To be
+     *  accepted, it must be an absolute HTTPS URL pointing at the same registrable domain as the configured API
+     * host, which keeps a spoofed or tampered response from turning the shop checkout into an open redirect.
+     *
+     * @param string|null $applicationUrl
+     */
+    private function isAllowedApplicationUrl($applicationUrl): bool
+    {
+        if (empty($applicationUrl) || !is_string($applicationUrl)) {
+            return false;
+        }
+
+        $urlParts = parse_url($applicationUrl);
+
+        if (!is_array($urlParts) || empty($urlParts['host']) || empty($urlParts['scheme'])) {
+            return false;
+        }
+
+        /* Plain HTTP is tolerated only in a local development environment, where the API host is usually
+           an unencrypted service running on the developer machine. */
+        if (strtolower($urlParts['scheme']) !== 'https' && !ConfigManager::useDevEnvVars()) {
+            return false;
+        }
+
+        /* In a local development environment the API host, paywall host and application URL host are
+           typically separate ad-hoc container/tunnel hostnames (e.g. "ecommerce", "wniosek.comfino.test")
+           that share no common registrable domain, so the same-domain check below does not apply there. */
+        if (ConfigManager::useDevEnvVars()) {
+            return true;
+        }
+
+        $host = strtolower($urlParts['host']);
+        $allowedDomain = $this->getApplicationUrlDomain(ApiClient::getInstance()->getApiHost());
+
+        if ($allowedDomain === '') {
+            return false;
+        }
+
+        return $host === $allowedDomain || substr($host, -(strlen($allowedDomain) + 1)) === '.' . $allowedDomain;
+    }
+
+    /**
+     * Reduces an API host to the registrable domain every Comfino service of that environment shares,
+     * so that the payment gateway host does not have to be configured separately from the API host.
+     */
+    private function getApplicationUrlDomain(string $apiHost): string
+    {
+        $host = parse_url($apiHost, PHP_URL_HOST);
+
+        if (!is_string($host) || $host === '') {
+            // A bare host name without a scheme is not recognized by parse_url() as a host component.
+            $host = preg_replace('#^.*://|[:/].*$#', '', $apiHost);
+        }
+
+        $host = strtolower(trim((string) $host));
+        $labels = explode('.', $host);
+
+        if (count($labels) < 2) {
+            return $host;
+        }
+
+        return implode('.', array_slice($labels, -2));
     }
 
     private function createOrder(

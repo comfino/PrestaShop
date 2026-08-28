@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.3.1](https://github.com/comfino/PrestaShop/tree/4.3.1) (2026-08-28)
+
+Security hotfix release. Upgrading is strongly recommended for every store.
+
+### Security
+- Fixed a flaw in the verification of incoming requests from Comfino. On stores where only one of the two environment keys had been filled in, a specially crafted request could be accepted as genuine. Such requests are now always rejected, and requests are refused outright when the store has no key configured at all.
+- The test environment key is now accepted for incoming requests only while test mode is actually enabled.
+- The address the customer is redirected to after placing an order is now verified to be a genuine Comfino payment address before the customer is sent there. If it is not, the order is marked with an error instead.
+- The payment key is no longer repeated back in messages shown on the module settings page.
+
+### Fixed
+- The customer's postal code is now sent correctly to Comfino. Previously a placeholder value was transmitted, which could affect the assessment of a financing application.
+
 ## [4.3.0](https://github.com/comfino/PrestaShop/tree/4.3.0) (2026-07-23)
 
 ### Added

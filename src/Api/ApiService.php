@@ -45,8 +45,39 @@ if (!defined('_PS_VERSION_')) {
 
 final class ApiService
 {
+    /**
+     * Minimal length of an API key accepted as a request signature secret.
+     *
+     * The error reporting request builder already refuses to key a MAC with anything shorter
+     * (ReportShopPluginError::MIN_HASH_KEY_LENGTH), so a value below this length cannot be a real Comfino API key.
+     */
+    private const MIN_API_KEY_LENGTH = 16;
+
     /** @var RestEndpointManager */
     private static $endpointManager;
+
+    /**
+     * Removes API keys which must never be accepted as a request signature secret.
+     *
+     * An unconfigured key slot holds null or an empty string, and a signature calculated with such a value
+     * collapses to a hash of the request body alone - something any caller can compute without knowing any
+     * secret at all. Empty slots are therefore dropped before they can be used for signature verification.
+     *
+     * @param mixed[] $apiKeys
+     *
+     * @return string[]
+     */
+    public static function filterApiKeys(array $apiKeys): array
+    {
+        return array_values(
+            array_filter(
+                $apiKeys,
+                static function ($apiKey): bool {
+                    return is_string($apiKey) && trim($apiKey) !== '' && strlen($apiKey) >= self::MIN_API_KEY_LENGTH;
+                }
+            )
+        );
+    }
 
     public static function init(): void
     {
@@ -193,14 +224,20 @@ final class ApiService
     private static function getEndpointManager(): RestEndpointManager
     {
         if (self::$endpointManager === null) {
+            $apiKeys = [ConfigManager::getConfigurationValue('COMFINO_API_KEY')];
+
+            /* The test environment key is accepted only while the shop actually runs in sandbox mode. Accepting
+               both keys at once doubles the signature verification surface without any functional gain, and it
+               mirrors ConfigManager::getApiKey(), which selects a single key by the same flag. */
+            if (ConfigManager::isSandboxMode()) {
+                $apiKeys[] = ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY');
+            }
+
             self::$endpointManager = (new ApiServiceFactory())->createService(
                 'PrestaShop',
                 _PS_VERSION_,
                 COMFINO_VERSION,
-                [
-                    ConfigManager::getConfigurationValue('COMFINO_API_KEY'),
-                    ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY'),
-                ]
+                self::filterApiKeys($apiKeys)
             );
         }
 
