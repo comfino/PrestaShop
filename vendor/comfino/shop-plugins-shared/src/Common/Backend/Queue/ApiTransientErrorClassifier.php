@@ -47,6 +47,24 @@ final class ApiTransientErrorClassifier implements TransientErrorClassifierInter
      */
     public function classify($operationType, $error): string
     {
+        return $this->matchExplicitRule($operationType, $error) ?? QueueErrorDisposition::RETRY;
+    }
+
+    /**
+     * @param \Throwable $error
+     */
+    public static function isTransient($error): bool
+    {
+        $disposition = (new self())->matchExplicitRule('', $error);
+
+        return $disposition === QueueErrorDisposition::RETRY || $disposition === QueueErrorDisposition::TREAT_AS_SUCCESS;
+    }
+
+    /**
+     * @return string|null
+     */
+    private function matchExplicitRule(string $operationType, \Throwable $error): ?string
+    {
         if ($error instanceof ConnectionTimeout || $error instanceof NetworkExceptionInterface) {
             return QueueErrorDisposition::RETRY;
         }
@@ -90,16 +108,6 @@ final class ApiTransientErrorClassifier implements TransientErrorClassifierInter
             return QueueErrorDisposition::DROP_PERMANENT;
         }
 
-        return QueueErrorDisposition::RETRY;
-    }
-
-    /**
-     * @param \Throwable $error
-     */
-    public static function isTransient($error): bool
-    {
-        $disposition = (new self())->classify('', $error);
-
-        return $disposition === QueueErrorDisposition::RETRY || $disposition === QueueErrorDisposition::TREAT_AS_SUCCESS;
+        return null;
     }
 }
