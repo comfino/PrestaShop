@@ -650,6 +650,25 @@ final class SettingsForm
                                 ],
                             ],
                             [
+                                'type' => 'switch',
+                                'label' => Main::translate('Allow collecting ComfinoPay plugin view statistics'),
+                                'name' => 'COMFINO_PAYWALL_TRACKING_CONSENT',
+                                'desc' => Main::translate('When enabled, the ComfinoPay paywall in the checkout reports its views and shopper interactions (e.g. offer and installment changes) to ComfinoPay. These statistics help optimize the paywall and thus increase sales.'),
+                                'is_bool' => true,
+                                'values' => [
+                                    [
+                                        'id' => 'paywall_tracking_consent_on',
+                                        'value' => true,
+                                        'label' => Main::translate('Yes'),
+                                    ],
+                                    [
+                                        'id' => 'paywall_tracking_consent_off',
+                                        'value' => false,
+                                        'label' => Main::translate('No'),
+                                    ],
+                                ],
+                            ],
+                            [
                                 'type' => 'text',
                                 'label' => Main::translate('Custom paywall CSS style'),
                                 'name' => 'COMFINO_PAYWALL_CUSTOM_CSS_URL',

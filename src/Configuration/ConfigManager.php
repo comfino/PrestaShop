@@ -55,6 +55,7 @@ final class ConfigManager
             'COMFINO_MINIMAL_CART_AMOUNT' => ConfigurationManager::OPT_VALUE_TYPE_FLOAT,
             'COMFINO_USE_ORDER_REFERENCE' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_PAYWALL_DIRECT_REDIRECT' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
+            'COMFINO_PAYWALL_TRACKING_CONSENT' => ConfigurationManager::OPT_VALUE_TYPE_BOOL,
             'COMFINO_PAYWALL_CUSTOM_CSS_URL' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
         ],
         'sale_settings' => [
@@ -279,9 +280,8 @@ final class ConfigManager
                 ? \Symfony\Component\HttpKernel\Kernel::VERSION
                 : 'n/a',
             'php_version' => PHP_VERSION,
-            'server_software' => $_SERVER['SERVER_SOFTWARE'],
-            'server_name' => $_SERVER['SERVER_NAME'],
-            'server_addr' => $_SERVER['SERVER_ADDR'],
+            'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? '',
+            'server_name' => $_SERVER['SERVER_NAME'] ?? '',
             'database_version' => \Db::getInstance()->getVersion(),
         ];
 
@@ -687,6 +687,7 @@ final class ConfigManager
             'COMFINO_CSP_ENABLED' => false,
             'COMFINO_CSP_REPORT_ONLY' => true,
             'COMFINO_PAYWALL_DIRECT_REDIRECT' => false,
+            'COMFINO_PAYWALL_TRACKING_CONSENT' => false,
             'COMFINO_PAYWALL_CUSTOM_CSS_URL' => '',
         ];
     }

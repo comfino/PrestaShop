@@ -192,8 +192,6 @@ class RestEndpointAuthTest extends TestCase
      */
     private function resetEndpointManager()
     {
-        $instance = new \ReflectionProperty(RestEndpointManager::class, 'instance');
-        $instance->setAccessible(true);
-        $instance->setValue(null, null);
+        RestEndpointManager::reset();
     }
 }

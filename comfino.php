@@ -41,7 +41,7 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1787897633);
+    define('COMFINO_BUILD_TS', 1790779369);
 }
 
 /* Notice: source code of this script MUST be compatible with PHP 5.6 syntax. */
@@ -356,7 +356,7 @@ class Comfino extends PaymentModule
             'script-src' => $cdnDomain,
             'connect-src' => "$apiDomain $cdnDomain",
             'style-src' => $cdnDomain,
-            'img-src' => $cdnDomain,
+            'img-src' => "$apiDomain $cdnDomain",
         ];
 
         if ($existing !== '') {
@@ -376,7 +376,7 @@ class Comfino extends PaymentModule
                 "script-src 'self' 'unsafe-inline' $cdnDomain",
                 "connect-src 'self' $apiDomain $cdnDomain",
                 "style-src 'self' 'unsafe-inline' $cdnDomain",
-                "img-src 'self' data: $cdnDomain",
+                "img-src 'self' data: $apiDomain $cdnDomain",
                 "font-src 'self' data:",
                 "object-src 'none'",
                 "base-uri 'self'",

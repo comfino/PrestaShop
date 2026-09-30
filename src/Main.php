@@ -417,6 +417,7 @@ final class Main
             'authToken' => $authToken,
             'loggingToken' => $loggingToken,
             'trackId' => $trackId,
+            'trackingConsent' => (bool) ConfigManager::getConfigurationValue('COMFINO_PAYWALL_TRACKING_CONSENT'),
             'loanAmount' => $loanAmount,
             'paymentMethodAuth' => ConfigManager::getPaywallLogoAuthHash(),
             'paymentMethodLabel' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT') ?: null,

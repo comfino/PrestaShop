@@ -171,6 +171,10 @@ final class ApiService
 
         if (ConfigManager::isDebugMode()) {
             $request = $endpointManager->getServerRequest();
+            $requestBody = $request->getBody()->getContents();
+
+            // Rewind, so the endpoint manager still reads the full body.
+            $request->getBody()->rewind();
 
             DebugLogger::logEvent(
                 '[REST API request]',
@@ -180,7 +184,7 @@ final class ApiService
                     'METHOD' => $request->getMethod(),
                     'PARAMS' => $request->getQueryParams(),
                     'HEADERS' => $request->getHeaders(),
-                    'BODY' => $request->getBody()->getContents(),
+                    'BODY' => $requestBody,
                 ]
             );
         }
@@ -209,11 +213,11 @@ final class ApiService
                 'processRequest',
                 [
                     '$endpointName' => $endpointName,
-                    'RECEIVED-CR-SIGNATURE' => $endpointManager->getReceivedCrSignature(),
-                    'CALCULATED-CR-SIGNATURE' => $endpointManager->getCalculatedCrSignature(),
+                    'RECEIVED-CR-SIGNATURE-FINGERPRINT' => $endpointManager->getReceivedCrSignatureFingerprint(),
+                    'CALCULATED-CR-SIGNATURE-FINGERPRINT' => $endpointManager->getCalculatedCrSignature(),
                     'HEADERS' => $response->getHeaders(),
                     'STATUS' => $response->getStatusCode(),
-                    'BODY' => $response->getBody()->getContents(),
+                    'BODY' => $responseBody,
                 ]
             );
         }

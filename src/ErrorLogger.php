@@ -28,7 +28,6 @@ namespace Comfino;
 
 use Comfino\Api\ApiClient;
 use Comfino\Api\Exception\AuthorizationError;
-use Comfino\Api\Exception\ResponseValidationError;
 use Comfino\Configuration\ConfigManager;
 use Comfino\Extended\Api\Dto\Plugin\ErrorSeverity;
 use Comfino\Extended\Api\Dto\Plugin\OperationContext;
@@ -79,15 +78,40 @@ final class ErrorLogger
         ?string $apiResponse = null,
         ?string $stackTrace = null
     ): void {
-        if ($exception instanceof ResponseValidationError || $exception instanceof AuthorizationError) {
-            /* - Don't collect validation errors - validation errors are already collected at API side (response with status code 400).
-               - Don't collect authorization errors caused by empty or wrong API key (response with status code 401). */
+        if ($exception instanceof AuthorizationError) {
+            // Don't collect authorization errors caused by empty or wrong API key (response with status code 401).
+            return;
+        }
+
+        $severity = Common\Backend\ErrorLogger::resolveSeverity($exception);
+
+        if ($severity === null) {
+            /* Validation outcome (rejected request or invalid response, already visible at API side) - keep a local
+               record only, never report it. Payloads travel as context, so the log processor redacts them. */
+            $logContext = array_filter(
+                [
+                    'error_code' => $errorCode,
+                    'api_url' => $apiRequestUrl,
+                    'api_request' => $apiRequest,
+                    'api_response' => $apiResponse,
+                ],
+                static function ($value): bool {
+                    return $value !== null;
+                }
+            );
+
+            self::getLoggerInstance()->logError(
+                '[' . Common\Backend\ErrorLogger::classifyException($exception)->value . "][$context]",
+                $errorMessage,
+                $logContext
+            );
+
             return;
         }
 
         self::getLoggerInstance()->sendError(
             Common\Backend\ErrorLogger::classifyException($exception),
-            ErrorSeverity::from(ErrorSeverity::Error),
+            ErrorSeverity::from($severity),
             OperationContext::from($context),
             $errorCode,
             $errorMessage,

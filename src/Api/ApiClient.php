@@ -27,6 +27,7 @@
 namespace Comfino\Api;
 
 use Comfino\Api\Exception\AccessDenied;
+use Comfino\Api\Exception\TooManyRequests;
 use Comfino\Common\Backend\Factory\ApiClientFactory;
 use Comfino\Common\Exception\ConnectionTimeout;
 use Comfino\Common\Frontend\FrontendHelper;
@@ -83,7 +84,8 @@ final class ApiClient
                 \Context::getContext()->language->iso_code,
                 ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_TIMEOUT', 3),
                 ConfigManager::getConfigurationValue('COMFINO_API_TIMEOUT', 5),
-                ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_NUM_ATTEMPTS', 3)
+                ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_NUM_ATTEMPTS', 3),
+                self::getDevEnvCurlOptions()
             );
 
             self::$apiClient->addCustomHeader('Comfino-Build-Timestamp', (string) COMFINO_BUILD_TS);
@@ -104,13 +106,29 @@ final class ApiClient
     }
 
     /**
+     * The shared client restricts cURL to HTTPS. A local development API host set via COMFINO_DEV_API_HOST may be plain
+     * HTTP, so HTTP is allowed again for that case only.
+     */
+    private static function getDevEnvCurlOptions(): array
+    {
+        if (!ConfigManager::useDevEnvVars() || stripos((string) ConfigManager::getApiHost(), 'http://') !== 0) {
+            return [];
+        }
+
+        return [
+            CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+        ];
+    }
+
+    /**
      * Pins this instance's trackId to the checkout-scoped cookie value, so a checkout-page paywall render and the
      * later separate order-create request share the same trackId. Checkout-only: never call this from product-page
      * rendering, where a fresh trackId per page load is still correct behavior.
      *
      * @return void
      */
-    public static function pinCheckoutTrackId()
+    public static function pinCheckoutTrackId(): void
     {
         $client = self::getInstance();
 
@@ -190,7 +208,7 @@ final class ApiClient
                         'transfer_timeout' => $exception->getTransferTimeout(),
                     ]
                 );
-            } elseif ($statusCode < 500) {
+            } elseif ($statusCode < 500 && !$exception instanceof TooManyRequests) {
                 $userErrorMessage = Main::translate(
                     'We have a configuration problem. The store is already working on a solution!'
                 );
