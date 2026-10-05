@@ -22,15 +22,15 @@ PrestaShop 1.6
 Przejdź do zakładki `"Moduły -> Moduły i usługi"`, następnie kliknij przycisk `"Dodaj nowy moduł"`. Wysunie się panel z polem `"Plik modułu"`.
 W tym polu należy wybrać plik z modułem, a następnie kliknąć `"Prześlij moduł"`. Kiedy moduł zostanie przesłany, wystarczy wybrać go z listy modułów, a następnie kliknąć `"Instaluj"`.
 
-![Konfiguracja](images/pl/modules_ps_16.png "Konfiguracja")
-![Konfiguracja](images/pl/modules_ps_16_panel.png "Konfiguracja")
+<img src="images/pl/modules_ps_16.png" width="1000">
+<img src="images/pl/modules_ps_16_panel.png" width="1000">
 
 PrestaShop 1.7, PrestaShop 8, PrestaShop 9
 -------
 
 Przejdź do zakładki `"Moduły -> Menedżer modułów"`, następnie kliknij przycisk `"Załaduj moduł"`. Z wyświetlonego pola do przesyłania modułów, należy wybrać odpowiedni plik z modułem. Wtyczka zainstaluje się automatycznie.
 
-![Konfiguracja](images/pl/modules_ps_9.png "Konfiguracja")
+<img src="images/pl/modules_ps_9.png" width="1000">
 
 ## KONFIGURACJA
 
@@ -52,7 +52,12 @@ Pola parametrów konfiguracyjnych:
 * **Minimalna kwota w koszyku** — wartość koszyka, od której dostępna jest płatność Comfino (domyślnie: 30 zł)
 * **Użyj numeru zamówienia jako zewnętrznego ID** — Używaj numeru zamówienia widocznego dla klienta zamiast numerycznego ID zamówienia w komunikacji z API Comfino. Dotyczy tylko nowych zamówień.
 
-![Konfiguracja](images/pl/configuration1.png "Konfiguracja")
+**Ustawienia paywalla**
+
+* **Tryb bezpośredniego przekierowania** — Nie wyświetlaj paywalla Comfino, wyłącza automatyczne wyświetlanie paywalla na podsumowaniu płatności, pozwalając przejść na wniosek bez potrzeby wyboru jednego z produktów finansowych Comfino.
+* **Niestandardowy styl CSS paywalla** — Odnośnik do pliku CSS ze stylami nadpisującymi wygląd paywalla (akceptowane są tylko adresy bezwzględne z domeny sklepu)
+
+<img src="images/pl/configuration1.png" width="1000">
 
 **USTAWIENIA SPRZEDAŻY**
 
@@ -62,7 +67,15 @@ Reguły dostępności produktów finansowych (filtry kategorii produktowych) umo
 
 Domyślnie płatności Comfino są dostępne bezwarunkowo dla wszystkich typów produktów. W celu wyłączenia Comfino dla wybranych typów produktów należy odznaczyć odpowiednie kategorie w drzewie kategorii dla każdego typu oferty finansowej i kliknąć "Zapisz".
 
-![Konfiguracja](images/pl/configuration2.png "Konfiguracja")
+**Filtruj według ID produktu**
+
+Filtr po ID produktu umożliwia wykluczenie płatności Comfino dla konkretnych produktów, niezależnie od ich kategorii. W polu tekstowym należy wpisać identyfikatory (ID) produktów oddzielone przecinkami (np. `15, 17`) i kliknąć "Zapisz". Jest to jedna wspólna lista obowiązująca wszystkie typy produktów finansowych.
+
+Jeśli w koszyku klienta znajdzie się którykolwiek z wymienionych produktów, wszystkie płatności Comfino zostaną ukryte, zarówno podczas finalizacji zamówienia (paywall), jak i w widgecie promocyjnym na stronie produktu. Pozostawienie pola pustego oznacza, że filtr jest nieaktywny i żaden produkt nie jest wykluczany na jego podstawie.
+
+Filtr po ID produktu działa niezależnie od filtrów kategorii produktowych.
+
+<img src="images/pl/configuration2.png" width="1000">
 
 **USTAWIENIA WIDGETU**
 
@@ -75,22 +88,22 @@ Domyślnie płatności Comfino są dostępne bezwarunkowo dla wszystkich typów 
 
 Dostępność typów ofert na liście jest uzależniona od indywidualnej umowy i może różnić się od tej opisanej w dokumentacji.
 
-![Konfiguracja](images/pl/configuration3a.png "Konfiguracja")
+<img src="images/pl/configuration3a.png" width="1000">
 
 **Ustawienia zaawansowane**
 
 * **Selektor elementu ceny widgetu** — element dokumentu HTML zawierający cenę produktu
+* **Atrybut elementu ceny widgetu** — atrybut elementu ceny zawierający liczbową wartość ceny; po ustawieniu widget odczytuje cenę z tego atrybutu zamiast analizować tekst elementu, co pozwala uniknąć sytuacji wyścigu przy asynchronicznym renderowaniu ceny
 * **Selektor elementu zakotwiczenia widgetu** — element kontenera widgetu (w nim jest osadzany widget)
 * **Wykrywanie zmian ceny - selektor kontenera** — element dokumentu HTML zawierający w sobie element ceny bezpośrednio lub pośrednio używany do śledzenia zmian cen i przeliczania ofert
 * **Wykrywanie zmian ceny - poziom hierarchii kontenera** — poziom hierarchii DOM używany do śledzenia zmian cen i przeliczania ofert
 * **Metoda osadzania** — sposób orientacji widgetu względem elementu kontenera [`INSERT_INTO_FIRST`, `INSERT_INTO_LAST`, `INSERT_BEFORE`, `INSERT_AFTER`]
 * **Niestandardowy styl CSS banera** — Odnośnik do pliku CSS ze stylami nadpisującymi wygląd banera (akceptowane są tylko adresy bezwzględne z domeny sklepu)
 * **Niestandardowy styl CSS kalkulatora** — Odnośnik do pliku CSS ze stylami nadpisującymi wygląd kalkulatora (akceptowane są tylko adresy bezwzględne z domeny sklepu)
-* **Kod inicjalizacji widgetu** — skrypt JavaScript inicjalizujący widget na stronie produktu (wprowadzanie zmian niezalecane dla niezaawansowanych użytkowników bez znajomości JavaScript)
 
 Szczegółowe informacje o działaniu widgetu i jego opcjach konfiguracyjnych znajdziesz w osobnej [dokumentacji widgetu Comfino](https://comfino.pl/widgets/comfino-prestashop/pl).
 
-![Konfiguracja](images/pl/configuration3b.png "Konfiguracja")
+<img src="images/pl/configuration3b.png" width="1000">
 
 **USTAWIENIA DEWELOPERSKIE**
 
@@ -103,7 +116,7 @@ Tryb debugowania przydaje się w przypadku problemów z dostępnością płatno�
 
 Tryb serwisowy jest przydatny do testowania bramki płatniczej Comfino bez konieczności udostępniania jej klientom. W tym trybie metoda płatności Comfino widoczna jest tylko dla wybranych sesji, a logi debugowania są zbierane wyłącznie dla tych sesji.
 
-![Konfiguracja](images/pl/configuration4.png "Konfiguracja")
+<img src="images/pl/configuration4.png" width="1000">
 
 **Uwaga**
 
@@ -113,12 +126,12 @@ Przed uruchomieniem płatności na sklepie produkcyjnym, wyłącz tryb deweloper
 
 Zakładka zawiera informacje techniczne o wtyczce i środowisku (wersja wtyczki, wersja sklepu, wersja PHP i serwera www, itp.).\
 
-![Konfiguracja](images/pl/configuration5a.png "Konfiguracja")
+<img src="images/pl/configuration5a.png" width="1000">
 
 Zawiera też listę ostatnich błędów wraz z podglądem lokalnego dziennika błędów (log błędów) oraz listę z zapisanymi w trybie debug operacjami wewnętrznymi wtyczki (log trybu debugowania).
 Jest również opcja wyczyszczenia dziennika błędów, jak i listy operacji wewnętrznych w trybie debug.
 
-![Konfiguracja](images/pl/configuration5b.png "Konfiguracja")
+<img src="images/pl/configuration5b.png" width="1000">
 
 Sekcja **Reset modułu** służy do przywrócenia modułu do stanu początkowej konfiguracji bez utraty danych ani indywidualnych ustawień biznesowych.\
 Operacja resetu wykonuje następujące czynności:
@@ -131,8 +144,8 @@ Operacja resetu wykonuje następujące czynności:
 
 Aby wykonać reset, należy użyć przycisku „Zresetuj moduł”.
 
-![Konfiguracja](images/pl/configuration5b1.png "Konfiguracja")
-![Konfiguracja](images/pl/configuration5b2.png "Konfiguracja")
+<img src="images/pl/configuration5b1.png" height="320">
+<img src="images/pl/configuration5b2.png" height="320">
 
 Zakładka zawiera dodatkowo zapis operacji wykonanych podczas instalacji, aktualizacji i dezinstalacji modułu.
 
@@ -149,7 +162,7 @@ Log aktualizacji:
 Log dezinstalacji:
 * **Po odinstalowaniu – weryfikacja, czy proces zakończył się prawidłowo**
 
-![Konfiguracja](images/pl/configuration5c.png "Konfiguracja")
+<img src="images/pl/configuration5c.png" width="1000">
 
 Informacja o aktywności trybu deweloperskiego jest wyświetlana w zakładkach `"USTAWIENIA PŁATNOŚCI"` i `"DIAGNOSTYKA WTYCZKI"`.
 W trybie tym wtyczka używa klucza z zakładki `"USTAWIENIA DEWELOPERSKIE"` do komunikacji z testowym API Comfino. Klucz środowiska testowego również otrzymasz od przedstawiciela Comfino.
@@ -180,10 +193,10 @@ W trybie tym wtyczka używa klucza z zakładki `"USTAWIENIA DEWELOPERSKIE"` do k
 
 ## PRZYKŁADOWY WYGLĄD KOSZYKA Z LISTĄ METOD PŁATNOŚCI
 
-![Koszyk](images/pl/cart_payment_view_folded.png "Koszyk")
+<img src="images/pl/cart_payment_view_folded.png" width="760">
 
-![Koszyk](images/pl/cart_payment_view_unfolded.png "Koszyk")
+<img src="images/pl/cart_payment_view_unfolded.png" width="760">
 
 ## PRZEBIEG PROCESU COMFINO
 
-![Flow](images/comfino-flow.png "Flow")
+<img src="images/comfino-flow.png" width="1000">

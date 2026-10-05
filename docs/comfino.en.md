@@ -22,8 +22,8 @@ PrestaShop 1.6
 To install the module, please go to `"Modules -> Modules and services"` tab and then click `"Add new module"` button, then panel with `"Module file"` input should appear.
 In this input choose module's file and click `"Send module button"`. If the module was uploaded, then it should be visible on modules list. Then you should just choose the module and click `"Install"` button.
 
-![Configuration](images/en/modules_ps_16.png "Configuration")
-![Configuration](images/en/modules_ps_16_panel.png "Configuration")
+<img src="images/en/modules_ps_16.png" width="1000">
+<img src="images/en/modules_ps_16_panel.png" width="1000">
 
 PrestaShop 1.7, PrestaShop 8, PrestaShop 9
 -------
@@ -31,7 +31,7 @@ PrestaShop 1.7, PrestaShop 8, PrestaShop 9
 To install the module, please go to `"Modules -> Module Manager"` tab, and then click `"Upload a module"` button.
 To the field that appears, put module's file. Module will be installed automatically.
 
-![Configuration](images/en/modules_ps_9.png "Configuration")
+<img src="images/en/modules_ps_9.png" width="1000">
 
 ## CONFIGURATION
 
@@ -52,7 +52,12 @@ Configuration parameter fields:
 * **Minimal amount in cart** — the value of the cart from which Comfino payment is available (default: 30 PLN)
 * **Use order reference as external ID** — Use customer-visible order reference instead of numeric order ID for Comfino API integration. New orders only.
 
-![Configuration](images/en/configuration1.png "Configuration")
+**Paywall settings**
+
+* **Direct redirect mode** — Do not display the Comfino paywall. Disables the automatic display of the paywall on the payment summary, allowing you to proceed to the application without having to select one of Comfino's financial products.
+* **Custom paywall CSS style** — Link to a CSS file with styles that override the paywall's appearance (only absolute addresses from the store's domain are accepted).
+
+<img src="images/en/configuration1.png" width="1000">
 
 **SALE SETTINGS**
 
@@ -62,7 +67,15 @@ Financial product availability rules (product category filters) enable Comfino p
 
 By default, Comfino payments are available unconditionally for all product types. To disable Comfino for selected product types, uncheck the appropriate categories in the category tree for each type of financial offer and click "Save".
 
-![Configuration](images/en/configuration2.png "Configuration")
+**Filter by product ID**
+
+The product ID filter lets you exclude Comfino payments for specific products, regardless of their category. In the text field, enter the product IDs separated by commas (e.g. `15, 17`) and click "Save". This is a single shared list that applies to all financial product types.
+
+If the customer's cart contains any of the listed products, all Comfino payments will be hidden, both at checkout (paywall) and in the promotional widget on the product page. Leaving the field empty means the filter is inactive and no product is excluded based on it.
+
+The product ID filter works independently of the product category filters.
+
+<img src="images/en/configuration2.png" width="1000">
 
 **WIDGET SETTINGS**
 
@@ -75,22 +88,22 @@ By default, Comfino payments are available unconditionally for all product types
 
 The availability of offer types on the list depends on the individual contract and may differ from that described in the documentation.
 
-![Configuration](images/en/configuration3a.png "Configuration")
+<img src="images/en/configuration3a.png" width="1000">
 
 **Advanced settings**
 
 * **Widget price element selector** — HTML document element containing the price of the product
+* **Widget price element attribute** — attribute of the price element holding the numeric price value; when set, the widget reads the price from this attribute instead of parsing the element text, which avoids a race with asynchronous price rendering
 * **Widget anchor element selector** — widget container element (widget is embedded in it)
 * **Price change detection — container selector** — HTML document element containing a price element directly or indirectly used to track price changes and recalculate offers
 * **Price change detection — container hierarchy level** — DOM hierarchy level used to track price changes and recalculate offers
 * **Embedding method** — how the widget is oriented relative to the container element [`INSERT_INTO_FIRST`, `INSERT_INTO_LAST`, `INSERT_BEFORE`, `INSERT_AFTER`]
 * **Custom banner CSS style** — Link to a CSS file with styles overriding the banner's appearance (only absolute addresses from the store's domain are accepted)
 * **Custom calculator CSS style** — Link to a CSS file with styles overriding the calculator's appearance (only absolute addresses from the store's domain are accepted)
-* **Widget initialization code** — JavaScript script to initialize the widget on the product page (making changes not recommended for non-advanced users without JavaScript knowledge)
 
 Detailed information on the operation of the widget and its configuration options can be found in a separate [Comfino widget documentation](https://comfino.pl/widgets/comfino-prestashop/en).
 
-![Configuration](images/en/configuration3b.png "Configuration")
+<img src="images/en/configuration3b.png" width="1000">
 
 **DEVELOPER SETTINGS**
 
@@ -103,7 +116,7 @@ Debug mode is useful in case of problems with Comfino payment availability. In t
 
 Debug mode is useful in case of problems with Comfino payment availability. In this mode module logs details of internal process responsible for displaying of Comfino payment option at the payment methods list.
 
-![Configuration](images/en/configuration4.png "Configuration")
+<img src="images/en/configuration4.png" width="1000">
 
 **Note**
 
@@ -113,12 +126,12 @@ Before launching payments on the production store, disable developer mode to blo
 
 The tab contains technical information about the plugin and the environment (plugin version, store version, PHP and web server version, etc.).\
 
-![Configuration](images/en/configuration5a.png "Configuration")
+<img src="images/en/configuration5a.png" width="1000">
 
 It also contains a list of recent errors with a preview of the local error log and a list of the plugin's internal operations recorded in debug mode (debug mode log).
 There is also an option to clear the error log as well as the list of internal operations in debug mode.
 
-![Configuration](images/en/configuration5b.png "Configuration")
+<img src="images/en/configuration5b.png" width="1000">
 
 The **Module reset** section allows you to restore the module to its initial configuration without losing any data or individual business settings.\
 The reset operation performs the following actions:
@@ -131,8 +144,8 @@ The reset operation performs the following actions:
 
 To perform a reset, click the "Reset module" button.
 
-![Konfiguracja](images/en/configuration5b1.png "Konfiguracja")
-![Konfiguracja](images/en/configuration5b2.png "Konfiguracja")
+<img src="images/en/configuration5b1.png" height="320">
+<img src="images/en/configuration5b2.png" height="320">
 
 This tab also contains a record of operations performed during module installation, update and uninstallation.
 
@@ -149,7 +162,7 @@ Update log:
 Uninstallation log:
 * **After uninstallation – verifying that the process completed correctly**
 
-![Konfiguracja](images/en/configuration5c.png "Konfiguracja")
+<img src="images/en/configuration5c.png" width="1000">
 
 Information about developer mode activity is displayed in the tabs `"PAYMENT SETTINGS"` and `"PLUGIN DIAGNOSTICS"`.
 In this mode, the plugin uses the key from the `"DEVELOPER SETTINGS"` tab to communicate with the Comfino test API. You will also receive a test environment key from a Comfino representative.
@@ -180,10 +193,10 @@ In this mode, the plugin uses the key from the `"DEVELOPER SETTINGS"` tab to com
 
 ## SAMPLE CART VIEW WITH A LIST OF PAYMENT METHODS
 
-![Cart](images/en/cart_payment_view_folded.png "Cart")
+<img src="images/en/cart_payment_view_folded.png" width="760">
 
-![Cart](images/en/cart_payment_view_unfolded.png "Cart")
+<img src="images/en/cart_payment_view_unfolded.png" width="760">
 
 ## COMFINO PROCESS FLOW
 
-![Flow](images/comfino-flow.png "Flow")
+<img src="images/comfino-flow.png" width="1000">
