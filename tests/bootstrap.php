@@ -28,8 +28,9 @@
  * Minimal test bootstrap.
  *
  * Module source files guard themselves with a _PS_VERSION_ check and exit when loaded outside PrestaShop,
- * so the constants a PrestaShop runtime would define are stubbed here. Only constants are defined - no
- * PrestaShop classes are stubbed, so a test may only exercise code which does not reach the shop framework.
+ * so the constants a PrestaShop runtime would define are stubbed here, together with in-memory doubles of the
+ * PrestaShop classes the tested code reaches (tests/Stubs/PrestaShopStubs.php). Tests that touch module or
+ * shared-library singletons call Comfino\Tests\TestState::reset() in setUp().
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -43,7 +44,7 @@ if (!defined('_DB_PREFIX_')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.3.1');
+    define('COMFINO_VERSION', '4.4.0');
 }
 
 if (!defined('COMFINO_MODULE_NAME')) {
@@ -53,3 +54,14 @@ if (!defined('COMFINO_MODULE_NAME')) {
 if (!defined('COMFINO_BUILD_TS')) {
     define('COMFINO_BUILD_TS', 0);
 }
+
+if (!defined('_PS_MODULE_DIR_')) {
+    define('_PS_MODULE_DIR_', sys_get_temp_dir() . '/comfino-tests/modules/');
+}
+
+if (!defined('COMFINO_PS_17')) {
+    define('COMFINO_PS_17', true);
+}
+
+require_once __DIR__ . '/Stubs/PrestaShopStubs.php';
+require_once __DIR__ . '/TestState.php';

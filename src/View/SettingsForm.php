@@ -653,7 +653,7 @@ final class SettingsForm
                                 'type' => 'switch',
                                 'label' => Main::translate('Allow collecting ComfinoPay plugin view statistics'),
                                 'name' => 'COMFINO_PAYWALL_TRACKING_CONSENT',
-                                'desc' => Main::translate('When enabled, the ComfinoPay paywall in the checkout reports its views and shopper interactions (e.g. offer and installment changes) to ComfinoPay. These statistics help optimize the paywall and thus increase sales.'),
+                                'desc' => Main::translate('When enabled, the ComfinoPay product widget and the paywall in the checkout report their views and shopper interactions (e.g. offer and installment changes) to ComfinoPay. These statistics help optimize the widget and the paywall and thus increase sales. Linking product page visits with the checkout additionally requires the shopper\'s consent to analytics cookies in your shop.'),
                                 'is_bool' => true,
                                 'values' => [
                                     [

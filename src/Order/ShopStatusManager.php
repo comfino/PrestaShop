@@ -27,6 +27,7 @@
 namespace Comfino\Order;
 
 use Comfino\Api\ApiClient;
+use Comfino\Common\Shop\Order\StatusApplicationContext;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Configuration\ConfigManager;
 use Comfino\DebugLogger;
@@ -118,8 +119,19 @@ final class ShopStatusManager
         ],
     ];
 
-    /** Flag to suppress cancel API call when a status change was initiated by Comfino API notification. */
-    private static $comfinoInitiatedCancellation = false;
+    /**
+     * Custom states after which ComfinoPay already treats the order as closed, so a cancellation must not be sent back.
+     */
+    private const TERMINAL_CUSTOM_ORDER_STATUSES = [
+        'COMFINO_' . StatusManager::STATUS_CANCELLED,
+        'COMFINO_' . StatusManager::STATUS_REJECTED,
+        'COMFINO_' . StatusManager::STATUS_CANCELLED_BY_SHOP,
+    ];
+
+    /** Cancel suppressed because the order history already holds a terminal ComfinoPay state. */
+    public const CANCEL_SUPPRESSED_BY_HISTORY = 'history';
+    /** Cancel suppressed because the status change is being applied from a ComfinoPay status notification. */
+    public const CANCEL_SUPPRESSED_BY_CONTEXT = 'context';
 
     /**
      * Creates custom Comfino order statuses in PrestaShop database.
@@ -468,9 +480,45 @@ final class ShopStatusManager
         return $resultStats;
     }
 
+    /**
+     * @deprecated since 4.4.0, no-op. Webhook-applied statuses are recognized through the shared
+     *             StatusApplicationContext; kept for one release so a partially upgraded StatusAdapter still loads.
+     */
     public static function setComfinoInitiatedCancellation(bool $value): void
     {
-        self::$comfinoInitiatedCancellation = $value;
+    }
+
+    /**
+     * Tells whether a cancellation of the order must not be sent to the ComfinoPay API, and why.
+     *
+     * The history check runs first: it needs nothing from the webhook path, so it also works across requests (an
+     * employee cancelling an order ComfinoPay rejected earlier) and on a mixed-version install. The order_history table
+     * is queried directly, because Order::getHistory() keeps a per-request static cache that StatusAdapter::setStatus()
+     * fills before it applies the new states.
+     *
+     * @return string|null One of the CANCEL_SUPPRESSED_BY_* constants, or null when the cancellation must be sent
+     */
+    public static function getCancelSuppressionReason(int $orderId): ?string
+    {
+        $terminalStatusIds = [];
+
+        foreach (self::TERMINAL_CUSTOM_ORDER_STATUSES as $orderStateCode) {
+            if (!empty($orderStateId = (int) \Configuration::get($orderStateCode))) {
+                $terminalStatusIds[] = $orderStateId;
+            }
+        }
+
+        if (!empty($terminalStatusIds) && self::orderHistoryContains($orderId, $terminalStatusIds)) {
+            return self::CANCEL_SUPPRESSED_BY_HISTORY;
+        }
+
+        /* Any status applied from a ComfinoPay notification runs inside the shared application context, not only the
+           cancellation statuses, so a status map entry pointing another status at PS_OS_CANCELED is covered too. */
+        if (StatusApplicationContext::isActive()) {
+            return self::CANCEL_SUPPRESSED_BY_CONTEXT;
+        }
+
+        return null;
     }
 
     /**
@@ -516,8 +564,14 @@ final class ShopStatusManager
             $canceledOrderStateId = (int) \Configuration::get('PS_OS_CANCELED');
 
             if ($newOrderStateId === $canceledOrderStateId) {
-                if (self::$comfinoInitiatedCancellation) {
-                    // Cancellation originated from Comfino API notification - do not resend cancel request.
+                if (($suppressionReason = self::getCancelSuppressionReason((int) $order->id)) !== null) {
+                    // ComfinoPay already knows the order is closed - do not send the cancellation back.
+                    DebugLogger::logEvent(
+                        '[ORDER_STATUS_UPDATE]',
+                        'Order cancellation not sent to ComfinoPay API.',
+                        ['orderId' => (int) $order->id, 'newOrderStateId' => $newOrderStateId, 'guard' => $suppressionReason]
+                    );
+
                     return;
                 }
 
@@ -750,6 +804,22 @@ SQL
      *
      * @return bool True if any status has been used in order history, false otherwise
      */
+    private static function orderHistoryContains(int $orderId, array $orderStatusIds): bool
+    {
+        $dbPrefix = _DB_PREFIX_;
+        $orderStateIdsSQL = implode(',', array_map('intval', $orderStatusIds));
+
+        return (bool) \Db::getInstance()->getValue(<<<SQL
+            SELECT
+                1
+            FROM
+                {$dbPrefix}order_history
+            WHERE
+                id_order = $orderId AND id_order_state IN ($orderStateIdsSQL)
+SQL
+        );
+    }
+
     private static function comfinoOrderStatusesUsed(array $orderStatusIds): bool
     {
         $dbPrefix = _DB_PREFIX_;

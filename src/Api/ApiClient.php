@@ -47,6 +47,7 @@ final class ApiClient
     private const CHECKOUT_TRACK_ID_COOKIE = 'comfino_checkout_track_id';
     private const CHECKOUT_TRACK_ID_COOKIE_TTL = 900;
     private const CHECKOUT_TRACK_ID_PATTERN = '/^[A-Za-z0-9_.:-]{1,128}$/';
+    private const JOURNEY_TRACK_ID_COOKIE = 'comfino_journey_track_id';
 
     /** @var \Comfino\Common\Api\Client */
     private static $apiClient;
@@ -126,15 +127,21 @@ final class ApiClient
      * later separate order-create request share the same trackId. Checkout-only: never call this from product-page
      * rendering, where a fresh trackId per page load is still correct behavior.
      *
+     * When the merchant enabled statistics consent, a valid SDK-owned journey cookie (set only with the shopper's
+     * analytics consent) takes precedence, so product-page widget events and checkout share one trackId. The journey
+     * cookie is never read with the setting off, and never written here.
+     *
      * @return void
      */
     public static function pinCheckoutTrackId(): void
     {
         $client = self::getInstance();
 
-        if (isset($_COOKIE[self::CHECKOUT_TRACK_ID_COOKIE]) &&
-            preg_match(self::CHECKOUT_TRACK_ID_PATTERN, $_COOKIE[self::CHECKOUT_TRACK_ID_COOKIE]) === 1
+        if (ConfigManager::getConfigurationValue('COMFINO_PAYWALL_TRACKING_CONSENT') &&
+            self::isValidTrackIdCookie(self::JOURNEY_TRACK_ID_COOKIE)
         ) {
+            $client->setTrackId($_COOKIE[self::JOURNEY_TRACK_ID_COOKIE]);
+        } elseif (self::isValidTrackIdCookie(self::CHECKOUT_TRACK_ID_COOKIE)) {
             $client->setTrackId($_COOKIE[self::CHECKOUT_TRACK_ID_COOKIE]);
         }
 
@@ -272,5 +279,11 @@ final class ApiClient
                 $responseBody
             ),
         ];
+    }
+
+    private static function isValidTrackIdCookie(string $cookieName): bool
+    {
+        return isset($_COOKIE[$cookieName]) && is_string($_COOKIE[$cookieName]) &&
+            preg_match(self::CHECKOUT_TRACK_ID_PATTERN, $_COOKIE[$cookieName]) === 1;
     }
 }

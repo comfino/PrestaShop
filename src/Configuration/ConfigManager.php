@@ -233,6 +233,15 @@ final class ConfigManager
     }
 
     /**
+     * Returns the active shop-context scope key ('' for single-shop installs and the "All Shops" context, 's<id>' for a
+     * shop, 'g<id>' for a shop group), for per-scope instances of shared-library services.
+     */
+    public static function getCurrentScope(): string
+    {
+        return self::getCurrentShopContext()[0];
+    }
+
+    /**
      * Resolves the active shop-context scope for configuration storage.
      *
      * Returns a [scope, idShopGroup, idShop] triple: the scope string keys the per-tenant ConfigurationManager instance,

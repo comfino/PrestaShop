@@ -53,8 +53,8 @@ final class ApiService
      */
     private const MIN_API_KEY_LENGTH = 16;
 
-    /** @var RestEndpointManager */
-    private static $endpointManager;
+    /** @var RestEndpointManager[] One manager per shop-context scope, keyed by the scope string. */
+    private static $endpointManagers = [];
 
     /**
      * Removes API keys which must never be accepted as a request signature secret.
@@ -81,17 +81,23 @@ final class ApiService
 
     public static function init(): void
     {
-        self::getEndpointManager()->registerEndpoint(
+        // Endpoints are registered when the manager of a scope is created (see getEndpointManager()).
+        self::getEndpointManager();
+    }
+
+    private static function registerEndpoints(RestEndpointManager $endpointManager): void
+    {
+        $endpointManager->registerEndpoint(
             new StatusNotification(
                 'transactionStatus',
                 self::getControllerUrl('transactionstatus', [], false),
-                StatusManager::getInstance(new StatusAdapter()),
+                StatusManager::getInstance(new StatusAdapter(), ConfigManager::getCurrentScope()),
                 ConfigManager::getForbiddenStatuses(),
                 ConfigManager::getIgnoredStatuses()
             )
         );
 
-        self::getEndpointManager()->registerEndpoint(
+        $endpointManager->registerEndpoint(
             new Configuration(
                 'configuration',
                 self::getControllerUrl('configuration', [], false),
@@ -115,7 +121,7 @@ final class ApiService
             )
         );
 
-        self::getEndpointManager()->registerEndpoint(
+        $endpointManager->registerEndpoint(
             new CacheInvalidate(
                 'cacheInvalidate',
                 self::getControllerUrl('cacheinvalidate', [], false),
@@ -225,9 +231,17 @@ final class ApiService
         return !empty($responseBody) ? $responseBody : $response->getReasonPhrase();
     }
 
+    /**
+     * Returns the endpoint manager of the active shop scope.
+     *
+     * Under Multistore, API keys are shop-scoped, so each scope gets its own manager built from its own keys. A single
+     * cached manager would verify every shop's requests against the keys of whichever shop context came first.
+     */
     private static function getEndpointManager(): RestEndpointManager
     {
-        if (self::$endpointManager === null) {
+        $scope = ConfigManager::getCurrentScope();
+
+        if (!isset(self::$endpointManagers[$scope])) {
             $apiKeys = [ConfigManager::getConfigurationValue('COMFINO_API_KEY')];
 
             /* The test environment key is accepted only while the shop actually runs in sandbox mode. Accepting
@@ -237,14 +251,17 @@ final class ApiService
                 $apiKeys[] = ConfigManager::getConfigurationValue('COMFINO_SANDBOX_API_KEY');
             }
 
-            self::$endpointManager = (new ApiServiceFactory())->createService(
+            self::$endpointManagers[$scope] = (new ApiServiceFactory())->createService(
                 'PrestaShop',
                 _PS_VERSION_,
                 COMFINO_VERSION,
-                self::filterApiKeys($apiKeys)
+                self::filterApiKeys($apiKeys),
+                $scope
             );
+
+            self::registerEndpoints(self::$endpointManagers[$scope]);
         }
 
-        return self::$endpointManager;
+        return self::$endpointManagers[$scope];
     }
 }

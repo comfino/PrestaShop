@@ -35,7 +35,7 @@ class ComfinoUpdateDismissModuleFrontController extends ModuleFrontController
         parent::postProcess();
 
         // Only allow POST requests.
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
             http_response_code(405);
 
             exit(json_encode(['success' => false, 'message' => 'Method not allowed.']));
