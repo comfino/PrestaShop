@@ -7,7 +7,7 @@
 **Installment payments, buy now pay later (BNPL) and corporate financing for your PrestaShop store.**
 
 [![Tests](https://github.com/comfino/PrestaShop/workflows/Tests/badge.svg)](https://github.com/comfino/PrestaShop/actions)
-[![PHP Version](https://img.shields.io/badge/php-7.1%20to%208.4-blue.svg)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/php-7.1%20to%208.5-blue.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-OSL--3.0-green.svg)](LICENSE)
 
 > **Notice:** The 4.x line is the **last one compatible with PHP 7.1**. The upcoming version 5.0.0 will require **PHP 8.1 or higher** and **PrestaShop 1.7.7.0 or higher** (PrestaShop 1.6.x will no longer be supported). Please plan your environment upgrade accordingly — this is especially important for PrestaShop, where a majority of active shops still run an end-of-life PHP version.
@@ -101,7 +101,7 @@ XDEBUG_MODE=coverage ./bin/phpunit --coverage-html coverage
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-All pull requests are automatically tested against PHP 7.1-8.4 with both lowest and stable dependencies. Starting with version 5.0.0, the minimum supported PHP version will be 8.1.
+All pull requests are automatically tested against the minimum (7.1) and maximum (8.5) supported PHP versions with both lowest and stable dependencies. Starting with version 5.0.0, the minimum supported PHP version will be 8.1.
 
 ## License
 
