@@ -1,5 +1,20 @@
 # Changelog
 
+## [4.4.0](https://github.com/comfino/PrestaShop/tree/4.4.0) (2026-10-06)
+
+### Added
+- **Paywall activity tracking consent** — a new opt-in setting (disabled by default) that lets the store admin allow ComfinoPay to track customer activity on the payment selection screen.
+- Failed requests to ComfinoPay caused by temporary problems (for example a short outage or a timeout) are now retried automatically instead of being lost.
+- Diagnostic reports sent to ComfinoPay now have sensitive data masked.
+
+### Changed
+- Order status updates and order cancellations are handled more reliably: duplicate or redundant cancellation requests are no longer sent.
+- Improved error logging and reporting, with a clearer distinction between serious and minor problems.
+- Improved documentation and installation guides.
+
+### Fixed
+- Removed a leftover file from older versions that could cause an error when requested directly. It is cleaned up automatically during the upgrade.
+
 ## [4.3.1](https://github.com/comfino/PrestaShop/tree/4.3.1) (2026-08-28)
 
 Security hotfix release. Upgrading is strongly recommended for every store.

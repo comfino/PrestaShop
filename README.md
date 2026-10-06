@@ -1,12 +1,18 @@
-# Comfino Payment Gateway for PrestaShop
+<a href="https://comfino.pl">
+  <img src="assets/comfinopay_logo.svg" alt="ComfinoPay" width="260">
+</a>
+
+# ComfinoPay - payment gateway for PrestaShop
+
+**Installment payments, buy now pay later (BNPL) and corporate financing for your PrestaShop store.**
 
 [![Tests](https://github.com/comfino/PrestaShop/workflows/Tests/badge.svg)](https://github.com/comfino/PrestaShop/actions)
 [![PHP Version](https://img.shields.io/badge/php-7.1%20to%208.4-blue.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-OSL--3.0-green.svg)](LICENSE)
 
-> **Notice:** The 4.3.x line is the **last one compatible with PHP 7.1**. The upcoming version 5.0.0 will require **PHP 8.1 or higher** and **PrestaShop 1.7.7.0 or higher** (PrestaShop 1.6.x will no longer be supported). Please plan your environment upgrade accordingly — this is especially important for PrestaShop, where a majority of active shops still run an end-of-life PHP version.
+> **Notice:** The 4.x line is the **last one compatible with PHP 7.1**. The upcoming version 5.0.0 will require **PHP 8.1 or higher** and **PrestaShop 1.7.7.0 or higher** (PrestaShop 1.6.x will no longer be supported). Please plan your environment upgrade accordingly — this is especially important for PrestaShop, where a majority of active shops still run an end-of-life PHP version.
 
-PrestaShop payment module for Comfino deferred payments gateway - installment payments, buy now pay later (BNPL) and corporate payments.
+PrestaShop payment module for ComfinoPay deferred payments gateway - installment payments, buy now pay later (BNPL) and corporate payments.
 
 ## Installation
 
@@ -20,7 +26,7 @@ PrestaShop payment module for Comfino deferred payments gateway - installment pa
 
 ## Compatibility
 
-### Current version (4.3.1 — last PHP 7.1 compatible release line)
+### Current version (4.4.0 — last PHP 7.1 compatible release line)
 
 - **PrestaShop**: 1.6.x, 1.7.x, 8.x, 9.x (minimal supported version of PrestaShop is 1.6.1.11)
 - **PHP**: 7.1 or higher
