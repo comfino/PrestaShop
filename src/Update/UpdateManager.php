@@ -77,7 +77,7 @@ class UpdateManager
         $cacheItem = $cacheManager->getItem(self::CACHE_KEY);
 
         if ($cacheItem->isHit()) {
-            return $cacheItem->get();
+            return self::refreshUpdateFlag($cacheItem->get());
         }
 
         /* Claim a short-lived exclusive lock before hitting the API. Without it, concurrent backoffice requests (e.g.,
@@ -149,7 +149,7 @@ class UpdateManager
         }
 
         return [
-            'update_available' => version_compare($release->version, COMFINO_VERSION, '>'),
+            'update_available' => self::isNewerVersion($release->version),
             'current_version' => COMFINO_VERSION,
             'github_version' => $release->version,
             'download_url' => $release->downloadUrl,
@@ -157,5 +157,25 @@ class UpdateManager
             'description_html' => $release->descriptionHtml,
             'checked_at' => time(),
         ];
+    }
+
+    /**
+     * The cached result outlives a module upgrade (up to ~28h), so the flag computed at fetch time may be stale.
+     * Recompute it against the currently installed version on every read.
+     */
+    private static function refreshUpdateFlag(array $updateInfo): array
+    {
+        $updateInfo['current_version'] = COMFINO_VERSION;
+
+        if (isset($updateInfo['github_version'])) {
+            $updateInfo['update_available'] = self::isNewerVersion($updateInfo['github_version']);
+        }
+
+        return $updateInfo;
+    }
+
+    private static function isNewerVersion(string $availableVersion): bool
+    {
+        return version_compare(ltrim(trim($availableVersion), 'vV'), ltrim(COMFINO_VERSION, 'vV'), '>');
     }
 }
