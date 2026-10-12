@@ -101,6 +101,13 @@ final class ErrorLogger extends Logger
      */
     private static $logger;
 
+    private $previousExceptionHandler = null;
+
+    /**
+     * @var string|null
+     */
+    private $rethrownExceptionLocation;
+
     /**
      * @param Client $apiClient
      * @param string $logFilePath
@@ -214,7 +221,7 @@ final class ErrorLogger extends Logger
         $apiResponse = null,
         $stackTrace = null
     ): void {
-        if (preg_match('/Error .*in |Exception .*in /', $errorMessage) && strpos($errorMessage, $this->modulePath) === false) {
+        if (preg_match('/Error .*in |Exception .*in /', $errorMessage) && strpos(self::normalizePath($errorMessage), self::normalizePath($this->modulePath)) === false) {
             return;
         }
 
@@ -400,19 +407,51 @@ final class ErrorLogger extends Logger
      */
     public function exceptionHandler($exception): void
     {
-        $exceptionClass = (new \ReflectionClass($exception))->getShortName();
+        try {
+            $exceptionClass = (new \ReflectionClass($exception))->getShortName();
 
-        $this->sendError(
-            self::classifyException($exception),
-            ErrorSeverity::from(ErrorSeverity::Error),
-            OperationContext::from(OperationContext::Unknown),
-            $exceptionClass,
-            sprintf('Exception %s in %s:%d: %s', $exceptionClass, $exception->getFile(), $exception->getLine(), $exception->getMessage()),
-            null,
-            null,
-            null,
-            $exception->getTraceAsString()
-        );
+            $this->sendError(
+                self::classifyException($exception),
+                ErrorSeverity::from(ErrorSeverity::Error),
+                OperationContext::from(OperationContext::Unknown),
+                $exceptionClass,
+                sprintf('Exception %s in %s:%d: %s', $exceptionClass, $exception->getFile(), $exception->getLine(), $exception->getMessage()),
+                null,
+                null,
+                null,
+                $exception->getTraceAsString()
+            );
+        } catch (\Throwable $loggingFailure) {
+            error_log('Comfino exception logger failed: ' . $loggingFailure->getMessage());
+        }
+
+        if ($this->previousExceptionHandler !== null) {
+            ($this->previousExceptionHandler)($exception);
+
+            return;
+        }
+
+        $this->rethrownExceptionLocation = $exception->getFile() . ':' . $exception->getLine();
+
+        throw $exception;
+    }
+
+    /**
+     * @param array $error
+     * @return bool
+     */
+    private function isRethrownExceptionError(array $error): bool
+    {
+        return $error['file'] . ':' . $error['line'] === $this->rethrownExceptionLocation && strncmp($error['message'], 'Uncaught ', strlen('Uncaught ')) === 0;
+    }
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    private static function normalizePath(string $path): string
+    {
+        return DIRECTORY_SEPARATOR === '/' ? $path : str_replace(DIRECTORY_SEPARATOR, '/', $path);
     }
 
     public function init(): void
@@ -425,7 +464,7 @@ final class ErrorLogger extends Logger
 
         if (!$initialized) {
             set_error_handler([$this, 'errorHandler'], self::CATCHED_ERRORS_MASK);
-            set_exception_handler([$this, 'exceptionHandler']);
+            $this->previousExceptionHandler = set_exception_handler([$this, 'exceptionHandler']);
             register_shutdown_function([$this, 'shutdown']);
 
             $initialized = true;
@@ -434,7 +473,7 @@ final class ErrorLogger extends Logger
 
     public function shutdown(): void
     {
-        if (($error = error_get_last()) !== null && ($error['type'] & self::CATCHED_ERRORS_MASK)) {
+        if (($error = error_get_last()) !== null && ($error['type'] & self::CATCHED_ERRORS_MASK) && !$this->isRethrownExceptionError($error)) {
             $errorLevel = $this->getErrorTypeName($error['type']);
 
             $this->sendError(
