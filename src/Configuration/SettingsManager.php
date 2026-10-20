@@ -107,7 +107,7 @@ final class SettingsManager
         try {
             $productTypes = ApiClient::getInstance()->getProductTypes($listTypeEnum);
             $productTypesList = $productTypes->productTypesWithNames;
-            $cacheTtl = (int) $productTypes->getHeader('Cache-TTL', '0');
+            $cacheTtl = (int) $productTypes->getHeader('Comfino-Cache-TTL', '0');
 
             CacheManager::set($cacheKey, $productTypesList, $cacheTtl, ['admin_product_types']);
 
@@ -148,7 +148,7 @@ final class SettingsManager
         try {
             $response = ApiClient::getInstance()->getCreditors();
             $creditorsList = $response->creditors;
-            $cacheTtl = (int) $response->getHeader('Cache-TTL', '0');
+            $cacheTtl = (int) $response->getHeader('Comfino-Cache-TTL', '0');
 
             CacheManager::set($cacheKey, $creditorsList, $cacheTtl, ['admin_product_types']);
 
@@ -214,7 +214,7 @@ final class SettingsManager
         try {
             $widgetTypes = ApiClient::getInstance()->getWidgetTypes();
             $widgetTypesList = $widgetTypes->widgetTypesWithNames;
-            $cacheTtl = (int) $widgetTypes->getHeader('Cache-TTL', '0');
+            $cacheTtl = (int) $widgetTypes->getHeader('Comfino-Cache-TTL', '0');
 
             CacheManager::set($cacheKey, $widgetTypesList, $cacheTtl, ['admin_widget_types']);
 
