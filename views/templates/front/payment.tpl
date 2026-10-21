@@ -24,7 +24,7 @@
  *}
 
 {*
- * Template for the Comfino payment method fields in checkout.
+ * Template for the ComfinoPay payment method fields in checkout.
  *
  * Rendered by Main::renderPaywallIframe() as the container for the paywall. The CDN-hosted checkout glue script
  * (comfino-prestashop.min.js) locates #comfino-paywall-container and renders the paywall iframe inside it.
@@ -55,7 +55,7 @@
 {* Loan parameters written by PrestaShopAdapter.updatePaymentState(), read on order placement. *}
 <input id="comfino-loan-type" name="comfino_loan_type" type="hidden" value="" />
 <input id="comfino-loan-term" name="comfino_loan_term" type="hidden" value="" />
-{* Comfino web frontend SDK renders paywall iframe here. *}
+{* ComfinoPay web frontend SDK renders paywall iframe here. *}
 <div id="comfino-paywall-container"></div>
 
 {if $is_ps_16}
@@ -68,5 +68,49 @@
 </form>
 {/if}
 
-<script type="application/json" id="comfino-checkout-config">{$comfino_settings|@json_encode nofilter}</script>
+<script type="application/json" id="comfino-checkout-config">{$comfino_settings_json nofilter}</script>
 <script data-cfasync="false" src="{$checkout_script_url|escape:'htmlall':'UTF-8'}" data-comfino-checkout="1" crossorigin="anonymous"{if isset($script_nonce) && $script_nonce !== ''} nonce="{$script_nonce|escape:'javascript'}"{/if}></script>
+
+{* Keeps the shopper's paywall selection on the server (cart-scoped), for checkouts whose payment form is built by the
+   theme and does not carry the hidden loan inputs above. *}
+<script data-cfasync="false" data-url="{$comfino_selection_url|escape:'html':'UTF-8'}" data-token="{$comfino_selection_token|escape:'html':'UTF-8'}"{if isset($script_nonce) && $script_nonce !== ''} nonce="{$script_nonce|escape:'javascript'}"{/if}>
+{literal}
+(() => {
+    const cfg = document.currentScript;
+    let lastSent = '';
+
+    const sendSelection = () => {
+        const typeInput = document.getElementById('comfino-loan-type');
+        const termInput = document.getElementById('comfino-loan-term');
+
+        if (!typeInput || !termInput || !typeInput.value || !termInput.value) {
+            return;
+        }
+
+        const key = `${typeInput.value}|${termInput.value}`;
+
+        if (key === lastSent) {
+            return;
+        }
+
+        lastSent = key;
+
+        const body = new URLSearchParams({
+            comfino_loan_type: typeInput.value,
+            comfino_loan_term: termInput.value,
+            token: cfg.dataset.token
+        });
+
+        fetch(cfg.dataset.url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString()
+        }).catch(() => { lastSent = ''; });
+    };
+
+    // The SDK adapter assigns the inputs' values directly (no DOM event), so the values are polled.
+    setInterval(sendSelection, 1000);
+})();
+{/literal}
+</script>
