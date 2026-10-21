@@ -303,12 +303,8 @@ final class ApiClient
             $responseBody = '[HTML response] ' . trim((string) preg_replace('/\s+/u', ' ', $text));
         }
 
-        if (function_exists('mb_strlen') && mb_strlen($responseBody, 'UTF-8') > self::MAX_LOGGED_RESPONSE_LENGTH) {
-            return mb_substr($responseBody, 0, self::MAX_LOGGED_RESPONSE_LENGTH, 'UTF-8') . '... [truncated]';
-        }
-
-        return strlen($responseBody) > self::MAX_LOGGED_RESPONSE_LENGTH
-            ? substr($responseBody, 0, self::MAX_LOGGED_RESPONSE_LENGTH) . '... [truncated]'
+        return mb_strlen($responseBody, 'UTF-8') > self::MAX_LOGGED_RESPONSE_LENGTH
+            ? mb_substr($responseBody, 0, self::MAX_LOGGED_RESPONSE_LENGTH, 'UTF-8') . '... [truncated]'
             : $responseBody;
     }
 

@@ -1,7 +1,7 @@
 {
     "name": "comfino/prestashop",
     "type": "prestashop-module",
-    "description": "PrestaShop payment module for ComfinoPay deferred payments gateway.",
+    "description": "PrestaShop payment module for Comfino deferred payments gateway.",
     "homepage": "https://github.com/comfino/PrestaShop",
     "license": "OSL-3.0",
     "authors": [

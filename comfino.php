@@ -41,7 +41,7 @@ if (!defined('COMFINO_VERSION')) {
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1792515047);
+    define('COMFINO_BUILD_TS', 1792586527);
 }
 
 /* Notice: source code of this script MUST be compatible with PHP 5.6 syntax. */
@@ -449,6 +449,21 @@ class Comfino extends PaymentModule
         if (!extension_loaded('curl')) {
             $errorMessage = 'The ComfinoPay module could not be installed. It requires PHP cURL extension which is not ' .
                             'installed. More details: https://www.php.net/manual/en/book.curl.php';
+
+            if ($useTranslations) {
+                $errorMessage = $this->l($errorMessage);
+            }
+
+            if (!in_array($errorMessage, $this->_errors, true)) {
+                $this->_errors[] = $errorMessage;
+            }
+
+            return false;
+        }
+
+        if (!extension_loaded('mbstring')) {
+            $errorMessage = 'The ComfinoPay module could not be installed. It requires PHP mbstring extension which is not ' .
+                            'installed. More details: https://www.php.net/manual/en/book.mbstring.php';
 
             if ($useTranslations) {
                 $errorMessage = $this->l($errorMessage);

@@ -27,6 +27,7 @@ global $_MODULE;
 $_MODULE = [];
 $_MODULE['<{comfino}prestashop>comfino_9d04a83ed97561dd4fbbd5a6360db3ca'] = 'Nie można zainstalować modułu ComfinoPay. Minimalna wymagana przez ComfinoPay wersja PHP to %s. Używasz wersji %s.';
 $_MODULE['<{comfino}prestashop>comfino_3b4dfe9daeab804bea5e8752015d3a43'] = 'Nie można zainstalować modułu ComfinoPay. Wymaga rozszerzenia PHP cURL, które nie jest zainstalowane. Więcej szczegółów: https://www.php.net/manual/en/book.curl.php';
+$_MODULE['<{comfino}prestashop>comfino_e4531fff67b6db0fa809b09c17194ccb'] = 'Nie można zainstalować modułu ComfinoPay. Wymaga rozszerzenia PHP mbstring, które nie jest zainstalowane. Więcej szczegółów: https://www.php.net/manual/en/book.mbstring.php';
 $_MODULE['<{comfino}prestashop>comfino_f38f5974cdc23279ffe6d203641a8bdf'] = 'Ustawienia zaktualizowane.';
 $_MODULE['<{comfino}prestashop>comfino_5b3daeed4e836fac69da1d6b31661157'] = 'Nowa wersja modułu ComfinoPay %s jest dostępna. Używasz wersji %s. Zaktualizuj moduł ComfinoPay.';
 $_MODULE['<{comfino}prestashop>comfino_4b2e2ac9eae1a16beda68109acf0b384'] = 'Ustawienia nie zostały zaktualizowane.';

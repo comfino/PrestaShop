@@ -11,6 +11,7 @@ use Comfino\Api\Serializer\Json;
 use Comfino\Api\SerializerInterface;
 use Comfino\Common\Backend\Log\ErrorMessageNormalizer;
 use Comfino\Common\Backend\Log\LoggerFactory;
+use Comfino\Common\Backend\Log\ResponseBodySummarizer;
 use Comfino\Common\Backend\Queue\ApiTransientErrorClassifier;
 use Comfino\Common\Backend\Queue\OutboundRequestQueue;
 use Comfino\Common\Backend\Queue\ReportErrorHandler;
@@ -233,7 +234,9 @@ final class ErrorLogger extends Logger
 
         $errorMessage = SensitiveDataRedactor::redactText($errorMessage);
         $apiRequest = $apiRequest !== null ? SensitiveDataRedactor::redactPayload($apiRequest) : null;
-        $apiResponse = $apiResponse !== null ? SensitiveDataRedactor::redactPayload($apiResponse) : null;
+        $apiResponse = $apiResponse !== null
+            ? SensitiveDataRedactor::redactPayload(ResponseBodySummarizer::summarize($apiResponse))
+            : null;
 
         $callEnv = array_merge($this->environment, [
             'caller' => $this->formatContext($this->extractCallerContext()),
