@@ -47,6 +47,7 @@ final class ApiClient
     private const CHECKOUT_TRACK_ID_COOKIE = 'comfino_checkout_track_id';
     private const CHECKOUT_TRACK_ID_COOKIE_TTL = 900;
     private const CHECKOUT_TRACK_ID_PATTERN = '/^[A-Za-z0-9_.:-]{1,128}$/';
+    private const MAX_LOGGED_RESPONSE_LENGTH = 2000;
     private const JOURNEY_TRACK_ID_COOKIE = 'comfino_journey_track_id';
 
     /** @var \Comfino\Common\Api\Client */
@@ -241,6 +242,8 @@ final class ApiClient
             $responseBody = null;
         }
 
+        $responseBody = self::summarizeResponseBody($responseBody);
+
         DebugLogger::logEvent(
             '[API_ERROR]',
             $errorPrefix,
@@ -281,6 +284,32 @@ final class ApiClient
                 $responseBody
             ),
         ];
+    }
+
+    /**
+     * Reduces an error response body to readable text for logs and error reports: HTML pages (e.g. a framework debug
+     * page returned with a 500) lose their styles, scripts and markup, whitespace is collapsed and the length is capped.
+     * Non-HTML bodies (JSON, plain text) are only length-capped.
+     */
+    public static function summarizeResponseBody(?string $responseBody): ?string
+    {
+        if ($responseBody === null || $responseBody === '') {
+            return $responseBody;
+        }
+
+        if (preg_match('/<\s*(?:!doctype|html|head|body|style|script)\b/i', $responseBody) === 1) {
+            $text = preg_replace('#<(style|script|svg|head)\b[^>]*>.*?</\1\s*>#is', ' ', $responseBody);
+            $text = html_entity_decode((string) preg_replace('/<[^>]*>/', ' ', (string) $text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $responseBody = '[HTML response] ' . trim((string) preg_replace('/\s+/u', ' ', $text));
+        }
+
+        if (function_exists('mb_strlen') && mb_strlen($responseBody, 'UTF-8') > self::MAX_LOGGED_RESPONSE_LENGTH) {
+            return mb_substr($responseBody, 0, self::MAX_LOGGED_RESPONSE_LENGTH, 'UTF-8') . '... [truncated]';
+        }
+
+        return strlen($responseBody) > self::MAX_LOGGED_RESPONSE_LENGTH
+            ? substr($responseBody, 0, self::MAX_LOGGED_RESPONSE_LENGTH) . '... [truncated]'
+            : $responseBody;
     }
 
     private static function isValidTrackIdCookie(string $cookieName): bool
