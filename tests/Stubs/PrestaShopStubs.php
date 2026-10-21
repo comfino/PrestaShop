@@ -173,3 +173,45 @@ if (!class_exists('Context', false)) {
         }
     }
 }
+
+if (!class_exists('Cookie', false)) {
+    class Cookie
+    {
+        /** @var array<string, mixed> */
+        private $data = [];
+
+        public function __set($name, $value)
+        {
+            $this->data[$name] = $value;
+        }
+
+        public function __get($name)
+        {
+            return $this->data[$name] ?? null;
+        }
+
+        public function __isset($name)
+        {
+            return isset($this->data[$name]);
+        }
+
+        public function write()
+        {
+        }
+    }
+}
+
+if (!class_exists('Validate', false)) {
+    class Validate
+    {
+        public static function isInt($value): bool
+        {
+            return ((string) (int) $value === (string) $value) || is_int($value);
+        }
+
+        public static function isLoadedObject($object): bool
+        {
+            return is_object($object) && !empty($object->id);
+        }
+    }
+}

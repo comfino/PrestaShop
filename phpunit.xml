@@ -6,7 +6,7 @@
          beStrictAboutTestsThatDoNotTestAnything="true"
          beStrictAboutOutputDuringTests="true">
     <testsuites>
-        <testsuite name="Comfino PrestaShop module unit tests">
+        <testsuite name="ComfinoPay PrestaShop module unit tests">
             <directory suffix="Test.php">tests/Unit</directory>
         </testsuite>
     </testsuites>

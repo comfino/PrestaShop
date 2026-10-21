@@ -55,6 +55,10 @@ if (!defined('COMFINO_BUILD_TS')) {
     define('COMFINO_BUILD_TS', 0);
 }
 
+if (!defined('_PS_ROOT_DIR_')) {
+    define('_PS_ROOT_DIR_', sys_get_temp_dir() . '/comfino-tests/root');
+}
+
 if (!defined('_PS_MODULE_DIR_')) {
     define('_PS_MODULE_DIR_', sys_get_temp_dir() . '/comfino-tests/modules/');
 }

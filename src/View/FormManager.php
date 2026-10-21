@@ -101,7 +101,7 @@ final class FormManager
                     : 'https://github.com/comfino/prestashop/releases';
 
                 $infoMessages[] = sprintf(
-                    'PrestaShop Comfino %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
+                    'PrestaShop ComfinoPay %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
                     ...array_values(ConfigManager::getEnvironmentInfo([
                         'plugin_version',
                         'shop_version',
@@ -110,7 +110,7 @@ final class FormManager
                         'server_software',
                         'database_version',
                     ]))
-                ) . '<hr>' . sprintf('<b>Comfino API host:</b> %s', ApiClient::getInstance()->getApiHost());
+                ) . '<hr>' . sprintf('<b>ComfinoPay API host:</b> %s', ApiClient::getInstance()->getApiHost());
 
                 $infoMessages[] = sprintf(
                     '<b>Plugin build time:</b> %s UTC',
@@ -175,7 +175,7 @@ final class FormManager
                         implode('', array_map(
                             static function (string $envVariable): string {
                                 $varName = "COMFINO_$envVariable";
-                                return "<li><b>$varName</b> = \"" . getenv($varName) . '"</li>';
+                                return "<li><b>$varName</b> = \"" . \Tools::safeOutput((string) getenv($varName)) . '"</li>';
                             },
                             ['DEV_ENV', 'DEV_API_HOST', 'DEV_SDK_CDN_BASE_URL', 'DEV_USE_UNMINIFIED_SCRIPTS']
                         ))
@@ -188,11 +188,15 @@ final class FormManager
                             $optionValue = json_encode($optionValue);
                         }
 
+                        $optionValue = (string) $optionValue;
+
                         if (strlen($optionValue) > 200) {
                             $optionValue = substr($optionValue, 0, 200) . '...';
                         }
 
-                        $internalOptions .= "<li><b>$optionName</b> = \"$optionValue\"</li>";
+                        // Stored values can be written remotely: escape them before they reach the HelperForm message.
+                        $internalOptions .= '<li><b>' . \Tools::safeOutput($optionName) . '</b> = "' .
+                            \Tools::safeOutput($optionValue) . '"</li>';
                     }
 
                     $infoMessages[] = "<b>Internal configuration options:</b><ul>$internalOptions</ul>";
@@ -221,7 +225,8 @@ final class FormManager
                             ));
                         }
                     } catch (\Throwable $e) {
-                        $errorMessages[] = $e->getMessage();
+                        // API-supplied text: escaped, because HelperForm prints message slots as HTML.
+                        $errorMessages[] = \Tools::safeOutput($e->getMessage());
 
                         if ($e instanceof AuthorizationError || $e instanceof AccessDenied) {
                             $errorMessages[] = Main::translate(sprintf(

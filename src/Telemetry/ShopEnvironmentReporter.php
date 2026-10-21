@@ -37,7 +37,7 @@ if (!defined('_PS_VERSION_')) {
 }
 
 /**
- * Fire-and-forget service that reports the full shop environment to the Comfino API.
+ * Fire-and-forget service that reports the full shop environment to the ComfinoPay API.
  *
  * Triggered after the module configuration is saved. Any failure is logged and swallowed — it must never impact the
  * merchant's config save, checkout, paywall, or widget functionality.
@@ -45,7 +45,7 @@ if (!defined('_PS_VERSION_')) {
 final class ShopEnvironmentReporter
 {
     /**
-     * Builds and sends the current shop environment report to the Comfino API.
+     * Builds and sends the current shop environment report to the ComfinoPay API.
      *
      * @return bool True if the report was accepted, false on any failure.
      */

@@ -38,7 +38,7 @@ To the field that appears, put module's file. Module will be installed automatic
 The configuration parameters of the module are grouped by categories corresponding to the tabs of the configuration panel: `"PAYMENT SETTINGS"`, `"SALE SETTINGS"`, `"WIDGET SETTINGS"`, `"DEVELOPER SETTINGS"`.
 The last tab `"PLUGIN DIAGNOSTICS"` does not contain any parameters to be set and has an information-diagnostic function. Among other things, it contains a local error log.
 
-Before using Comfino payments, the module must be configured. You can do this by clicking `"Configure"` in the module info panel.
+Before using ComfinoPay payments, the module must be configured. You can do this by clicking `"Configure"` in the module info panel.
 
 The most important field that must be filled in is the "Production Environment API Key" field from the `"PAYMENT SETTINGS"` tab.
 In the `"DEVELOPER SETTINGS"` tab, there is a second key field - `"Test environment API key"`.
@@ -47,14 +47,14 @@ Configuration parameter fields:
 
 **PAYMENT SETTINGS**
 
-* **Production environment API key** — a unique access key that allows the module to communicate with the Comfino API (you will receive it from a Comfino representative)
+* **Production environment API key** — a unique access key that allows the module to communicate with the ComfinoPay API (you will receive it from a ComfinoPay representative)
 * **Payment text** — text displayed on the list of payment methods (default `"(Raty | Kup Teraz, Zapłać Póżniej | Finansowanie dla Firm)"`)
-* **Minimal amount in cart** — the value of the cart from which Comfino payment is available (default: 30 PLN)
-* **Use order reference as external ID** — Use customer-visible order reference instead of numeric order ID for Comfino API integration. New orders only.
+* **Minimal amount in cart** — the value of the cart from which ComfinoPay payment is available (default: 30 PLN)
+* **Use order reference as external ID** — Use customer-visible order reference instead of numeric order ID for ComfinoPay API integration. New orders only.
 
 **Paywall settings**
 
-* **Direct redirect mode** — Do not display the Comfino paywall. Disables the automatic display of the paywall on the payment summary, allowing you to proceed to the application without having to select one of Comfino's financial products.
+* **Direct redirect mode** — Do not display the ComfinoPay paywall. Disables the automatic display of the paywall on the payment summary, allowing you to proceed to the application without having to select one of ComfinoPay's financial products.
 * **Custom paywall CSS style** — Link to a CSS file with styles that override the paywall's appearance (only absolute addresses from the store's domain are accepted).
 
 <img src="images/en/configuration1.png" width="1000">
@@ -63,15 +63,15 @@ Configuration parameter fields:
 
 The tab contains settings related to sales management.
 
-Financial product availability rules (product category filters) enable Comfino payments to be assigned to specific product categories. Category filters are divided into sections corresponding to available methods of financing purchases under the contract concluded with Comfino. Moreover, managing the availability of Comfino payments is only possible for the following types of financial products: "Zero percent installments", "Pay later", "Leasing". If the concluded contract does not include one or all of these items, the tab will contain a list of trees limited to this one financing method or it will contain a list of trees for other types of products from the contract, if the contract does not include the "Zero percent installments", "Pay later" and "Leasing" products.
+Financial product availability rules (product category filters) enable ComfinoPay payments to be assigned to specific product categories. Category filters are divided into sections corresponding to available methods of financing purchases under the contract concluded with ComfinoPay. Moreover, managing the availability of ComfinoPay payments is only possible for the following types of financial products: "Zero percent installments", "Pay later", "Leasing". If the concluded contract does not include one or all of these items, the tab will contain a list of trees limited to this one financing method or it will contain a list of trees for other types of products from the contract, if the contract does not include the "Zero percent installments", "Pay later" and "Leasing" products.
 
-By default, Comfino payments are available unconditionally for all product types. To disable Comfino for selected product types, uncheck the appropriate categories in the category tree for each type of financial offer and click "Save".
+By default, ComfinoPay payments are available unconditionally for all product types. To disable ComfinoPay for selected product types, uncheck the appropriate categories in the category tree for each type of financial offer and click "Save".
 
 **Filter by product ID**
 
-The product ID filter lets you exclude Comfino payments for specific products, regardless of their category. In the text field, enter the product IDs separated by commas (e.g. `15, 17`) and click "Save". This is a single shared list that applies to all financial product types.
+The product ID filter lets you exclude ComfinoPay payments for specific products, regardless of their category. In the text field, enter the product IDs separated by commas (e.g. `15, 17`) and click "Save". This is a single shared list that applies to all financial product types.
 
-If the customer's cart contains any of the listed products, all Comfino payments will be hidden, both at checkout (paywall) and in the promotional widget on the product page. Leaving the field empty means the filter is inactive and no product is excluded based on it.
+If the customer's cart contains any of the listed products, all ComfinoPay payments will be hidden, both at checkout (paywall) and in the promotional widget on the product page. Leaving the field empty means the filter is inactive and no product is excluded based on it.
 
 The product ID filter works independently of the product category filters.
 
@@ -101,26 +101,26 @@ The availability of offer types on the list depends on the individual contract a
 * **Custom banner CSS style** — Link to a CSS file with styles overriding the banner's appearance (only absolute addresses from the store's domain are accepted)
 * **Custom calculator CSS style** — Link to a CSS file with styles overriding the calculator's appearance (only absolute addresses from the store's domain are accepted)
 
-Detailed information on the operation of the widget and its configuration options can be found in a separate [Comfino widget documentation](https://comfino.pl/widgets/comfino-prestashop/en).
+Detailed information on the operation of the widget and its configuration options can be found in a separate [ComfinoPay widget documentation](https://comfino.pl/widgets/comfino-prestashop/en).
 
 <img src="images/en/configuration3b.png" width="1000">
 
 **DEVELOPER SETTINGS**
 
 * **Use test environment** — developer mode activation/deactivation switch
-* **Test environment API key** — a unique access key enabling the module to communicate with the Comfino test API
+* **Test environment API key** — a unique access key enabling the module to communicate with the ComfinoPay test API
 * **Debug mode** — debug mode activation/deactivation switch
 * **Service mode** — service mode activation/deactivation switch
 
-Debug mode is useful in case of problems with Comfino payment availability. In this mode module logs details of internal process responsible for displaying of Comfino payment option at the payment methods list. It is recommended to use this option together with activating the second option `"Service mode"` to minimize the saved logs.
+Debug mode is useful in case of problems with ComfinoPay payment availability. In this mode module logs details of internal process responsible for displaying of ComfinoPay payment option at the payment methods list. It is recommended to use this option together with activating the second option `"Service mode"` to minimize the saved logs.
 
-Debug mode is useful in case of problems with Comfino payment availability. In this mode module logs details of internal process responsible for displaying of Comfino payment option at the payment methods list.
+Debug mode is useful in case of problems with ComfinoPay payment availability. In this mode module logs details of internal process responsible for displaying of ComfinoPay payment option at the payment methods list.
 
 <img src="images/en/configuration4.png" width="1000">
 
 **Note**
 
-Before launching payments on the production store, disable developer mode to block the use of the Comfino payment test environment.
+Before launching payments on the production store, disable developer mode to block the use of the ComfinoPay payment test environment.
 
 **PLUGIN DIAGNOSTICS**
 
@@ -165,13 +165,13 @@ Uninstallation log:
 <img src="images/en/configuration5c.png" width="1000">
 
 Information about developer mode activity is displayed in the tabs `"PAYMENT SETTINGS"` and `"PLUGIN DIAGNOSTICS"`.
-In this mode, the plugin uses the key from the `"DEVELOPER SETTINGS"` tab to communicate with the Comfino test API. You will also receive a test environment key from a Comfino representative.
+In this mode, the plugin uses the key from the `"DEVELOPER SETTINGS"` tab to communicate with the ComfinoPay test API. You will also receive a test environment key from a ComfinoPay representative.
 
 ## REMARKS
 
-* The Comfino payment module requires you to set the customer's phone number as required in the process of entering the customer's contact details. The phone number is used to send codes and inform the customer about the status of the transaction, at a later stage of Comfino payment processing. In case of absence of a telephone number, the Comfino payment transaction will end with an error displayed on the store's website.
-* The module notification system requires the availability of the HTTP "PUT" method. The module receives information about changes in the status of Comfino transactions and changes the internal order status in PrestaShop accordingly. In case of problems with notifications, check the web server settings in your hosting panel.
-* Customer and order data required by the Comfino module:
+* The ComfinoPay payment module requires you to set the customer's phone number as required in the process of entering the customer's contact details. The phone number is used to send codes and inform the customer about the status of the transaction, at a later stage of ComfinoPay payment processing. In case of absence of a telephone number, the ComfinoPay payment transaction will end with an error displayed on the store's website.
+* The module notification system requires the availability of the HTTP "PUT" method. The module receives information about changes in the status of ComfinoPay transactions and changes the internal order status in PrestaShop accordingly. In case of problems with notifications, check the web server settings in your hosting panel.
+* Customer and order data required by the ComfinoPay module:
     * Customer:
         * first name - 2-63 characters
         * last name - 2-63 characters

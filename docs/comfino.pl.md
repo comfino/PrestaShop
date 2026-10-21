@@ -38,7 +38,7 @@ Parametry konfiguracyjne modułu są pogrupowane kategoriami odpowiadającymi za
 Ostatnia zakładka `"DIAGNOSTYKA WTYCZKI"` nie zawiera żadnych parametrów do ustawienia i pełni funkcję informacyjno-diagnostyczną.
 Zawiera między innymi informacje o zainstalowanej wtyczce, lokalny dziennik błędów (log błędów) oraz logi instalacji, aktualizacji i dezinstalacji.
 
-Przed użyciem płatności Comfino, moduł musi zostać skonfigurowany. Możesz to zrobić, klikając `"Konfiguruj"` w panelu informacyjnym modułu.
+Przed użyciem płatności ComfinoPay, moduł musi zostać skonfigurowany. Możesz to zrobić, klikając `"Konfiguruj"` w panelu informacyjnym modułu.
 
 Najważniejsze pole, które musi być uzupełnione, to pole `"Klucz API środowiska produkcyjnego"` z zakładki `"USTAWIENIA PŁATNOŚCI"`.
 W zakładce `"USTAWIENIA DEWELOPERSKIE"` znajduje się pole drugiego klucza - `"Klucz API środowiska testowego"`.
@@ -47,14 +47,14 @@ Pola parametrów konfiguracyjnych:
 
 **USTAWIENIA PŁATNOŚCI**
 
-* **Klucz API środowiska produkcyjnego** — unikalny klucz dostępowy umożliwiający komunikację modułu z API Comfino (otrzymasz go od przedstawiciela Comfino)
+* **Klucz API środowiska produkcyjnego** — unikalny klucz dostępowy umożliwiający komunikację modułu z API ComfinoPay (otrzymasz go od przedstawiciela ComfinoPay)
 * **Tekst płatności** — tekst wyświetlany na liście metod płatności (domyślnie `"(Raty | Kup Teraz, Zapłać Później | Finansowanie dla Firm)"`)
-* **Minimalna kwota w koszyku** — wartość koszyka, od której dostępna jest płatność Comfino (domyślnie: 30 zł)
-* **Użyj numeru zamówienia jako zewnętrznego ID** — Używaj numeru zamówienia widocznego dla klienta zamiast numerycznego ID zamówienia w komunikacji z API Comfino. Dotyczy tylko nowych zamówień.
+* **Minimalna kwota w koszyku** — wartość koszyka, od której dostępna jest płatność ComfinoPay (domyślnie: 30 zł)
+* **Użyj numeru zamówienia jako zewnętrznego ID** — Używaj numeru zamówienia widocznego dla klienta zamiast numerycznego ID zamówienia w komunikacji z API ComfinoPay. Dotyczy tylko nowych zamówień.
 
 **Ustawienia paywalla**
 
-* **Tryb bezpośredniego przekierowania** — Nie wyświetlaj paywalla Comfino, wyłącza automatyczne wyświetlanie paywalla na podsumowaniu płatności, pozwalając przejść na wniosek bez potrzeby wyboru jednego z produktów finansowych Comfino.
+* **Tryb bezpośredniego przekierowania** — Nie wyświetlaj paywalla ComfinoPay, wyłącza automatyczne wyświetlanie paywalla na podsumowaniu płatności, pozwalając przejść na wniosek bez potrzeby wyboru jednego z produktów finansowych ComfinoPay.
 * **Niestandardowy styl CSS paywalla** — Odnośnik do pliku CSS ze stylami nadpisującymi wygląd paywalla (akceptowane są tylko adresy bezwzględne z domeny sklepu)
 
 <img src="images/pl/configuration1.png" width="1000">
@@ -63,15 +63,15 @@ Pola parametrów konfiguracyjnych:
 
 Zakładka zawiera ustawienia dotyczące zarządzania sprzedażą.
 
-Reguły dostępności produktów finansowych (filtry kategorii produktowych) umożliwiają przypisanie płatności Comfino do określonych kategorii produktów. Filtry kategorii są podzielone na sekcje odpowiadające dostępnym metodom finansowania zakupów w ramach umowy zawartej z Comfino. Ponadto zarządzanie dostępnością płatności Comfino jest możliwe tylko dla następujących typów produktów finansowych: "Raty zero procent", "Zapłać później", "Leasing". Jeśli zawarta umowa nie zawiera jednej z tych pozycji lub wszystkich, to zakładka będzie zawierała listę drzew ograniczonych do tej jednej metody finansowania lub będzie zawierać listę drzew dla pozostałych typów produktów z umowy, w przypadku braku obecności w umowie produktów "Raty zero procent", "Zapłać później" i "Leasing". 
+Reguły dostępności produktów finansowych (filtry kategorii produktowych) umożliwiają przypisanie płatności ComfinoPay do określonych kategorii produktów. Filtry kategorii są podzielone na sekcje odpowiadające dostępnym metodom finansowania zakupów w ramach umowy zawartej z ComfinoPay. Ponadto zarządzanie dostępnością płatności ComfinoPay jest możliwe tylko dla następujących typów produktów finansowych: "Raty zero procent", "Zapłać później", "Leasing". Jeśli zawarta umowa nie zawiera jednej z tych pozycji lub wszystkich, to zakładka będzie zawierała listę drzew ograniczonych do tej jednej metody finansowania lub będzie zawierać listę drzew dla pozostałych typów produktów z umowy, w przypadku braku obecności w umowie produktów "Raty zero procent", "Zapłać później" i "Leasing". 
 
-Domyślnie płatności Comfino są dostępne bezwarunkowo dla wszystkich typów produktów. W celu wyłączenia Comfino dla wybranych typów produktów należy odznaczyć odpowiednie kategorie w drzewie kategorii dla każdego typu oferty finansowej i kliknąć "Zapisz".
+Domyślnie płatności ComfinoPay są dostępne bezwarunkowo dla wszystkich typów produktów. W celu wyłączenia ComfinoPay dla wybranych typów produktów należy odznaczyć odpowiednie kategorie w drzewie kategorii dla każdego typu oferty finansowej i kliknąć "Zapisz".
 
 **Filtruj według ID produktu**
 
-Filtr po ID produktu umożliwia wykluczenie płatności Comfino dla konkretnych produktów, niezależnie od ich kategorii. W polu tekstowym należy wpisać identyfikatory (ID) produktów oddzielone przecinkami (np. `15, 17`) i kliknąć "Zapisz". Jest to jedna wspólna lista obowiązująca wszystkie typy produktów finansowych.
+Filtr po ID produktu umożliwia wykluczenie płatności ComfinoPay dla konkretnych produktów, niezależnie od ich kategorii. W polu tekstowym należy wpisać identyfikatory (ID) produktów oddzielone przecinkami (np. `15, 17`) i kliknąć "Zapisz". Jest to jedna wspólna lista obowiązująca wszystkie typy produktów finansowych.
 
-Jeśli w koszyku klienta znajdzie się którykolwiek z wymienionych produktów, wszystkie płatności Comfino zostaną ukryte, zarówno podczas finalizacji zamówienia (paywall), jak i w widgecie promocyjnym na stronie produktu. Pozostawienie pola pustego oznacza, że filtr jest nieaktywny i żaden produkt nie jest wykluczany na jego podstawie.
+Jeśli w koszyku klienta znajdzie się którykolwiek z wymienionych produktów, wszystkie płatności ComfinoPay zostaną ukryte, zarówno podczas finalizacji zamówienia (paywall), jak i w widgecie promocyjnym na stronie produktu. Pozostawienie pola pustego oznacza, że filtr jest nieaktywny i żaden produkt nie jest wykluczany na jego podstawie.
 
 Filtr po ID produktu działa niezależnie od filtrów kategorii produktowych.
 
@@ -101,26 +101,26 @@ Dostępność typów ofert na liście jest uzależniona od indywidualnej umowy i
 * **Niestandardowy styl CSS banera** — Odnośnik do pliku CSS ze stylami nadpisującymi wygląd banera (akceptowane są tylko adresy bezwzględne z domeny sklepu)
 * **Niestandardowy styl CSS kalkulatora** — Odnośnik do pliku CSS ze stylami nadpisującymi wygląd kalkulatora (akceptowane są tylko adresy bezwzględne z domeny sklepu)
 
-Szczegółowe informacje o działaniu widgetu i jego opcjach konfiguracyjnych znajdziesz w osobnej [dokumentacji widgetu Comfino](https://comfino.pl/widgets/comfino-prestashop/pl).
+Szczegółowe informacje o działaniu widgetu i jego opcjach konfiguracyjnych znajdziesz w osobnej [dokumentacji widgetu ComfinoPay](https://comfino.pl/widgets/comfino-prestashop/pl).
 
 <img src="images/pl/configuration3b.png" width="1000">
 
 **USTAWIENIA DEWELOPERSKIE**
 
 * **Użyj środowiska testowego** — przełącznik aktywacji/deaktywacji trybu deweloperskiego
-* **Klucz API środowiska testowego** — unikalny klucz dostępowy umożliwiający komunikację modułu z testowym API Comfino
+* **Klucz API środowiska testowego** — unikalny klucz dostępowy umożliwiający komunikację modułu z testowym API ComfinoPay
 * **Tryb debugowania** — przełącznik aktywacji/deaktywacji trybu debugowania
 * **Tryb serwisowy** — przełącznik aktywacji/deaktywacji trybu serwisowego
 
-Tryb debugowania przydaje się w przypadku problemów z dostępnością płatności Comfino. W tym trybie moduł rejestruje szczegóły wewnętrznego procesu odpowiedzialnego za wyświetlenie opcji płatności Comfino na liście metod płatności. Zaleca się korzystać z tej opcji wraz z aktywacją drugiej opcji `"Tryb serwisowy"` w celu minimalizacji zapisywanych logów.
+Tryb debugowania przydaje się w przypadku problemów z dostępnością płatności ComfinoPay. W tym trybie moduł rejestruje szczegóły wewnętrznego procesu odpowiedzialnego za wyświetlenie opcji płatności ComfinoPay na liście metod płatności. Zaleca się korzystać z tej opcji wraz z aktywacją drugiej opcji `"Tryb serwisowy"` w celu minimalizacji zapisywanych logów.
 
-Tryb serwisowy jest przydatny do testowania bramki płatniczej Comfino bez konieczności udostępniania jej klientom. W tym trybie metoda płatności Comfino widoczna jest tylko dla wybranych sesji, a logi debugowania są zbierane wyłącznie dla tych sesji.
+Tryb serwisowy jest przydatny do testowania bramki płatniczej ComfinoPay bez konieczności udostępniania jej klientom. W tym trybie metoda płatności ComfinoPay widoczna jest tylko dla wybranych sesji, a logi debugowania są zbierane wyłącznie dla tych sesji.
 
 <img src="images/pl/configuration4.png" width="1000">
 
 **Uwaga**
 
-Przed uruchomieniem płatności na sklepie produkcyjnym, wyłącz tryb deweloperski, aby zablokować użycie środowiska testowego płatności Comfino.
+Przed uruchomieniem płatności na sklepie produkcyjnym, wyłącz tryb deweloperski, aby zablokować użycie środowiska testowego płatności ComfinoPay.
 
 **DIAGNOSTYKA WTYCZKI**
 
@@ -165,13 +165,13 @@ Log dezinstalacji:
 <img src="images/pl/configuration5c.png" width="1000">
 
 Informacja o aktywności trybu deweloperskiego jest wyświetlana w zakładkach `"USTAWIENIA PŁATNOŚCI"` i `"DIAGNOSTYKA WTYCZKI"`.
-W trybie tym wtyczka używa klucza z zakładki `"USTAWIENIA DEWELOPERSKIE"` do komunikacji z testowym API Comfino. Klucz środowiska testowego również otrzymasz od przedstawiciela Comfino.
+W trybie tym wtyczka używa klucza z zakładki `"USTAWIENIA DEWELOPERSKIE"` do komunikacji z testowym API ComfinoPay. Klucz środowiska testowego również otrzymasz od przedstawiciela ComfinoPay.
 
 ## UWAGI
 
-* Moduł płatności Comfino wymaga ustawienia numeru telefonu klienta jako wymaganego w procesie wprowadzania danych kontaktowych klienta. Numer telefonu jest używany do przesyłania kodów i informowania klienta o statusie transakcji, na dalszym etapie procesowania płatności Comfino. W przypadku braku numeru telefonu transakcja płatnicza Comfino zakończy się błędem wyświetlonym na stronie sklepu. 
-* System notyfikacji modułu wymaga dostępności metody HTTP "PUT". Moduł otrzymuje informacje o zmianach statusu transakcji Comfino i stosownie zmienia wewnętrzny status zamówienia w PrestaShop. W przypadku problemów z notyfikacjami należy sprawdzić ustawienia serwera www w Twoim panelu hostingu.
-* Dane klienta i zamówienia wymagane przez moduł Comfino:
+* Moduł płatności ComfinoPay wymaga ustawienia numeru telefonu klienta jako wymaganego w procesie wprowadzania danych kontaktowych klienta. Numer telefonu jest używany do przesyłania kodów i informowania klienta o statusie transakcji, na dalszym etapie procesowania płatności ComfinoPay. W przypadku braku numeru telefonu transakcja płatnicza ComfinoPay zakończy się błędem wyświetlonym na stronie sklepu. 
+* System notyfikacji modułu wymaga dostępności metody HTTP "PUT". Moduł otrzymuje informacje o zmianach statusu transakcji ComfinoPay i stosownie zmienia wewnętrzny status zamówienia w PrestaShop. W przypadku problemów z notyfikacjami należy sprawdzić ustawienia serwera www w Twoim panelu hostingu.
+* Dane klienta i zamówienia wymagane przez moduł ComfinoPay:
     * Klient:
         * imię — 2-63 znaków
         * nazwisko — 2-63 znaków

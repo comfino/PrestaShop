@@ -1,32 +1,43 @@
 # Changelog
 
-## [4.4.0](https://github.com/comfino/PrestaShop/tree/4.4.0) (2026-10-06)
+## [4.4.0](https://github.com/comfino/PrestaShop/tree/4.4.0) (2026-10-22)
 
 ### Added
-- **Paywall activity tracking consent** — a new opt-in setting (disabled by default) that lets the store admin allow ComfinoPay to track customer activity on the payment selection screen.
-- Failed requests to ComfinoPay caused by temporary problems (for example a short outage or a timeout) are now retried automatically instead of being lost.
+- The ComfinoPay payment method at checkout can now show the current shop promotion and its amount.
 - Diagnostic reports sent to ComfinoPay now have sensitive data masked.
 
 ### Changed
-- Order status updates and order cancellations are handled more reliably: duplicate or redundant cancellation requests are no longer sent.
+- Comfino is now ComfinoPay: the module name, messages and order status names use the new brand. The default payment method title at checkout becomes ComfinoPay (a title you set yourself is kept). Your settings, orders and integration are unchanged.
+- Order status updates are handled more reliably: when ComfinoPay has already cancelled or rejected an order, the shop no longer sends a redundant cancellation request back. This also removes the timeout errors that such requests caused.
 - Improved error logging and reporting, with a clearer distinction between serious and minor problems.
 - Improved documentation and installation guides.
 
+### Security
+- The module's update notice and settings messages can no longer be abused to run injected content in the back office.
+- Hardened the update-notice dismissal against unauthorized use.
+- Log files are now kept outside the web-accessible part of the shop.
+- Settings received remotely from ComfinoPay are now validated before they are applied.
+
 ### Fixed
-- Removed a leftover file from older versions that could cause an error when requested directly. It is cleaned up automatically during the upgrade.
+- Reduced noise in error reporting for temporary and already-resolved order statuses.
+- Fixed a rare settings-page error for shops using an older financing-product configuration.
+- The module now cleans up files left behind by very old upgrades.
+- Fixed compatibility with a numeric language code used by some third-party modules.
+- The financing option shown at checkout now always matches what the customer selected, even with custom checkout templates.
+- The payment option is now hidden instead of causing an error when ComfinoPay cannot be reached while the checkout is loading.
 
 ## [4.3.1](https://github.com/comfino/PrestaShop/tree/4.3.1) (2026-08-28)
 
 Security hotfix release. Upgrading is strongly recommended for every store.
 
 ### Security
-- Fixed a flaw in the verification of incoming requests from Comfino. On stores where only one of the two environment keys had been filled in, a specially crafted request could be accepted as genuine. Such requests are now always rejected, and requests are refused outright when the store has no key configured at all.
+- Fixed a flaw in the verification of incoming requests from ComfinoPay. On stores where only one of the two environment keys had been filled in, a specially crafted request could be accepted as genuine. Such requests are now always rejected, and requests are refused outright when the store has no key configured at all.
 - The test environment key is now accepted for incoming requests only while test mode is actually enabled.
-- The address the customer is redirected to after placing an order is now verified to be a genuine Comfino payment address before the customer is sent there. If it is not, the order is marked with an error instead.
+- The address the customer is redirected to after placing an order is now verified to be a genuine ComfinoPay payment address before the customer is sent there. If it is not, the order is marked with an error instead.
 - The payment key is no longer repeated back in messages shown on the module settings page.
 
 ### Fixed
-- The customer's postal code is now sent correctly to Comfino. Previously a placeholder value was transmitted, which could affect the assessment of a financing application.
+- The customer's postal code is now sent correctly to ComfinoPay. Previously a placeholder value was transmitted, which could affect the assessment of a financing application.
 
 ## [4.3.0](https://github.com/comfino/PrestaShop/tree/4.3.0) (2026-07-23)
 
@@ -40,12 +51,12 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 - Plugin update process improved: clearer release notes display and more reliable version checking.
 
 ### Changed
-- Paywall frontend migrated from the legacy in-house iframe implementation to Comfino's V3 SDK, loaded from Comfino's CDN — improves loading speed, reliability and future compatibility.
+- Paywall frontend migrated from the legacy in-house iframe implementation to ComfinoPay's V3 SDK, loaded from ComfinoPay's CDN — improves loading speed, reliability and future compatibility.
 - Loan type/term selection is now submitted together with the order form, preventing the order from falling back to the default financing offer if the customer's selection wasn't otherwise transmitted.
 - Delivery/shipping tax handling in cart calculations improved for more accurate offer amounts.
-- Duplicate order-cancellation requests to Comfino are no longer sent for the same order.
-- Error logging sent to Comfino now includes more context (severity level, shop/platform environment details), speeding up support and troubleshooting.
-- Improved layout/styling of the Comfino payment option in PrestaShop 1.6 (Bootstrap) checkout themes.
+- Duplicate order-cancellation requests to ComfinoPay are no longer sent for the same order.
+- Error logging sent to ComfinoPay now includes more context (severity level, shop/platform environment details), speeding up support and troubleshooting.
+- Improved layout/styling of the ComfinoPay payment option in PrestaShop 1.6 (Bootstrap) checkout themes.
 
 ### Removed
 - The `COMFINO_SHOW_LOGO` configuration option — the payment logo is now always rendered by the SDK and no longer separately toggleable.
@@ -156,7 +167,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 
 **Merged pull requests:**
 
-- FN-12614 Fixed bug in API client (added extended data for correction items in cart required by leasing), fixed bug in Comfino availability filter (lower cart total value limit not worked properly). [\#96](https://github.com/comfino/PrestaShop/pull/96) ([akozubskicr](https://github.com/akozubskicr))
+- FN-12614 Fixed bug in API client (added extended data for correction items in cart required by leasing), fixed bug in ComfinoPay availability filter (lower cart total value limit not worked properly). [\#96](https://github.com/comfino/PrestaShop/pull/96) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [4.1.2](https://github.com/comfino/PrestaShop/tree/4.1.2) (2024-11-25)
 
@@ -228,7 +239,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 
 **Merged pull requests:**
 
-- SMC-21 Update product category filters availability rules, update error logger (ignore exceptions thrown outside the Comfino module), change linking JS/CSS rules in hookHeader (less strict controller name checking). [\#87](https://github.com/comfino/PrestaShop/pull/87) ([akozubskicr](https://github.com/akozubskicr))
+- SMC-21 Update product category filters availability rules, update error logger (ignore exceptions thrown outside the ComfinoPay module), change linking JS/CSS rules in hookHeader (less strict controller name checking). [\#87](https://github.com/comfino/PrestaShop/pull/87) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [3.5.0](https://github.com/comfino/PrestaShop/tree/3.5.0) (2024-03-13)
 
@@ -268,7 +279,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 
 **Merged pull requests:**
 
-- FN-11349 Add dynamically loaded list of widget types from Comfino API in configuration form (widget settings). [\#82](https://github.com/comfino/PrestaShop/pull/82) ([akozubskicr](https://github.com/akozubskicr))
+- FN-11349 Add dynamically loaded list of widget types from ComfinoPay API in configuration form (widget settings). [\#82](https://github.com/comfino/PrestaShop/pull/82) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [3.4.2](https://github.com/comfino/PrestaShop/tree/3.4.2) (2023-11-28)
 
@@ -316,7 +327,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 
 **Merged pull requests:**
 
-- FN-10948 Add dynamically loaded list of offer types from Comfino API in configuration form (widget settings). [\#76](https://github.com/comfino/PrestaShop/pull/76) ([akozubskicr](https://github.com/akozubskicr))
+- FN-10948 Add dynamically loaded list of offer types from ComfinoPay API in configuration form (widget settings). [\#76](https://github.com/comfino/PrestaShop/pull/76) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [3.2.0](https://github.com/comfino/PrestaShop/tree/3.2.0) (2023-08-31)
 
@@ -388,7 +399,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 
 **Merged pull requests:**
 
-- FN-10540 Fix bug with mouse click event assigned to the Comfino radio button on paywall. Add debug mode for plugin frontend JavaScript logic. [\#68](https://github.com/comfino/PrestaShop/pull/68) ([akozubskicr](https://github.com/akozubskicr))
+- FN-10540 Fix bug with mouse click event assigned to the ComfinoPay radio button on paywall. Add debug mode for plugin frontend JavaScript logic. [\#68](https://github.com/comfino/PrestaShop/pull/68) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.4.1](https://github.com/comfino/PrestaShop/tree/2.4.1) (2023-04-26)
 
@@ -404,7 +415,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 
 **Merged pull requests:**
 
-- FN-10331 Complete rewrite of plugin configuration management and install/uninstall logic. Complete rewrite of custom Comfino payment statuses management. Update notifications endpoint - improve processing input message signature (accepted hash algorithm restrictions based on hosted PHP version). Simplify Comfino states to internal PS states mapping to avoid sending of redundant e-mails. Add some logic for development mode. Remove config directory and add .htaccess file in the docs directory. Add missing index file in the docs directory. [\#66](https://github.com/comfino/PrestaShop/pull/66) ([akozubskicr](https://github.com/akozubskicr))
+- FN-10331 Complete rewrite of plugin configuration management and install/uninstall logic. Complete rewrite of custom ComfinoPay payment statuses management. Update notifications endpoint - improve processing input message signature (accepted hash algorithm restrictions based on hosted PHP version). Simplify ComfinoPay states to internal PS states mapping to avoid sending of redundant e-mails. Add some logic for development mode. Remove config directory and add .htaccess file in the docs directory. Add missing index file in the docs directory. [\#66](https://github.com/comfino/PrestaShop/pull/66) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.3.2](https://github.com/comfino/PrestaShop/tree/2.3.2) (2023-04-17)
 
@@ -428,7 +439,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 
 **Merged pull requests:**
 
-- FN-10362 Remove SHA3 library (PHP implementation), update notifications endpoint (new headers for hashing algorithms management - better compatibility with PHP older than 7.1), modifications for improving local development, update frontend logic for paywall rendering (better detection of Comfino control container in untypical PS frontend templates). [\#63](https://github.com/comfino/PrestaShop/pull/63) ([akozubskicr](https://github.com/akozubskicr))
+- FN-10362 Remove SHA3 library (PHP implementation), update notifications endpoint (new headers for hashing algorithms management - better compatibility with PHP older than 7.1), modifications for improving local development, update frontend logic for paywall rendering (better detection of ComfinoPay control container in untypical PS frontend templates). [\#63](https://github.com/comfino/PrestaShop/pull/63) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.2.4](https://github.com/comfino/PrestaShop/tree/2.2.4) (2023-01-09)
 
@@ -503,7 +514,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 
 **Merged pull requests:**
 
-- FN-9164 Link all images (Comfino logo, icons) to the external host (Comfino widgets static) to avoid problems with hosting configurations at some websites (403 error) [\#50](https://github.com/comfino/PrestaShop/pull/50) ([akozubskicr](https://github.com/akozubskicr))
+- FN-9164 Link all images (ComfinoPay logo, icons) to the external host (ComfinoPay widgets static) to avoid problems with hosting configurations at some websites (403 error) [\#50](https://github.com/comfino/PrestaShop/pull/50) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.1.7](https://github.com/comfino/PrestaShop/tree/2.1.7) (2022-05-27)
 
@@ -511,7 +522,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 
 **Merged pull requests:**
 
-- FN-9048 Add a new offer type in Comfino widget: Pay later (PAY_LATER) [\#49](https://github.com/comfino/PrestaShop/pull/49) ([akozubskicr](https://github.com/akozubskicr))
+- FN-9048 Add a new offer type in ComfinoPay widget: Pay later (PAY_LATER) [\#49](https://github.com/comfino/PrestaShop/pull/49) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.1.6](https://github.com/comfino/PrestaShop/tree/2.1.6) (2022-05-23)
 
@@ -519,7 +530,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 
 **Merged pull requests:**
 
-- FN-9017 Update configuration form: add logo and contact information (e-mail and phone to the Comfino support office) [\#48](https://github.com/comfino/PrestaShop/pull/48) ([akozubskicr](https://github.com/akozubskicr))
+- FN-9017 Update configuration form: add logo and contact information (e-mail and phone to the ComfinoPay support office) [\#48](https://github.com/comfino/PrestaShop/pull/48) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.1.5](https://github.com/comfino/PrestaShop/tree/2.1.5) (2022-04-07)
 
@@ -579,7 +590,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 - FN-8658 Unconditional widget key retrieving from API after configuration saving [\#33](https://github.com/comfino/PrestaShop/pull/33) ([akozubskicr](https://github.com/akozubskicr))
 - FN-8635 Update frontend templates, update order state names and add Polish translations, update widgets init script [\#32](https://github.com/comfino/PrestaShop/pull/32) ([akozubskicr](https://github.com/akozubskicr))
 - FN-8619 Update plugin icon and configuration form, widget key auto-initialization [\#31](https://github.com/comfino/PrestaShop/pull/31) ([akozubskicr](https://github.com/akozubskicr))
-- FN-8589 Remove logic for preventing cancellation of accepted orders paid via Comfino [\#30](https://github.com/comfino/PrestaShop/pull/30) ([akozubskicr](https://github.com/akozubskicr))
+- FN-8589 Remove logic for preventing cancellation of accepted orders paid via ComfinoPay [\#30](https://github.com/comfino/PrestaShop/pull/30) ([akozubskicr](https://github.com/akozubskicr))
 - FN-8583 Code refactoring - PS coding and security standards implemented [\#29](https://github.com/comfino/PrestaShop/pull/29) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.0.4](https://github.com/comfino/PrestaShop/tree/2.0.4) (2022-01-25)
@@ -589,7 +600,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 **Merged pull requests:**
 
 - FN-8568 Fix bug in payment controller \(wrong include path constant\) [\#28](https://github.com/comfino/PrestaShop/pull/28) ([akozubskicr](https://github.com/akozubskicr))
-- FN-8543 Update Comfino logo used in payment form - use vector format [\#27](https://github.com/comfino/PrestaShop/pull/27) ([akozubskicr](https://github.com/akozubskicr))
+- FN-8543 Update ComfinoPay logo used in payment form - use vector format [\#27](https://github.com/comfino/PrestaShop/pull/27) ([akozubskicr](https://github.com/akozubskicr))
 - FN-8535 Update styles [\#26](https://github.com/comfino/PrestaShop/pull/26) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.0.3](https://github.com/comfino/PrestaShop/tree/2.0.3) (2022-01-10)
@@ -598,7 +609,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 
 **Merged pull requests:**
 
-- FN-8442 Comfino widget \(product card\) [\#25](https://github.com/comfino/PrestaShop/pull/25) ([akozubskicr](https://github.com/akozubskicr))
+- FN-8442 ComfinoPay widget \(product card\) [\#25](https://github.com/comfino/PrestaShop/pull/25) ([akozubskicr](https://github.com/akozubskicr))
 - FN-8428 Update styles - correct font sizes and colors for PrestaShop 1.6 [\#24](https://github.com/comfino/PrestaShop/pull/24) ([akozubskicr](https://github.com/akozubskicr))
 
 ## [2.0.2](https://github.com/comfino/PrestaShop/tree/2.0.2) (2021-12-14)
@@ -647,7 +658,7 @@ Security hotfix release. Upgrading is strongly recommended for every store.
 **Merged pull requests:**
 
 - FN-8028 Remove typo from documentation [\#12](https://github.com/comfino/PrestaShop/pull/12) ([akozubskicr](https://github.com/akozubskicr))
-- FN-7972 Change Comfino API hosts [\#11](https://github.com/comfino/PrestaShop/pull/11) ([akozubskicr](https://github.com/akozubskicr))
+- FN-7972 Change ComfinoPay API hosts [\#11](https://github.com/comfino/PrestaShop/pull/11) ([akozubskicr](https://github.com/akozubskicr))
 - FN-7939 Add a hook for order status update \(Canceled\) [\#10](https://github.com/comfino/PrestaShop/pull/10) ([akozubskicr](https://github.com/akozubskicr))
 - FN-7846 Disable order cancellation after payment initialization [\#9](https://github.com/comfino/PrestaShop/pull/9) ([akozubskicr](https://github.com/akozubskicr))
 - \[FN-7818\] Remove parameter [\#8](https://github.com/comfino/PrestaShop/pull/8) ([mchylekcr](https://github.com/mchylekcr))

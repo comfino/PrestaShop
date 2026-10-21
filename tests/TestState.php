@@ -59,6 +59,12 @@ final class TestState
         \Shop::$contextShopGroupId = null;
     }
 
+    public static function resetConfigManagers()
+    {
+        self::setStatic(ConfigManager::class, 'configurationManagers', []);
+        self::setStatic(ConfigurationManager::class, 'instances', []);
+    }
+
     /**
      * @param mixed $value
      *

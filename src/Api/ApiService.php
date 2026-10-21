@@ -49,7 +49,7 @@ final class ApiService
      * Minimal length of an API key accepted as a request signature secret.
      *
      * The error reporting request builder already refuses to key a MAC with anything shorter
-     * (ReportShopPluginError::MIN_HASH_KEY_LENGTH), so a value below this length cannot be a real Comfino API key.
+     * (ReportShopPluginError::MIN_HASH_KEY_LENGTH), so a value below this length cannot be a real ComfinoPay API key.
      */
     private const MIN_API_KEY_LENGTH = 16;
 

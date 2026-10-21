@@ -57,7 +57,7 @@ final class ErrorLogger
         if (self::$errorLogger === null) {
             self::$errorLogger = Common\Backend\ErrorLogger::getInstance(
                 ApiClient::getInstance(),
-                _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/errors.log',
+                Main::getLogPath() . '/errors.log',
                 \Tools::getShopDomain(),
                 'PrestaShop',
                 'modules/' . COMFINO_MODULE_NAME,
@@ -119,6 +119,21 @@ final class ErrorLogger
             $apiRequest,
             $apiResponse,
             $stackTrace
+        );
+    }
+
+    /**
+     * Reports a message without an exception (e.g. a recoverable misconfiguration observed by the plugin itself).
+     * The message must be stable, free of IDs and personal data, and contain no stack trace.
+     */
+    public static function sendWarning(string $category, string $context, string $errorCode, string $errorMessage): void
+    {
+        self::getLoggerInstance()->sendError(
+            Extended\Api\Dto\Plugin\ErrorCategory::from($category),
+            ErrorSeverity::from(ErrorSeverity::Warning),
+            OperationContext::from($context),
+            $errorCode,
+            $errorMessage
         );
     }
 

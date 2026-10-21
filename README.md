@@ -109,7 +109,7 @@ This project is licensed under the Open Software License 3.0 - see the [LICENSE]
 
 ## Support
 
-- Documentation (Polish): [Comfino PrestaShop plugin documentation](https://comfino.pl/plugins/PrestaShop/pl)
-- Documentation (English): [Comfino PrestaShop plugin documentation](https://comfino.pl/plugins/PrestaShop/en)
+- Documentation (Polish): [ComfinoPay PrestaShop plugin documentation](https://comfino.pl/plugins/PrestaShop/pl)
+- Documentation (English): [ComfinoPay PrestaShop plugin documentation](https://comfino.pl/plugins/PrestaShop/en)
 - Issues: [GitHub Issues](https://github.com/comfino/PrestaShop/issues)
 - Website: https://comfino.pl

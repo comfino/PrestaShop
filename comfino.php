@@ -56,7 +56,7 @@ class Comfino extends PaymentModule
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
         $this->version = '4.4.0';
-        $this->author = 'Comfino';
+        $this->author = 'ComfinoPay';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
         $this->bootstrap = true;
@@ -72,19 +72,19 @@ class Comfino extends PaymentModule
             'error',
             'payment',
             'paywallitemdetails',
+            'selection',
             'transactionstatus',
-            'updatedismiss',
         ];
 
         parent::__construct();
 
-        $this->displayName = $this->l('Comfino payments');
-        $this->confirmUninstall = $this->l('Are you sure to uninstall Comfino payments?');
+        $this->displayName = $this->l('ComfinoPay payments');
+        $this->confirmUninstall = $this->l('Are you sure to uninstall ComfinoPay payments?');
 
         $this->description = $this->l(
-            'Comfino is an innovative payment method for customers of e-commerce stores! ' .
+            'ComfinoPay is an innovative payment method for customers of e-commerce stores! ' .
             'These are installment payments, deferred (buy now, pay later) and corporate ' .
-            'payments available on one platform with the help of quick integration. Grow your business with Comfino!'
+            'payments available on one platform with the help of quick integration. Grow your business with ComfinoPay!'
         );
 
         if (!$this->checkEnvironment(true)) {
@@ -105,7 +105,7 @@ class Comfino extends PaymentModule
         }
 
         try {
-            /* Initialize Comfino plugin (cache system, REST endpoints, error-logging token refresh) only when the
+            /* Initialize ComfinoPay plugin (cache system, REST endpoints, error-logging token refresh) only when the
                current request actually needs it - avoids unnecessary work on shop pages unrelated to the widget
                banner, paywall, admin dashboard or the module's own REST/configuration controllers. */
             if ($this->needsFullInit()) {
@@ -201,7 +201,7 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * Renders Comfino paywall iframe at payment methods list compatible with PrestaShop 1.6.
+     * Renders ComfinoPay paywall iframe at payment methods list compatible with PrestaShop 1.6.
      *
      * @return string
      */
@@ -211,7 +211,7 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * Renders Comfino paywall iframe at payment methods list compatible with PrestaShop 1.7+.
+     * Renders ComfinoPay paywall iframe at payment methods list compatible with PrestaShop 1.7+.
      *
      * @return PrestaShop\PrestaShop\Core\Payment\PaymentOption[]
      */
@@ -299,7 +299,7 @@ class Comfino extends PaymentModule
         }
 
         if (in_array($controller, ['cart', 'order', 'checkout'])) {
-            // Hide-by-default gate for the Comfino payment tile until the SDK signals readiness - loaded from CDN.
+            // Hide-by-default gate for the ComfinoPay payment tile until the SDK signals readiness - loaded from CDN.
             Comfino\Main::addStyleLink(
                 'comfino-item-gate',
                 Comfino\Configuration\ConfigManager::getCheckoutCssUrl()
@@ -310,7 +310,7 @@ class Comfino extends PaymentModule
     /**
      * Emits a Comfino-compatible Content-Security-Policy header on checkout pages when enabled.
      * Opt-in via COMFINO_CSP_ENABLED; Report-Only by default (COMFINO_CSP_REPORT_ONLY).
-     * If another module already set a CSP header, the Comfino domains are merged into it.
+     * If another module already set a CSP header, the ComfinoPay domains are merged into it.
      *
      * @return void
      */
@@ -430,8 +430,8 @@ class Comfino extends PaymentModule
     public function checkEnvironment($useTranslations = false)
     {
         if (PHP_VERSION_ID < self::MIN_PHP_VERSION_ID) {
-            $errorMessage = 'The Comfino module could not be installed. ' .
-                            'The minimum PHP version required for Comfino is %s. You are running %s.';
+            $errorMessage = 'The ComfinoPay module could not be installed. ' .
+                            'The minimum PHP version required for ComfinoPay is %s. You are running %s.';
 
             if ($useTranslations) {
                 $errorMessage = $this->l($errorMessage);
@@ -447,7 +447,7 @@ class Comfino extends PaymentModule
         }
 
         if (!extension_loaded('curl')) {
-            $errorMessage = 'The Comfino module could not be installed. It requires PHP cURL extension which is not ' .
+            $errorMessage = 'The ComfinoPay module could not be installed. It requires PHP cURL extension which is not ' .
                             'installed. More details: https://www.php.net/manual/en/book.curl.php';
 
             if ($useTranslations) {

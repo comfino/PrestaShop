@@ -28,10 +28,12 @@ namespace Comfino\Configuration;
 
 use Comfino\Api\ApiClient;
 use Comfino\CategoryTree\BuildStrategy;
+use Comfino\Common\Backend\Cache\ItemTypeEnum;
 use Comfino\Common\Backend\ConfigurationManager;
 use Comfino\Common\Frontend\FrontendHelper;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Common\Shop\Product\CategoryTree;
+use Comfino\DebugLogger;
 use Comfino\Extended\Api\Serializer\Json as JsonSerializer;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Order\OrderManager;
@@ -100,6 +102,7 @@ final class ConfigManager
             'COMFINO_PROD_CAT_CACHE_TTL' => ConfigurationManager::OPT_VALUE_TYPE_INT,
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN' => ConfigurationManager::OPT_VALUE_TYPE_STRING,
             'COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT' => ConfigurationManager::OPT_VALUE_TYPE_INT,
+            'COMFINO_REMOTE_FLAGS' => ConfigurationManager::OPT_VALUE_TYPE_STRING_ARRAY,
         ],
     ];
 
@@ -146,6 +149,7 @@ final class ConfigManager
         'COMFINO_API_TIMEOUT',
         'COMFINO_API_CONNECT_NUM_ATTEMPTS',
         'COMFINO_PROD_CAT_CACHE_TTL',
+        'COMFINO_REMOTE_FLAGS',
     ];
 
     /**
@@ -170,6 +174,14 @@ final class ConfigManager
     ];
 
     private const CONFIG_MANAGER_OPTIONS = ConfigurationManager::OPT_SERIALIZE_ARRAYS;
+
+    private const REMOTE_FLAGS_CACHE_KEY = 'remote_flag_attributes';
+    // Daily fallback re-fetch for shops whose server rejects the backend's cache invalidation requests.
+    private const REMOTE_FLAGS_MAX_TTL = 86400;
+    private const REMOTE_FLAGS_FAILURE_TTL = 300;
+    private const REMOTE_FLAG_NAME_PATTERN = '/^[A-Z0-9_]{1,64}$/';
+    private const PROMOTION_FLAG = 'PAYMENT_ITEM_PROMOTION';
+    private const PROMOTION_ATTRIBUTES = ['amount', 'minAmount', 'maxAmount', 'allowedTypes'];
 
     /** @var ConfigurationManager[] One manager per shop-context scope, keyed by the scope string. */
     private static $configurationManagers = [];
@@ -213,6 +225,9 @@ final class ConfigManager
 
     public static function save(array $configuration, ?int $idShopGroup = null, ?int $idShop = null): void
     {
+        // Every write (admin form and the signed remote endpoint) ends here: drop values that fail validation.
+        $configuration = RemoteValueValidator::sanitizeForStorage($configuration);
+
         foreach ($configuration as $optName => $optValue) {
             if (self::isGlobalOption($optName)) {
                 /* Force the global row (id_shop_group = id_shop = 0). Passing null here would make PrestaShop resolve to
@@ -397,6 +412,20 @@ final class ConfigManager
         return getenv('COMFINO_DEV_USE_UNMINIFIED_SCRIPTS') === 'TRUE';
     }
 
+    /**
+     * Transport options clamped to the plugin bounds, whatever is stored (the remote endpoint can write them).
+     *
+     * @return int[] [connect timeout, transfer timeout, connect attempts]
+     */
+    public static function getTransportOptions(): array
+    {
+        return RemoteValueValidator::clampTransport(
+            self::getConfigurationValue('COMFINO_API_CONNECT_TIMEOUT', 3),
+            self::getConfigurationValue('COMFINO_API_TIMEOUT', 5),
+            self::getConfigurationValue('COMFINO_API_CONNECT_NUM_ATTEMPTS', 3)
+        );
+    }
+
     public static function getLogoApiHost(): string
     {
         return self::getApiHost(ApiClient::getInstance()->getApiHost());
@@ -467,10 +496,166 @@ final class ConfigManager
             if ($response !== null) {
                 self::updateConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN', $response->accessToken);
                 self::updateConfigurationValue('COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT', strtotime($response->expiresAt));
+
+                self::updateRemoteFlagsIfChanged($response->getHeader('Comfino-Flags', ''));
             }
         } catch (\Throwable $e) {
             // Silently ignore — CETS token claim is best-effort.
         }
+    }
+
+    /**
+     * Names of the flags enabled for the shop in the ComfinoPay CRM. Written by the CRM push and by the token claim header.
+     *
+     * @return string[]
+     */
+    public static function getRemoteFlags(): array
+    {
+        $flags = self::getConfigurationValue('COMFINO_REMOTE_FLAGS');
+
+        if (!is_array($flags)) {
+            return [];
+        }
+
+        return array_values(array_filter($flags, static function ($flag): bool {
+            return is_string($flag) && preg_match(self::REMOTE_FLAG_NAME_PATTERN, $flag) === 1;
+        }));
+    }
+
+    /**
+     * @param string $flagsHeaderValue Comma-separated value of the Comfino-Flags response header.
+     *
+     * @return bool True when the stored list was changed.
+     */
+    public static function updateRemoteFlagsIfChanged(string $flagsHeaderValue): bool
+    {
+        $flags = array_unique(array_filter(array_map('trim', explode(',', $flagsHeaderValue)), static function ($flag): bool {
+            return preg_match(self::REMOTE_FLAG_NAME_PATTERN, $flag) === 1;
+        }));
+
+        sort($flags);
+
+        $currentFlags = self::getRemoteFlags();
+
+        sort($currentFlags);
+
+        if ($flags === $currentFlags) {
+            return false;
+        }
+
+        self::updateConfigurationValue('COMFINO_REMOTE_FLAGS', $flags);
+
+        return true;
+    }
+
+    /**
+     * Flag attributes from GET /user/settings/flags, cached under the "remote_flags" tag so the backend can invalidate
+     * them when the shop's promotion or flags change.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function getRemoteFlagAttributes(): array
+    {
+        if (empty(self::getApiKey())) {
+            return [];
+        }
+
+        if (is_array($flagAttributes = CacheManager::get(self::REMOTE_FLAGS_CACHE_KEY))) {
+            return $flagAttributes;
+        }
+
+        try {
+            $userSettings = ApiClient::getInstance()->getUserSettings();
+            $flagAttributes = self::sanitizeRemoteFlagAttributes($userSettings->flags);
+            $cacheTtl = (int) $userSettings->getHeader('Comfino-Cache-TTL', '0');
+            $cacheTtl = $cacheTtl > 0 ? min($cacheTtl, self::REMOTE_FLAGS_MAX_TTL) : self::REMOTE_FLAGS_MAX_TTL;
+
+            if (empty(self::getRemoteFlags()) && !empty($flagNames = array_diff(array_keys($flagAttributes), ['PROMO']))) {
+                // Seed the name list right after an upgrade, before the first CRM push or token claim.
+                self::updateConfigurationValue('COMFINO_REMOTE_FLAGS', array_values($flagNames));
+            }
+        } catch (\Throwable $e) {
+            // Fail closed and back off: no promotion hint rather than a stale one, no API call on every checkout.
+            DebugLogger::logEvent('[REMOTE_FLAGS]', 'Flag attributes fetch error', ['error' => $e->getMessage()]);
+
+            $flagAttributes = [];
+            $cacheTtl = self::REMOTE_FLAGS_FAILURE_TTL;
+        }
+
+        CacheManager::set(self::REMOTE_FLAGS_CACHE_KEY, $flagAttributes, $cacheTtl, [ItemTypeEnum::REMOTE_FLAGS]);
+
+        return $flagAttributes;
+    }
+
+    /**
+     * Keeps only well-formed flag entries: the cached values are echoed into the checkout page.
+     *
+     * @param mixed $flags
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function sanitizeRemoteFlagAttributes($flags): array
+    {
+        if (!is_array($flags)) {
+            return [];
+        }
+
+        $sanitized = [];
+
+        foreach ($flags as $flagName => $attributes) {
+            if (!is_string($flagName) || preg_match(self::REMOTE_FLAG_NAME_PATTERN, $flagName) !== 1 || !is_array($attributes)) {
+                continue;
+            }
+
+            if ($flagName === 'PROMO') {
+                if (!isset($attributes['amount']) || !is_int($attributes['amount']) || $attributes['amount'] <= 0) {
+                    continue;
+                }
+
+                $promo = [];
+
+                foreach (['amount', 'minAmount', 'maxAmount'] as $field) {
+                    if (isset($attributes[$field]) && is_int($attributes[$field]) && $attributes[$field] >= 0) {
+                        $promo[$field] = $attributes[$field];
+                    }
+                }
+
+                if (isset($attributes['allowedTypes']) && is_array($attributes['allowedTypes'])) {
+                    $promo['allowedTypes'] = array_values(array_filter(
+                        $attributes['allowedTypes'],
+                        static function ($type): bool {
+                            return is_string($type) && preg_match('/^[A-Z0-9_]+$/', $type) === 1;
+                        }
+                    ));
+                }
+
+                $attributes = $promo;
+            }
+
+            $sanitized[$flagName] = $attributes;
+        }
+
+        return $sanitized;
+    }
+
+    /**
+     * Flag attributes for the checkout bootstrap config: the cached map plus PROMO's parameters copied into
+     * PAYMENT_ITEM_PROMOTION, which is where the SDK renderer reads them.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function getCheckoutFlagAttributes(): array
+    {
+        $flagAttributes = self::getRemoteFlagAttributes();
+
+        if (isset($flagAttributes['PROMO']) && in_array(self::PROMOTION_FLAG, self::getRemoteFlags(), true)) {
+            $flagAttributes[self::PROMOTION_FLAG] = array_merge(
+                $flagAttributes[self::PROMOTION_FLAG] ?? [],
+                array_intersect_key($flagAttributes['PROMO'], array_flip(self::PROMOTION_ATTRIBUTES))
+            );
+        }
+
+        return $flagAttributes;
     }
 
     public static function getSdkScriptUrl(): string
@@ -518,9 +703,9 @@ final class ConfigManager
     }
 
     /**
-     * CDN URL of the single, SDK-hosted Comfino brand logo used as the default payment-tile placeholder across all shop
+     * CDN URL of the single, SDK-hosted ComfinoPay brand logo used as the default payment-tile placeholder across all shop
      * plugins/platforms. Rendered by the plugin as the tile's initial logo; the SDK renderer swaps its src at runtime
-     * (e.g., to the auth-gated API Comfino logo). Hosting it centrally on the SDK CDN keeps the asset controllable
+     * (e.g., to the auth-gated API ComfinoPay logo). Hosting it centrally on the SDK CDN keeps the asset controllable
      * without plugin updates.
      */
     public static function getDefaultLogoUrl(): string
@@ -548,6 +733,8 @@ final class ConfigManager
     {
         if (!is_array($ignoredStatuses = self::getConfigurationValue('COMFINO_IGNORED_STATUSES'))) {
             $ignoredStatuses = null;
+        } else {
+            $ignoredStatuses = RemoteValueValidator::filterStatusList($ignoredStatuses);
         }
 
         return $ignoredStatuses ?? StatusManager::DEFAULT_IGNORED_STATUSES;
@@ -560,6 +747,8 @@ final class ConfigManager
     {
         if (!is_array($forbiddenStatuses = self::getConfigurationValue('COMFINO_FORBIDDEN_STATUSES'))) {
             $forbiddenStatuses = null;
+        } else {
+            $forbiddenStatuses = RemoteValueValidator::filterStatusList($forbiddenStatuses);
         }
 
         return $forbiddenStatuses ?? StatusManager::DEFAULT_FORBIDDEN_STATUSES;
@@ -571,6 +760,8 @@ final class ConfigManager
     public static function getStatusMap(): array
     {
         if (!is_array($statusMap = self::getConfigurationValue('COMFINO_STATUS_MAP'))) {
+            $statusMap = null;
+        } elseif (empty($statusMap = RemoteValueValidator::filterStatusMap($statusMap))) {
             $statusMap = null;
         }
 
@@ -659,7 +850,7 @@ final class ConfigManager
     public static function getDefaultConfigurationValues(): array
     {
         return [
-            'COMFINO_PAYMENT_TEXT' => 'Comfino',
+            'COMFINO_PAYMENT_TEXT' => 'ComfinoPay',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_USE_ORDER_REFERENCE' => false,
             'COMFINO_IS_SANDBOX' => false,
@@ -698,6 +889,7 @@ final class ConfigManager
             'COMFINO_PAYWALL_DIRECT_REDIRECT' => false,
             'COMFINO_PAYWALL_TRACKING_CONSENT' => false,
             'COMFINO_PAYWALL_CUSTOM_CSS_URL' => '',
+            'COMFINO_REMOTE_FLAGS' => '',
         ];
     }
 

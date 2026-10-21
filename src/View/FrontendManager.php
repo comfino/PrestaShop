@@ -211,7 +211,9 @@ final class FrontendManager
                 'module_url' => \Context::getContext()->link->getAdminLink('AdminModules') .
                     '&configure=' . $module->name . '&tab_module=' . $module->tab . '&module_name=' . $module->name .
                     '&active_tab=plugin_diagnostics',
-                'dismiss_url' => \Context::getContext()->link->getModuleLink($module->name, 'updatedismiss', [], true),
+                // Settings page URL (carries the AdminModules token): the dismissal is an authenticated POST to it.
+                'dismiss_url' => \Context::getContext()->link->getAdminLink('AdminModules') .
+                    '&configure=' . $module->name . '&tab_module=' . $module->tab . '&module_name=' . $module->name,
             ]
         );
     }

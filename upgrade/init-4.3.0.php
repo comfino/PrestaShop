@@ -77,7 +77,7 @@ function upgrade_module_4_3_0(Comfino $module)
 
     Main::updateUpgradeLog('Upgrade script for 4.3.0 executed.');
 
-    // Report the shop environment to Comfino on upgrade (fire-and-forget).
+    // Report the shop environment to ComfinoPay on upgrade (fire-and-forget).
     if (!empty(ConfigManager::getApiKey())) {
         ShopEnvironmentReporter::report();
     }

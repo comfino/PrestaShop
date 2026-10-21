@@ -67,6 +67,8 @@ final class ApiClient
         }
 
         if (self::$apiClient === null) {
+            [$connectTimeout, $transferTimeout, $connectAttempts] = ConfigManager::getTransportOptions();
+
             self::$apiClient = (new ApiClientFactory())->createClient(
                 $apiKey,
                 sprintf(
@@ -83,9 +85,9 @@ final class ApiClient
                 ),
                 ConfigManager::getApiHost(),
                 \Context::getContext()->language->iso_code,
-                ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_TIMEOUT', 3),
-                ConfigManager::getConfigurationValue('COMFINO_API_TIMEOUT', 5),
-                ConfigManager::getConfigurationValue('COMFINO_API_CONNECT_NUM_ATTEMPTS', 3),
+                $connectTimeout,
+                $transferTimeout,
+                $connectAttempts,
                 self::getDevEnvCurlOptions()
             );
 

@@ -49,6 +49,12 @@ final class SettingsForm
 {
     public const ERROR_LOG_NUM_LINES = 100;
     public const DEBUG_LOG_NUM_LINES = 200;
+
+    /*
+     * Options kept in the configuration but not shown in the settings form (the form switch is revealed in 4.5.0).
+     * The save loop skips them, so a stored value is never overwritten by a missing form field.
+     */
+    private const HIDDEN_FORM_OPTIONS = ['COMFINO_PAYWALL_TRACKING_CONSENT'];
     public const COMFINO_SUPPORT_EMAIL = 'pomoc@comfino.pl';
     public const COMFINO_SUPPORT_PHONE = '887-106-027';
 
@@ -154,7 +160,7 @@ final class SettingsForm
                                 $configurationOptions[$optionName][] = $offerType['key'];
                             }
                         }
-                    } else {
+                    } elseif (!in_array($optionName, self::HIDDEN_FORM_OPTIONS, true)) {
                         $configurationOptions[$optionName] = \Tools::getValue($optionName);
                     }
                 }
@@ -210,7 +216,7 @@ final class SettingsForm
                             } catch (\Throwable $e) {
                                 ApiClient::processApiError(
                                     ($activeTab === 'payment_settings' ? 'Payment' : 'Developer') .
-                                    ' settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
+                                    ' settings error on page "' . Main::getRequestUri() . '" (ComfinoPay API)',
                                     $e,
                                     OperationContext::Configuration
                                 );
@@ -220,7 +226,7 @@ final class SettingsForm
                                 $widgetKeyError = true;
 
                                 if (!empty(getenv('COMFINO_DEV'))) {
-                                    $output[] = sprintf('Comfino API host: %s', $apiClient->getApiHost());
+                                    $output[] = sprintf('ComfinoPay API host: %s', $apiClient->getApiHost());
                                 }
                             }
                         } catch (AuthorizationError|AccessDenied $e) {
@@ -228,12 +234,12 @@ final class SettingsForm
                             $output[] = Main::translate('API key is not valid.');
 
                             if (!empty(getenv('COMFINO_DEV'))) {
-                                $output[] = sprintf('Comfino API host: %s', $apiClient->getApiHost());
+                                $output[] = sprintf('ComfinoPay API host: %s', $apiClient->getApiHost());
                             }
                         } catch (\Throwable $e) {
                             ApiClient::processApiError(
                                 ($activeTab === 'payment_settings' ? 'Payment' : 'Developer') .
-                                ' settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
+                                ' settings error on page "' . Main::getRequestUri() . '" (ComfinoPay API)',
                                 $e,
                                 OperationContext::Configuration
                             );
@@ -242,7 +248,7 @@ final class SettingsForm
                             $output[] = $e->getMessage();
 
                             if (!empty(getenv('COMFINO_DEV'))) {
-                                $output[] = sprintf('Comfino API host: %s', $apiClient->getApiHost());
+                                $output[] = sprintf('ComfinoPay API host: %s', $apiClient->getApiHost());
                             }
                         }
                     }
@@ -399,7 +405,7 @@ final class SettingsForm
                                 $widgetKey = ApiClient::getInstance()->getWidgetKey();
                             } catch (\Throwable $e) {
                                 ApiClient::processApiError(
-                                    'Widget settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
+                                    'Widget settings error on page "' . Main::getRequestUri() . '" (ComfinoPay API)',
                                     $e,
                                     OperationContext::Configuration
                                 );
@@ -413,7 +419,7 @@ final class SettingsForm
                             $output[] = Main::translate('API key is not valid.');
                         } catch (\Throwable $e) {
                             ApiClient::processApiError(
-                                'Widget settings error on page "' . Main::getRequestUri() . '" (Comfino API)',
+                                'Widget settings error on page "' . Main::getRequestUri() . '" (ComfinoPay API)',
                                 $e,
                                 OperationContext::Configuration
                             );
@@ -434,7 +440,7 @@ final class SettingsForm
                 // Update plugin configuration.
                 ConfigManager::updateConfiguration($configurationOptions, false);
 
-                // Report the shop environment to Comfino after a successful settings save (fire-and-forget).
+                // Report the shop environment to ComfinoPay after a successful settings save (fire-and-forget).
                 if (!empty(ConfigManager::getApiKey())) {
                     ShopEnvironmentReporter::report();
                 }
@@ -453,12 +459,12 @@ final class SettingsForm
             'logo_url' => ConfigManager::getLogoUrl(),
             'support_email_address' => self::COMFINO_SUPPORT_EMAIL,
             'support_email_subject' => sprintf(
-                Main::translate('PrestaShop %s Comfino %s - question'),
+                Main::translate('PrestaShop %s ComfinoPay %s - question'),
                 _PS_VERSION_,
                 COMFINO_VERSION
             ),
             'support_email_body' => sprintf(
-                'PrestaShop %s Comfino %s, PHP %s',
+                'PrestaShop %s ComfinoPay %s, PHP %s',
                 _PS_VERSION_,
                 COMFINO_VERSION,
                 PHP_VERSION
@@ -493,7 +499,7 @@ final class SettingsForm
         switch (\Shop::getContext()) {
             case \Shop::CONTEXT_SHOP:
                 return sprintf(
-                    Main::translate('You are editing the Comfino configuration for shop "%s". %s'),
+                    Main::translate('You are editing the ComfinoPay configuration for shop "%s". %s'),
                     \Context::getContext()->shop->name,
                     $globalOptionsNote
                 );
@@ -502,14 +508,14 @@ final class SettingsForm
                 $shopGroup = new \ShopGroup((int) \Shop::getContextShopGroupID(true));
 
                 return sprintf(
-                    Main::translate('You are editing the Comfino configuration for shop group "%s". %s'),
+                    Main::translate('You are editing the ComfinoPay configuration for shop group "%s". %s'),
                     \Validate::isLoadedObject($shopGroup) ? $shopGroup->name : '',
                     $globalOptionsNote
                 );
 
             default: // Shop::CONTEXT_ALL
                 return Main::translate(
-                    'PrestaShop Multistore is active. You are editing the default (All Shops) Comfino configuration. ' .
+                    'PrestaShop Multistore is active. You are editing the default (All Shops) ComfinoPay configuration. ' .
                     'Settings saved here apply to every shop that does not override them; select a shop in the top ' .
                     'bar to configure it individually.'
                 );
@@ -531,8 +537,8 @@ final class SettingsForm
         return [
             'update_available_message' => sprintf(
                 Main::translate(
-                    'New Comfino %s module version is available. You are using %s version. ' .
-                    'Please update your Comfino module.'
+                    'New ComfinoPay %s module version is available. You are using %s version. ' .
+                    'Please update your ComfinoPay module.'
                 ),
                 $updateInfo['github_version'],
                 COMFINO_VERSION
@@ -609,7 +615,7 @@ final class SettingsForm
                                 'type' => 'switch',
                                 'label' => Main::translate('Use order reference as external ID'),
                                 'name' => 'COMFINO_USE_ORDER_REFERENCE',
-                                'desc' => Main::translate('Use customer-visible order reference instead of numeric order ID for Comfino API integration. New orders only.'),
+                                'desc' => Main::translate('Use customer-visible order reference instead of numeric order ID for ComfinoPay API integration. New orders only.'),
                                 'is_bool' => true,
                                 'values' => [
                                     [
@@ -634,7 +640,7 @@ final class SettingsForm
                                 'type' => 'switch',
                                 'label' => Main::translate('Direct redirect mode'),
                                 'name' => 'COMFINO_PAYWALL_DIRECT_REDIRECT',
-                                'desc' => Main::translate('When enabled, the full paywall offer browser is not displayed. The order is submitted with the default financial product and the customer is redirected directly to the Comfino payment gateway.'),
+                                'desc' => Main::translate('When enabled, the full paywall offer browser is not displayed. The order is submitted with the default financial product and the customer is redirected directly to the ComfinoPay payment gateway.'),
                                 'is_bool' => true,
                                 'values' => [
                                     [
@@ -644,25 +650,6 @@ final class SettingsForm
                                     ],
                                     [
                                         'id' => 'paywall_direct_redirect_off',
-                                        'value' => false,
-                                        'label' => Main::translate('No'),
-                                    ],
-                                ],
-                            ],
-                            [
-                                'type' => 'switch',
-                                'label' => Main::translate('Allow collecting ComfinoPay plugin view statistics'),
-                                'name' => 'COMFINO_PAYWALL_TRACKING_CONSENT',
-                                'desc' => Main::translate('When enabled, the ComfinoPay product widget and the paywall in the checkout report their views and shopper interactions (e.g. offer and installment changes) to ComfinoPay. These statistics help optimize the widget and the paywall and thus increase sales. Linking product page visits with the checkout additionally requires the shopper\'s consent to analytics cookies in your shop.'),
-                                'is_bool' => true,
-                                'values' => [
-                                    [
-                                        'id' => 'paywall_tracking_consent_on',
-                                        'value' => true,
-                                        'label' => Main::translate('Yes'),
-                                    ],
-                                    [
-                                        'id' => 'paywall_tracking_consent_off',
                                         'value' => false,
                                         'label' => Main::translate('No'),
                                     ],
@@ -839,7 +826,7 @@ final class SettingsForm
                                 ],
                                 'desc' => Main::translate(
                                     'Other payment methods (Installments 0%, Buy now, pay later, Installments for ' .
-                                    'companies, Leasing) available after consulting a Comfino advisor ' .
+                                    'companies, Leasing) available after consulting a ComfinoPay advisor ' .
                                     '(kontakt@comfino.pl).'
                                 ),
                             ],
@@ -996,7 +983,7 @@ final class SettingsForm
                                 ],
                                 'desc' => Main::translate(
                                     'The test environment allows the store owner to get acquainted with the ' .
-                                    'functionality of the Comfino module. This is a Comfino simulator, thanks ' .
+                                    'functionality of the ComfinoPay module. This is a ComfinoPay simulator, thanks ' .
                                     'to which you can get to know all the advantages of this payment method. ' .
                                     'The use of the test mode is free (there are also no charges for orders).'
                                 ),
@@ -1029,9 +1016,9 @@ final class SettingsForm
                                     ],
                                 ],
                                 'desc' => Main::translate(
-                                    'Debug mode is useful in case of problems with Comfino payment availability. ' .
+                                    'Debug mode is useful in case of problems with ComfinoPay payment availability. ' .
                                     'In this mode module logs details of internal process responsible for ' .
-                                    'displaying of Comfino payment option at the payment methods list.'
+                                    'displaying of ComfinoPay payment option at the payment methods list.'
                                 ),
                             ],
                             [
@@ -1052,8 +1039,8 @@ final class SettingsForm
                                     ],
                                 ],
                                 'desc' => Main::translate(
-                                    'Service mode is useful in testing Comfino payment gateway without sharing ' .
-                                    'it with customers. In this mode Comfino payment method is visible only for ' .
+                                    'Service mode is useful in testing ComfinoPay payment gateway without sharing ' .
+                                    'it with customers. In this mode ComfinoPay payment method is visible only for ' .
                                     'selected sessions and debug logs are collected only for these sessions.'
                                 ),
                             ],

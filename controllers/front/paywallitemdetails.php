@@ -55,7 +55,16 @@ class ComfinoPaywallItemDetailsModuleFrontController extends ModuleFrontControll
         $loanAmount = (int) round(round($this->context->cart->getOrderTotal(), 2) * 100);
         $loanTypeSelected = trim(filter_var(Tools::getValue('loanTypeSelected'), FILTER_SANITIZE_STRING));
         $loadProductCategories = (Tools::getValue('reqProdCat') === 'yes');
-        $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount, $loadProductCategories);
+
+        try {
+            $shopCart = OrderManager::getShopCart($this->context->cart, $loanAmount, $loadProductCategories);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+
+            exit($serializer->serialize(
+                ApiClient::processApiError('Paywall item details cart error', $e)['error_details']
+            ));
+        }
 
         DebugLogger::logEvent(
             '[PAYWALL_ITEM_DETAILS]',
