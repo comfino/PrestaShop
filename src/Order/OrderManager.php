@@ -40,10 +40,10 @@ if (!defined('_PS_VERSION_')) {
 }
 
 /**
- * Manages order and cart data conversion between PrestaShop entities and Comfino API structures.
+ * Manages order and cart data conversion between PrestaShop entities and ComfinoPay API structures.
  *
  * This class provides static methods for:
- * - Converting PrestaShop carts and orders to Comfino cart objects.
+ * - Converting PrestaShop carts and orders to ComfinoPay cart objects.
  * - Extracting customer information from PrestaShop entities.
  * - Handling product categories, images, and tax calculations.
  * - Currency validation for payment processing.
@@ -51,10 +51,10 @@ if (!defined('_PS_VERSION_')) {
 final class OrderManager
 {
     /**
-     * Converts a PrestaShop cart entity to Comfino cart structure.
+     * Converts a PrestaShop cart entity to ComfinoPay cart structure.
      *
      * This method extracts all cart data including products, prices, taxes, and delivery costs,
-     * then transforms it into the format required by Comfino API. It handles:
+     * then transforms it into the format required by ComfinoPay API. It handles:
      * - Total value calculation with optional price modifier.
      * - Product details including categories, images, and EAN codes.
      * - Tax calculations for both products and delivery.
@@ -64,7 +64,7 @@ final class OrderManager
      * @param int $priceModifier Optional price modifier in cents (e.g., custom commission)
      * @param bool $loadProductCategories Whether to load product category names into cart items
      *
-     * @return Cart Comfino cart structure with all product and delivery information
+     * @return Cart ComfinoPay cart structure with all product and delivery information
      *
      * @throws \InvalidArgumentException If total value is negative or exceeds PHP_INT_MAX
      * @throws \Exception If product or carrier loading fails
@@ -93,11 +93,11 @@ final class OrderManager
 
                 return new CartItem(
                     new Product(
-                        $product['name'],
+                        (string) ($product['name'] ?? ''),
                         $grossPrice,
                         (string) $product['id_product'],
                         $loadProductCategories ? implode('→', self::getProductCategoryNames($productEntity)) : null,
-                        $product['ean13'],
+                        $product['ean13'] ?? null,
                         self::getProductImageUrl($product),
                         self::getProductCategoryIds($productEntity),
                         $taxRulesGroupId !== 0 ? $netPrice : $grossPrice,
@@ -150,8 +150,9 @@ final class OrderManager
         if (\Validate::isLoadedObject($carrier = new \Carrier($cart->id_carrier))
             && \Carrier::getIdTaxRulesGroupByIdCarrier($cart->id_carrier) !== 0
         ) {
-            $deliveryAddress = $cart->getAddressCollection()[$cart->id_address_delivery];
-            $billingAddress = $cart->getAddressCollection()[$cart->id_address_invoice];
+            $addresses = $cart->getAddressCollection();
+            $deliveryAddress = $addresses[$cart->id_address_delivery] ?? null;
+            $billingAddress = $addresses[$cart->id_address_invoice] ?? null;
 
             $deliveryNetCost = (int) round(round($cart->getOrderTotal(false, \Cart::ONLY_SHIPPING), 2) * 100);
             $deliveryTaxValue = $deliveryCost - $deliveryNetCost;
@@ -181,7 +182,7 @@ final class OrderManager
     }
 
     /**
-     * Converts a PrestaShop order entity to Comfino cart structure.
+     * Converts a PrestaShop order entity to ComfinoPay cart structure.
      *
      * Similar to getShopCart() but operates on an already created order instead of a cart.
      * This is useful for order status updates and processing existing orders.
@@ -191,7 +192,7 @@ final class OrderManager
      * @param int $priceModifier Optional price modifier in cents (e.g., custom commission)
      * @param bool $loadProductCategories Whether to load product category names into cart items
      *
-     * @return Cart Comfino cart structure with order products and delivery information
+     * @return Cart ComfinoPay cart structure with order products and delivery information
      */
     public static function getShopCartFromOrder(\Order $order, int $priceModifier, bool $loadProductCategories = false): Cart
     {
@@ -215,11 +216,11 @@ final class OrderManager
 
                 return new CartItem(
                     new Product(
-                        $product['name'],
+                        (string) ($product['name'] ?? ''),
                         $grossPrice,
                         (string) $product['id_product'],
                         $loadProductCategories ? implode('→', self::getProductCategoryNames($productEntity)) : null,
-                        $product['ean13'],
+                        $product['ean13'] ?? null,
                         self::getProductImageUrl($product),
                         self::getProductCategoryIds($productEntity),
                         $taxRulesGroupId !== 0 ? $netPrice : $grossPrice,
@@ -269,7 +270,7 @@ final class OrderManager
     }
 
     /**
-     * Converts a single PrestaShop product to Comfino cart structure.
+     * Converts a single PrestaShop product to ComfinoPay cart structure.
      *
      * Creates a minimal cart containing only one product with quantity 1.
      * This is primarily used for widget initialization on product pages
@@ -278,7 +279,7 @@ final class OrderManager
      * @param \Product $product PrestaShop product entity to convert
      * @param bool $loadProductCategories Whether to load product category names into cart items
      *
-     * @return Cart Comfino cart structure with single product and no delivery costs
+     * @return Cart ComfinoPay cart structure with single product and no delivery costs
      */
     public static function getShopCartFromProduct(\Product $product, bool $loadProductCategories = false): Cart
     {
@@ -298,7 +299,7 @@ final class OrderManager
             [
                 new CartItem(
                     new Product(
-                        is_array($product->name) ? current($product->name) : $product->name,
+                        (string) (is_array($product->name) ? current($product->name) : $product->name),
                         $grossPrice,
                         (string) $product->id,
                         $loadProductCategories ? implode('→', self::getProductCategoryNames($product)) : null,
@@ -319,7 +320,7 @@ final class OrderManager
      * Extracts customer information from PrestaShop cart and customer entities.
      *
      * Collects customer data from multiple sources (billing address, delivery address, customer record)
-     * and converts it to Comfino Customer structure. Handles:
+     * and converts it to ComfinoPay Customer structure. Handles:
      * - Customer name extraction (with fallback for missing last names).
      * - Phone number prioritization (delivery address preferred).
      * - Address parsing (street name and building number separation).
@@ -330,15 +331,24 @@ final class OrderManager
      * @param \Customer $customer PrestaShop customer entity
      * @param \Context $context PrestaShop context for country code resolution
      *
-     * @return Customer Comfino customer structure with complete customer and address data
+     * @return Customer ComfinoPay customer structure with complete customer and address data
      */
     public static function getShopCustomerFromCart(\Cart $cart, \Customer $customer, \Context $context): Customer
     {
-        $billingAddress = $cart->getAddressCollection()[$cart->id_address_invoice];
-        $deliveryAddress = $cart->getAddressCollection()[$cart->id_address_delivery];
+        $addresses = $cart->getAddressCollection();
+        $billingAddress = $addresses[$cart->id_address_invoice] ?? null;
+        $deliveryAddress = $addresses[$cart->id_address_delivery] ?? null;
 
         if ($billingAddress === null) {
             $billingAddress = $deliveryAddress;
+        }
+
+        if ($deliveryAddress === null) {
+            $deliveryAddress = $billingAddress;
+        }
+
+        if ($billingAddress === null || $deliveryAddress === null) {
+            throw new \RuntimeException('Cart has no delivery or billing address.');
         }
 
         $phoneNumber = trim($billingAddress->phone ?? '');
@@ -393,7 +403,10 @@ final class OrderManager
             }
         }
 
-        $customerTaxId = trim(str_replace('-', '', $billingAddress->vat_number ?? ''));
+        $phoneNumber = self::normalizePhoneNumber($phoneNumber);
+        $firstName = self::normalizeName($firstName);
+        $lastName = self::normalizeName($lastName);
+        $customerTaxId = preg_replace('/[\s-]+/', '', (string) ($billingAddress->vat_number ?? ''));
 
         return new Customer(
             $firstName,
@@ -416,12 +429,34 @@ final class OrderManager
     }
 
     /**
-     * Validates that the cart currency is supported by the Comfino payment module.
+     * Removes formatting characters from a phone number and turns the "0048" prefix into "+48".
+     */
+    public static function normalizePhoneNumber(string $phoneNumber): string
+    {
+        $phoneNumber = preg_replace('/[\s().-]+/', '', trim($phoneNumber));
+
+        if (strpos($phoneNumber, '0048') === 0) {
+            $phoneNumber = '+48' . substr($phoneNumber, 4);
+        }
+
+        return $phoneNumber;
+    }
+
+    /**
+     * Trims a name and collapses inner whitespace.
+     */
+    public static function normalizeName(string $name): string
+    {
+        return trim(preg_replace('/\s+/u', ' ', $name));
+    }
+
+    /**
+     * Validates that the cart currency is supported by the ComfinoPay payment module.
      *
-     * Checks if the cart's currency is enabled for the Comfino payment method
+     * Checks if the cart's currency is enabled for the ComfinoPay payment method
      * by comparing the cart currency against the module's configured currencies.
      *
-     * @param \Comfino $module Comfino payment module instance
+     * @param \Comfino $module ComfinoPay payment module instance
      * @param \Cart $cart PrestaShop cart entity to validate
      *
      * @return bool True if cart currency is supported, false otherwise
@@ -475,7 +510,7 @@ final class OrderManager
      * Retrieves active category IDs for a product.
      *
      * Filters product categories to include only active ones.
-     * Used for category-based product filtering in Comfino API.
+     * Used for category-based product filtering in ComfinoPay API.
      *
      * @param \Product $product PrestaShop product entity
      *

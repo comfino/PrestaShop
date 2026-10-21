@@ -143,7 +143,7 @@ final class ShopStatusManager
      * - Handles multi-language status names (English and Polish).
      * - Stores status IDs in PrestaShop configuration.
      *
-     * @param \ComfinoPay $module ComfinoPay module instance
+     * @param \Comfino $module ComfinoPay module instance
      *
      * @return array Statistics about the operation containing:
      *               - statuses_created: Number of newly created statuses
@@ -438,7 +438,7 @@ final class ShopStatusManager
      *
      * Used during module reset and upgrade processes to ensure status consistency.
      *
-     * @param \ComfinoPay $module ComfinoPay module instance
+     * @param \Comfino $module ComfinoPay module instance
      *
      * @return array Combined statistics from add and update operations containing:
      *               - statuses_created: Number of newly created statuses

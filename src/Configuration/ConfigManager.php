@@ -180,8 +180,6 @@ final class ConfigManager
     private const REMOTE_FLAGS_MAX_TTL = 86400;
     private const REMOTE_FLAGS_FAILURE_TTL = 300;
     private const REMOTE_FLAG_NAME_PATTERN = '/^[A-Z0-9_]{1,64}$/';
-    private const PROMOTION_FLAG = 'PAYMENT_ITEM_PROMOTION';
-    private const PROMOTION_ATTRIBUTES = ['amount', 'minAmount', 'maxAmount', 'allowedTypes'];
 
     /** @var ConfigurationManager[] One manager per shop-context scope, keyed by the scope string. */
     private static $configurationManagers = [];
@@ -588,11 +586,12 @@ final class ConfigManager
     }
 
     /**
-     * Keeps only well-formed flag entries: the cached values are echoed into the checkout page.
+     * Keeps entries under well-formed flag names whose values are encodable as JSON (no invalid UTF-8, NaN/INF or
+     * excessive depth), so malformed data never reaches the frontend.
      *
      * @param mixed $flags
      *
-     * @return array<string, array<string, mixed>>
+     * @return array<string, mixed>
      */
     public static function sanitizeRemoteFlagAttributes($flags): array
     {
@@ -600,62 +599,23 @@ final class ConfigManager
             return [];
         }
 
-        $sanitized = [];
-
-        foreach ($flags as $flagName => $attributes) {
-            if (!is_string($flagName) || preg_match(self::REMOTE_FLAG_NAME_PATTERN, $flagName) !== 1 || !is_array($attributes)) {
-                continue;
-            }
-
-            if ($flagName === 'PROMO') {
-                if (!isset($attributes['amount']) || !is_int($attributes['amount']) || $attributes['amount'] <= 0) {
-                    continue;
-                }
-
-                $promo = [];
-
-                foreach (['amount', 'minAmount', 'maxAmount'] as $field) {
-                    if (isset($attributes[$field]) && is_int($attributes[$field]) && $attributes[$field] >= 0) {
-                        $promo[$field] = $attributes[$field];
-                    }
-                }
-
-                if (isset($attributes['allowedTypes']) && is_array($attributes['allowedTypes'])) {
-                    $promo['allowedTypes'] = array_values(array_filter(
-                        $attributes['allowedTypes'],
-                        static function ($type): bool {
-                            return is_string($type) && preg_match('/^[A-Z0-9_]+$/', $type) === 1;
-                        }
-                    ));
-                }
-
-                $attributes = $promo;
-            }
-
-            $sanitized[$flagName] = $attributes;
-        }
-
-        return $sanitized;
+        return array_filter(
+            $flags,
+            static function ($attributes, $flagName) {
+                return is_string($flagName) && preg_match(self::REMOTE_FLAG_NAME_PATTERN, $flagName) === 1 && json_encode($attributes) !== false;
+            },
+            ARRAY_FILTER_USE_BOTH
+        );
     }
 
     /**
-     * Flag attributes for the checkout bootstrap config: the cached map plus PROMO's parameters copied into
-     * PAYMENT_ITEM_PROMOTION, which is where the SDK renderer reads them.
+     * Flag attributes for the checkout bootstrap config, forwarded to the SDK as received.
      *
-     * @return array<string, array<string, mixed>>
+     * @return array<string, mixed>
      */
     public static function getCheckoutFlagAttributes(): array
     {
-        $flagAttributes = self::getRemoteFlagAttributes();
-
-        if (isset($flagAttributes['PROMO']) && in_array(self::PROMOTION_FLAG, self::getRemoteFlags(), true)) {
-            $flagAttributes[self::PROMOTION_FLAG] = array_merge(
-                $flagAttributes[self::PROMOTION_FLAG] ?? [],
-                array_intersect_key($flagAttributes['PROMO'], array_flip(self::PROMOTION_ATTRIBUTES))
-            );
-        }
-
-        return $flagAttributes;
+        return self::getRemoteFlagAttributes();
     }
 
     public static function getSdkScriptUrl(): string

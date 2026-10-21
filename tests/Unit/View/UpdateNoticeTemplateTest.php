@@ -29,7 +29,7 @@ namespace Comfino\Tests\Unit\View;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Structural guards for the update notice: no Smarty value inside script code (M-5), no unauthenticated dismissal (M-6).
+ * Structural guards for the update notice: no Smarty value inside script code, no unauthenticated dismissal.
  */
 class UpdateNoticeTemplateTest extends TestCase
 {

@@ -24,37 +24,38 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
+namespace Comfino\Tests\Unit\Order;
 
-class ComfinoUpdateDismissModuleFrontController extends ModuleFrontController
+use Comfino\Order\OrderManager;
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Customer data normalization before the order is created.
+ */
+class OrderCustomerNormalizationTest extends TestCase
 {
-    public function postProcess(): void
+    /**
+     * @dataProvider phoneProvider
+     */
+    public function testPhone($input, $expected)
     {
-        parent::postProcess();
+        $this->assertSame($expected, OrderManager::normalizePhoneNumber($input));
+    }
 
-        // Only allow POST requests.
-        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
-            http_response_code(405);
+    public function phoneProvider()
+    {
+        return [
+            ['123 456 789', '123456789'],
+            ['(12) 345-67-89', '123456789'],
+            ['+48 123.456.789', '+48123456789'],
+            ['0048 123 456 789', '+48123456789'],
+            ['  ', ''],
+        ];
+    }
 
-            exit(json_encode(['success' => false, 'message' => 'Method not allowed.']));
-        }
-
-        // Get the version to dismiss from POST data.
-        $requestData = json_decode(file_get_contents('php://input'), true);
-
-        if (!isset($requestData['version']) || !preg_match('/^\d+\.\d+\.\d+$/', $requestData['version'])) {
-            http_response_code(400);
-
-            exit(json_encode(['success' => false, 'message' => 'Missing or invalid version parameter.']));
-        }
-
-        // Store the dismissed version.
-        Configuration::updateValue('COMFINO_UPDATE_NOTICE_DISMISSED', $requestData['version']);
-
-        header('Content-Type: application/json');
-
-        exit(json_encode(['success' => true, 'message' => 'Notice dismissed']));
+    public function testName()
+    {
+        $this->assertSame('Anna Maria', OrderManager::normalizeName("  Anna \t Maria  "));
+        $this->assertSame('', OrderManager::normalizeName('   '));
     }
 }

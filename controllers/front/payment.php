@@ -36,6 +36,7 @@ use Comfino\DebugLogger;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Main;
+use Comfino\Order\LoanSelection;
 use Comfino\Order\OrderManager;
 use Comfino\Shop\Order\Order;
 use Comfino\Shop\Order\OrderInterface;
@@ -154,28 +155,85 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        // Emergency fallback: if loan parameters are missing, retrieve default product from API.
-        if (empty($loanType) || empty($loanTerm)) {
-            $financialProducts = $this->getFinancialProducts($shopCart->getTotalValue(), $shopCart);
-
-            if (empty($financialProducts)) {
-                $this->errors = [$this->module->l('Preselected financial offer data incomplete. Please try again.')];
-
-                if (COMFINO_PS_17) {
-                    $this->redirectWithNotifications('index.php?controller=order&step=1');
-                } else {
-                    $this->redirectWithNotificationsPs16('index.php?controller=order&step=1');
-                }
-
-                return;
-            }
-
-            $loanType = (string) $financialProducts[0]->type;
-            $loanTerm = $financialProducts[0]->loanTerm;
+        /* The selection must come from the shopper: the POST inputs first, then the cart-scoped cookie written by the
+           selection endpoint. Both are validated against the same allowlist. */
+        try {
+            $allowedProductTypes = SettingsManager::getAllowedProductTypes(
+                ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
+                $shopCart
+            );
+        } catch (\Throwable $e) {
+            $allowedProductTypes = null;
         }
 
-        $shopCustomer = OrderManager::getShopCustomerFromCart($cart, $customer, $this->context);
+        $directRedirect = (bool) ConfigManager::getConfigurationValue('COMFINO_PAYWALL_DIRECT_REDIRECT', false);
+        $selection = LoanSelection::validate($loanType, $loanTerm, $allowedProductTypes);
 
+        if ($selection === null) {
+            $missingFields = array_keys(array_filter([
+                'comfino_loan_type' => $loanType === '',
+                'comfino_loan_term' => $loanTerm === 0,
+            ]));
+
+            if (empty($missingFields)) {
+                $missingFields = ['comfino_loan_type', 'comfino_loan_term'];
+            }
+
+            $storedSelection = LoanSelection::load($this->context->cookie, (int) $cart->id);
+
+            if ($storedSelection !== null) {
+                $selection = LoanSelection::validate($storedSelection[0], $storedSelection[1], $allowedProductTypes);
+            }
+
+            if ($selection !== null) {
+                if (!$directRedirect) {
+                    LoanSelection::reportNotPosted(LoanSelection::CODE_RECOVERED, $missingFields);
+                }
+            } else {
+                /* Emergency path: a safe default product is better than a lost order, because the shopper can still
+                   change the financing offer on the ComfinoPay application page after the redirect. Direct redirect
+                   mode renders no paywall and fires no selection event, so it is the documented behaviour there. */
+                $defaultProduct = LoanSelection::selectDefaultProduct($this->getFinancialProducts($shopCart->getTotalValue(), $shopCart));
+
+                if ($defaultProduct === null) {
+                    $this->errors = [$this->module->l('Preselected financial offer data incomplete. Please try again.')];
+
+                    if (COMFINO_PS_17) {
+                        $this->redirectWithNotifications('index.php?controller=order&step=1');
+                    } else {
+                        $this->redirectWithNotificationsPs16('index.php?controller=order&step=1');
+                    }
+
+                    return;
+                }
+
+                $selection = [(string) $defaultProduct->type, (int) $defaultProduct->loanTerm];
+
+                if (!$directRedirect) {
+                    LoanSelection::reportNotPosted(LoanSelection::CODE_DEFAULTED, $missingFields);
+                }
+            }
+        }
+
+        // Every null branch above either assigned a selection or returned.
+        $loanType = (string) $selection[0];
+        $loanTerm = (int) $selection[1];
+
+        try {
+            $shopCustomer = OrderManager::getShopCustomerFromCart($cart, $customer, $this->context);
+        } catch (\Throwable $e) {
+            $this->errors = [$this->module->l('Delivery address is required.')];
+
+            FrontendManager::processError('Shop customer creation error', $e, null, null, ['cart_id' => $cart->id], '[PAYMENT]');
+
+            if (COMFINO_PS_17) {
+                $this->redirectWithNotifications('index.php?controller=order&step=1');
+            } else {
+                $this->redirectWithNotificationsPs16('index.php?controller=order&step=1');
+            }
+
+            return;
+        }
         // Use temporary order ID for validation purposes (cart not yet cleared).
         $tempOrderId = 'order_validation_' . $cart->id . '_' . time();
         $returnUrl = Tools::getHttpHost(true) . __PS_BASE_URI__ . 'index.php?' . http_build_query([
@@ -251,7 +309,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         DebugLogger::logEvent(
             '[PAYMENT]',
-            'Order identifier for Comfino API',
+            'Order identifier for ComfinoPay API',
             [
                 'use_reference' => $useOrderReference,
                 'order_id' => $orderId,
@@ -267,7 +325,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             'key' => $customer->secure_key,
         ]);
 
-        // Create Order object with real order ID for Comfino API.
+        // Create Order object with real order ID for ComfinoPay API.
         $order = $this->createOrder($orderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer);
 
         try {
@@ -282,7 +340,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
                 /* Handled exactly like a missing application URL: the order is moved to PS_OS_ERROR and the
                    customer is sent to the module error page by the catch block below. */
-                throw new RuntimeException('Invalid payment application URL received from the Comfino API.');
+                throw new RuntimeException('Invalid payment application URL received from the ComfinoPay API.');
             }
 
             Tools::redirect($applicationUrl);
@@ -292,7 +350,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $psOrder->save();
 
             ApiClient::processApiError(
-                'Order creation error on page "' . Main::getRequestUri() . '" (Comfino API)',
+                'Order creation error on page "' . Main::getRequestUri() . '" (ComfinoPay API)',
                 $e
             );
 
@@ -372,16 +430,16 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         // 7. Validate payment availability.
         if (!Comfino\Main::paymentIsAvailable($this->module, $cart)) {
             $errors[] = $this->module->l(
-                'Comfino payment is not available for this cart. Please check cart amount and product types.'
+                'ComfinoPay payment is not available for this cart. Please check cart amount and product types.'
             );
         }
 
         if (!empty($errors)) {
-            // Do not call validation at Comfino API side if any errors detected locally.
+            // Do not call validation at ComfinoPay API side if any errors detected locally.
             return $errors;
         }
 
-        // Call Comfino API validation as a second step of order validation if no errors detected locally.
+        // Call ComfinoPay API validation as a second step of order validation if no errors detected locally.
         $validationResult = ApiClient::getInstance()->validateOrder($order);
 
         if (!$validationResult->success) {
@@ -435,7 +493,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
     /**
      * Checks whether an API supplied payment application URL is safe to redirect the customer to.
      *
-     * The URL is taken from the Comfino API response, so it is only as trustworthy as that response. To be
+     * The URL is taken from the ComfinoPay API response, so it is only as trustworthy as that response. To be
      *  accepted, it must be an absolute HTTPS URL pointing at the same registrable domain as the configured API
      * host, which keeps a spoofed or tampered response from turning the shop checkout into an open redirect.
      *
@@ -477,7 +535,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
     }
 
     /**
-     * Reduces an API host to the registrable domain every Comfino service of that environment shares,
+     * Reduces an API host to the registrable domain every ComfinoPay service of that environment shares,
      * so that the payment gateway host does not have to be configured separately from the API host.
      */
     private function getApplicationUrlDomain(string $apiHost): string
