@@ -58,6 +58,12 @@ class Api
     const CONVENIENT_INSTALLMENTS = 'CONVENIENT_INSTALLMENTS';
     const PAY_LATER = 'PAY_LATER';
 
+    /** Signed requests are refused outright while the API key is shorter than this - nothing to sign with. */
+    const MIN_API_KEY_LENGTH = 16;
+
+    /** Re-registration interval of the cache invalidation URL at the ComfinoPay backend. */
+    const CACHE_INVALIDATE_URL_REGISTRATION_TTL = 604800;
+
     /** @var bool */
     private static $is_sandbox_mode;
 
@@ -142,11 +148,11 @@ class Api
     /**
      * @param string $order_id
      *
-     * @return void
+     * @return bool
      */
     public static function cancelOrder($order_id)
     {
-        self::sendRequest(self::getApiHost() . "/v1/orders/$order_id/cancel", 'PUT');
+        return self::sendRequest(self::getApiHost() . "/v1/orders/$order_id/cancel", 'PUT') !== false && !count(self::$last_errors);
     }
 
     /**
@@ -311,7 +317,7 @@ class Api
      *
      * @return string
      */
-    private static function cacheKey($name)
+    public static function cacheKey($name)
     {
         $api_key = (string) self::getApiKey();
 
@@ -343,6 +349,9 @@ class Api
     }
 
     /**
+     * Also registers the shop's cache invalidation URL: the backend reads the Comfino-Cache-Invalidate-Url header
+     * on this endpoint only.
+     *
      * @return bool
      */
     public static function isShopAccountActive()
@@ -350,14 +359,97 @@ class Api
         $account_active = false;
 
         if (!empty(self::getApiKey())) {
-            $response = self::sendRequest(self::getApiHost() . '/v1/user/is-active', 'GET', [], null, false);
+            $cache_invalidate_url = self::getCacheInvalidateUrl();
+
+            $response = self::sendRequest(
+                self::getApiHost() . '/v1/user/is-active',
+                'GET',
+                [],
+                null,
+                false,
+                $cache_invalidate_url !== '' ? ['Comfino-Cache-Invalidate-Url: ' . $cache_invalidate_url] : []
+            );
 
             if (!count(self::$last_errors)) {
                 $account_active = json_decode($response, true);
+
+                if ($cache_invalidate_url !== '') {
+                    ApiCache::set(
+                        self::cacheKey('cache_invalidate_url'),
+                        $cache_invalidate_url,
+                        self::CACHE_INVALIDATE_URL_REGISTRATION_TTL
+                    );
+                }
             }
         }
 
         return $account_active;
+    }
+
+    /**
+     * Registers the cache invalidation URL at the backend unless it has already been registered recently.
+     *
+     * @return void
+     */
+    public static function registerCacheInvalidateUrl()
+    {
+        if (!empty(self::getApiKey()) && self::getCacheInvalidateUrl() !== '' && !self::isCacheInvalidateUrlRegistered()) {
+            self::isShopAccountActive();
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public static function isCacheInvalidateUrlRegistered()
+    {
+        $cache_invalidate_url = self::getCacheInvalidateUrl();
+
+        return $cache_invalidate_url !== '' && ApiCache::get(self::cacheKey('cache_invalidate_url')) === $cache_invalidate_url;
+    }
+
+    /**
+     * Address of the cache invalidation endpoint, or an empty string when it is not served over HTTPS (plain HTTP is
+     * accepted in the development environment only).
+     *
+     * @return string
+     */
+    public static function getCacheInvalidateUrl()
+    {
+        $context = \Context::getContext();
+
+        if (!isset($context->link) || !is_object($context->link)) {
+            return '';
+        }
+
+        $url = $context->link->getModuleLink('comfino', 'cacheinvalidate', [], true);
+        $scheme = \Tools::strtolower((string) parse_url($url, PHP_URL_SCHEME));
+
+        if ($scheme === 'https' || ($scheme === 'http' && self::$use_dev_env_vars)) {
+            return $url;
+        }
+
+        return '';
+    }
+
+    /**
+     * Checks the CR-Signature of a request sent by the ComfinoPay backend: the SHA3-256 digest of the API key followed
+     * by the signed payload.
+     *
+     * @param string $payload
+     * @param string $signature
+     *
+     * @return bool
+     */
+    public static function isValidSignature($payload, $signature)
+    {
+        $api_key = self::getApiKey();
+
+        if (!is_string($signature) || $signature === '' || \Tools::strlen(trim($api_key)) < self::MIN_API_KEY_LENGTH) {
+            return false;
+        }
+
+        return hash_equals(self::hashSha3256($api_key . $payload), $signature);
     }
 
     /**
@@ -408,9 +500,7 @@ class Api
     }
 
     /**
-     * Fetches remote feature-flag attributes. Called only when the flag list carried by the
-     * "Comfino-Flags" header on the error-logging-token response has changed, since attributes are
-     * never modified independently of their flag.
+     * Fetches the remote flag attributes, the shop promotion included.
      *
      * @return array|bool assoc array [flagName => attributes] or false on failure
      */
@@ -763,11 +853,18 @@ class Api
      * @param array $extra_options
      * @param string $data
      * @param bool $log_errors
+     * @param string[] $extra_headers
      *
      * @return string|bool
      */
-    private static function sendRequest($url, $request_type, $extra_options = [], $data = null, $log_errors = true)
-    {
+    private static function sendRequest(
+        $url,
+        $request_type,
+        $extra_options = [],
+        $data = null,
+        $log_errors = true,
+        array $extra_headers = []
+    ) {
         self::$last_request_body = null;
         self::$last_response_body = null;
         self::$last_response_code = null;
@@ -784,7 +881,7 @@ class Api
         $options = [
             CURLOPT_URL => $url,
             CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_HTTPHEADER => self::getRequestHeaders($method, $data),
+            CURLOPT_HTTPHEADER => array_merge(self::getRequestHeaders($method, $data), $extra_headers),
             CURLOPT_RETURNTRANSFER => true,
             /* An unresponsive upstream must never be able to hold a PHP worker open indefinitely - these calls
                are made synchronously while front office pages are being rendered. */

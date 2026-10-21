@@ -24,7 +24,7 @@
  *}
 
 {*
- * Comfino payment method fields in checkout (PrestaShop 1.6).
+ * ComfinoPay payment method fields in checkout (PrestaShop 1.6).
  *
  * The CDN checkout script (comfino-prestashop.min.js) reads the JSON configuration block, imports the ESM SDK
  * and renders the paywall into #comfino-paywall-container. PrestaShop 1.6 has no payment option form of its

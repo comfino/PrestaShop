@@ -40,6 +40,9 @@ class ErrorLogger
     /** Maximum size of the log file before it is rotated. */
     const LOG_MAX_SIZE = 1048576;
 
+    /** Longest API response body (in characters) written to the log and sent in an error report. */
+    const RESPONSE_BODY_MAX_LENGTH = 2000;
+
     /** Names of JSON fields carrying personal data which must never be written to a local log file. */
     const REDACTED_FIELDS = [
         'firstName',
@@ -88,7 +91,7 @@ class ErrorLogger
         if ($log_file_path === '') {
             /* The log directory could not be prepared - fall back to the PHP error log instead of losing
                the entry silently. */
-            error_log('Comfino: unable to prepare the log directory. ' . rtrim($log_entry));
+            error_log('ComfinoPay: unable to prepare the log directory. ' . rtrim($log_entry));
 
             return;
         }
@@ -96,7 +99,7 @@ class ErrorLogger
         self::rotateLog($log_file_path);
 
         if (file_put_contents($log_file_path, $log_entry, FILE_APPEND | LOCK_EX) === false) {
-            error_log("Comfino: unable to write to $log_file_path. " . rtrim($log_entry));
+            error_log("ComfinoPay: unable to write to $log_file_path. " . rtrim($log_entry));
         }
     }
 
@@ -248,6 +251,42 @@ class ErrorLogger
     }
 
     /**
+     * Shortens an API response body before it is logged or reported. An HTML page (e.g. a framework error page) is
+     * reduced to its readable text, and any body is capped at RESPONSE_BODY_MAX_LENGTH characters. JSON and plain
+     * text are kept as they are. Mirrors ResponseBodySummarizer of the shared library used by the 4.x line.
+     *
+     * @param string|null $response_body
+     *
+     * @return string|null
+     */
+    public static function summarizeResponseBody($response_body)
+    {
+        if (!is_string($response_body) || $response_body === '') {
+            return $response_body;
+        }
+
+        if (preg_match('/<\s*(?:!doctype|html|head|body|style|script)\b/i', $response_body) === 1) {
+            $text = preg_replace('#<(style|script|svg|head)\b[^>]*>.*?</\1\s*>#is', ' ', $response_body);
+            $text = $text !== null ? $text : $response_body;
+            $stripped_text = preg_replace('/<[^>]*>/', ' ', $text);
+            $text = html_entity_decode($stripped_text !== null ? $stripped_text : $text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $collapsed_text = preg_replace('/\s+/u', ' ', $text);
+
+            $response_body = '[HTML response] ' . trim($collapsed_text !== null ? $collapsed_text : $text);
+        }
+
+        if (function_exists('mb_strlen')) {
+            return mb_strlen($response_body, 'UTF-8') > self::RESPONSE_BODY_MAX_LENGTH
+                ? mb_substr($response_body, 0, self::RESPONSE_BODY_MAX_LENGTH, 'UTF-8') . '... [truncated]'
+                : $response_body;
+        }
+
+        return strlen($response_body) > self::RESPONSE_BODY_MAX_LENGTH
+            ? substr($response_body, 0, self::RESPONSE_BODY_MAX_LENGTH) . '... [truncated]'
+            : $response_body;
+    }
+
+    /**
      * @param string $error_prefix
      * @param string $error_code
      * @param string $error_message
@@ -279,6 +318,9 @@ class ErrorLogger
             // Don't collect validation errors - validation errors are already collected at API side.
             return;
         }
+
+        // An HTML error page would otherwise land in the log and in the report in full, styles and scripts included.
+        $api_response = self::summarizeResponseBody($api_response);
 
         $error = new ShopPluginError(
             \Tools::getShopDomain(),

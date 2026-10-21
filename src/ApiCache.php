@@ -31,7 +31,7 @@ if (!defined('_PS_VERSION_')) {
 }
 
 /**
- * Time-limited cache for the slow-changing Comfino API responses, plus a circuit breaker for the calls that
+ * Time-limited cache for the slow-changing ComfinoPay API responses, plus a circuit breaker for the calls that
  * happen while shop pages are being rendered.
  *
  * Two problems are solved here. Without a cache every product page and every checkout page issues a live
@@ -116,6 +116,24 @@ class ApiCache
     {
         $cache = self::prune(self::readCache());
         $cache[$key] = ['value' => $value, 'expires_at' => time() + (int) $ttl];
+
+        self::writeCache($cache);
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return void
+     */
+    public static function delete($key)
+    {
+        $cache = self::readCache();
+
+        if (!array_key_exists($key, $cache)) {
+            return;
+        }
+
+        unset($cache[$key]);
 
         self::writeCache($cache);
     }

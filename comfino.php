@@ -36,6 +36,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/OrderManager.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/PaywallAuthTokenGenerator.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/PaywallCartSerializer.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ShopEnvironmentReporter.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/StatusApplicationContext.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Tools.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
@@ -44,11 +45,11 @@ if (!defined('COMFINO_PS_17')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '3.6.0', false);
+    define('COMFINO_VERSION', '3.6.1', false);
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1787148308, false);
+    define('COMFINO_BUILD_TS', 1792590159, false);
 }
 
 class Comfino extends PaymentModule
@@ -65,8 +66,8 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '3.6.0';
-        $this->author = 'Comfino';
+        $this->version = '3.6.1';
+        $this->author = 'ComfinoPay';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
         $this->bootstrap = true;
@@ -77,18 +78,18 @@ class Comfino extends PaymentModule
         $this->currencies_mode = 'checkbox';
 
         $this->controllers = [
-            'payment', 'notify', 'error', 'configuration', 'availableoffertypes',
+            'payment', 'notify', 'error', 'configuration', 'availableoffertypes', 'cacheinvalidate',
         ];
 
         parent::__construct();
 
-        $this->displayName = $this->l('Comfino payments');
-        $this->confirmUninstall = $this->l('Are you sure to uninstall Comfino payments?');
+        $this->displayName = $this->l('ComfinoPay payments');
+        $this->confirmUninstall = $this->l('Are you sure to uninstall ComfinoPay payments?');
 
         $this->description = $this->l(
-            'Comfino is an innovative payment method for customers of e-commerce stores! ' .
+            'ComfinoPay is an innovative payment method for customers of e-commerce stores! ' .
             'These are installment payments, deferred (buy now, pay later) and corporate ' .
-            'payments available on one platform with the help of quick integration. Grow your business with Comfino!'
+            'payments available on one platform with the help of quick integration. Grow your business with ComfinoPay!'
         );
     }
 
@@ -211,6 +212,27 @@ class Comfino extends PaymentModule
                 $configuration_options[$option_name] = Tools::getValue($option_name);
             }
 
+            $submitted_api_keys = [];
+            $api_key_verified = false;
+
+            foreach (self::API_KEY_OPTIONS as $option_name) {
+                if (!array_key_exists($option_name, $configuration_options)) {
+                    continue;
+                }
+
+                $configuration_options[$option_name] = trim((string) $configuration_options[$option_name]);
+
+                if ($configuration_options[$option_name] !== '') {
+                    $submitted_api_keys[] = $option_name;
+                } elseif ($option_name === 'COMFINO_SANDBOX_API_KEY' && Tools::getValue('COMFINO_SANDBOX_API_KEY_REMOVE_on')) {
+                    // The sandbox key may be removed explicitly - the production key can only be replaced.
+                    $configuration_options[$option_name] = '';
+                } else {
+                    // Key fields are never pre-filled, so an empty field means "keep the saved key".
+                    $configuration_options[$option_name] = (string) $config_manager->getConfigurationValue($option_name);
+                }
+            }
+
             if ($active_tab === 'payment_settings') {
                 $checkout_product_types = [];
 
@@ -298,6 +320,8 @@ class Comfino extends PaymentModule
                         if (!Comfino\Api::isApiKeyValid()) {
                             $output[] = $this->l('API key is not valid.');
                         } else {
+                            $api_key_verified = count($submitted_api_keys) > 0;
+
                             $widget_key = Comfino\Api::getWidgetKey();
 
                             if ($widget_key === false) {
@@ -401,12 +425,18 @@ class Comfino extends PaymentModule
                     /* Cached API responses belong to the previous key/environment - drop them and close the circuit
                        breaker so the new credentials are tried immediately. */
                     Comfino\ApiCache::clear();
+                    // The flag attributes (the shop promotion) belong to the previous account as well.
+                    Configuration::updateGlobalValue(Comfino\ConfigManager::REMOTE_FLAG_ATTRIBUTES_EXPIRES_AT, 0);
                 }
 
                 /* Fire-and-forget environment report - diagnostics only, never allowed to affect the save. */
                 Comfino\ShopEnvironmentReporter::report();
 
                 $output[] = $this->l('Settings updated.');
+
+                if ($api_key_verified) {
+                    $output[] = $this->l('API key verified.');
+                }
             }
         }
 
@@ -417,11 +447,11 @@ class Comfino extends PaymentModule
             'logo_url' => Comfino\Api::getLogoUrl(),
             'support_email_address' => self::COMFINO_SUPPORT_EMAIL,
             'support_email_subject' => sprintf(
-                $this->l('PrestaShop %s Comfino %s - question'),
+                $this->l('PrestaShop %s ComfinoPay %s - question'),
                 _PS_VERSION_, COMFINO_VERSION
             ),
             'support_email_body' => sprintf(
-                'PrestaShop %s Comfino %s, PHP %s',
+                'PrestaShop %s ComfinoPay %s, PHP %s',
                 _PS_VERSION_, COMFINO_VERSION, PHP_VERSION
             ),
             'contact_msg1' => $this->l('Do you want to ask about something? Write to us at'),
@@ -614,22 +644,79 @@ class Comfino extends PaymentModule
     {
         $order = new Order($params['id_order']);
 
-        if (stripos($order->payment, 'comfino') !== false) {
-            // Process orders paid by Comfino only.
-
-            /** @var OrderState $new_order_state */
-            $new_order_state = $params['newOrderStatus'];
-
-            $new_order_state_id = (int) $new_order_state->id;
-            $current_order_state_id = (int) $order->getCurrentState();
-            $canceled_order_state_id = (int) (new Comfino\ConfigManager($this))->getConfigurationValue('PS_OS_CANCELED');
-
-            if ($new_order_state_id !== $current_order_state_id && $new_order_state_id === $canceled_order_state_id) {
-                Comfino\ErrorLogger::init();
-                Comfino\Api::init($this);
-                Comfino\Api::cancelOrder($params['id_order']);
-            }
+        if ($order->module !== $this->name) {
+            // Process orders paid by ComfinoPay only.
+            return;
         }
+
+        /** @var OrderState $new_order_state */
+        $new_order_state = $params['newOrderStatus'];
+
+        $new_order_state_id = (int) $new_order_state->id;
+        $canceled_order_state_id = (int) (new Comfino\ConfigManager($this))->getConfigurationValue('PS_OS_CANCELED');
+
+        if ($new_order_state_id !== $canceled_order_state_id) {
+            return;
+        }
+
+        $order_id = (int) $order->id;
+
+        /* PrestaShop updates orders.current_state before this hook runs, but adds the order_history row after it, so
+           the newest history row still holds the state the order is leaving. */
+        $previous_order_state_id = OrdersList::getLastHistoryState($order_id);
+        $state_transition = "$previous_order_state_id -> $new_order_state_id";
+
+        if ($previous_order_state_id === $canceled_order_state_id) {
+            Comfino\ErrorLogger::logError(
+                'Order cancellation',
+                "Order #$order_id: cancel request not sent, the order was already cancelled ($state_transition)."
+            );
+
+            return;
+        }
+
+        if (Comfino\StatusApplicationContext::isActive()) {
+            Comfino\ErrorLogger::logError(
+                'Order cancellation',
+                "Order #$order_id: cancel request not sent, the state comes from a ComfinoPay notification " .
+                "($state_transition)."
+            );
+
+            return;
+        }
+
+        $terminal_order_state_ids = array_map(
+            static function ($status_code) { return (int) Configuration::get($status_code); },
+            OrdersList::TERMINAL_STATUSES
+        );
+
+        if (OrdersList::hasStateInHistory($order_id, $terminal_order_state_ids)) {
+            Comfino\ErrorLogger::logError(
+                'Order cancellation',
+                "Order #$order_id: cancel request not sent, ComfinoPay has already closed the application " .
+                "($state_transition)."
+            );
+
+            return;
+        }
+
+        /* A slow or failing API must never break the employee's status change - Api::cancelOrder() reports its own
+           errors, anything unexpected is only logged here. */
+        try {
+            Comfino\ErrorLogger::init();
+            Comfino\Api::init($this);
+
+            $cancel_sent = Comfino\Api::cancelOrder($order_id);
+        } catch (Exception $e) {
+            $cancel_sent = false;
+
+            Comfino\ErrorLogger::logError('Order cancellation', "Order #$order_id: {$e->getMessage()}");
+        }
+
+        Comfino\ErrorLogger::logError(
+            'Order cancellation',
+            "Order #$order_id: cancel request " . ($cancel_sent ? 'sent' : 'failed') . " ($state_transition)."
+        );
     }
 
     /**
@@ -730,9 +817,13 @@ class Comfino extends PaymentModule
 
         foreach (Comfino\ConfigManager::COMFINO_SETTINGS_OPTIONS as $options) {
             foreach ($options as $option_name) {
-                $helper->fields_value[$option_name] = $config_manager->getConfigurationValue($option_name);
+                $helper->fields_value[$option_name] = in_array($option_name, self::API_KEY_OPTIONS, true)
+                    ? '' // API keys never reach the page source.
+                    : $config_manager->getConfigurationValue($option_name);
             }
         }
+
+        $helper->fields_value['COMFINO_SANDBOX_API_KEY_REMOVE_on'] = false;
 
         $helper->fields_value['COMFINO_WIDGET_ERRORS_LOG'] = Comfino\ErrorLogger::getErrorLog(self::ERROR_LOG_NUM_LINES);
         $helper->fields_value['COMFINO_CONFIG_AUDIT_LOG'] = Comfino\AuditLogger::getAuditLog(
@@ -782,7 +873,7 @@ class Comfino extends PaymentModule
 
                 if (COMFINO_PS_17 && class_exists('\Symfony\Component\HttpKernel\Kernel')) {
                     $info_messages[] = sprintf(
-                        'PrestaShop Comfino %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
+                        'PrestaShop ComfinoPay %s, PrestaShop %s, Symfony %s, PHP %s, web server %s, database %s',
                         COMFINO_VERSION,
                         _PS_VERSION_,
                         \Symfony\Component\HttpKernel\Kernel::VERSION,
@@ -792,7 +883,7 @@ class Comfino extends PaymentModule
                     );
                 } else {
                     $info_messages[] = sprintf(
-                        'PrestaShop Comfino %s, PrestaShop %s, PHP %s, web server %s, database %s',
+                        'PrestaShop ComfinoPay %s, PrestaShop %s, PHP %s, web server %s, database %s',
                         COMFINO_VERSION,
                         _PS_VERSION_,
                         PHP_VERSION,
@@ -801,7 +892,7 @@ class Comfino extends PaymentModule
                     );
                 }
 
-                $info_messages[] = sprintf('<b>Comfino API host:</b> %s', Comfino\Api::getApiHost());
+                $info_messages[] = sprintf('<b>ComfinoPay API host:</b> %s', Comfino\Api::getApiHost());
                 $info_messages[] = sprintf(
                     '<b>Plugin build time:</b> %s UTC',
                     gmdate('Y-m-d H:i:s', COMFINO_BUILD_TS)
@@ -1014,12 +1105,13 @@ class Comfino extends PaymentModule
                                 'required' => false,
                             ],
                             [
-                                'type' => 'text',
+                                'type' => 'password',
                                 'label' => $this->l('Production environment API key'),
                                 'name' => 'COMFINO_API_KEY',
                                 'required' => true,
-                                'autocomplete' => false,
+                                'api_key_saved' => $this->getSavedApiKeySuffix('COMFINO_API_KEY') !== '',
                                 'placeholder' => $this->l('Please enter the key provided during registration'),
+                                'desc' => $this->getSavedApiKeyHint('COMFINO_API_KEY'),
                             ],
                             [
                                 'type' => 'switch',
@@ -1202,7 +1294,7 @@ class Comfino extends PaymentModule
                                 ],
                                 'desc' => $this->l(
                                     'Other payment methods (Installments 0%, Buy now, pay later, Installments for ' .
-                                    'Companies) available after consulting a Comfino advisor (kontakt@comfino.pl).'
+                                    'Companies) available after consulting a ComfinoPay advisor (kontakt@comfino.pl).'
                                 ),
                             ],
                         ],
@@ -1310,20 +1402,22 @@ class Comfino extends PaymentModule
                                 ],
                                 'desc' => $this->l(
                                     'The test environment allows the store owner to get acquainted with the ' .
-                                    'functionality of the Comfino module. This is a Comfino simulator, thanks ' .
+                                    'functionality of the ComfinoPay module. This is a ComfinoPay simulator, thanks ' .
                                     'to which you can get to know all the advantages of this payment method. ' .
                                     'The use of the test mode is free (there are also no charges for orders).'
                                 ),
                             ],
                             [
-                                'type' => 'text',
+                                'type' => 'password',
                                 'label' => $this->l('Test environment API key'),
                                 'name' => 'COMFINO_SANDBOX_API_KEY',
                                 'required' => false,
-                                'autocomplete' => false,
-                                'desc' => $this->l(
-                                    'Ask the supervisor for access to the test environment (key, login, password, ' .
-                                    'link). Remember, the test key is different from the production key.'
+                                'api_key_saved' => $this->getSavedApiKeySuffix('COMFINO_SANDBOX_API_KEY') !== '',
+                                'desc' => trim(
+                                    $this->getSavedApiKeyHint('COMFINO_SANDBOX_API_KEY') . ' ' . $this->l(
+                                        'Ask the supervisor for access to the test environment (key, login, ' .
+                                        'password, link). Remember, the test key is different from the production key.'
+                                    )
                                 ),
                             ],
                         ],
@@ -1334,6 +1428,18 @@ class Comfino extends PaymentModule
                         ],
                     ]
                 );
+
+                if ($this->getSavedApiKeySuffix('COMFINO_SANDBOX_API_KEY') !== '') {
+                    $fields['developer_settings']['form']['input'][] = [
+                        'type' => 'checkbox',
+                        'name' => 'COMFINO_SANDBOX_API_KEY_REMOVE',
+                        'values' => [
+                            'query' => [['id' => 'on', 'name' => $this->l('Remove saved key')]],
+                            'id' => 'id',
+                            'name' => 'name',
+                        ],
+                    ];
+                }
 
                 if (getenv('COMFINO_DEV_ENV') === 'TRUE') {
                     $fields['developer_settings']['form']['input'][] = [
@@ -1395,7 +1501,7 @@ class Comfino extends PaymentModule
                                 'cols' => 60,
                                 'desc' => $this->l(
                                     'Every change to the module settings, including changes requested by ' .
-                                    'Comfino, with the time and the origin of the request.'
+                                    'ComfinoPay, with the time and the origin of the request.'
                                 ),
                             ],
                         ],
@@ -1407,6 +1513,32 @@ class Comfino extends PaymentModule
         }
 
         return $fields;
+    }
+
+    /**
+     * Last four characters of a saved API key, or an empty string when no key is saved.
+     *
+     * @param string $option_name
+     *
+     * @return string
+     */
+    private function getSavedApiKeySuffix($option_name)
+    {
+        $api_key = trim((string) (new Comfino\ConfigManager($this))->getConfigurationValue($option_name));
+
+        return $api_key !== '' ? Tools::substr($api_key, -4) : '';
+    }
+
+    /**
+     * @param string $option_name
+     *
+     * @return string
+     */
+    private function getSavedApiKeyHint($option_name)
+    {
+        $api_key_suffix = $this->getSavedApiKeySuffix($option_name);
+
+        return $api_key_suffix !== '' ? sprintf($this->l('Saved key ending in %s.'), '…' . $api_key_suffix) : '';
     }
 
     /**
@@ -1452,6 +1584,7 @@ class Comfino extends PaymentModule
 
         $result &= Configuration::deleteByName('COMFINO_ERROR_LOGGING_ACCESS_TOKEN');
         $result &= Configuration::deleteByName('COMFINO_ERROR_LOGGING_ACCESS_TOKEN_EXPIRES_AT');
+        $result &= Configuration::deleteByName(Comfino\ConfigManager::REMOTE_FLAG_ATTRIBUTES_EXPIRES_AT);
 
         return $result;
     }
@@ -1642,7 +1775,7 @@ class Comfino extends PaymentModule
     }
 
     /**
-     * Renders the paywall placeholder consumed by the Comfino frontend SDK: the container the SDK renders the
+     * Renders the paywall placeholder consumed by the ComfinoPay frontend SDK: the container the SDK renders the
      * paywall into, the JSON bootstrap configuration, and the CDN checkout script which imports the SDK.
      *
      * @param int $loan_amount cart total in grosze
@@ -1708,8 +1841,9 @@ class Comfino extends PaymentModule
                 ? array_map('strval', $product_types_filter)
                 : null,
             'productTypeNames' => $product_type_names ?: null,
-            'flags' => $config_manager->getRemoteFlags(),
-            'flagAttributes' => $config_manager->getRemoteFlagAttributes(),
+            // Empty lists are sent as null - an empty PHP array would be encoded as [] where the SDK expects an object.
+            'flags' => $config_manager->getRemoteFlags() ?: null,
+            'flagAttributes' => $config_manager->getCheckoutFlagAttributes() ?: null,
             'cart' => $cart_payload,
             'paywallSettings' => [
                 'language' => $language,

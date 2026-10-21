@@ -42,7 +42,7 @@ if (!defined('_PS_VERSION_')) {
  * (https://github.com/kornrunner/php-keccak) - both the 64-bit and 32-bit-safe code paths are
  * kept so it works on 32-bit and 64-bit PHP builds. The domain-separation suffix here is 0x06
  * (NIST SHA3), NOT 0x01 (the original Keccak used by kornrunner::hash()), so the output matches
- * PHP's "sha3-256" and the value the Comfino v3 backend signs/verifies.
+ * PHP's "sha3-256" and the value the ComfinoPay v3 backend signs/verifies.
  *
  * Use only when native SHA-3 is unavailable - see Comfino\PaywallAuthTokenGenerator.
  */

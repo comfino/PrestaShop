@@ -223,7 +223,7 @@ class AuditLogger
         $log_file_path = self::getLogFilePath();
 
         if ($log_file_path === '') {
-            error_log('Comfino: unable to prepare the log directory. ' . $entry);
+            error_log('ComfinoPay: unable to prepare the log directory. ' . $entry);
 
             return;
         }
@@ -231,7 +231,7 @@ class AuditLogger
         self::rotateLog($log_file_path);
 
         if (file_put_contents($log_file_path, $entry . "\n", FILE_APPEND | LOCK_EX) === false) {
-            error_log("Comfino: unable to write to $log_file_path. " . $entry);
+            error_log("ComfinoPay: unable to write to $log_file_path. " . $entry);
         }
     }
 

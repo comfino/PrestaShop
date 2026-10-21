@@ -93,6 +93,21 @@ class ConfigManager
     /** Short-lived error logging token is renewed when it expires in less than one hour. */
     const ERROR_LOGGING_TOKEN_REFRESH_MARGIN = 3600;
 
+    /** Expiry (Unix timestamp) of the stored flag attributes. Internal - never remotely writable. */
+    const REMOTE_FLAG_ATTRIBUTES_EXPIRES_AT = 'COMFINO_REMOTE_FLAG_ATTRIBUTES_EXPIRES_AT';
+
+    /** Longest time the flag attributes are kept, also the cap of a TTL sent by the backend. */
+    const REMOTE_FLAG_ATTRIBUTES_MAX_TTL = 86400;
+
+    /** TTL used while the backend cannot notify the shop about changes (cache invalidation URL not registered). */
+    const REMOTE_FLAG_ATTRIBUTES_UNREGISTERED_TTL = 3600;
+
+    /** After a failed fetch no flag attributes are served, and the fetch is not retried, for this long. */
+    const REMOTE_FLAG_ATTRIBUTES_FAILURE_TTL = 300;
+
+    /** Valid flag name, also the valid top-level key of the flag attributes map. */
+    const REMOTE_FLAG_NAME_PATTERN = '/^[A-Z0-9_]{1,64}$/';
+
     const ACCESSIBLE_CONFIG_OPTIONS = [
         'COMFINO_PAYMENT_TEXT_ENABLED',
         'COMFINO_PAYMENT_TEXT',
@@ -118,6 +133,7 @@ class ConfigManager
         'COMFINO_CSS_PROD_PATH',
         'COMFINO_JS_DEV_PATH',
         'COMFINO_CSS_DEV_PATH',
+        'COMFINO_REMOTE_FLAGS',
     ];
 
     /** Options whose value is a URL loaded by the customer's browser. Validated on every write path. */
@@ -239,7 +255,7 @@ class ConfigManager
 
         $initial_config_values = [
             'COMFINO_PAYMENT_TEXT_ENABLED' => false,
-            'COMFINO_PAYMENT_TEXT' => 'Comfino',
+            'COMFINO_PAYMENT_TEXT' => 'ComfinoPay',
             'COMFINO_CHECKOUT_PRODUCT_TYPES' => 'INSTALLMENTS_ZERO_PERCENT,PAY_LATER',
             'COMFINO_MINIMAL_CART_AMOUNT' => 30,
             'COMFINO_PRODUCT_CATEGORY_FILTERS' => '',
@@ -263,6 +279,7 @@ class ConfigManager
             ApiCache::BREAKER_STORAGE_KEY => '',
             'COMFINO_REMOTE_FLAGS' => '',
             'COMFINO_REMOTE_FLAG_ATTRIBUTES' => '',
+            self::REMOTE_FLAG_ATTRIBUTES_EXPIRES_AT => 0,
             'COMFINO_JS_PROD_PATH' => '',
             'COMFINO_CSS_PROD_PATH' => 'css',
             'COMFINO_JS_DEV_PATH' => '',
@@ -329,6 +346,12 @@ class ConfigManager
                 $opt_value = self::sanitizeAssetUrl($opt_value);
             }
 
+            if ($opt_name === 'COMFINO_REMOTE_FLAGS') {
+                /* Written remotely as an array or a comma-separated string - a raw array would be stored as the
+                   text "Array". */
+                $opt_value = implode(',', self::normalizeRemoteFlags($opt_value));
+            }
+
             $old_value = \Configuration::hasKey($opt_name) ? \Configuration::get($opt_name) : null;
 
             \Configuration::updateValue($opt_name, $opt_value);
@@ -342,7 +365,7 @@ class ConfigManager
     }
 
     /**
-     * Accepts only an HTTPS URL served either by Comfino or by the shop itself. Anything else is reduced to an
+     * Accepts only an HTTPS URL served either by ComfinoPay or by the shop itself. Anything else is reduced to an
      * empty string, which the widget configuration turns into "no custom stylesheet". In PrestaShop's dev mode
      * (`_PS_MODE_DEV_`), HTTP is also accepted so a local development shop without TLS can still be used as an
      * allowed host.
@@ -382,7 +405,7 @@ class ConfigManager
     }
 
     /**
-     * Hosts allowed to serve custom widget stylesheets: Comfino's own CDN endpoints and the shop's own
+     * Hosts allowed to serve custom widget stylesheets: ComfinoPay's own CDN endpoints and the shop's own
      * domains, so a merchant can keep the file next to the theme.
      *
      * @return string[]
@@ -526,6 +549,9 @@ class ConfigManager
 
         $this->refreshRemoteFlagsIfChanged(Api::getLastResponseHeader('Comfino-Flags'));
 
+        // A shop that has not registered its cache invalidation URL yet does it on this (roughly daily) path.
+        Api::registerCacheInvalidateUrl();
+
         return $claimed_token['access_token'];
     }
 
@@ -534,29 +560,153 @@ class ConfigManager
      */
     public function getRemoteFlags()
     {
-        $flags = explode(',', (string) $this->getConfigurationValue('COMFINO_REMOTE_FLAGS'));
-
-        return array_values(array_filter(array_map('trim', $flags), static function ($flag) {
-            return $flag !== '';
-        }));
+        return self::normalizeRemoteFlags($this->getConfigurationValue('COMFINO_REMOTE_FLAGS'));
     }
 
     /**
+     * Turns a flag name list (an array or a comma-separated string) into a sorted list of unique valid names.
+     *
+     * @param mixed $flags
+     *
+     * @return string[]
+     */
+    public static function normalizeRemoteFlags($flags)
+    {
+        if (is_string($flags)) {
+            $flags = explode(',', $flags);
+        } elseif (!is_array($flags)) {
+            return [];
+        }
+
+        $flags = array_unique(array_filter(
+            array_map(
+                static function ($flag) { return is_string($flag) ? trim($flag) : ''; },
+                $flags
+            ),
+            static function ($flag) { return preg_match(self::REMOTE_FLAG_NAME_PATTERN, $flag) === 1; }
+        ));
+
+        sort($flags);
+
+        return $flags;
+    }
+
+    /**
+     * Returns the remote flag attributes (the shop promotion included) as received from the backend.
+     *
+     * The stored attributes are served until their expiry, then fetched again. A failed fetch serves no attributes
+     * for a short while instead of a stale promotion.
+     *
      * @return array
      */
     public function getRemoteFlagAttributes()
     {
-        $flag_attributes = json_decode((string) $this->getConfigurationValue('COMFINO_REMOTE_FLAG_ATTRIBUTES'), true);
+        if (empty(Api::getApiKey())) {
+            return [];
+        }
 
-        return is_array($flag_attributes) ? $flag_attributes : [];
+        $stored_attributes = (string) $this->getConfigurationValue('COMFINO_REMOTE_FLAG_ATTRIBUTES');
+
+        if (time() < (int) $this->getConfigurationValue(self::REMOTE_FLAG_ATTRIBUTES_EXPIRES_AT)) {
+            return self::sanitizeRemoteFlagAttributes(json_decode($stored_attributes, true));
+        }
+
+        $circuit_open = ApiCache::isCircuitOpen();
+        $flag_attributes = $circuit_open ? false : Api::getUserSettingsFlags();
+
+        if (!is_array($flag_attributes)) {
+            if (!$circuit_open) {
+                ApiCache::recordFailure();
+            }
+
+            if ($stored_attributes !== '') {
+                \Configuration::updateValue('COMFINO_REMOTE_FLAG_ATTRIBUTES', '');
+            }
+
+            \Configuration::updateGlobalValue(
+                self::REMOTE_FLAG_ATTRIBUTES_EXPIRES_AT,
+                time() + self::REMOTE_FLAG_ATTRIBUTES_FAILURE_TTL
+            );
+
+            return [];
+        }
+
+        ApiCache::recordSuccess();
+
+        $ttl = (int) Api::getLastResponseHeader('Comfino-Cache-TTL', '0');
+
+        if ($ttl <= 0) {
+            $ttl = Api::isCacheInvalidateUrlRegistered()
+                ? self::REMOTE_FLAG_ATTRIBUTES_MAX_TTL
+                : self::REMOTE_FLAG_ATTRIBUTES_UNREGISTERED_TTL;
+        }
+
+        $flag_attributes = self::sanitizeRemoteFlagAttributes($flag_attributes);
+        $encoded_attributes = count($flag_attributes) ? (string) json_encode($flag_attributes) : '';
+
+        if ($encoded_attributes !== $stored_attributes) {
+            \Configuration::updateValue('COMFINO_REMOTE_FLAG_ATTRIBUTES', $encoded_attributes);
+        }
+
+        \Configuration::updateGlobalValue(
+            self::REMOTE_FLAG_ATTRIBUTES_EXPIRES_AT,
+            time() + min($ttl, self::REMOTE_FLAG_ATTRIBUTES_MAX_TTL)
+        );
+
+        if (!count($this->getRemoteFlags())) {
+            /* The name list follows the Comfino-Flags header of the next error logging token claim, up to a day away -
+               seed it from the attributes in the meantime. PROMO is not a flag name. */
+            $seeded_flags = self::normalizeRemoteFlags(array_diff(array_keys($flag_attributes), ['PROMO']));
+
+            if (count($seeded_flags)) {
+                \Configuration::updateValue('COMFINO_REMOTE_FLAGS', implode(',', $seeded_flags));
+            }
+        }
+
+        return $flag_attributes;
     }
 
     /**
-     * Updates the stored remote flags from the "Comfino-Flags" header of the error logging token response.
+     * Flag attributes passed to the frontend SDK in the checkout configuration. The SDK reads and validates them,
+     * the shop promotion (PROMO) included, so they are passed on as received.
      *
-     * Flag attributes are only ever set/changed together with their flag, so the dedicated attributes
-     * endpoint is only re-fetched when the flag list itself changed - this saves an extra API call on
-     * every other token refresh.
+     * @return array
+     */
+    public function getCheckoutFlagAttributes()
+    {
+        return $this->getRemoteFlagAttributes();
+    }
+
+    /**
+     * Keeps the entries keyed by a valid flag name whose value can be encoded as JSON. The values are opaque - no
+     * field of any flag is expected or checked.
+     *
+     * @param mixed $flag_attributes
+     *
+     * @return array
+     */
+    public static function sanitizeRemoteFlagAttributes($flag_attributes)
+    {
+        if (!is_array($flag_attributes)) {
+            return [];
+        }
+
+        $sanitized_attributes = [];
+
+        foreach ($flag_attributes as $flag_name => $attributes) {
+            if (is_string($flag_name) && preg_match(self::REMOTE_FLAG_NAME_PATTERN, $flag_name) === 1
+                && json_encode($attributes) !== false
+            ) {
+                $sanitized_attributes[$flag_name] = $attributes;
+            }
+        }
+
+        return $sanitized_attributes;
+    }
+
+    /**
+     * Updates the stored remote flag names from the "Comfino-Flags" header of the error logging token response.
+     * The flag attributes are refreshed separately, on expiry or when the backend invalidates them.
      *
      * @param string $flags_header_value
      *
@@ -564,27 +714,13 @@ class ConfigManager
      */
     private function refreshRemoteFlagsIfChanged($flags_header_value)
     {
-        $remote_flags = array_values(array_unique(array_filter(
-            array_map('trim', explode(',', (string) $flags_header_value)),
-            static function ($flag) { return $flag !== ''; }
-        )));
-        sort($remote_flags);
+        $remote_flags = self::normalizeRemoteFlags((string) $flags_header_value);
 
-        $stored_flags = $this->getRemoteFlags();
-        sort($stored_flags);
-
-        if ($remote_flags === $stored_flags) {
+        if ($remote_flags === $this->getRemoteFlags()) {
             return;
         }
 
         \Configuration::updateValue('COMFINO_REMOTE_FLAGS', implode(',', $remote_flags));
-
-        $flag_attributes = Api::getUserSettingsFlags();
-
-        \Configuration::updateValue(
-            'COMFINO_REMOTE_FLAG_ATTRIBUTES',
-            is_array($flag_attributes) ? json_encode($flag_attributes) : ''
-        );
     }
 
     /**

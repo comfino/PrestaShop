@@ -43,9 +43,9 @@ class PaymentErrorCode
     /** The order was created in the shop, but the financing application could not be started. */
     const ORDER_CREATION = 'order_creation';
 
-    /** Comfino declined to start the financing application. */
+    /** ComfinoPay declined to start the financing application. */
     const PAYMENT_REJECTED = 'payment_rejected';
 
-    /** The Comfino API could not be reached. */
+    /** The ComfinoPay API could not be reached. */
     const SERVICE_UNAVAILABLE = 'service_unavailable';
 }

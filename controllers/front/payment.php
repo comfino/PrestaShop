@@ -47,7 +47,7 @@ use Comfino\OrderManager;
 
 class ComfinoPaymentModuleFrontController extends ModuleFrontController
 {
-    /* Upper bound for the submitted loan term. No Comfino financing product spans more than this many months,
+    /* Upper bound for the submitted loan term. No ComfinoPay financing product spans more than this many months,
        so anything above it is a manipulated form field rather than a customer choice. */
     const MAX_LOAN_TERM = 120;
 
@@ -113,7 +113,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         if (empty($phone_number)) {
             $this->errors[] = $this->module->l(
-                'No phone number in addresses found. Please fill value before choosing comfino payment option.'
+                'No phone number in addresses found. Please fill value before choosing ComfinoPay payment option.'
             );
 
             if (COMFINO_PS_17) {
@@ -311,8 +311,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 'Order creation error',
                 0,
                 $application_url_rejected
-                    ? 'Rejected payment application URL received from the Comfino API.'
-                    : 'Wrong Comfino API response.',
+                    ? 'Rejected payment application URL received from the ComfinoPay API.'
+                    : 'Wrong ComfinoPay API response.',
                 Api::getLastResponseCode(),
                 $request_uri,
                 Api::getLastRequestBody(),
@@ -355,7 +355,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return false;
         }
 
-        /* Plain HTTP is tolerated only in a development environment, where the Comfino services are usually
+        /* Plain HTTP is tolerated only in a development environment, where the ComfinoPay services are usually
            served over an unencrypted connection - the same exception the API client itself makes. */
         if (\Tools::strtolower($url_parts['scheme']) !== 'https' && !$config_manager->useDevEnvVars()) {
             return false;
@@ -380,7 +380,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
     }
 
     /**
-     * Reduces an API host to the registrable domain every Comfino service of that environment shares,
+     * Reduces an API host to the registrable domain every ComfinoPay service of that environment shares,
      * so that the payment gateway host does not have to be configured separately from the API host.
      *
      * @param string|null $api_host

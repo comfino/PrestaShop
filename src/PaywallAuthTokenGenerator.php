@@ -35,7 +35,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/Crypto/Sha3.php';
 use Comfino\Crypto\Sha3;
 
 /**
- * Generates time-limited HMAC-signed tokens for the Comfino Paywall iframe and the frontend SDK.
+ * Generates time-limited HMAC-signed tokens for the ComfinoPay Paywall iframe and the frontend SDK.
  *
  * Auth token payload layout (binary, then base64 encoded):
  *   Bytes 0-7: Unix timestamp, unsigned 64-bit big-endian (pack('J', time()))

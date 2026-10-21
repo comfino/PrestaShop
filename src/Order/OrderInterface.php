@@ -42,14 +42,14 @@ interface OrderInterface
     public function getId();
 
     /**
-     * Callback URL used by Comfino API for sending notifications about transaction status changes.
+     * Callback URL used by ComfinoPay API for sending notifications about transaction status changes.
      *
      * @return string|null
      */
     public function getNotifyUrl();
 
     /**
-     * Return URL to the shop confirmation page, where customer will be redirected from Comfino website when transaction will be finished - successfully or not.
+     * Return URL to the shop confirmation page, where customer will be redirected from ComfinoPay website when transaction will be finished - successfully or not.
      *
      * @return string
      */
