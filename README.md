@@ -10,7 +10,7 @@
 [![PHP Version](https://img.shields.io/badge/php-7.1%20to%208.5-blue.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-OSL--3.0-green.svg)](LICENSE)
 
-> **Notice:** The 4.x line is the **last one compatible with PHP 7.1**. The upcoming version 5.0.0 will require **PHP 8.1 or higher** and **PrestaShop 1.7.7.0 or higher** (PrestaShop 1.6.x will no longer be supported). Please plan your environment upgrade accordingly — this is especially important for PrestaShop, where a majority of active shops still run an end-of-life PHP version.
+> **Notice:** The 4.x line is the **last one compatible with PHP 7.1**. The upcoming version 5.0.0 will require **PHP 8.1 or higher** and **PrestaShop 8.0 or higher** (PrestaShop 1.6.x and 1.7.x will no longer be supported). Please plan your environment upgrade accordingly — this is especially important for PrestaShop, where a majority of active shops still run an end-of-life PHP version.
 
 PrestaShop payment module for ComfinoPay deferred payments gateway - installment payments, buy now pay later (BNPL) and corporate payments.
 
@@ -34,7 +34,7 @@ PrestaShop payment module for ComfinoPay deferred payments gateway - installment
 
 ### Upcoming version (5.0.0)
 
-- **PrestaShop**: 1.7.7.0 or higher, 8.x, 9.x (PrestaShop 1.6.x will not be supported)
+- **PrestaShop**: 8.0 or higher, 8.x, 9.x (PrestaShop 1.6.x and 1.7.x will not be supported)
 - **PHP**: 8.1 or higher
 - **PHP extensions**: ctype, curl, json, sodium, zlib
 
