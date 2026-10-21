@@ -519,6 +519,8 @@ final class Main
             'flags' => ConfigManager::getRemoteFlags() ?: null,
             'flagAttributes' => ConfigManager::getCheckoutFlagAttributes() ?: null,
             'directRedirect' => (bool) ConfigManager::getConfigurationValue('COMFINO_PAYWALL_DIRECT_REDIRECT'),
+            'selectionUrl' => ApiService::getControllerUrl('selection'),
+            'selectionToken' => \Tools::getToken(false),
             'scriptNonce' => self::getScriptNonce(),
         ];
 
@@ -531,8 +533,6 @@ final class Main
             'comfino_label' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT'),
             'comfino_default_logo_url' => ConfigManager::getDefaultLogoUrl(),
             'comfino_redirect_url' => ApiService::getControllerUrl('payment'),
-            'comfino_selection_url' => ApiService::getControllerUrl('selection'),
-            'comfino_selection_token' => \Tools::getToken(false),
         ];
 
         $rendered = true;
