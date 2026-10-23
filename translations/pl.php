@@ -169,6 +169,10 @@ $_MODULE['<{comfino}prestashop>installation-logs_f135d18c239c1d1e3f260fbbcfaf158
 $_MODULE['<{comfino}prestashop>installation-logs_e2e2f88a8081fb8038c258ca60ec3971'] = 'Log aktualizacji niedostępny.';
 $_MODULE['<{comfino}prestashop>installation-logs_416eb74b2d1c711b062563c18c9e7521'] = 'Log dezinstalacji niedostępny.';
 
+$_MODULE['<{comfino}prestashop>product-id-filter_068f270722ab8f9fa8f1c94130c36287'] = 'Filtruj według ID produktu';
+$_MODULE['<{comfino}prestashop>product-id-filter_61e9b7b857c09fa5e078cca977a59091'] = 'Wpisz ID produktów (oddzielone przecinkami), dla których nie mają być oferowane metody płatności ComfinoPay. Jeśli koszyk zawiera którykolwiek z tych produktów, wszystkie produkty finansowe ComfinoPay zostaną ukryte na stronie zamówienia.';
+$_MODULE['<{comfino}prestashop>product-id-filter_2cd4381a4b398368e7d1d8e7fa7f7614'] = 'np. 12, 45, 108';
+
 $_MODULE['<{comfino}prestashop>comfino_5e3868a3dae7d2055cd11efb4321083a'] = 'Resetowanie modułu zakończone z pewnymi błędami.';
 $_MODULE['<{comfino}prestashop>comfino_841eaba3ff65d8b6fa24bc74eaf41183'] = 'Resetowanie modułu zakończone pomyślnie.';
 $_MODULE['<{comfino}prestashop>comfino_3118c3d3aaca5d51ac8d52c960d76f63'] = 'Konfiguracja: %d naprawionych, %d nieudanych';
