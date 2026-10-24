@@ -36,6 +36,7 @@
 {* Loan parameters written by the SDK, read on order placement. *}
 <input id="comfino-loan-type" name="comfino_loan_type" type="hidden" value="" />
 <input id="comfino-loan-term" name="comfino_loan_term" type="hidden" value="" />
+<input id="comfino-promo-code" name="comfino_promo_code" type="hidden" value="" />
 {* The SDK renders the paywall iframe here. *}
 <div id="comfino-paywall-container"></div>
 

@@ -34,6 +34,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/ShopPluginErrorRequest.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ErrorLogger.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/ApiCache.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Order.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/PromoCode.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Crypto/Sha3.php';
 
 use Comfino\Api\CartInterface;
@@ -1197,6 +1198,7 @@ class Api
                 // Extra data (optional)
                 'accountNumber' => $order->getAccountNumber(),
                 'transferTitle' => $order->getTransferTitle(),
+                'promoCode' => $order->getPromoCode(),
             ],
             static function ($value) {
                 return $value !== null;

@@ -72,4 +72,7 @@ interface OrderInterface
 
     /** @return string|null */
     public function getTransferTitle();
+
+    /** @return string|null */
+    public function getPromoCode();
 }

@@ -1,12 +1,13 @@
 # Changelog
 
-## [3.6.1](https://github.com/comfino/PrestaShop/tree/3.6.1) (2026-10-22)
+## [3.6.1](https://github.com/comfino/PrestaShop/tree/3.6.1) (2026-10-26)
 
 **Maintenance release of the legacy 3.x line.** The 3.6.x line receives only critical fixes; shops able to run PHP
 7.1+ should move to the 4.x line.
 
 ### Added
 - The ComfinoPay payment method at checkout can now show the current shop promotion and its amount.
+- A promotional code entered by the customer in the ComfinoPay payment method is now passed along with the order (a blank or unusable code is ignored).
 - Promotion changes made by ComfinoPay reach the shop right away, without waiting for the module to check for them.
 
 ### Changed

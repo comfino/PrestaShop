@@ -108,6 +108,13 @@ class Order implements OrderInterface
     private $transferTitle;
 
     /**
+     * @var string|null
+     *
+     * @readonly
+     */
+    private $promoCode;
+
+    /**
      * @param string $id
      * @param string $returnUrl
      * @param LoanParametersInterface $loanParameters
@@ -117,6 +124,7 @@ class Order implements OrderInterface
      * @param SellerInterface|null $seller
      * @param string|null $accountNumber
      * @param string|null $transferTitle
+     * @param string|null $promoCode
      */
     public function __construct(
         $id,
@@ -127,7 +135,8 @@ class Order implements OrderInterface
         $notifyUrl = null,
         $seller = null,
         $accountNumber = null,
-        $transferTitle = null
+        $transferTitle = null,
+        $promoCode = null
     ) {
         $this->id = $id;
         $this->returnUrl = $returnUrl;
@@ -138,6 +147,7 @@ class Order implements OrderInterface
         $this->seller = $seller;
         $this->accountNumber = $accountNumber;
         $this->transferTitle = $transferTitle;
+        $this->promoCode = $promoCode;
     }
 
     /**
@@ -210,5 +220,13 @@ class Order implements OrderInterface
     public function getTransferTitle()
     {
         return $this->transferTitle !== null ? trim(html_entity_decode(strip_tags($this->transferTitle))) : null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getPromoCode()
+    {
+        return PromoCode::normalize($this->promoCode);
     }
 }

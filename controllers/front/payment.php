@@ -36,6 +36,7 @@ require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Customer/Address.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Customer.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Order/LoanParameters.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/Order/Order.php';
+require_once _PS_MODULE_DIR_ . 'comfino/src/Order/PromoCode.php';
 require_once _PS_MODULE_DIR_ . 'comfino/src/OrderManager.php';
 require_once _PS_MODULE_DIR_ . 'comfino/models/OrdersList.php';
 
@@ -81,6 +82,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
            and submitted together with the order. */
         $loan_type = trim((string) Tools::getValue('comfino_loan_type', ''));
         $loan_term = (int) Tools::getValue('comfino_loan_term', 0);
+
+        // Optional customer-entered promotional code, written as a hidden POST input by the checkout page script.
+        $promo_code = Comfino\Order\PromoCode::normalize(Tools::getValue(Comfino\Order\PromoCode::REQUEST_FIELD));
 
         if ($loan_type === '' || $loan_term <= 0 || $loan_term > self::MAX_LOAN_TERM) {
             Tools::redirect('index.php?controller=order&step=1');
@@ -283,7 +287,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $allowed_product_types,
             $shop_cart->getDeliveryNetCost(),
             $shop_cart->getDeliveryTaxRate(),
-            $shop_cart->getDeliveryTaxValue()
+            $shop_cart->getDeliveryTaxValue(),
+            null,
+            $promo_code
         );
 
         $order_response = Api::createOrder($order);
@@ -456,6 +462,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
      * @param int|null $deliveryCostTaxRate
      * @param int|null $deliveryCostTaxValue
      * @param string|null $category
+     * @param string|null $promoCode
      *
      * @return Comfino\Order\Order
      */
@@ -473,7 +480,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         $deliveryNetCost = null,
         $deliveryCostTaxRate = null,
         $deliveryCostTaxValue = null,
-        $category = null
+        $category = null,
+        $promoCode = null
     ) {
         return new Comfino\Order\Order(
             $orderId,
@@ -494,7 +502,11 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 $category
             ),
             $customer,
-            $notificationUrl
+            $notificationUrl,
+            null,
+            null,
+            null,
+            $promoCode
         );
     }
 }
