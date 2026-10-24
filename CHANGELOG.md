@@ -4,6 +4,7 @@
 
 ### Added
 - The ComfinoPay payment method at checkout can now show the current shop promotion and its amount.
+- A promotional code entered by the customer in the ComfinoPay payment method is now passed along with the order (a blank or unusable code is ignored).
 - Diagnostic reports sent to ComfinoPay now have sensitive data masked.
 
 ### Changed

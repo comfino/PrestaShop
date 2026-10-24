@@ -33,6 +33,7 @@ use Comfino\Common\Backend\Factory\OrderFactory;
 use Comfino\Configuration\ConfigManager;
 use Comfino\Configuration\SettingsManager;
 use Comfino\DebugLogger;
+use Comfino\Common\Shop\Order\PromoCode;
 use Comfino\ErrorLogger;
 use Comfino\FinancialProduct\ProductTypesListTypeEnum;
 use Comfino\Main;
@@ -125,6 +126,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         // V3: loan type/term arrive as hidden POST inputs written by PrestaShopAdapter.updatePaymentState().
         $loanType = trim((string) Tools::getValue('comfino_loan_type', ''));
         $loanTerm = (int) Tools::getValue('comfino_loan_term', 0);
+
+        // Optional customer-entered promotional code, written as a hidden POST input by the checkout page script.
+        $promoCode = PromoCode::normalize(Tools::getValue(PromoCode::REQUEST_FIELD));
 
         $psOrder = new \Order($this->module->currentOrder);
 
@@ -246,7 +250,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         /* Create Order object with temporary ID for validation before validateOrder() call.
            This allows validation to occur before the cart is cleared by validateOrder(). */
-        $order = $this->createOrder($tempOrderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer);
+        $order = $this->createOrder($tempOrderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer, $promoCode);
 
         // Perform comprehensive validation before validateOrder() to preserve cart on error.
         $validationErrors = $this->validatePaymentData($order, $cart);
@@ -326,7 +330,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         ]);
 
         // Create Order object with real order ID for ComfinoPay API.
-        $order = $this->createOrder($orderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer);
+        $order = $this->createOrder($orderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer, $promoCode);
 
         try {
             $applicationUrl = ApiClient::getInstance()->createOrder($order)->applicationUrl;
@@ -563,7 +567,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         int $loanTerm,
         string $returnUrl,
         Comfino\Common\Shop\Cart $shopCart,
-        Comfino\Shop\Order\Customer $shopCustomer
+        Comfino\Shop\Order\Customer $shopCustomer,
+        ?string $promoCode = null
     ): Order
     {
         return (new OrderFactory())->createOrder(
@@ -581,7 +586,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $shopCart->getDeliveryTaxRate(),
             $shopCart->getDeliveryTaxValue(),
             null,
-            $this->buildAllowedProductsConfig()
+            $this->buildAllowedProductsConfig(),
+            $promoCode
         );
     }
 

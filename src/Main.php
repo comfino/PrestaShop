@@ -555,6 +555,7 @@ final class Main
                 ->setInputs([
                     ['type' => 'hidden', 'name' => 'comfino_loan_type', 'value' => ''],
                     ['type' => 'hidden', 'name' => 'comfino_loan_term', 'value' => ''],
+                    ['type' => 'hidden', 'name' => 'comfino_promo_code', 'value' => ''],
                 ])
                 ->setAdditionalInformation($paywallIframe);
 
