@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.6.1](https://github.com/comfino/PrestaShop/tree/3.6.1) (2026-10-26)
+## [3.6.1](https://github.com/comfino/PrestaShop/tree/3.6.1) (2026-10-28)
 
 **Maintenance release of the legacy 3.x line.** The 3.6.x line receives only critical fixes; shops able to run PHP
 7.1+ should move to the 4.x line.
