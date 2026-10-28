@@ -1,6 +1,6 @@
 # Changelog
 
-## [4.4.0](https://github.com/comfino/PrestaShop/tree/4.4.0) (2026-10-26)
+## [4.4.0](https://github.com/comfino/PrestaShop/tree/4.4.0) (2026-10-28)
 
 ### Added
 - The ComfinoPay payment method at checkout can now show the current shop promotion and its amount.
