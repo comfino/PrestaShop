@@ -1117,12 +1117,14 @@ class Api
     {
         $platformVersion = array_map('intval', explode('.', _PS_VERSION_));
         $pluginVersion = array_map('intval', explode('.', COMFINO_VERSION));
-        $packedPlatformVersion = pack('c*', ...$platformVersion);
-        $packedPluginVersion = pack('c*', ...$pluginVersion);
-        $platformVersionLength = pack('c', strlen($packedPlatformVersion));
-        $pluginVersionLength = pack('c', strlen($packedPluginVersion));
+        $packedPlatformVersion = pack('C*', ...$platformVersion);
+        $packedPluginVersion = pack('C*', ...$pluginVersion);
+        $platformVersionLength = pack('C', strlen($packedPlatformVersion));
+        $pluginVersionLength = pack('C', strlen($packedPluginVersion));
+        // Unsigned 64-bit big-endian, same as pack('J') on the 4.x line (which needs PHP 5.6.3+).
+        $packedBuildTimestamp = pack('NN', 0, COMFINO_BUILD_TS);
 
-        $authHash = "PS$platformVersionLength$pluginVersionLength$packedPlatformVersion$packedPluginVersion";
+        $authHash = "PS$platformVersionLength$pluginVersionLength$packedPlatformVersion$packedPluginVersion$packedBuildTimestamp";
 
         if ($paywallLogo) {
             $authHash .= self::$widget_key;
