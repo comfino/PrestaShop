@@ -1836,6 +1836,7 @@ class Comfino extends PaymentModule
                 $config_manager->getErrorLoggingAccessToken()
             ),
             'loanAmount' => (int) $loan_amount,
+            'paymentMethodAuth' => Comfino\Api::getPaywallLogoAuthHash(),
             'environment' => Comfino\Api::isSandboxMode() ? 'sandbox' : 'production',
             'sdkScriptUrl' => Comfino\Api::getSdkScriptUrl(),
             'productTypes' => is_array($product_types_filter)

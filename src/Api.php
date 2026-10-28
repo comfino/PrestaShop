@@ -577,6 +577,17 @@ class Api
     }
 
     /**
+     * Authorization hash of the paywall logo, passed to the checkout SDK as "paymentMethodAuth". The SDK requests the
+     * authorized logo with it, which is also how the paywall usage is counted.
+     *
+     * @return string
+     */
+    public static function getPaywallLogoAuthHash()
+    {
+        return self::buildLogoAuthHash(true);
+    }
+
+    /**
      * @param bool $is_sandbox_mode
      *
      * @return void
@@ -1094,6 +1105,16 @@ class Api
      */
     private static function getLogoAuthHash($paywallLogo = false)
     {
+        return urlencode(self::buildLogoAuthHash($paywallLogo));
+    }
+
+    /**
+     * @param bool $paywallLogo
+     *
+     * @return string Base64-encoded, not URL-encoded.
+     */
+    private static function buildLogoAuthHash($paywallLogo = false)
+    {
         $platformVersion = array_map('intval', explode('.', _PS_VERSION_));
         $pluginVersion = array_map('intval', explode('.', COMFINO_VERSION));
         $packedPlatformVersion = pack('c*', ...$platformVersion);
@@ -1110,7 +1131,7 @@ class Api
                 : Sha3::hmac256($authHash, self::getApiKey(), true);
         }
 
-        return urlencode(base64_encode($authHash));
+        return base64_encode($authHash);
     }
 
     /**
