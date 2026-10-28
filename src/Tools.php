@@ -74,9 +74,12 @@ class Tools
             : \Currency::getCurrencyInstance($currencyId)->iso_code;
     }
 
-    public function getLanguageIsoCode(int $langId): string
+    /**
+     * @param int|string $langId Numeric language ID (third-party modules pass it as a numeric string).
+     */
+    public function getLanguageIsoCode($langId): string
     {
-        return \Language::getIsoById($langId);
+        return (string) \Language::getIsoById((int) $langId);
     }
 
     public function getCountryIsoCode(int $countryId): string

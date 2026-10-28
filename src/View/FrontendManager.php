@@ -131,6 +131,7 @@ final class FrontendManager
                 'widgetKey' => $settings['COMFINO_WIDGET_KEY'] ?? null,
                 'loggingToken' => $variables['LOGGING_TOKEN'] ?? null,
                 'trackId' => $variables['TRACK_ID'] ?? null,
+                'trackingConsent' => (bool) ConfigManager::getConfigurationValue('COMFINO_PAYWALL_TRACKING_CONSENT'),
                 'widgetTargetSelector' => $settings['COMFINO_WIDGET_TARGET_SELECTOR'] ?? null,
                 'priceSelector' => $settings['COMFINO_WIDGET_PRICE_SELECTOR'] ?? null,
                 'priceAttribute' => ($settings['COMFINO_WIDGET_PRICE_ATTRIBUTE'] ?? '') ?: null,
@@ -210,7 +211,9 @@ final class FrontendManager
                 'module_url' => \Context::getContext()->link->getAdminLink('AdminModules') .
                     '&configure=' . $module->name . '&tab_module=' . $module->tab . '&module_name=' . $module->name .
                     '&active_tab=plugin_diagnostics',
-                'dismiss_url' => \Context::getContext()->link->getModuleLink($module->name, 'updatedismiss', [], true),
+                // Settings page URL (carries the AdminModules token): the dismissal is an authenticated POST to it.
+                'dismiss_url' => \Context::getContext()->link->getAdminLink('AdminModules') .
+                    '&configure=' . $module->name . '&tab_module=' . $module->tab . '&module_name=' . $module->name,
             ]
         );
     }

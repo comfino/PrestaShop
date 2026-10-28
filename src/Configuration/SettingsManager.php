@@ -107,7 +107,7 @@ final class SettingsManager
         try {
             $productTypes = ApiClient::getInstance()->getProductTypes($listTypeEnum);
             $productTypesList = $productTypes->productTypesWithNames;
-            $cacheTtl = (int) $productTypes->getHeader('Cache-TTL', '0');
+            $cacheTtl = (int) $productTypes->getHeader('Comfino-Cache-TTL', '0');
 
             CacheManager::set($cacheKey, $productTypesList, $cacheTtl, ['admin_product_types']);
 
@@ -117,7 +117,7 @@ final class SettingsManager
 
             return $productTypesList ?? [];
         } catch (\Throwable $e) {
-            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e, OperationContext::Configuration);
+            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (ComfinoPay API)', $e, OperationContext::Configuration);
 
             if ($returnErrors) {
                 return ['error' => $e->getMessage()];
@@ -148,7 +148,7 @@ final class SettingsManager
         try {
             $response = ApiClient::getInstance()->getCreditors();
             $creditorsList = $response->creditors;
-            $cacheTtl = (int) $response->getHeader('Cache-TTL', '0');
+            $cacheTtl = (int) $response->getHeader('Comfino-Cache-TTL', '0');
 
             CacheManager::set($cacheKey, $creditorsList, $cacheTtl, ['admin_product_types']);
 
@@ -158,7 +158,7 @@ final class SettingsManager
 
             return $creditorsList ?? [];
         } catch (\Throwable $e) {
-            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e, OperationContext::Configuration);
+            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (ComfinoPay API)', $e, OperationContext::Configuration);
         }
 
         return [];
@@ -214,7 +214,7 @@ final class SettingsManager
         try {
             $widgetTypes = ApiClient::getInstance()->getWidgetTypes();
             $widgetTypesList = $widgetTypes->widgetTypesWithNames;
-            $cacheTtl = (int) $widgetTypes->getHeader('Cache-TTL', '0');
+            $cacheTtl = (int) $widgetTypes->getHeader('Comfino-Cache-TTL', '0');
 
             CacheManager::set($cacheKey, $widgetTypesList, $cacheTtl, ['admin_widget_types']);
 
@@ -224,7 +224,7 @@ final class SettingsManager
 
             return $widgetTypesList ?? [];
         } catch (\Throwable $e) {
-            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (Comfino API)', $e, OperationContext::Configuration);
+            ApiClient::processApiError('Settings error on page "' . Main::getRequestUri() . '" (ComfinoPay API)', $e, OperationContext::Configuration);
 
             if ($returnErrors) {
                 return ['error' => $e->getMessage()];
@@ -285,11 +285,18 @@ final class SettingsManager
 
     public static function getProductCategoryFilters(): array
     {
-        if (!is_array($catFilters = ConfigManager::getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS', []))) {
-            $catFilters = array_map('trim', explode(',', $catFilters));
+        $catFilters = ConfigManager::getConfigurationValue('COMFINO_PRODUCT_CATEGORY_FILTERS', []);
+
+        if (is_array($catFilters)) {
+            return $catFilters;
         }
 
-        return $catFilters;
+        // Malformed persisted value (not decodable to an array): accept a comma-separated string, otherwise no filters.
+        if (!is_string($catFilters) || trim($catFilters) === '') {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $catFilters)), 'strlen'));
     }
 
     /**

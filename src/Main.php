@@ -176,11 +176,54 @@ final class Main
             $resultStats['operations'][] = ['name' => 'uninstall_notification_sent' , 'success' => false];
         }
 
-        self::createUninstallLog(print_r($resultStats, true));
+        // Data minimization: nothing the module collected stays behind (logs, cache, update notice state).
+        $resultStats['operations'][] = ['name' => 'module_data_removal', 'success' => self::removeModuleData()];
 
-        return $resultStats['statuses_remove_failed'] === 0
-            && $resultStats['statuses_update_failed'] === 0
-            && $resultStats['hooks_failed'] === 0;
+        return $resultStats['statuses_remove_failed'] === 0 &&
+            $resultStats['statuses_update_failed'] === 0 &&
+            $resultStats['hooks_failed'] === 0;
+    }
+
+    /**
+     * Removes logs (current and legacy location), cache and the update check state.
+     */
+    private static function removeModuleData(): bool
+    {
+        $result = true;
+
+        foreach (['COMFINO_UPDATE_NOTICE_DISMISSED', 'COMFINO_GITHUB_VERSION_CHECK_TIME', 'COMFINO_GITHUB_VERSION_INFO'] as $optionName) {
+            $result &= \Configuration::deleteByName($optionName);
+        }
+
+        self::deleteDirectoryContents(self::getLogPath(), []);
+        @rmdir(self::getLogPath());
+        self::deleteDirectoryContents(self::getVarPath() . '/log', ['index.php']);
+        self::deleteDirectoryContents(self::getVarPath() . '/cache', ['index.php']);
+
+        return (bool) $result;
+    }
+
+    /**
+     * @param string[] $keep File names to keep in the top-level directory.
+     */
+    private static function deleteDirectoryContents(string $directory, array $keep): void
+    {
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        foreach (new \DirectoryIterator($directory) as $item) {
+            if ($item->isDot() || in_array($item->getFilename(), $keep, true)) {
+                continue;
+            }
+
+            if ($item->isDir() && !$item->isLink()) {
+                self::deleteDirectoryContents($item->getPathname(), []);
+                @rmdir($item->getPathname());
+            } else {
+                @unlink($item->getPathname());
+            }
+        }
     }
 
     /**
@@ -260,7 +303,7 @@ final class Main
         static $module = null;
 
         if ($module === null) {
-            /** @var Comfino $module */
+            /** @var \Comfino $module */
             $module = \Module::getInstanceByName(COMFINO_MODULE_NAME);
         }
 
@@ -309,11 +352,48 @@ final class Main
      */
     public static function getContent(): string
     {
+        // Update notice dismissal: an authenticated POST (employee session and AdminModules token checked by PrestaShop).
+        if (\Tools::isSubmit('comfino_dismiss_update_notice')) {
+            self::dismissUpdateNotice((string) \Tools::getValue('comfino_dismiss_update_notice'));
+        }
+
         return TemplateManager::renderModuleView('configuration', 'admin', SettingsForm::processForm());
     }
 
     /**
-     * Renders Comfino iframe with a payment form and returns string with iframe HTML for PrestaShop 1.6 or array with
+     * Stores the dismissed update version and answers with JSON. Exits.
+     */
+    private static function dismissUpdateNotice(string $version): void
+    {
+        $valid = ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && preg_match('/^\d+\.\d+\.\d+$/', $version) === 1;
+
+        if ($valid) {
+            \Configuration::updateValue('COMFINO_UPDATE_NOTICE_DISMISSED', $version);
+        } else {
+            http_response_code(400);
+        }
+
+        header('Content-Type: application/json');
+
+        exit(json_encode(['success' => $valid]));
+    }
+
+    /**
+     * Encodes the checkout bootstrap config for a <script type="application/json"> element. Backend-supplied strings
+     * (flag attributes) are hex-escaped, so a value containing "</script>" cannot close the element.
+     */
+    public static function encodeCheckoutConfig(array $comfinoSettings): string
+    {
+        $json = json_encode(
+            $comfinoSettings,
+            JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_PARTIAL_OUTPUT_ON_ERROR
+        );
+
+        return $json !== false ? $json : '{}';
+    }
+
+    /**
+     * Renders ComfinoPay iframe with a payment form and returns string with iframe HTML for PrestaShop 1.6 or array with
      * \PrestaShop\PrestaShop\Core\Payment\PaymentOption object for PrestaShop 1.7+. Returns empty string/array in
      * case of errors.
      *
@@ -417,6 +497,7 @@ final class Main
             'authToken' => $authToken,
             'loggingToken' => $loggingToken,
             'trackId' => $trackId,
+            'trackingConsent' => (bool) ConfigManager::getConfigurationValue('COMFINO_PAYWALL_TRACKING_CONSENT'),
             'loanAmount' => $loanAmount,
             'paymentMethodAuth' => ConfigManager::getPaywallLogoAuthHash(),
             'paymentMethodLabel' => ConfigManager::getConfigurationValue('COMFINO_PAYMENT_TEXT') ?: null,
@@ -435,13 +516,17 @@ final class Main
             'shopEnvironment' => $shopEnvironment,
             'creditors' => SettingsManager::getCreditors() ?: null,
             'productTypeNames' => SettingsManager::getProductTypes(ProductTypesListTypeEnum::LIST_TYPE_PAYWALL) ?: null,
+            'flags' => ConfigManager::getRemoteFlags() ?: null,
+            'flagAttributes' => ConfigManager::getCheckoutFlagAttributes() ?: null,
             'directRedirect' => (bool) ConfigManager::getConfigurationValue('COMFINO_PAYWALL_DIRECT_REDIRECT'),
+            'selectionUrl' => ApiService::getControllerUrl('selection'),
+            'selectionToken' => \Tools::getToken(false),
             'scriptNonce' => self::getScriptNonce(),
         ];
 
         $templateVariables = [
             'loan_amount' => $loanAmount,
-            'comfino_settings' => $comfinoSettings,
+            'comfino_settings_json' => self::encodeCheckoutConfig($comfinoSettings),
             'checkout_script_url' => ConfigManager::getCheckoutScriptUrl(),
             'script_nonce' => self::getScriptNonce(),
             'is_ps_16' => !COMFINO_PS_17,
@@ -470,6 +555,7 @@ final class Main
                 ->setInputs([
                     ['type' => 'hidden', 'name' => 'comfino_loan_type', 'value' => ''],
                     ['type' => 'hidden', 'name' => 'comfino_loan_term', 'value' => ''],
+                    ['type' => 'hidden', 'name' => 'comfino_promo_code', 'value' => ''],
                 ])
                 ->setAdditionalInformation($paywallIframe);
 
@@ -506,11 +592,27 @@ final class Main
 
         ErrorLogger::init();
 
-        $shopCart = OrderManager::getShopCart($cart, 0);
-        $allowedProductTypes = SettingsManager::getAllowedProductTypes(
-            ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
-            $shopCart
-        );
+        try {
+            $shopCart = OrderManager::getShopCart($cart, 0);
+            $allowedProductTypes = SettingsManager::getAllowedProductTypes(
+                ProductTypesListTypeEnum::LIST_TYPE_PAYWALL,
+                $shopCart
+            );
+        } catch (\Throwable $e) {
+            // Availability cannot be determined (cart or API failure): hide the payment option instead of failing the checkout.
+            FrontendManager::processError(
+                'Payment availability check error',
+                $e,
+                null,
+                null,
+                null,
+                '[PAYWALL]',
+                OperationContext::PaywallRendering
+            );
+
+            return false;
+        }
+
         $paymentIsAvailable = ($allowedProductTypes !== []);
 
         DebugLogger::logEvent(
@@ -534,6 +636,79 @@ final class Main
     public static function getVarPath(): string
     {
         return _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . DIRECTORY_SEPARATOR . 'var';
+    }
+
+    /**
+     * Log directory outside the module (and, on PS 1.7+, outside the document root's static files):
+     * <root>/var/logs/comfino on PrestaShop 1.7+, <root>/log/comfino on 1.6.
+     */
+    public static function getLogPath(): string
+    {
+        return rtrim(_PS_ROOT_DIR_, '/\\') . (COMFINO_PS_17 ? '/var/logs/comfino' : '/log/comfino');
+    }
+
+    /**
+     * Creates the log directory with a deny-all .htaccess (both Apache syntaxes) and an index.php stub.
+     */
+    public static function ensureLogPath(): bool
+    {
+        $logPath = self::getLogPath();
+
+        if (!is_dir($logPath) && !@mkdir($logPath, 0755, true) && !is_dir($logPath)) {
+            return false;
+        }
+
+        if (!file_exists("$logPath/.htaccess")) {
+            @file_put_contents(
+                "$logPath/.htaccess",
+                "<IfModule mod_authz_core.c>\n    Require all denied\n</IfModule>\n"
+                . "<IfModule !mod_authz_core.c>\n    Order deny,allow\n    Deny from all\n</IfModule>\n"
+            );
+        }
+
+        if (!file_exists("$logPath/index.php")) {
+            @copy(self::getVarPath() . '/index.php', "$logPath/index.php");
+        }
+
+        return is_writable($logPath);
+    }
+
+    /**
+     * Moves log files from the legacy <module>/var/log directory into the current log directory (existing files at the
+     * destination are kept), leaving the old directory empty and denied.
+     *
+     * @return int Number of moved files.
+     */
+    public static function migrateLegacyLogs(): int
+    {
+        $legacyPath = self::getVarPath() . '/log';
+
+        if (!is_dir($legacyPath) || !self::ensureLogPath()) {
+            return 0;
+        }
+
+        $moved = 0;
+
+        foreach (glob($legacyPath . '/*') ?: [] as $file) {
+            if (!is_file($file) || basename($file) === 'index.php') {
+                continue;
+            }
+
+            $destination = self::getLogPath() . '/' . basename($file);
+
+            if (!file_exists($destination) && @rename($file, $destination)) {
+                $moved++;
+            } elseif (file_exists($destination)) {
+                // Never overwrite a newer log; the legacy copy is dropped so nothing readable stays behind.
+                @unlink($file);
+            }
+        }
+
+        if (!file_exists("$legacyPath/.htaccess")) {
+            @file_put_contents($legacyPath . '/.htaccess', "Require all denied\n");
+        }
+
+        return $moved;
     }
 
     public static function getCacheRootPath(): string
@@ -638,14 +813,9 @@ final class Main
         self::writeLog(self::INSTALL_LOG_FILENAME, $logContents);
     }
 
-    private static function createUninstallLog(string $logContents): void
-    {
-        self::writeLog(self::UNINSTALL_LOG_FILENAME, $logContents);
-    }
-
     private static function readLog(string $fileName): string
     {
-        $logPath = FileUtils::buildPathFromComponents([self::getVarPath(), 'log', $fileName]);
+        $logPath = FileUtils::buildPathFromComponents([self::getLogPath(), $fileName]);
 
         if (FileUtils::isReadable($logPath)) {
             return FileUtils::read($logPath);
@@ -656,16 +826,16 @@ final class Main
 
     private static function writeLog(string $fileName, string $logContents): void
     {
-        $logPath = FileUtils::buildPathFromComponents([self::getVarPath(), 'log', $fileName]);
+        $logPath = FileUtils::buildPathFromComponents([self::getLogPath(), $fileName]);
 
-        if (FileUtils::isWritable(dirname($logPath))) {
+        if (self::ensureLogPath() && FileUtils::isWritable(dirname($logPath))) {
             FileUtils::write($logPath, gmdate('Y-m-d H:i:s') . "\n$logContents");
         }
     }
 
     private static function appendLog(string $fileName, string $logContents): void
     {
-        $logPath = FileUtils::buildPathFromComponents([self::getVarPath(), 'log', $fileName]);
+        $logPath = FileUtils::buildPathFromComponents([self::getLogPath(), $fileName]);
 
         if (FileUtils::isWritable($logPath)) {
             FileUtils::append($logPath, gmdate('Y-m-d H:i:s') . "\n$logContents");

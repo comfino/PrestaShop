@@ -37,14 +37,14 @@ if (!defined('_PS_VERSION_')) {
 /**
  * Manages update-availability checks for the plugin.
  *
- * The latest available release is resolved through the centralized Comfino release API
+ * The latest available release is resolved through the centralized ComfinoPay release API
  * (GET /v1/plugin-releases/{platform}/latest) instead of polling GitHub directly. The API returns the release of the
  * line compatible with this shop's PHP and PrestaShop version (derived from the client User-Agent), so the version we
  * compare against is always installable here.
  */
 class UpdateManager
 {
-    /** Base canonical platform slug polled on the Comfino release API; the API resolves the concrete line by User-Agent. */
+    /** Base canonical platform slug polled on the ComfinoPay release API; the API resolves the concrete line by User-Agent. */
     private const PLATFORM = 'prestashop';
     private const CACHE_KEY = 'comfino_github_version_check';
     private const LOCK_KEY = 'comfino_github_version_check_lock';
@@ -56,7 +56,7 @@ class UpdateManager
     private const CACHE_TTL_MAX = 100800; // 28 hours
 
     /**
-     * Check for available updates via the Comfino release API.
+     * Check for available updates via the ComfinoPay release API.
      *
      * @return array{
      *     update_available: bool,
@@ -77,7 +77,7 @@ class UpdateManager
         $cacheItem = $cacheManager->getItem(self::CACHE_KEY);
 
         if ($cacheItem->isHit()) {
-            return $cacheItem->get();
+            return self::refreshUpdateFlag($cacheItem->get());
         }
 
         /* Claim a short-lived exclusive lock before hitting the API. Without it, concurrent backoffice requests (e.g.,
@@ -93,7 +93,7 @@ class UpdateManager
         $lockItem->expiresAfter(self::LOCK_TTL);
         $cacheManager->save($lockItem);
 
-        // Fetch latest release from the Comfino release API.
+        // Fetch latest release from the ComfinoPay release API.
         $lastReleaseInfo = self::fetchLatestRelease();
 
         // Cache the result.
@@ -122,7 +122,7 @@ class UpdateManager
     }
 
     /**
-     * Fetch the latest release information from the Comfino release API.
+     * Fetch the latest release information from the ComfinoPay release API.
      *
      * @return array Release information or error
      */
@@ -134,7 +134,7 @@ class UpdateManager
             return [
                 'update_available' => false,
                 'current_version' => COMFINO_VERSION,
-                'error' => 'Failed to fetch release information from Comfino API: ' . $e->getMessage(),
+                'error' => 'Failed to fetch release information from ComfinoPay API: ' . $e->getMessage(),
                 'checked_at' => time(),
             ];
         }
@@ -143,13 +143,13 @@ class UpdateManager
             return [
                 'update_available' => false,
                 'current_version' => COMFINO_VERSION,
-                'error' => 'No release information available from Comfino API.',
+                'error' => 'No release information available from ComfinoPay API.',
                 'checked_at' => time(),
             ];
         }
 
         return [
-            'update_available' => version_compare($release->version, COMFINO_VERSION, '>'),
+            'update_available' => self::isNewerVersion($release->version),
             'current_version' => COMFINO_VERSION,
             'github_version' => $release->version,
             'download_url' => $release->downloadUrl,
@@ -157,5 +157,25 @@ class UpdateManager
             'description_html' => $release->descriptionHtml,
             'checked_at' => time(),
         ];
+    }
+
+    /**
+     * The cached result outlives a module upgrade (up to ~28h), so the flag computed at fetch time may be stale.
+     * Recompute it against the currently installed version on every read.
+     */
+    private static function refreshUpdateFlag(array $updateInfo): array
+    {
+        $updateInfo['current_version'] = COMFINO_VERSION;
+
+        if (isset($updateInfo['github_version'])) {
+            $updateInfo['update_available'] = self::isNewerVersion($updateInfo['github_version']);
+        }
+
+        return $updateInfo;
+    }
+
+    private static function isNewerVersion(string $availableVersion): bool
+    {
+        return version_compare(ltrim(trim($availableVersion), 'vV'), ltrim(COMFINO_VERSION, 'vV'), '>');
     }
 }

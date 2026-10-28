@@ -1,8 +1,11 @@
+4.4.0
+ - FN-14976 Added ComfinoPay promotion hint at checkout, masking of sensitive data in diagnostic reports, more reliable order status updates (no more redundant cancellation requests sent back to ComfinoPay for orders it has already cancelled or rejected), improved error logging and reporting, rebrand to ComfinoPay (including the default payment method title), security hardening (update notice, remote settings validation, log files moved out of the web-accessible part of the shop), financing option shown at checkout always matches the customer's selection, fixes for rare settings and checkout errors, cleanup of leftover files from older versions, documentation update.
+
 4.3.1
- - Security release: hardened the verification of requests coming from Comfino, so requests are rejected when the store has no matching key configured, and the test environment key is accepted only while test mode is enabled. The address a customer is redirected to after placing an order is now checked before the customer is sent there. The payment key is no longer repeated back in settings page messages. Fixed the customer postal code sent with an order.
+ - Security release: hardened the verification of requests coming from ComfinoPay, so requests are rejected when the store has no matching key configured, and the test environment key is accepted only while test mode is enabled. The address a customer is redirected to after placing an order is now checked before the customer is sent there. The payment key is no longer repeated back in settings page messages. Fixed the customer postal code sent with an order.
 
 4.3.0
- - FN-14461 Migrated paywall frontend to Comfino V3 SDK, added multistore support, installment term limits per product type, paywall customization (custom CSS, payment text, default logo, direct redirect mode), improved widget price detection, more reliable payment tracking, delivery tax fix, prevented duplicate cancellation requests, enhanced error logging and plugin update handling, improved PS 1.6 checkout compatibility.
+ - FN-14461 Migrated paywall frontend to ComfinoPay V3 SDK, added multistore support, installment term limits per product type, paywall customization (custom CSS, payment text, default logo, direct redirect mode), improved widget price detection, more reliable payment tracking, delivery tax fix, prevented duplicate cancellation requests, enhanced error logging and plugin update handling, improved PS 1.6 checkout compatibility.
 
 4.2.9
  - FN-14233 Fixed a bug in extra commission calculation for loan amount (priceModifier) and in plugin update notification display logic.
@@ -43,7 +46,7 @@
  - FN-12631 Added more debug logs - improved plugin diagnostics.
 
 4.1.3
- - FN-12614 Fixed bug in API client (added extended data for correction items in cart required by leasing), fixed bug in Comfino availability filter (lower cart total value limit not worked properly).
+ - FN-12614 Fixed bug in API client (added extended data for correction items in cart required by leasing), fixed bug in ComfinoPay availability filter (lower cart total value limit not worked properly).
 
 4.1.2
  - FN-12596 Fixed bug in API configuration management (wrong API host used in sandbox mode), product widget initialization script rendering logic refactored.
@@ -70,7 +73,7 @@
  - FN-11692 Update product category filters - fix bugs.
 
 3.5.1
- - SMC-21 Update product category filters availability rules, update error logger (ignore exceptions thrown outside the Comfino module), change linking JS/CSS rules in hookHeader (less strict controller name checking).
+ - SMC-21 Update product category filters availability rules, update error logger (ignore exceptions thrown outside the ComfinoPay module), change linking JS/CSS rules in hookHeader (less strict controller name checking).
 
 3.5.0
  - FN-11467 New paywall frontend architecture based on iframe.
@@ -87,7 +90,7 @@
  - FN-11416 Add new widget init options: productId, productPrice, platform, platformVersion, platformDomain.
 
 3.4.3
- - FN-11349 Add dynamically loaded list of widget types from Comfino API in configuration form (widget settings).
+ - FN-11349 Add dynamically loaded list of widget types from ComfinoPay API in configuration form (widget settings).
 
 3.4.2
  - FN-11289 Fix bug in setup logic (custom order statuses), fix bug in configuration panel.
@@ -108,7 +111,7 @@
  - FN-10966 Update htaccess file.
 
 3.3.0
- - FN-10948 Add dynamically loaded list of offer types from Comfino API in configuration form (widget settings).
+ - FN-10948 Add dynamically loaded list of offer types from ComfinoPay API in configuration form (widget settings).
 
 3.2.0
  - FN-10894 Completely rewrite frontend logic.
@@ -118,7 +121,7 @@
 
 3.0.0
  - FN-10645 Complete plugin refactoring: new admin GUI design, improved errors handling and configuration management, code clean up.
- - FN-9914 Update configuration form (divide settings into set of tabs, new template for registration in Comfino API), update translations, add a new configuration option "priceObserverLevel" for widget in settings form.
+ - FN-9914 Update configuration form (divide settings into set of tabs, new template for registration in ComfinoPay API), update translations, add a new configuration option "priceObserverLevel" for widget in settings form.
  - FN-9914 Fix bug in new configuration saving logic.
  - FN-9914 Improve configuration form - new GUI.
  - FN-9914 Update API client, improve errors handling.
@@ -131,10 +134,10 @@
  - FN-10645 Fix bug in upgrade process - remove AdminOrdersController override from older plugin versions (plugin override directory and PS override directory).
  - FN-10645 Coding standards, update headers.
  - FN-10645 Update templates, icons and translations for Paywerk (remove Twisto).
- - FN-10645 Fix bug - remove OrdersList from Comfino namespace (incompatibility with hooks mechanism in PS 1.6).
+ - FN-10645 Fix bug - remove OrdersList from ComfinoPay namespace (incompatibility with hooks mechanism in PS 1.6).
  - FN-10645 Fix bug in configuration update (unexpected widget key reset).
  - FN-10645 Add support for HTTP CR headers with "X-" prefix in notification and configuration endpoints.
- - FN-10802 Process orders paid by Comfino only.
+ - FN-10802 Process orders paid by ComfinoPay only.
  - FN-10801 Add shop domain to the User-Agent header used in all API calls, add API-KEY header in the cancel order request (initialize API client).
  - FN-10818 Ignore notifications with CANCELLED_BY_SHOP status - not process and return 400 code.
  - FN-10818 Fix bugs in notifications processing for cancelled orders.
@@ -154,7 +157,7 @@
  - FN-10568 Add autoinitialization of widget debug mode from URL hash string.
 
 2.4.2
- - FN-10540 Fix bug with mouse click event assigned to the Comfino radio button on paywall.
+ - FN-10540 Fix bug with mouse click event assigned to the ComfinoPay radio button on paywall.
  - FN-10540 Add debug mode for plugin frontend JavaScript logic.
 
 2.4.1
@@ -162,9 +165,9 @@
 
 2.4.0
  - FN-10331 Complete rewrite of plugin configuration management and install/uninstall logic.
- - FN-10331 Complete rewrite of custom Comfino payment statuses management.
+ - FN-10331 Complete rewrite of custom ComfinoPay payment statuses management.
  - FN-10331 Update notifications endpoint - improve processing input message signature (accepted hash algorithm restrictions based on hosted PHP version).
- - FN-10331 Simplify Comfino states to internal PS states mapping to avoid sending of redundant e-mails.
+ - FN-10331 Simplify ComfinoPay states to internal PS states mapping to avoid sending of redundant e-mails.
  - FN-10331 Add some logic for development mode.
  - FN-10331 Remove config directory and add .htaccess file in the docs directory.
  - FN-10331 Add missing index file in the docs directory.
@@ -181,7 +184,7 @@
  - Prevent losing of application state (loaded offers list) in case of some dynamically loaded PS templates.
 
 2.3.0
- - FN-10362 Remove SHA3 library (PHP implementation), update notifications endpoint (new headers for hashing algorithms management - better compatibility with PHP older than 7.1), modifications for improving local development, update frontend logic for paywall rendering (better detection of Comfino control container in untypical PS frontend templates).
+ - FN-10362 Remove SHA3 library (PHP implementation), update notifications endpoint (new headers for hashing algorithms management - better compatibility with PHP older than 7.1), modifications for improving local development, update frontend logic for paywall rendering (better detection of ComfinoPay control container in untypical PS frontend templates).
 
 2.2.4
  - FN-10290 Add a new helper class Tools, remove incompatibilities with PrestaShop 1.6, fix bugs with Tools::displayPrice() usage.
@@ -211,13 +214,13 @@
  - FN-9171 Add CRC32 code for widget configuration to force refreshing widget initialization JS script.
 
 2.1.8
- - FN-9164 Link all images (Comfino logo, icons) to the external host (Comfino widgets static) to avoid problems with hosting configurations at some websites (403 error).
+ - FN-9164 Link all images (ComfinoPay logo, icons) to the external host (ComfinoPay widgets static) to avoid problems with hosting configurations at some websites (403 error).
 
 2.1.7
- - FN-9048 Add a new offer type in Comfino widget: Pay later (PAY_LATER).
+ - FN-9048 Add a new offer type in ComfinoPay widget: Pay later (PAY_LATER).
 
 2.1.6
- - FN-9017 Update configuration form: add logo and contact information (e-mail and phone to the Comfino support office).
+ - FN-9017 Update configuration form: add logo and contact information (e-mail and phone to the ComfinoPay support office).
 
 2.1.5
  - FN-8843 Fix bugs in configuration form (widget key retrieving and sandbox settings).
@@ -242,16 +245,16 @@
  - FN-8658 Unconditional widget key retrieving from API after configuration saving.
  - FN-8635 Update frontend templates, update order state names and add Polish translations, update widgets init script.
  - FN-8619 Update plugin icon and configuration form, widget key auto-initialization.
- - FN-8589 Remove logic for preventing cancellation of accepted orders paid via Comfino.
+ - FN-8589 Remove logic for preventing cancellation of accepted orders paid via ComfinoPay.
  - FN-8583 Code refactoring - PS coding and security standards implemented.
 
 2.0.4
  - FN-8568 Fix bug in payment controller.
- - FN-8543 Update Comfino logo used in payment form - use vector format.
+ - FN-8543 Update ComfinoPay logo used in payment form - use vector format.
  - FN-8535 Update styles.
  
 2.0.3
- - FN-8442 Comfino widget (product card).
+ - FN-8442 ComfinoPay widget (product card).
  - FN-8428 Update styles - correct font sizes and colors for PrestaShop 1.6.
  
 2.0.2
@@ -275,7 +278,7 @@
  
 1.1.0
  - FN-8028 Remove typo from documentation.
- - FN-7972 Change Comfino API hosts.
+ - FN-7972 Change ComfinoPay API hosts.
  - FN-7939 Add a hook for order status update (Canceled).
  - FN-7846 Disable order cancellation after payment initialization.
  - FN-7818 Remove parameter.

@@ -79,7 +79,7 @@ class RestEndpointAuthTest extends TestCase
             'unconfigured key slot (null)' => [null, 'A null key must never be used as a signature secret.'],
             'unconfigured key slot (empty string)' => ['', 'An empty key must never be used as a signature secret.'],
             'whitespace only' => ['                ', 'A blank key must never be used as a signature secret.'],
-            'too short to be a real key' => ['SHORT_KEY', 'A key shorter than 16 characters cannot be a Comfino key.'],
+            'too short to be a real key' => ['SHORT_KEY', 'A key shorter than 16 characters cannot be a ComfinoPay key.'],
             'wrong type' => [12345678901234567890, 'A non-string key must never be used as a signature secret.'],
         ];
     }
@@ -192,8 +192,6 @@ class RestEndpointAuthTest extends TestCase
      */
     private function resetEndpointManager()
     {
-        $instance = new \ReflectionProperty(RestEndpointManager::class, 'instance');
-        $instance->setAccessible(true);
-        $instance->setValue(null, null);
+        RestEndpointManager::reset();
     }
 }

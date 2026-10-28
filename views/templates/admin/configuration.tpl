@@ -48,7 +48,7 @@
         <div class="panel">
             <div class="panel-body">
                 <div style="display: flex; align-items: center; overflow: hidden">
-                    <img style="width: 300px; display: block" src="{$logo_url|escape:"htmlall":"UTF-8"}" alt="Comfino logo">
+                    <img style="width: 300px; display: block" src="{$logo_url|escape:"htmlall":"UTF-8"}" alt="ComfinoPay logo">
                     <span style="font-weight: bold; font-size: 16px; margin-left: 10px">{$plugin_version|escape:"htmlall":"UTF-8"}</span>
                 </div>
                 {if $update_available_message}

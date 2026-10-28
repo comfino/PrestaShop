@@ -39,11 +39,11 @@ if (!defined('_PS_VERSION_')) {
 }
 
 /**
- * Adapter for handling order status updates from Comfino API webhooks.
+ * Adapter for handling order status updates from ComfinoPay API webhooks.
  *
  * This class implements the OrderStatusAdapterInterface from the shared library
  * and provides PrestaShop-specific logic for updating order statuses based on
- * payment status changes received from Comfino API.
+ * payment status changes received from ComfinoPay API.
  *
  * Supports two order identification modes:
  * - Legacy: Numeric order ID (e.g., "12345")
@@ -51,40 +51,40 @@ if (!defined('_PS_VERSION_')) {
  *
  * Status update flow:
  * 1. Loads order by ID or reference.
- * 2. Validates order is paid via Comfino.
- * 3. Maps Comfino status to custom PrestaShop status.
+ * 2. Validates order is paid via ComfinoPay.
+ * 3. Maps ComfinoPay status to custom PrestaShop status.
  * 4. Applies custom status if not already in history.
  * 5. Maps to standard PrestaShop status and applies if configured.
  */
 class StatusAdapter implements OrderStatusAdapterInterface
 {
     /**
-     * Updates PrestaShop order status based on Comfino payment status.
+     * Updates PrestaShop order status based on ComfinoPay payment status.
      *
      * This method is called by StatusNotification REST endpoint when receiving
-     * status update webhooks from Comfino API. It:
+     * status update webhooks from ComfinoPay API. It:
      * - Determines order lookup method (by ID or reference).
-     * - Validates order belongs to Comfino payment module.
-     * - Converts Comfino status to PrestaShop custom status.
+     * - Validates order belongs to ComfinoPay payment module.
+     * - Converts ComfinoPay status to PrestaShop custom status.
      * - Applies both custom and mapped standard statuses if not already in history.
      *
      * The method avoids creating duplicate status history entries by checking
      * if the status was already applied to the order.
      *
      * @param string|int $orderId Order identifier - either numeric ID or reference string
-     * @param string $status Comfino payment status (e.g., "ACCEPTED", "REJECTED", "CANCELLED")
+     * @param string $status ComfinoPay payment status (e.g., "ACCEPTED", "REJECTED", "CANCELLED")
      *
      * @return void
      *
      * @throws NotFound If order not found by provided ID or reference
-     * @throws RequestValidationError If order exists but is not a Comfino order
+     * @throws RequestValidationError If order exists but is not a ComfinoPay order
      * @throws ServiceUnavailable If database error occurs during order loading
      */
     public function setStatus($orderId, $status): void
     {
         DebugLogger::logEvent(
             '[ORDER_STATUS_UPDATE]',
-            'StatusAdapter::setStatus: Order status update from Comfino API.',
+            'StatusAdapter::setStatus: Order status update from ComfinoPay API.',
             ['orderId' => $orderId, 'status' => $status]
         );
 
@@ -115,8 +115,8 @@ class StatusAdapter implements OrderStatusAdapterInterface
         }
 
         if ($order->module !== COMFINO_MODULE_NAME) {
-            // Process orders paid by Comfino only.
-            throw new RequestValidationError("Order $orderId is not a valid Comfino order.");
+            // Process orders paid by ComfinoPay only.
+            throw new RequestValidationError("Order $orderId is not a valid ComfinoPay order.");
         }
 
         $inputStatus = \Tools::strtoupper($status);
@@ -146,41 +146,27 @@ class StatusAdapter implements OrderStatusAdapterInterface
             "current internal status ID: $currentInternalStatusId, new custom status ID: $newCustomStatusId"
         );
 
-        $isCancellationStatus = in_array($inputStatus, [
-            StatusManager::STATUS_CANCELLED,
-            StatusManager::STATUS_CANCELLED_BY_SHOP,
-            StatusManager::STATUS_REJECTED,
-        ], true);
+        /* No cancellation guard is needed here: the shared StatusManager applies every notification inside
+           StatusApplicationContext, which ShopStatusManager checks before sending a cancellation back. */
+        if ($newCustomStatusId !== $currentInternalStatusId) {
+            $statusIdsHistory = array_unique(array_column($order->getHistory(0), 'id_order_state'), SORT_NUMERIC);
 
-        if ($isCancellationStatus) {
-            ShopStatusManager::setComfinoInitiatedCancellation(true);
-        }
-
-        try {
-            if ($newCustomStatusId !== $currentInternalStatusId) {
-                $statusIdsHistory = array_unique(array_column($order->getHistory(0), 'id_order_state'), SORT_NUMERIC);
-
-                if (!in_array($newCustomStatusId, $statusIdsHistory, true)) {
-                    $order->setCurrentState($newCustomStatusId);
-                }
-
-                $statusMap = ConfigManager::getStatusMap();
-
-                if (!array_key_exists($inputStatus, $statusMap)) {
-                    return;
-                }
-
-                $newInternalStatusId = (int) \Configuration::get($statusMap[$inputStatus]);
-
-                DebugLogger::logEvent('[ORDER_STATUS_UPDATE]', "new internal status ID: $newInternalStatusId");
-
-                if (!in_array($newInternalStatusId, $statusIdsHistory, true)) {
-                    $order->setCurrentState($newInternalStatusId);
-                }
+            if (!in_array($newCustomStatusId, $statusIdsHistory, true)) {
+                $order->setCurrentState($newCustomStatusId);
             }
-        } finally {
-            if ($isCancellationStatus) {
-                ShopStatusManager::setComfinoInitiatedCancellation(false);
+
+            $statusMap = ConfigManager::getStatusMap();
+
+            if (!array_key_exists($inputStatus, $statusMap)) {
+                return;
+            }
+
+            $newInternalStatusId = (int) \Configuration::get($statusMap[$inputStatus]);
+
+            DebugLogger::logEvent('[ORDER_STATUS_UPDATE]', "new internal status ID: $newInternalStatusId");
+
+            if (!in_array($newInternalStatusId, $statusIdsHistory, true)) {
+                $order->setCurrentState($newInternalStatusId);
             }
         }
     }

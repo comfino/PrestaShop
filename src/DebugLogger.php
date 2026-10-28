@@ -41,7 +41,7 @@ final class DebugLogger
     {
         if (self::$debugLogger === null) {
             self::$debugLogger = Common\Backend\DebugLogger::getInstance(
-                _PS_MODULE_DIR_ . COMFINO_MODULE_NAME . '/var/log/debug.log'
+                Main::getLogPath() . '/debug.log'
             );
         }
 

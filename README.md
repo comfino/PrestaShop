@@ -1,12 +1,18 @@
-# Comfino Payment Gateway for PrestaShop
+<a href="https://comfino.pl">
+  <img src="assets/comfinopay_logo.svg" alt="ComfinoPay" width="260">
+</a>
+
+# ComfinoPay - payment gateway for PrestaShop
+
+**Installment payments, buy now pay later (BNPL) and corporate financing for your PrestaShop store.**
 
 [![Tests](https://github.com/comfino/PrestaShop/workflows/Tests/badge.svg)](https://github.com/comfino/PrestaShop/actions)
-[![PHP Version](https://img.shields.io/badge/php-7.1%20to%208.4-blue.svg)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/php-7.1%20to%208.5-blue.svg)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-OSL--3.0-green.svg)](LICENSE)
 
-> **Notice:** The 4.3.x line is the **last one compatible with PHP 7.1**. The upcoming version 5.0.0 will require **PHP 8.1 or higher** and **PrestaShop 1.7.7.0 or higher** (PrestaShop 1.6.x will no longer be supported). Please plan your environment upgrade accordingly — this is especially important for PrestaShop, where a majority of active shops still run an end-of-life PHP version.
+> **Notice:** The 4.x line is the **last one compatible with PHP 7.1**. The upcoming version 5.0.0 will require **PHP 8.1 or higher** and **PrestaShop 8.0 or higher** (PrestaShop 1.6.x and 1.7.x will no longer be supported). Please plan your environment upgrade accordingly — this is especially important for PrestaShop, where a majority of active shops still run an end-of-life PHP version.
 
-PrestaShop payment module for Comfino deferred payments gateway - installment payments, buy now pay later (BNPL) and corporate payments.
+PrestaShop payment module for ComfinoPay deferred payments gateway - installment payments, buy now pay later (BNPL) and corporate payments.
 
 ## Installation
 
@@ -20,20 +26,20 @@ PrestaShop payment module for Comfino deferred payments gateway - installment pa
 
 ## Compatibility
 
-### Current version (4.3.1 — last PHP 7.1 compatible release line)
+### Current version (4.4.0 — last PHP 7.1 compatible release line)
 
 - **PrestaShop**: 1.6.x, 1.7.x, 8.x, 9.x (minimal supported version of PrestaShop is 1.6.1.11)
 - **PHP**: 7.1 or higher
-- **PHP extensions**: ctype, curl, json, zlib
+- **PHP extensions**: ctype, curl, json, mbstring, zlib
 
 ### Upcoming version (5.0.0)
 
-- **PrestaShop**: 1.7.7.0 or higher, 8.x, 9.x (PrestaShop 1.6.x will not be supported)
+- **PrestaShop**: 8.0 or higher, 8.x, 9.x (PrestaShop 1.6.x and 1.7.x will not be supported)
 - **PHP**: 8.1 or higher
 - **PHP extensions**: ctype, curl, json, sodium, zlib
 
-For legacy environments the latest version of the plugin compatible with PHP 5.6 and PrestaShop 1.6.0.14+: [3.5.5](https://github.com/comfino/PrestaShop/releases/tag/3.5.5)   
-It can be downloaded from here: [comfino.zip](https://github.com/comfino/PrestaShop/releases/download/3.5.5/comfino.zip)  
+For legacy environments the latest version of the plugin compatible with PHP 5.6 and PrestaShop 1.6.0.14+: [3.6.1](https://github.com/comfino/PrestaShop/releases/tag/3.6.1)   
+It can be downloaded from here: [comfino.zip](https://github.com/comfino/PrestaShop/releases/download/3.6.1/comfino.zip)  
 We strongly recommend upgrading your store environment to at least version 1.7.8.11 and using plugins version 4.x.
 
 ## Development
@@ -42,7 +48,7 @@ We strongly recommend upgrading your store environment to at least version 1.7.8
 
 - PHP 7.1 or higher
 - PrestaShop 1.6.1.11 or higher
-- PHP extensions: ctype, curl, json, zlib
+- PHP extensions: ctype, curl, json, mbstring, zlib
 - Docker and Docker Compose (for local development)
 
 ### Local development setup
@@ -95,7 +101,7 @@ XDEBUG_MODE=coverage ./bin/phpunit --coverage-html coverage
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-All pull requests are automatically tested against PHP 7.1-8.4 with both lowest and stable dependencies. Starting with version 5.0.0, the minimum supported PHP version will be 8.1.
+All pull requests are automatically tested against the minimum (7.1) and maximum (8.5) supported PHP versions with both lowest and stable dependencies. Starting with version 5.0.0, the minimum supported PHP version will be 8.1.
 
 ## License
 
@@ -103,7 +109,7 @@ This project is licensed under the Open Software License 3.0 - see the [LICENSE]
 
 ## Support
 
-- Documentation (Polish): [Comfino PrestaShop plugin documentation](https://comfino.pl/plugins/PrestaShop/pl)
-- Documentation (English): [Comfino PrestaShop plugin documentation](https://comfino.pl/plugins/PrestaShop/en)
+- Documentation (Polish): [ComfinoPay PrestaShop plugin documentation](https://comfino.pl/plugins/PrestaShop/pl)
+- Documentation (English): [ComfinoPay PrestaShop plugin documentation](https://comfino.pl/plugins/PrestaShop/en)
 - Issues: [GitHub Issues](https://github.com/comfino/PrestaShop/issues)
 - Website: https://comfino.pl

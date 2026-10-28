@@ -24,7 +24,7 @@
  *}
 
 {*
- * Template for the Comfino payment method fields in checkout.
+ * Template for the ComfinoPay payment method fields in checkout.
  *
  * Rendered by Main::renderPaywallIframe() as the container for the paywall. The CDN-hosted checkout glue script
  * (comfino-prestashop.min.js) locates #comfino-paywall-container and renders the paywall iframe inside it.
@@ -55,7 +55,8 @@
 {* Loan parameters written by PrestaShopAdapter.updatePaymentState(), read on order placement. *}
 <input id="comfino-loan-type" name="comfino_loan_type" type="hidden" value="" />
 <input id="comfino-loan-term" name="comfino_loan_term" type="hidden" value="" />
-{* Comfino web frontend SDK renders paywall iframe here. *}
+<input id="comfino-promo-code" name="comfino_promo_code" type="hidden" value="" />
+{* ComfinoPay web frontend SDK renders paywall iframe here. *}
 <div id="comfino-paywall-container"></div>
 
 {if $is_ps_16}
@@ -68,5 +69,5 @@
 </form>
 {/if}
 
-<script type="application/json" id="comfino-checkout-config">{$comfino_settings|@json_encode nofilter}</script>
+<script type="application/json" id="comfino-checkout-config">{$comfino_settings_json nofilter}</script>
 <script data-cfasync="false" src="{$checkout_script_url|escape:'htmlall':'UTF-8'}" data-comfino-checkout="1" crossorigin="anonymous"{if isset($script_nonce) && $script_nonce !== ''} nonce="{$script_nonce|escape:'javascript'}"{/if}></script>

@@ -27,6 +27,7 @@
 namespace Comfino\Order;
 
 use Comfino\Api\ApiClient;
+use Comfino\Common\Shop\Order\StatusApplicationContext;
 use Comfino\Common\Shop\Order\StatusManager;
 use Comfino\Configuration\ConfigManager;
 use Comfino\DebugLogger;
@@ -40,13 +41,13 @@ if (!defined('_PS_VERSION_')) {
 }
 
 /**
- * Manages custom Comfino order statuses in PrestaShop.
+ * Manages custom ComfinoPay order statuses in PrestaShop.
  *
- * This class handles the complete lifecycle of custom order statuses used by the Comfino payment module:
+ * This class handles the complete lifecycle of custom order statuses used by the ComfinoPay payment module:
  * - Creating and registering custom order statuses during module installation.
  * - Updating status definitions when upgrading the module.
  * - Removing statuses during uninstallation (with soft delete for used statuses).
- * - Synchronizing status changes between PrestaShop and Comfino API.
+ * - Synchronizing status changes between PrestaShop and ComfinoPay API.
  * - Handling order cancellation events via PrestaShop hooks.
  *
  * Custom statuses include: CREATED, ACCEPTED, REJECTED, CANCELLED, CANCELLED_BY_SHOP
@@ -54,9 +55,9 @@ if (!defined('_PS_VERSION_')) {
 final class ShopStatusManager
 {
     /**
-     * Default mapping between Comfino statuses and PrestaShop native statuses.
+     * Default mapping between ComfinoPay statuses and PrestaShop native statuses.
      *
-     * Maps Comfino status codes to PrestaShop configuration keys for standard order states.
+     * Maps ComfinoPay status codes to PrestaShop configuration keys for standard order states.
      * Used as fallback when custom statuses are not configured.
      *
      * @var array<string, string>
@@ -69,7 +70,7 @@ final class ShopStatusManager
     ];
 
     /**
-     * Definitions of custom Comfino order statuses.
+     * Definitions of custom ComfinoPay order statuses.
      *
      * Each status includes:
      * - name: English display name
@@ -82,47 +83,58 @@ final class ShopStatusManager
      */
     private const CUSTOM_ORDER_STATUSES = [
         'COMFINO_' . StatusManager::STATUS_CREATED => [
-            'name' => 'Order created - waiting for payment (Comfino)',
-            'name_pl' => 'Zamówienie utworzone - oczekiwanie na płatność (Comfino)',
+            'name' => 'Order created - waiting for payment (ComfinoPay)',
+            'name_pl' => 'Zamówienie utworzone - oczekiwanie na płatność (ComfinoPay)',
             'color' => '#87b921',
             'paid' => false,
             'deleted' => false,
         ],
         'COMFINO_' . StatusManager::STATUS_ACCEPTED => [
-            'name' => 'Credit granted (Comfino)',
-            'name_pl' => 'Kredyt udzielony (Comfino)',
+            'name' => 'Credit granted (ComfinoPay)',
+            'name_pl' => 'Kredyt udzielony (ComfinoPay)',
             'color' => '#227b34',
             'paid' => true,
             'deleted' => false,
         ],
         'COMFINO_' . StatusManager::STATUS_REJECTED => [
-            'name' => 'Credit rejected (Comfino)',
-            'name_pl' => 'Wniosek kredytowy odrzucony (Comfino)',
+            'name' => 'Credit rejected (ComfinoPay)',
+            'name_pl' => 'Wniosek kredytowy odrzucony (ComfinoPay)',
             'color' => '#ba3f1d',
             'paid' => false,
             'deleted' => false,
         ],
         'COMFINO_' . StatusManager::STATUS_CANCELLED => [
-            'name' => 'Canceled (Comfino)',
-            'name_pl' => 'Anulowano (Comfino)',
+            'name' => 'Canceled (ComfinoPay)',
+            'name_pl' => 'Anulowano (ComfinoPay)',
             'color' => '#ba3f1d',
             'paid' => false,
             'deleted' => false,
         ],
         'COMFINO_' . StatusManager::STATUS_CANCELLED_BY_SHOP => [
-            'name' => 'Canceled by shop (Comfino)',
-            'name_pl' => 'Anulowano przez sklep (Comfino)',
+            'name' => 'Canceled by shop (ComfinoPay)',
+            'name_pl' => 'Anulowano przez sklep (ComfinoPay)',
             'color' => '#ba3f1d',
             'paid' => false,
             'deleted' => false,
         ],
     ];
 
-    /** Flag to suppress cancel API call when a status change was initiated by Comfino API notification. */
-    private static $comfinoInitiatedCancellation = false;
+    /**
+     * Custom states after which ComfinoPay already treats the order as closed, so a cancellation must not be sent back.
+     */
+    private const TERMINAL_CUSTOM_ORDER_STATUSES = [
+        'COMFINO_' . StatusManager::STATUS_CANCELLED,
+        'COMFINO_' . StatusManager::STATUS_REJECTED,
+        'COMFINO_' . StatusManager::STATUS_CANCELLED_BY_SHOP,
+    ];
+
+    /** Cancel suppressed because the order history already holds a terminal ComfinoPay state. */
+    public const CANCEL_SUPPRESSED_BY_HISTORY = 'history';
+    /** Cancel suppressed because the status change is being applied from a ComfinoPay status notification. */
+    public const CANCEL_SUPPRESSED_BY_CONTEXT = 'context';
 
     /**
-     * Creates custom Comfino order statuses in PrestaShop database.
+     * Creates custom ComfinoPay order statuses in PrestaShop database.
      *
      * This method is called during module installation or reset. It:
      * - Attempts to reuse existing status IDs from previous installations.
@@ -131,7 +143,7 @@ final class ShopStatusManager
      * - Handles multi-language status names (English and Polish).
      * - Stores status IDs in PrestaShop configuration.
      *
-     * @param \Comfino $module Comfino module instance
+     * @param \Comfino $module ComfinoPay module instance
      *
      * @return array Statistics about the operation containing:
      *               - statuses_created: Number of newly created statuses
@@ -247,7 +259,7 @@ final class ShopStatusManager
     }
 
     /**
-     * Updates all existing custom Comfino order statuses.
+     * Updates all existing custom ComfinoPay order statuses.
      *
      * Refreshes status definitions to match current CUSTOM_ORDER_STATUSES configuration.
      * This is useful after module upgrades to ensure status names, colors, and flags are current.
@@ -320,7 +332,7 @@ final class ShopStatusManager
     }
 
     /**
-     * Removes custom Comfino order statuses from PrestaShop.
+     * Removes custom ComfinoPay order statuses from PrestaShop.
      *
      * Called during module uninstallation. Uses a transactional approach to ensure data consistency:
      * - Hard delete: Completely removes statuses if never used in order history.
@@ -364,7 +376,7 @@ final class ShopStatusManager
                 } else {
                     $resultStats['statuses_remove_failed'] = count(self::CUSTOM_ORDER_STATUSES);
 
-                    throw new \RuntimeException('Failed to delete Comfino order statuses');
+                    throw new \RuntimeException('Failed to delete ComfinoPay order statuses');
                 }
             } else {
                 // Mark statuses as deleted only (soft delete).
@@ -373,7 +385,7 @@ final class ShopStatusManager
                 } else {
                     $resultStats['statuses_update_failed'] = count(self::CUSTOM_ORDER_STATUSES);
 
-                    throw new \RuntimeException('Failed to soft delete Comfino order statuses');
+                    throw new \RuntimeException('Failed to soft delete ComfinoPay order statuses');
                 }
             }
 
@@ -419,14 +431,14 @@ final class ShopStatusManager
      * Reinitializes custom order statuses during module reset or upgrade.
      *
      * This method performs a comprehensive status management operation:
-     * 1. Attempts to load existing Comfino statuses from database.
+     * 1. Attempts to load existing ComfinoPay statuses from database.
      * 2. Repairs module_name if statuses exist but aren't properly linked.
      * 3. Creates missing statuses if needed.
      * 4. Updates all existing statuses to current definitions.
      *
      * Used during module reset and upgrade processes to ensure status consistency.
      *
-     * @param \Comfino $module Comfino module instance
+     * @param \Comfino $module ComfinoPay module instance
      *
      * @return array Combined statistics from add and update operations containing:
      *               - statuses_created: Number of newly created statuses
@@ -468,19 +480,55 @@ final class ShopStatusManager
         return $resultStats;
     }
 
+    /**
+     * @deprecated since 4.4.0, no-op. Webhook-applied statuses are recognized through the shared
+     *             StatusApplicationContext; kept for one release so a partially upgraded StatusAdapter still loads.
+     */
     public static function setComfinoInitiatedCancellation(bool $value): void
     {
-        self::$comfinoInitiatedCancellation = $value;
     }
 
     /**
-     * Handles PrestaShop order status update events for Comfino orders.
+     * Tells whether a cancellation of the order must not be sent to the ComfinoPay API, and why.
+     *
+     * The history check runs first: it needs nothing from the webhook path, so it also works across requests (an
+     * employee cancelling an order ComfinoPay rejected earlier) and on a mixed-version install. The order_history table
+     * is queried directly, because Order::getHistory() keeps a per-request static cache that StatusAdapter::setStatus()
+     * fills before it applies the new states.
+     *
+     * @return string|null One of the CANCEL_SUPPRESSED_BY_* constants, or null when the cancellation must be sent
+     */
+    public static function getCancelSuppressionReason(int $orderId): ?string
+    {
+        $terminalStatusIds = [];
+
+        foreach (self::TERMINAL_CUSTOM_ORDER_STATUSES as $orderStateCode) {
+            if (!empty($orderStateId = (int) \Configuration::get($orderStateCode))) {
+                $terminalStatusIds[] = $orderStateId;
+            }
+        }
+
+        if (!empty($terminalStatusIds) && self::orderHistoryContains($orderId, $terminalStatusIds)) {
+            return self::CANCEL_SUPPRESSED_BY_HISTORY;
+        }
+
+        /* Any status applied from a ComfinoPay notification runs inside the shared application context, not only the
+           cancellation statuses, so a status map entry pointing another status at PS_OS_CANCELED is covered too. */
+        if (StatusApplicationContext::isActive()) {
+            return self::CANCEL_SUPPRESSED_BY_CONTEXT;
+        }
+
+        return null;
+    }
+
+    /**
+     * Handles PrestaShop order status update events for ComfinoPay orders.
      *
      * This method is called by PrestaShop's actionOrderStatusUpdate hook.
-     * When a Comfino order is manually changed to "Canceled" status in admin panel,
-     * this handler sends a cancellation notification to the Comfino API.
+     * When a ComfinoPay order is manually changed to "Canceled" status in admin panel,
+     * this handler sends a cancellation notification to the ComfinoPay API.
      *
-     * Only processes orders paid via Comfino (checked via order->module).
+     * Only processes orders paid via ComfinoPay (checked via order->module).
      * Supports both numeric order IDs and order references based on configuration.
      *
      * @param array $params Hook parameters containing:
@@ -507,7 +555,7 @@ final class ShopStatusManager
         DebugLogger::logEvent('[ORDER_STATUS_UPDATE]', "Order $order->id loaded. (payment method: \"$order->payment\")");
 
         if ($order->module === COMFINO_MODULE_NAME) {
-            // Process orders paid by Comfino only.
+            // Process orders paid by ComfinoPay only.
 
             /** @var \OrderState $newOrderState */
             $newOrderState = $params['newOrderStatus'];
@@ -516,8 +564,14 @@ final class ShopStatusManager
             $canceledOrderStateId = (int) \Configuration::get('PS_OS_CANCELED');
 
             if ($newOrderStateId === $canceledOrderStateId) {
-                if (self::$comfinoInitiatedCancellation) {
-                    // Cancellation originated from Comfino API notification - do not resend cancel request.
+                if (($suppressionReason = self::getCancelSuppressionReason((int) $order->id)) !== null) {
+                    // ComfinoPay already knows the order is closed - do not send the cancellation back.
+                    DebugLogger::logEvent(
+                        '[ORDER_STATUS_UPDATE]',
+                        'Order cancellation not sent to ComfinoPay API.',
+                        ['orderId' => (int) $order->id, 'newOrderStateId' => $newOrderStateId, 'guard' => $suppressionReason]
+                    );
+
                     return;
                 }
 
@@ -531,11 +585,11 @@ final class ShopStatusManager
                 }
 
                 try {
-                    // Send notification about canceled order paid by Comfino.
+                    // Send notification about canceled order paid by ComfinoPay.
                     ApiClient::getInstance()->cancelOrder($orderId);
                 } catch (\Throwable $e) {
                     ApiClient::processApiError(
-                        'Order cancellation error on page "' . Main::getRequestUri() . '" (Comfino API)', $e,
+                        'Order cancellation error on page "' . Main::getRequestUri() . '" (ComfinoPay API)', $e,
                         OperationContext::OrderCancellation
                     );
                 }
@@ -544,7 +598,7 @@ final class ShopStatusManager
     }
 
     /**
-     * Retrieves all custom Comfino order status IDs from configuration.
+     * Retrieves all custom ComfinoPay order status IDs from configuration.
      *
      * @return int[] Array of order state IDs
      */
@@ -562,7 +616,7 @@ final class ShopStatusManager
     }
 
     /**
-     * Retrieves previously installed Comfino order statuses grouped by language.
+     * Retrieves previously installed ComfinoPay order statuses grouped by language.
      *
      * Used during status creation to detect and reuse existing status IDs from previous installations.
      * Prevents duplicate status creation and configuration key corruption.
@@ -572,7 +626,7 @@ final class ShopStatusManager
      *
      * @return array<string, array<string, array{id_order_state: int, id_lang: int, name: string}>>
      *               Nested array structure: [language_code][status_name] => status_data
-     *               Example: ['en']['Order created - waiting for payment (Comfino)'] => ['id_order_state' => 123, ...]
+     *               Example: ['en']['Order created - waiting for payment (ComfinoPay)'] => ['id_order_state' => 123, ...]
      */
     private static function getPreviousOrderStatuses(string $moduleName, array $languages): array
     {
@@ -589,6 +643,14 @@ final class ShopStatusManager
         }
 
         return $previousOrderStatuses;
+    }
+
+    /**
+     * Name a status had before the ComfinoPay rebrand ("(ComfinoPay)" suffix was "(Comfino)").
+     */
+    public static function getLegacyStatusName(string $statusName): string
+    {
+        return str_replace('(ComfinoPay)', '(Comfino)', $statusName);
     }
 
     /**
@@ -614,20 +676,25 @@ final class ShopStatusManager
         $comfinoStatusId = \Configuration::get($statusCode);
 
         if (empty($comfinoStatusId) || !\Validate::isInt($comfinoStatusId)) {
-            // Status ID not found in configuration or is corrupted - try to use existing ID from previous installations.
-            if (isset(
-                $previousOrderStatuses['en'][$statusDetails['name']],
-                $previousOrderStatuses['pl'][$statusDetails['name_pl']]
-            )) {
-                $idOrderStateEN = $previousOrderStatuses['en'][$statusDetails['name']]['id_order_state'];
-                $idOrderStatePL = $previousOrderStatuses['pl'][$statusDetails['name_pl']]['id_order_state'];
+            /* Status ID not found in configuration or is corrupted - try to use existing ID from previous installations.
+               Statuses created before the ComfinoPay rebrand carry the legacy "(Comfino)" suffix; both names are accepted. */
+            foreach ([false, true] as $legacy) {
+                $nameEn = $legacy ? self::getLegacyStatusName($statusDetails['name']) : $statusDetails['name'];
+                $namePl = $legacy ? self::getLegacyStatusName($statusDetails['name_pl']) : $statusDetails['name_pl'];
 
-                if ($idOrderStateEN === $idOrderStatePL) {
-                    // Reuse existing status definition and load it in the next step with reclaimed ID.
-                    $comfinoStatusId = $idOrderStateEN;
+                if (isset($previousOrderStatuses['en'][$nameEn], $previousOrderStatuses['pl'][$namePl])) {
+                    $idOrderStateEN = $previousOrderStatuses['en'][$nameEn]['id_order_state'];
+                    $idOrderStatePL = $previousOrderStatuses['pl'][$namePl]['id_order_state'];
 
-                    // Restore configuration option with proper status ID.
-                    \Configuration::updateValue($statusCode, $comfinoStatusId);
+                    if ($idOrderStateEN === $idOrderStatePL) {
+                        // Reuse existing status definition and load it in the next step with reclaimed ID.
+                        $comfinoStatusId = $idOrderStateEN;
+
+                        // Restore configuration option with proper status ID.
+                        \Configuration::updateValue($statusCode, $comfinoStatusId);
+
+                        break;
+                    }
                 }
             }
         }
@@ -676,11 +743,11 @@ final class ShopStatusManager
     }
 
     /**
-     * Repairs orphaned Comfino order statuses by setting their module_name.
+     * Repairs orphaned ComfinoPay order statuses by setting their module_name.
      *
      * Fixes statuses that exist in database but have incorrect or missing module_name.
      * This can happen after manual database modifications or PrestaShop upgrades.
-     * Identifies Comfino statuses by searching for "comfino" in status names.
+     * Identifies ComfinoPay statuses by searching for "comfino" in status names.
      *
      * @param string $moduleName Module name to set (usually "comfino")
      *
@@ -704,9 +771,9 @@ SQL
     }
 
     /**
-     * Loads all Comfino order statuses from database.
+     * Loads all ComfinoPay order statuses from database.
      *
-     * Retrieves statuses linked to the Comfino module via module_name field.
+     * Retrieves statuses linked to the ComfinoPay module via module_name field.
      * Returns multi-language status data with translations.
      *
      * @param string $moduleName Module name to filter by (usually "comfino")
@@ -733,14 +800,14 @@ SQL
 SQL
             );
         } catch (\PrestaShopDatabaseException $e) {
-            FrontendManager::processError('Comfino order statuses loading error', $e, null, null, null, '[ERROR]', OperationContext::Configuration);
+            FrontendManager::processError('ComfinoPay order statuses loading error', $e, null, null, null, '[ERROR]', OperationContext::Configuration);
         }
 
         return false;
     }
 
     /**
-     * Checks if any Comfino order statuses have been used in order history.
+     * Checks if any ComfinoPay order statuses have been used in order history.
      *
      * Determines whether statuses can be safely hard-deleted or require soft delete.
      * If any status has been used in an order, all statuses should be soft-deleted
@@ -750,6 +817,22 @@ SQL
      *
      * @return bool True if any status has been used in order history, false otherwise
      */
+    private static function orderHistoryContains(int $orderId, array $orderStatusIds): bool
+    {
+        $dbPrefix = _DB_PREFIX_;
+        $orderStateIdsSQL = implode(',', array_map('intval', $orderStatusIds));
+
+        return (bool) \Db::getInstance()->getValue(<<<SQL
+            SELECT
+                1
+            FROM
+                {$dbPrefix}order_history
+            WHERE
+                id_order = $orderId AND id_order_state IN ($orderStateIdsSQL)
+SQL
+        );
+    }
+
     private static function comfinoOrderStatusesUsed(array $orderStatusIds): bool
     {
         $dbPrefix = _DB_PREFIX_;
@@ -768,7 +851,7 @@ SQL
     }
 
     /**
-     * Permanently deletes Comfino order statuses from database (hard delete).
+     * Permanently deletes ComfinoPay order statuses from database (hard delete).
      *
      * Removes status records from both order_state and order_state_lang tables.
      * Should only be called when statuses have never been used in order history.
@@ -786,7 +869,7 @@ SQL
     }
 
     /**
-     * Marks Comfino order statuses as deleted without removing them (soft delete).
+     * Marks ComfinoPay order statuses as deleted without removing them (soft delete).
      *
      * Sets the 'deleted' flag to 1 in order_state table.
      * Used when statuses have been used in order history to preserve referential integrity.
