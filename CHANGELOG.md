@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.4.1](https://github.com/comfino/PrestaShop/tree/4.4.1) (2026-11-10)
+
+### Changed
+- Direct redirect mode state is now sent with the order, so ComfinoPay can report it reliably.
+- Error-logging token refresh no longer repeats on every request after a failed or short-lived token claim, and no invalid token is sent to the checkout when it is unavailable.
+- Product types, widget types and creditors are cached for 1 hour when the API gives no cache lifetime.
+- Stronger masking of credentials and personal data (authorization headers, tokens, NIP, city) in logs and diagnostics.
+- Outbound request queue handles storage and reporting failures without losing or repeating requests.
+
 ## [4.4.0](https://github.com/comfino/PrestaShop/tree/4.4.0) (2026-10-28)
 
 ### Added

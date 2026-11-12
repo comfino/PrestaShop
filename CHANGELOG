@@ -1,3 +1,10 @@
+4.4.1
+ - Direct redirect mode state is now sent with the order, so ComfinoPay can report it reliably.
+ - Error-logging token refresh no longer repeats on every request after a failed or short-lived token claim, and no invalid token is sent to the checkout when it is unavailable.
+ - Product types, widget types and creditors are cached for 1 hour when the API gives no cache lifetime.
+ - Stronger masking of credentials and personal data (authorization headers, tokens, NIP, city) in logs and diagnostics.
+ - Outbound request queue handles storage and reporting failures without losing or repeating requests.
+
 4.4.0
  - FN-14976 Added ComfinoPay promotion hint at checkout, masking of sensitive data in diagnostic reports, more reliable order status updates (no more redundant cancellation requests sent back to ComfinoPay for orders it has already cancelled or rejected), improved error logging and reporting, rebrand to ComfinoPay (including the default payment method title), security hardening (update notice, remote settings validation, log files moved out of the web-accessible part of the shop), financing option shown at checkout always matches the customer's selection, fixes for rare settings and checkout errors, cleanup of leftover files from older versions, documentation update.
 

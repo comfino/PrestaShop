@@ -65,7 +65,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        // Reuse the trackId minted during this checkout session's paywall render, if any (see ApiClient::pinCheckoutTrackId()).
+        // Reuse the trackId generated during this checkout session's paywall render, if any (see ApiClient::pinCheckoutTrackId()).
         ApiClient::pinCheckoutTrackId();
 
         $cart = $this->context->cart;
@@ -250,7 +250,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         /* Create Order object with temporary ID for validation before validateOrder() call.
            This allows validation to occur before the cart is cleared by validateOrder(). */
-        $order = $this->createOrder($tempOrderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer, $promoCode);
+        $order = $this->createOrder($tempOrderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer, $promoCode, $directRedirect);
 
         // Perform comprehensive validation before validateOrder() to preserve cart on error.
         $validationErrors = $this->validatePaymentData($order, $cart);
@@ -330,7 +330,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         ]);
 
         // Create Order object with real order ID for ComfinoPay API.
-        $order = $this->createOrder($orderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer, $promoCode);
+        $order = $this->createOrder($orderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer, $promoCode, $directRedirect);
 
         try {
             $applicationUrl = ApiClient::getInstance()->createOrder($order)->applicationUrl;
@@ -568,7 +568,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         string $returnUrl,
         Comfino\Common\Shop\Cart $shopCart,
         Comfino\Shop\Order\Customer $shopCustomer,
-        ?string $promoCode = null
+        ?string $promoCode = null,
+        ?bool $directRedirect = null
     ): Order
     {
         return (new OrderFactory())->createOrder(
@@ -587,7 +588,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $shopCart->getDeliveryTaxValue(),
             null,
             $this->buildAllowedProductsConfig(),
-            $promoCode
+            $promoCode,
+            $directRedirect
         );
     }
 
