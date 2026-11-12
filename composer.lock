@@ -344,12 +344,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:comfino/shop-plugins-shared.git",
-                "reference": "83acb078c31bfde27798c74afd12a48a2d0d88f3"
+                "reference": "48d5cd211670711c03b8170a0e7a76de824345d0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/83acb078c31bfde27798c74afd12a48a2d0d88f3",
-                "reference": "83acb078c31bfde27798c74afd12a48a2d0d88f3",
+                "url": "https://api.github.com/repos/comfino/shop-plugins-shared/zipball/48d5cd211670711c03b8170a0e7a76de824345d0",
+                "reference": "48d5cd211670711c03b8170a0e7a76de824345d0",
                 "shasum": ""
             },
             "require": {
@@ -396,7 +396,7 @@
             ],
             "description": "Shared library for shop plugins with all dependencies cumulated from ecommerce packages.",
             "homepage": "https://github.com/comfino/shop-plugins-shared",
-            "time": "2026-11-12T08:30:25+00:00"
+            "time": "2026-11-12T15:21:47+00:00"
         },
         {
             "name": "fig/http-message-util",
