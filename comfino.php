@@ -37,11 +37,11 @@ if (!defined('COMFINO_MODULE_NAME')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.4.0');
+    define('COMFINO_VERSION', '4.4.1');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1793199540);
+    define('COMFINO_BUILD_TS', 1794588443);
 }
 
 /* Notice: source code of this script MUST be compatible with PHP 5.6 syntax. */
@@ -55,7 +55,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '4.4.0';
+        $this->version = '4.4.1';
         $this->author = 'ComfinoPay';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 

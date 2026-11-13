@@ -38,6 +38,7 @@ class ApiClientTrackIdTest extends TestCase
 {
     const JOURNEY_TRACK_ID = 'journey-track-id.1';
     const CHECKOUT_TRACK_ID = 'checkout-track-id.1';
+    const SUBMITTED_TRACK_ID = '01a1d4b7-46b3-725e-86cc-0047ff6f3881';
 
     protected function setUp()
     {
@@ -86,6 +87,38 @@ class ApiClientTrackIdTest extends TestCase
         $_COOKIE['comfino_checkout_track_id'] = self::CHECKOUT_TRACK_ID;
 
         ApiClient::pinCheckoutTrackId();
+
+        $this->assertSame(self::CHECKOUT_TRACK_ID, ApiClient::getInstance()->getTrackId());
+    }
+
+    public function testSubmittedTrackIdWinsOverBothCookies()
+    {
+        \Configuration::updateValue('COMFINO_PAYWALL_TRACKING_CONSENT', '1');
+        $_COOKIE['comfino_journey_track_id'] = self::JOURNEY_TRACK_ID;
+        $_COOKIE['comfino_checkout_track_id'] = self::CHECKOUT_TRACK_ID;
+
+        ApiClient::pinCheckoutTrackId(self::SUBMITTED_TRACK_ID);
+
+        $this->assertSame(self::SUBMITTED_TRACK_ID, ApiClient::getInstance()->getTrackId());
+    }
+
+    public function testReleaseCheckoutTrackIdDropsCheckoutCookieOnly()
+    {
+        $_COOKIE['comfino_journey_track_id'] = self::JOURNEY_TRACK_ID;
+        $_COOKIE['comfino_checkout_track_id'] = self::CHECKOUT_TRACK_ID;
+
+        ApiClient::releaseCheckoutTrackId();
+
+        $this->assertArrayNotHasKey('comfino_checkout_track_id', $_COOKIE);
+        $this->assertSame(self::JOURNEY_TRACK_ID, $_COOKIE['comfino_journey_track_id']);
+    }
+
+    public function testInvalidSubmittedTrackIdFallsBackToCookies()
+    {
+        \Configuration::updateValue('COMFINO_PAYWALL_TRACKING_CONSENT', '0');
+        $_COOKIE['comfino_checkout_track_id'] = self::CHECKOUT_TRACK_ID;
+
+        ApiClient::pinCheckoutTrackId("bad\r\nvalue");
 
         $this->assertSame(self::CHECKOUT_TRACK_ID, ApiClient::getInstance()->getTrackId());
     }

@@ -50,6 +50,13 @@ if (!defined('_PS_VERSION_')) {
 
 final class SettingsManager
 {
+    /**
+     * Lifetime, in seconds, of the product types, widget types and creditors when the API names none (a missing, zero or
+     * negative `Comfino-Cache-TTL`, e.g. stripped by a proxy). `CacheManager::set()` treats 0 as "never expires", which
+     * would keep these lists until the next cache invalidation webhook.
+     */
+    private const FALLBACK_CACHE_TTL = 3600;
+
     /** @var ProductTypeFilterManager */
     private static $filterManager;
 
@@ -107,7 +114,7 @@ final class SettingsManager
         try {
             $productTypes = ApiClient::getInstance()->getProductTypes($listTypeEnum);
             $productTypesList = $productTypes->productTypesWithNames;
-            $cacheTtl = (int) $productTypes->getHeader('Comfino-Cache-TTL', '0');
+            $cacheTtl = self::resolveCacheTtl((int) $productTypes->getHeader('Comfino-Cache-TTL', '0'));
 
             CacheManager::set($cacheKey, $productTypesList, $cacheTtl, ['admin_product_types']);
 
@@ -148,7 +155,7 @@ final class SettingsManager
         try {
             $response = ApiClient::getInstance()->getCreditors();
             $creditorsList = $response->creditors;
-            $cacheTtl = (int) $response->getHeader('Comfino-Cache-TTL', '0');
+            $cacheTtl = self::resolveCacheTtl((int) $response->getHeader('Comfino-Cache-TTL', '0'));
 
             CacheManager::set($cacheKey, $creditorsList, $cacheTtl, ['admin_product_types']);
 
@@ -214,7 +221,7 @@ final class SettingsManager
         try {
             $widgetTypes = ApiClient::getInstance()->getWidgetTypes();
             $widgetTypesList = $widgetTypes->widgetTypesWithNames;
-            $cacheTtl = (int) $widgetTypes->getHeader('Comfino-Cache-TTL', '0');
+            $cacheTtl = self::resolveCacheTtl((int) $widgetTypes->getHeader('Comfino-Cache-TTL', '0'));
 
             CacheManager::set($cacheKey, $widgetTypesList, $cacheTtl, ['admin_widget_types']);
 
@@ -492,5 +499,13 @@ final class SettingsManager
         }
 
         return $filters;
+    }
+
+    /**
+     * The cache lifetime to use: the API's `Comfino-Cache-TTL` when positive, else {@see self::FALLBACK_CACHE_TTL}.
+     */
+    private static function resolveCacheTtl(int $headerTtl): int
+    {
+        return $headerTtl > 0 ? $headerTtl : self::FALLBACK_CACHE_TTL;
     }
 }
