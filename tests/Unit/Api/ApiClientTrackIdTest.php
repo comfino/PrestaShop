@@ -102,6 +102,17 @@ class ApiClientTrackIdTest extends TestCase
         $this->assertSame(self::SUBMITTED_TRACK_ID, ApiClient::getInstance()->getTrackId());
     }
 
+    public function testReleaseCheckoutTrackIdDropsCheckoutCookieOnly()
+    {
+        $_COOKIE['comfino_journey_track_id'] = self::JOURNEY_TRACK_ID;
+        $_COOKIE['comfino_checkout_track_id'] = self::CHECKOUT_TRACK_ID;
+
+        ApiClient::releaseCheckoutTrackId();
+
+        $this->assertArrayNotHasKey('comfino_checkout_track_id', $_COOKIE);
+        $this->assertSame(self::JOURNEY_TRACK_ID, $_COOKIE['comfino_journey_track_id']);
+    }
+
     public function testInvalidSubmittedTrackIdFallsBackToCookies()
     {
         \Configuration::updateValue('COMFINO_PAYWALL_TRACKING_CONSENT', '0');

@@ -350,6 +350,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                 throw new RuntimeException('Invalid payment application URL received from the ComfinoPay API.');
             }
 
+            // The order is created: the next checkout starts a new journey (own trackId).
+            ApiClient::releaseCheckoutTrackId();
+
             Tools::redirect($applicationUrl);
         } catch (Throwable $e) {
             $psOrder = new \Order($this->module->currentOrder);
