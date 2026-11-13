@@ -45,10 +45,16 @@ if (!defined('_PS_VERSION_')) {
 
 final class ApiClient
 {
+    /** Cookie keeping the checkout track ID between the paywall render and the order-create request. */
     private const CHECKOUT_TRACK_ID_COOKIE = 'comfino_checkout_track_id';
-    private const CHECKOUT_TRACK_ID_COOKIE_TTL = 900;
+    /** Same sliding lifetime as the SDK journey cookie, which the SDK clears when the shopper starts the payment. */
+    private const CHECKOUT_TRACK_ID_COOKIE_TTL = 1800;
+    /** Track ID format accepted from cookies and requests, shared with the frontend SDK and the Comfino API. */
     private const CHECKOUT_TRACK_ID_PATTERN = '/^[A-Za-z0-9_.:-]{1,128}$/';
+    /** Cookie owned by the frontend SDK with the consent-gated shopper journey track ID (read only, never written). */
     private const JOURNEY_TRACK_ID_COOKIE = 'comfino_journey_track_id';
+    /** Place-order request field with the paywall track ID, written by the frontend SDK. */
+    public const TRACK_ID_REQUEST_FIELD = 'comfino_track_id';
 
     /** @var \Comfino\Common\Api\Client */
     private static $apiClient;
@@ -134,13 +140,21 @@ final class ApiClient
      * analytics consent) takes precedence, so product-page widget events and checkout share one trackId. The journey
      * cookie is never read with the setting off, and never written here.
      *
+     * A valid track ID sent with the place-order request by the frontend SDK (the one of the paywall events, see
+     * TRACK_ID_REQUEST_FIELD) wins over both cookies: the SDK clears the journey cookie when the payment starts, and
+     * the checkout cookie may be missing or expired by then.
+     *
+     * @param string $submittedTrackId Track ID from the place-order request, empty when the request has none
+     *
      * @return void
      */
-    public static function pinCheckoutTrackId(): void
+    public static function pinCheckoutTrackId(string $submittedTrackId = ''): void
     {
         $client = self::getInstance();
 
-        if (ConfigManager::getConfigurationValue('COMFINO_PAYWALL_TRACKING_CONSENT') &&
+        if (preg_match(self::CHECKOUT_TRACK_ID_PATTERN, $submittedTrackId) === 1) {
+            $client->setTrackId($submittedTrackId);
+        } elseif (ConfigManager::getConfigurationValue('COMFINO_PAYWALL_TRACKING_CONSENT') &&
             self::isValidTrackIdCookie(self::JOURNEY_TRACK_ID_COOKIE)
         ) {
             $client->setTrackId($_COOKIE[self::JOURNEY_TRACK_ID_COOKIE]);
@@ -152,12 +166,15 @@ final class ApiClient
 
         if (!headers_sent()) {
             $expires = time() + self::CHECKOUT_TRACK_ID_COOKIE_TTL;
+            /* Browsers drop a Secure cookie sent over plain HTTP, which would leave the order-create request without
+               the checkout trackId. */
+            $secure = \Tools::usingSecureMode();
 
             if (PHP_VERSION_ID >= 70300) {
                 setcookie(self::CHECKOUT_TRACK_ID_COOKIE, $trackId, [
                     'expires' => $expires,
                     'path' => '/',
-                    'secure' => true,
+                    'secure' => $secure,
                     'httponly' => true,
                     'samesite' => 'Lax',
                 ]);
@@ -171,7 +188,7 @@ final class ApiClient
                     $expires,
                     '/; SameSite=Lax',
                     '',
-                    true,
+                    $secure,
                     true
                 );
             }

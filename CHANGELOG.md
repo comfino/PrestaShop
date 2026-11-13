@@ -1,6 +1,6 @@
 # Changelog
 
-## [4.4.1](https://github.com/comfino/PrestaShop/tree/4.4.1) (2026-11-10)
+## [4.4.1](https://github.com/comfino/PrestaShop/tree/4.4.1) (2026-11-13)
 
 ### Changed
 - Direct redirect mode state is now sent with the order, so ComfinoPay can report it reliably.

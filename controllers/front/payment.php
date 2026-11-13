@@ -65,8 +65,11 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        // Reuse the trackId generated during this checkout session's paywall render, if any (see ApiClient::pinCheckoutTrackId()).
-        ApiClient::pinCheckoutTrackId();
+        /* Create the order with the trackId of the paywall events: sent with the payment form by the frontend SDK, else
+           the one of this checkout session's paywall render, if any (see ApiClient::pinCheckoutTrackId()). */
+        $submittedTrackId = Tools::getValue(ApiClient::TRACK_ID_REQUEST_FIELD, '');
+
+        ApiClient::pinCheckoutTrackId(is_string($submittedTrackId) ? $submittedTrackId : '');
 
         $cart = $this->context->cart;
 
