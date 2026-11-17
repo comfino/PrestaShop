@@ -31,8 +31,7 @@ use Comfino\Shop\Order\CartTrait;
 
 /**
  * Exposes the protected CartTrait::getCartAsArray() helper to callers outside the API
- * Request hierarchy, so the paywall bootstrap data can carry the same cart shape the
- * v3 /paywall-product-details endpoint expects.
+ * Request hierarchy, so the paywall bootstrap data carries the same cart shape as the API requests.
  */
 final class PaywallCartSerializer
 {

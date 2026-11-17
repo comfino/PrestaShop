@@ -176,7 +176,7 @@ final class ConfigManager
     private const CONFIG_MANAGER_OPTIONS = ConfigurationManager::OPT_SERIALIZE_ARRAYS;
 
     private const REMOTE_FLAGS_CACHE_KEY = 'remote_flag_attributes';
-    // Daily fallback re-fetch for shops whose server rejects the backend's cache invalidation requests.
+    // Daily refresh as a fallback when cache invalidation does not reach the shop.
     private const REMOTE_FLAGS_MAX_TTL = 86400;
     private const REMOTE_FLAGS_FAILURE_TTL = 300;
     private const REMOTE_FLAG_NAME_PATTERN = '/^[A-Z0-9_]{1,64}$/';
@@ -482,8 +482,7 @@ final class ConfigManager
     }
 
     /**
-     * Frontend error-logging token signed with the error-logging access token, or an empty string when the widget key
-     * or the access token is missing (a failed token claim) - never a token signed with an empty key.
+     * Frontend error-logging token, or an empty string when it cannot be issued.
      */
     public static function getLoggingToken(): string
     {
@@ -544,7 +543,7 @@ final class ConfigManager
                 CacheManager::set(self::ERROR_LOGGING_TOKEN_COOLDOWN_CACHE_KEY, time(), self::ERROR_LOGGING_TOKEN_SHORT_LIVED_TTL);
             }
         } catch (\Throwable $e) {
-            // CETS token claim is best-effort: back off for a few minutes and keep a local debug record only.
+            // The error-logging token request is best-effort: back off for a few minutes and keep a local debug record only.
             DebugLogger::logEvent('[ERROR_LOGGING_TOKEN]', 'Token claim error', ['error_message' => $e->getMessage()]);
 
             CacheManager::set(self::ERROR_LOGGING_TOKEN_COOLDOWN_CACHE_KEY, time(), self::ERROR_LOGGING_TOKEN_FAILURE_TTL);
@@ -552,7 +551,7 @@ final class ConfigManager
     }
 
     /**
-     * Names of the flags enabled for the shop in the ComfinoPay CRM. Written by the CRM push and by the token claim header.
+     * Names of the flags enabled for the shop by ComfinoPay. Written by a ComfinoPay push or returned with the token response.
      *
      * @return string[]
      */
@@ -596,8 +595,8 @@ final class ConfigManager
     }
 
     /**
-     * Flag attributes from GET /user/settings/flags, cached under the "remote_flags" tag so the backend can invalidate
-     * them when the shop's promotion or flags change.
+     * Flag attributes from the ComfinoPay settings API, cached under the "remote_flags" tag so they can be invalidated
+     * when the shop's promotion or flags change.
      *
      * @return array<string, array<string, mixed>>
      */
@@ -618,7 +617,7 @@ final class ConfigManager
             $cacheTtl = $cacheTtl > 0 ? min($cacheTtl, self::REMOTE_FLAGS_MAX_TTL) : self::REMOTE_FLAGS_MAX_TTL;
 
             if (empty(self::getRemoteFlags()) && !empty($flagNames = array_diff(array_keys($flagAttributes), ['PROMO']))) {
-                // Seed the name list right after an upgrade, before the first CRM push or token claim.
+                // Seed the name list right after an upgrade, before the first push or token response.
                 self::updateConfigurationValue('COMFINO_REMOTE_FLAGS', array_values($flagNames));
             }
         } catch (\Throwable $e) {

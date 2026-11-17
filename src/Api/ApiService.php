@@ -46,10 +46,7 @@ if (!defined('_PS_VERSION_')) {
 final class ApiService
 {
     /**
-     * Minimal length of an API key accepted as a request signature secret.
-     *
-     * The error reporting request builder already refuses to key a MAC with anything shorter
-     * (ReportShopPluginError::MIN_HASH_KEY_LENGTH), so a value below this length cannot be a real ComfinoPay API key.
+     * Minimal length of an API key accepted as a request signing secret. A shorter value cannot be a real ComfinoPay API key.
      */
     private const MIN_API_KEY_LENGTH = 16;
 
@@ -59,9 +56,8 @@ final class ApiService
     /**
      * Removes API keys which must never be accepted as a request signature secret.
      *
-     * An unconfigured key slot holds null or an empty string, and a signature calculated with such a value
-     * collapses to a hash of the request body alone - something any caller can compute without knowing any
-     * secret at all. Empty slots are therefore dropped before they can be used for signature verification.
+     * An unconfigured key slot holds null or an empty string. Empty slots are dropped, so a request can never be
+     * verified against a missing secret.
      *
      * @param mixed[] $apiKeys
      *

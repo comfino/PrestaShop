@@ -52,8 +52,8 @@ final class SettingsManager
 {
     /**
      * Lifetime, in seconds, of the product types, widget types and creditors when the API names none (a missing, zero or
-     * negative `Comfino-Cache-TTL`, e.g. stripped by a proxy). `CacheManager::set()` treats 0 as "never expires", which
-     * would keep these lists until the next cache invalidation webhook.
+     * negative cache lifetime). `CacheManager::set()` treats 0 as "never expires", which would keep these lists until
+     * the next cache invalidation webhook.
      */
     private const FALLBACK_CACHE_TTL = 3600;
 
@@ -403,9 +403,9 @@ final class SettingsManager
 
     /**
      * Returns the normalized `COMFINO_ALLOWED_PRODUCTS_CONFIG` payload ready for both the paywall iframe bootstrap
-     * (frontend) and the backend `AllowedProductConfig` DTO builder. Drops entries whose `type` is missing or not
-     * a known `LoanTypeEnum`, ensures `terms` are positive ints, returns `null` when the result is empty, so the
-     * SDK's `?.length` short-circuit matches the "no restrictions" semantics.
+     * (frontend) and for API requests. Drops entries whose `type` is missing or not a known loan type, ensures `terms`
+     * are positive ints, returns `null` when the result is empty, so the SDK's `?.length` short-circuit matches the
+     * "no restrictions" semantics.
      *
      * @return array[]|null
      */
@@ -502,7 +502,7 @@ final class SettingsManager
     }
 
     /**
-     * The cache lifetime to use: the API's `Comfino-Cache-TTL` when positive, else {@see self::FALLBACK_CACHE_TTL}.
+     * The cache lifetime to use: the cache lifetime sent by the API when positive, else {@see self::FALLBACK_CACHE_TTL}.
      */
     private static function resolveCacheTtl(int $headerTtl): int
     {
