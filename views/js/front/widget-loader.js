@@ -12,46 +12,54 @@
 (() => {
     'use strict';
 
-    const configElement = document.getElementById('comfino-widget-config');
+    const run = () => {
+        const configElement = document.getElementById('comfino-widget-config');
 
-    if (!configElement) {
-        return;
-    }
-
-    const widgetScriptUrl = configElement.getAttribute('data-widget-script-url');
-    const sessionUrl = configElement.getAttribute('data-session-url');
-
-    const loadWidget = () => {
-        if (!widgetScriptUrl) {
+        if (!configElement) {
             return;
         }
 
-        const script = document.createElement('script');
-        script.src = widgetScriptUrl;
-        script.defer = true;
+        const widgetScriptUrl = configElement.getAttribute('data-widget-script-url');
+        const sessionUrl = configElement.getAttribute('data-session-url');
 
-        document.head.appendChild(script);
+        const loadWidget = () => {
+            if (!widgetScriptUrl) {
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = widgetScriptUrl;
+            script.defer = true;
+
+            document.head.appendChild(script);
+        };
+
+        if (!sessionUrl) {
+            loadWidget();
+
+            return;
+        }
+
+        fetch(sessionUrl, {credentials: 'same-origin', cache: 'no-store', headers: {'Accept': 'application/json'}})
+            .then((response) => (response.ok ? response.json() : {}))
+            .then((values) => {
+                const config = JSON.parse(configElement.textContent);
+
+                ['trackId', 'loggingToken'].forEach((key) => {
+                    if (values && typeof values[key] === 'string') {
+                        config[key] = values[key];
+                    }
+                });
+
+                configElement.textContent = JSON.stringify(config);
+            })
+            .catch(() => {})
+            .then(loadWidget);
     };
 
-    if (!sessionUrl) {
-        loadWidget();
-
-        return;
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', run);
+    } else {
+        run();
     }
-
-    fetch(sessionUrl, {credentials: 'same-origin', cache: 'no-store', headers: {'Accept': 'application/json'}})
-        .then((response) => (response.ok ? response.json() : {}))
-        .then((values) => {
-            const config = JSON.parse(configElement.textContent);
-
-            ['trackId', 'loggingToken'].forEach((key) => {
-                if (values && typeof values[key] === 'string') {
-                    config[key] = values[key];
-                }
-            });
-
-            configElement.textContent = JSON.stringify(config);
-        })
-        .catch(() => {})
-        .then(loadWidget);
 })();
