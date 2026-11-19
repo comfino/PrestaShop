@@ -26,7 +26,7 @@ PrestaShop payment module for ComfinoPay deferred payments gateway - installment
 
 ## Compatibility
 
-### Current version (4.4.0 — last PHP 7.1 compatible release line)
+### Current version (4.4.1 — last PHP 7.1 compatible release line)
 
 - **PrestaShop**: 1.6.x, 1.7.x, 8.x, 9.x (minimal supported version of PrestaShop is 1.6.1.11)
 - **PHP**: 7.1 or higher

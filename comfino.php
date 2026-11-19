@@ -37,11 +37,11 @@ if (!defined('COMFINO_MODULE_NAME')) {
 }
 
 if (!defined('COMFINO_VERSION')) {
-    define('COMFINO_VERSION', '4.4.0');
+    define('COMFINO_VERSION', '4.4.1');
 }
 
 if (!defined('COMFINO_BUILD_TS')) {
-    define('COMFINO_BUILD_TS', 1793199540);
+    define('COMFINO_BUILD_TS', 1794930302);
 }
 
 /* Notice: source code of this script MUST be compatible with PHP 5.6 syntax. */
@@ -55,7 +55,7 @@ class Comfino extends PaymentModule
     {
         $this->name = 'comfino';
         $this->tab = 'payments_gateways';
-        $this->version = '4.4.0';
+        $this->version = '4.4.1';
         $this->author = 'ComfinoPay';
         $this->module_key = '3d3e14c65281e816da083e34491d5a7f';
 
@@ -74,6 +74,7 @@ class Comfino extends PaymentModule
             'paywallitemdetails',
             'selection',
             'transactionstatus',
+            'widgetsession',
         ];
 
         parent::__construct();
@@ -286,16 +287,23 @@ class Comfino extends PaymentModule
                 return;
             }
 
-            /* Product-page widget via the CDN product widget script: register the deferred per-platform script and emit
-               the JSON config block it reads, directly in the page header. */
+            /* Product-page widget via the CDN product widget script: emit the JSON config block in the page header, then
+               the loader that fetches the per-visitor values (track ID, logging token) from an uncached endpoint, merges
+               them into the config and only then loads the widget script. The page may be served from a full-page cache. */
+            $configElement = Comfino\View\FrontendManager::renderWidgetConfigElement((int) $product->id);
+
+            if ($configElement === '') {
+                return;
+            }
+
             Comfino\Main::addScriptLink(
-                'comfino-widget',
-                Comfino\Configuration\ConfigManager::getProductWidgetScriptUrl(),
+                'comfino-widget-loader',
+                Comfino\View\FrontendManager::getLocalScriptUrl('widget-loader.js'),
                 'bottom',
                 'defer'
             );
 
-            return Comfino\View\FrontendManager::renderWidgetConfigElement((int) $product->id);
+            return $configElement;
         }
 
         if (in_array($controller, ['cart', 'order', 'checkout'])) {
@@ -335,7 +343,7 @@ class Comfino extends PaymentModule
         $isSandbox = Comfino\Configuration\ConfigManager::isSandboxMode();
         /* Same default-host-plus-dev-override resolution as ConfigManager::getLogoApiHost(), so the CSP allowlist
            matches whichever host the actual API calls use (COMFINO_DEV_API_HOST on dev/test environments), instead
-           of always falling back to the craty/production pair and blocking a custom sandbox host via connect-src. */
+           of always falling back to the default sandbox or production host and blocking a custom host via connect-src. */
         $apiDomain = Comfino\Configuration\ConfigManager::getApiHost(
             $isSandbox ? 'https://api-ecommerce.craty.pl' : 'https://api-ecommerce.comfino.pl'
         );

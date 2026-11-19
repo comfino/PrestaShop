@@ -432,10 +432,7 @@ final class Main
                 (string) ConfigManager::getApiKey()
             );
 
-            $loggingToken = PaywallAuthTokenGenerator::generateLoggingToken(
-                (string) ConfigManager::getWidgetKey(),
-                ConfigManager::getErrorLoggingAccessToken()
-            );
+            $loggingToken = ConfigManager::getLoggingToken();
 
             ApiClient::pinCheckoutTrackId();
 

@@ -26,6 +26,7 @@
 
 namespace Comfino\View;
 
+use Comfino\Api\ApiService;
 use Comfino\Api\HttpErrorExceptionInterface;
 use Comfino\Common\Frontend\ProductWidgetScriptHelper;
 use Comfino\Configuration\ConfigManager;
@@ -129,8 +130,8 @@ final class FrontendManager
                 'sdkScriptUrl' => ConfigManager::getSdkScriptUrl(),
                 'environment' => ConfigManager::isSandboxMode() ? 'sandbox' : 'production',
                 'widgetKey' => $settings['COMFINO_WIDGET_KEY'] ?? null,
-                'loggingToken' => $variables['LOGGING_TOKEN'] ?? null,
-                'trackId' => $variables['TRACK_ID'] ?? null,
+                /* No loggingToken / trackId here: the config is part of the (possibly full-page-cached) product page.
+                   The loader (views/js/front/widget-loader.js) merges the per-visitor values in. */
                 'trackingConsent' => (bool) ConfigManager::getConfigurationValue('COMFINO_PAYWALL_TRACKING_CONSENT'),
                 'widgetTargetSelector' => $settings['COMFINO_WIDGET_TARGET_SELECTOR'] ?? null,
                 'priceSelector' => $settings['COMFINO_WIDGET_PRICE_SELECTOR'] ?? null,
@@ -165,7 +166,12 @@ final class FrontendManager
                 return '';
             }
 
-            return '<script type="application/json" id="' . ProductWidgetScriptHelper::CONFIG_ELEMENT_ID . '">' . $json . '</script>';
+            /* The data attributes feed views/js/front/widget-loader.js, which merges the per-visitor values (track ID,
+               logging token) from the uncached session endpoint into the config and then loads the widget script. */
+            return '<script type="application/json" id="' . ProductWidgetScriptHelper::CONFIG_ELEMENT_ID . '" ' .
+                'data-widget-script-url="' . htmlspecialchars(ConfigManager::getProductWidgetScriptUrl(), ENT_QUOTES, 'UTF-8') . '" ' .
+                'data-session-url="' . htmlspecialchars(ApiService::getControllerUrl('widgetsession'), ENT_QUOTES, 'UTF-8') . '">' .
+                $json . '</script>';
         } catch (\Throwable $e) {
             self::processError('Widget config element', $e, null, null, null, '[ERROR]', OperationContext::WidgetRendering);
         }

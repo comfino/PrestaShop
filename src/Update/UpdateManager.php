@@ -37,14 +37,12 @@ if (!defined('_PS_VERSION_')) {
 /**
  * Manages update-availability checks for the plugin.
  *
- * The latest available release is resolved through the centralized ComfinoPay release API
- * (GET /v1/plugin-releases/{platform}/latest) instead of polling GitHub directly. The API returns the release of the
- * line compatible with this shop's PHP and PrestaShop version (derived from the client User-Agent), so the version we
- * compare against is always installable here.
+ * The latest available release is resolved through the ComfinoPay release API instead of polling GitHub directly.
+ * The API returns a release installable on this shop, so the version we compare against is always usable here.
  */
 class UpdateManager
 {
-    /** Base canonical platform slug polled on the ComfinoPay release API; the API resolves the concrete line by User-Agent. */
+    /** Platform slug sent to the ComfinoPay release API. */
     private const PLATFORM = 'prestashop';
     private const CACHE_KEY = 'comfino_github_version_check';
     private const LOCK_KEY = 'comfino_github_version_check_lock';

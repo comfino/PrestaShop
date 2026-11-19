@@ -65,8 +65,11 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             return;
         }
 
-        // Reuse the trackId minted during this checkout session's paywall render, if any (see ApiClient::pinCheckoutTrackId()).
-        ApiClient::pinCheckoutTrackId();
+        /* Create the order with the trackId of the paywall events: sent with the payment form by the frontend SDK, else
+           the one of this checkout session's paywall render, if any (see ApiClient::pinCheckoutTrackId()). */
+        $submittedTrackId = Tools::getValue(ApiClient::TRACK_ID_REQUEST_FIELD, '');
+
+        ApiClient::pinCheckoutTrackId(is_string($submittedTrackId) ? $submittedTrackId : '');
 
         $cart = $this->context->cart;
 
@@ -250,7 +253,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
 
         /* Create Order object with temporary ID for validation before validateOrder() call.
            This allows validation to occur before the cart is cleared by validateOrder(). */
-        $order = $this->createOrder($tempOrderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer, $promoCode);
+        $order = $this->createOrder($tempOrderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer, $promoCode, $directRedirect);
 
         // Perform comprehensive validation before validateOrder() to preserve cart on error.
         $validationErrors = $this->validatePaymentData($order, $cart);
@@ -330,7 +333,7 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         ]);
 
         // Create Order object with real order ID for ComfinoPay API.
-        $order = $this->createOrder($orderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer, $promoCode);
+        $order = $this->createOrder($orderId, $loanType, $loanTerm, $returnUrl, $shopCart, $shopCustomer, $promoCode, $directRedirect);
 
         try {
             $applicationUrl = ApiClient::getInstance()->createOrder($order)->applicationUrl;
@@ -346,6 +349,9 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
                    customer is sent to the module error page by the catch block below. */
                 throw new RuntimeException('Invalid payment application URL received from the ComfinoPay API.');
             }
+
+            // The order is created: the next checkout starts a new journey (own trackId).
+            ApiClient::releaseCheckoutTrackId();
 
             Tools::redirect($applicationUrl);
         } catch (Throwable $e) {
@@ -568,7 +574,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
         string $returnUrl,
         Comfino\Common\Shop\Cart $shopCart,
         Comfino\Shop\Order\Customer $shopCustomer,
-        ?string $promoCode = null
+        ?string $promoCode = null,
+        ?bool $directRedirect = null
     ): Order
     {
         return (new OrderFactory())->createOrder(
@@ -587,7 +594,8 @@ class ComfinoPaymentModuleFrontController extends ModuleFrontController
             $shopCart->getDeliveryTaxValue(),
             null,
             $this->buildAllowedProductsConfig(),
-            $promoCode
+            $promoCode,
+            $directRedirect
         );
     }
 
